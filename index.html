@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AImRUNNA | Training Platform Prototype</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://images.pexels.com" crossorigin />
+    <link rel="dns-prefetch" href="https://images.pexels.com" />
+    <link rel="preload" as="image" href="https://images.pexels.com/photos/20254928/pexels-photo-20254928.jpeg?auto=compress&cs=tinysrgb&fm=webp&q=76&w=1440" />
+    <link rel="preload" as="image" href="https://images.pexels.com/photos/2817059/pexels-photo-2817059.jpeg?auto=compress&cs=tinysrgb&fm=webp&q=76&w=1440" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="ambient ambient-grid" aria-hidden="true"></div>
+    <div class="ambient ambient-noise" aria-hidden="true"></div>
+    <div class="ambient ambient-glow glow-a" aria-hidden="true"></div>
+    <div class="ambient ambient-glow glow-b" aria-hidden="true"></div>
+    <nav class="lang-switch" aria-label="Language selector">
+      <button type="button" class="lang-btn is-active" data-lang="de" aria-label="Deutsch">DE</button>
+      <button type="button" class="lang-btn" data-lang="en" aria-label="English">EN</button>
+      <button type="button" class="lang-btn" data-lang="ja" aria-label="日本語">JP</button>
+    </nav>
+
+    <main class="site-shell">
+      <section class="scroll-stage" id="scroll-stage">
+        <div class="scroll-sticky">
+          <div class="brand-anchor" id="brand-anchor">
+            <div class="brand-row">
+              <div class="brand-mark" aria-hidden="true">
+                <span>A</span>
+              </div>
+              <div class="brand-copy">
+                <strong>AImRUNNA</strong>
+                <small>Planning Prototype</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="hero-layer photo-layer layer-back" data-parallax="-0.18">
+            <div class="photo-strip">
+              <article class="photo-card tall" style="--photo: url('https://images.pexels.com/photos/30476469/pexels-photo-30476469.jpeg?auto=compress&cs=tinysrgb&fm=webp&q=82&w=1200'); --photo-pos: 40% 86%; --photo-size: 132% auto;"></article>
+              <article class="photo-card wide" style="--photo: url('https://images.pexels.com/photos/2817059/pexels-photo-2817059.jpeg?auto=compress&cs=tinysrgb&fm=webp&q=80&w=1680'); --photo-pos: 50% 78%; --photo-size: cover;"></article>
+              <article class="photo-card square" style="--photo: url('https://images.pexels.com/photos/30476462/pexels-photo-30476462.jpeg?auto=compress&cs=tinysrgb&fm=webp&q=78&w=1080'); --photo-pos: 52% 84%; --photo-size: 118% auto;"></article>
+            </div>
+          </div>
+
+          <div class="hero-layer photo-layer layer-mid" data-parallax="0.07">
+            <div class="photo-strip alt">
+              <article class="photo-card wide" style="--photo: url('https://images.pexels.com/photos/20254928/pexels-photo-20254928.jpeg?auto=compress&cs=tinysrgb&fm=webp&q=80&w=1680'); --photo-pos: 54% 70%; --photo-size: cover;"></article>
+              <article class="photo-card tall" style="--photo: url('https://images.pexels.com/photos/30476469/pexels-photo-30476469.jpeg?auto=compress&cs=tinysrgb&fm=webp&q=80&w=1200'); --photo-pos: 54% 84%; --photo-size: 122% auto;"></article>
+              <article class="photo-card square" style="--photo: url('https://images.pexels.com/photos/30720140/pexels-photo-30720140.jpeg?auto=compress&cs=tinysrgb&fm=webp&q=78&w=1080'); --photo-pos: 52% 82%; --photo-size: 112% auto;"></article>
+            </div>
+          </div>
+
+          <div class="hero-layer center-layer landing-layer" id="landing-layer">
+            <section class="landing-panel">
+              <div class="landing-copy">
+                <h1 data-i18n="hero_title">Plan your next race.</h1>
+              </div>
+
+              <form id="plan-form" class="intake-form">
+                <div class="quick-grid quick-grid-minimal">
+                  <label class="field is-select">
+                    <span data-i18n="field_discipline">Disziplin</span>
+                    <select name="discipline" required>
+                      <option value="running">Laufen</option>
+                      <option value="triathlon" selected>Triathlon</option>
+                      <option value="cycling">Rad</option>
+                    </select>
+                  </label>
+
+                  <label class="field is-select">
+                    <span data-i18n="field_goal_format">Ziel-Format</span>
+                    <select name="goalDistance" id="goal-distance-select" required>
+                      <option value="sprint">Sprint Triathlon</option>
+                      <option value="olympic" selected>Olympic Triathlon</option>
+                      <option value="703">70.3</option>
+                      <option value="ironman">Ironman</option>
+                    </select>
+                  </label>
+
+                  <label class="field">
+                    <span data-i18n="field_goal_time">Zielzeit</span>
+                    <input type="text" name="goalTime" value="2:59:00" placeholder="2:59:00" required />
+                  </label>
+                </div>
+
+                <button type="button" id="advanced-toggle" class="advanced-toggle" aria-expanded="false" aria-controls="advanced-settings" data-i18n="btn_tuning">
+                  Feintuning
+                </button>
+
+                <div id="advanced-settings" class="advanced-settings" hidden>
+                  <div class="advanced-grid">
+                    <label class="field is-select">
+                      <span data-i18n="field_level">Level</span>
+                      <select name="fitnessLevel" required>
+                        <option value="starter">Einsteiger</option>
+                        <option value="intermediate" selected>Fortgeschritten</option>
+                        <option value="advanced">Sehr fit</option>
+                      </select>
+                    </label>
+
+                    <label class="field is-select">
+                      <span data-i18n="field_experience">Erfahrung</span>
+                      <select name="experience" required>
+                        <option value="lt1">Unter 1 Jahr</option>
+                        <option value="1to3" selected>1-3 Jahre</option>
+                        <option value="3to5">3-5 Jahre</option>
+                        <option value="5plus">5+ Jahre</option>
+                      </select>
+                    </label>
+
+                    <label class="field">
+                      <span data-i18n="field_hours">Std/Woche</span>
+                      <input type="number" name="weeklyHours" min="2" max="30" step="1" value="8" required />
+                    </label>
+
+                    <label class="field">
+                      <span>Race Date</span>
+                      <input type="date" name="raceDate" required />
+                    </label>
+
+                    <label class="field">
+                      <span>Constraints</span>
+                      <input type="text" name="constraints" placeholder="z. B. Long Run nur Sonntag" />
+                    </label>
+
+                    <label class="field is-select">
+                      <span data-i18n="field_sex_optional">Geschlecht (optional)</span>
+                      <select name="sex">
+                        <option value="" selected>Optional</option>
+                        <option value="female">Female</option>
+                        <option value="male">Male</option>
+                        <option value="nonbinary">Non-binary</option>
+                      </select>
+                    </label>
+
+                    <label class="field">
+                      <span data-i18n="field_age_optional">Alter (optional)</span>
+                      <input type="number" name="age" min="14" max="90" step="1" placeholder="z. B. 32" />
+                    </label>
+
+                    <label class="field">
+                      <span data-i18n="field_weight_optional">Gewicht kg (optional)</span>
+                      <input type="number" name="weightKg" min="35" max="180" step="0.1" placeholder="z. B. 68.5" />
+                    </label>
+
+                    <div class="field field-checkbox" id="cycle-training-field">
+                      <span data-i18n="field_cycle_optional">Zyklusbasiertes Training (optional)</span>
+                      <label class="checkbox-row" for="cycle-based-training">
+                        <input id="cycle-based-training" type="checkbox" name="cycleBasedTraining" />
+                        <span data-i18n="field_cycle_toggle">Zyklusbasierte Planung berücksichtigen</span>
+                      </label>
+                    </div>
+
+                    <div class="cycle-detail-group" id="cycle-detail-group" hidden>
+                      <label class="field">
+                        <span data-i18n="field_cycle_day_optional">Zyklustag (optional)</span>
+                        <input type="number" name="cycleDay" min="1" max="35" step="1" placeholder="z. B. 14" />
+                      </label>
+
+                      <label class="field">
+                        <span data-i18n="field_cycle_length_optional">Ø Zykluslänge Tage (optional)</span>
+                        <input type="number" name="cycleLengthDays" min="21" max="40" step="1" placeholder="z. B. 28" />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="landing-actions">
+                  <button type="submit" class="cta cta-race" data-i18n="btn_generate">race.</button>
+                </div>
+              </form>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <section class="content-shell">
+        <section class="surface section-calendar stage-reveal">
+          <div class="surface-head">
+            <div>
+              <p class="micro-label">01 / Trainingsplan</p>
+              <h3 data-i18n="section_calendar">Wochenkalender</h3>
+            </div>
+            <div class="inline-actions">
+              <button id="export-ical" type="button" class="ghost" disabled>iCal Download</button>
+            </div>
+          </div>
+
+          <div class="result-card result-calendar-card stage-reveal">
+            <div class="result-title-row">
+              <h4 data-i18n="calendar_view">Kalenderansicht</h4>
+            </div>
+            <div id="plan-meta" class="plan-meta">Noch kein Plan generiert.</div>
+            <div id="calendar-view" class="calendar-list" aria-live="polite"></div>
+          </div>
+        </section>
+
+        <section class="surface section-data stage-reveal">
+          <div class="surface-head">
+            <div>
+              <p class="micro-label">02 / Data & Analysis</p>
+              <h3 data-i18n="section_fitness">Aktueller Fitnessstand</h3>
+            </div>
+            <span class="status-dot">Analysis</span>
+          </div>
+
+          <div class="data-grid">
+            <section class="result-card data-connect-card stage-reveal">
+              <div class="result-title-row">
+                <h4>Quellen verbinden</h4>
+                <span class="tag">MVP Mock</span>
+              </div>
+              <p class="card-copy">
+                Garmin, Strava und Whoop werden später per OAuth verbunden und liefern die
+                Basis für Readiness-, Ermüdungs- und Leistungsanalyse.
+              </p>
+              <div class="connectors">
+                <button type="button" class="connector" data-source="Garmin">Garmin</button>
+                <button type="button" class="connector" data-source="Strava">Strava</button>
+                <button type="button" class="connector" data-source="Whoop">Whoop</button>
+              </div>
+                <div id="connection-state" class="connection-state" aria-live="polite">
+                  Noch keine Quelle verbunden.
+                </div>
+            </section>
+
+            <section class="result-card metrics-card stage-reveal">
+              <div class="result-title-row">
+                <h4>Performance Snapshot</h4>
+                <span class="tag subtle">90 Tage</span>
+              </div>
+              <div class="metric-grid">
+                <div class="metric"><span>VO2max</span><strong id="metric-vo2">-</strong></div>
+                <div class="metric"><span>Fitness</span><strong id="metric-fitness">-</strong></div>
+                <div class="metric"><span>Ermüdung</span><strong id="metric-fatigue">-</strong></div>
+                <div class="metric"><span>Freshness</span><strong id="metric-freshness">-</strong></div>
+                <div class="metric"><span>Readiness</span><strong id="metric-readiness">-</strong></div>
+              </div>
+            </section>
+          </div>
+
+          <section class="result-card analytics-chart-card stage-reveal">
+            <div class="result-title-row">
+              <h4>Fitness / Fatigue / Freshness / Readiness / VO2max</h4>
+              <div class="chart-legend">
+                <span class="legend-item fit">Fitness</span>
+                <span class="legend-item fatigue">Fatigue</span>
+                <span class="legend-item fresh">Freshness</span>
+                <span class="legend-item ready">Readiness</span>
+                <span class="legend-item vo2">VO2max</span>
+              </div>
+            </div>
+            <div class="chart-wrap">
+              <svg id="fitness-chart" viewBox="0 0 960 320" role="img" aria-label="Performance Trend Chart"></svg>
+            </div>
+          </section>
+
+          <section class="result-card deep-metrics-card stage-reveal">
+            <div class="result-title-row">
+              <h4>Recovery & Performance Details</h4>
+              <span class="tag subtle">Extended</span>
+            </div>
+            <div class="deep-metric-grid">
+              <div class="deep-metric" data-spark-kind="hrv"><span>HRV Baseline</span><strong id="metric-hrv-baseline">-</strong><small id="metric-hrv-current">Current: -</small><svg class="mini-spark" viewBox="0 0 120 30" aria-hidden="true"></svg></div>
+              <div class="deep-metric" data-spark-kind="rhr"><span>Resting HR Trend</span><strong id="metric-rhr-trend">-</strong><small id="metric-rhr-value">RHR: - bpm</small><svg class="mini-spark" viewBox="0 0 120 30" aria-hidden="true"></svg></div>
+              <div class="deep-metric" data-spark-kind="load"><span>Acute / Chronic Load</span><strong id="metric-load-ratio">-</strong><small id="metric-load-abs">7d: - / 42d: -</small><svg class="mini-spark" viewBox="0 0 120 30" aria-hidden="true"></svg></div>
+              <div class="deep-metric" data-spark-kind="strain"><span>Monotony / Strain</span><strong id="metric-monotony">-</strong><small id="metric-strain">Strain: -</small><svg class="mini-spark" viewBox="0 0 120 30" aria-hidden="true"></svg></div>
+              <div class="deep-metric" data-spark-kind="sleep"><span>Sleep Score</span><strong id="metric-sleep-score">-</strong><small id="metric-sleep-duration">Sleep: -</small><svg class="mini-spark" viewBox="0 0 120 30" aria-hidden="true"></svg></div>
+              <div class="deep-metric" data-spark-kind="threshold"><span>Threshold Pace / HR</span><strong id="metric-threshold-pace">-</strong><small id="metric-threshold-hr">HR: - bpm</small><svg class="mini-spark" viewBox="0 0 120 30" aria-hidden="true"></svg></div>
+              <div class="deep-metric" data-spark-kind="longrun"><span>Long-Run Tolerance</span><strong id="metric-longrun-tolerance">-</strong><small id="metric-longrun-context">Stability: -</small><svg class="mini-spark" viewBox="0 0 120 30" aria-hidden="true"></svg></div>
+              <div class="deep-metric" data-spark-kind="race"><span>Race Prediction Trend</span><strong id="metric-race-trend">-</strong><small id="metric-race-delta">Delta 90d: -</small><svg class="mini-spark" viewBox="0 0 120 30" aria-hidden="true"></svg></div>
+            </div>
+          </section>
+
+          <section class="result-card prediction-card stage-reveal">
+            <div class="result-title-row">
+              <h4>Predicted Race Splits</h4>
+              <span class="tag subtle">Model Preview</span>
+            </div>
+            <div class="prediction-grid">
+              <div class="prediction-item" data-spark-kind="pred-a"><span id="pred-label-a">Sprint</span><strong id="pred-sprint">-</strong><svg class="mini-spark" viewBox="0 0 120 30" aria-hidden="true"></svg></div>
+              <div class="prediction-item" data-spark-kind="pred-b"><span id="pred-label-b">Olympic</span><strong id="pred-olympic">-</strong><svg class="mini-spark" viewBox="0 0 120 30" aria-hidden="true"></svg></div>
+              <div class="prediction-item" data-spark-kind="pred-c"><span id="pred-label-c">70.3</span><strong id="pred-703">-</strong><svg class="mini-spark" viewBox="0 0 120 30" aria-hidden="true"></svg></div>
+              <div class="prediction-item" data-spark-kind="pred-d"><span id="pred-label-d">Ironman</span><strong id="pred-ironman">-</strong><svg class="mini-spark" viewBox="0 0 120 30" aria-hidden="true"></svg></div>
+            </div>
+          </section>
+
+          <section class="result-card result-analysis-card stage-reveal">
+            <div class="result-title-row">
+              <h4>Status-quo Analyse</h4>
+              <span class="tag subtle">Interpretation</span>
+            </div>
+            <div id="status-analysis" class="analysis">
+              Verbinde Datenquellen und generiere einen Plan, dann zeigen wir eine erste Analyse
+              inklusive Trends für Fitness, Ermüdung, Freshness, Training Readiness und VO2max.
+            </div>
+          </section>
+        </section>
+      </section>
+    </main>
+
+    <template id="week-template">
+      <article class="week-card">
+        <div class="week-head">
+          <div>
+            <p class="week-label"></p>
+            <h4 class="week-focus"></h4>
+          </div>
+          <div class="week-load"></div>
+        </div>
+        <div class="day-grid"></div>
+      </article>
+    </template>
+
+    <div id="session-overlay" class="session-overlay" hidden>
+      <div class="session-overlay-backdrop" data-close-overlay></div>
+      <article class="session-modal-card" role="dialog" aria-modal="true" aria-labelledby="session-modal-title">
+        <button type="button" class="session-modal-close" data-close-overlay aria-label="Close">×</button>
+        <div class="session-modal-head">
+          <div class="session-modal-meta" id="session-modal-meta"></div>
+          <h4 id="session-modal-title"></h4>
+          <p id="session-modal-sub"></p>
+        </div>
+        <div class="session-modal-grid">
+          <div class="session-modal-block">
+            <span id="session-label-purpose">Zweck</span>
+            <strong id="session-modal-purpose"></strong>
+          </div>
+          <div class="session-modal-block">
+            <span id="session-label-adaptation">Trainingseffekt</span>
+            <strong id="session-modal-adaptation"></strong>
+          </div>
+          <div class="session-modal-block">
+            <span id="session-label-physiology">Physio-Fokus</span>
+            <strong id="session-modal-physiology"></strong>
+          </div>
+          <div class="session-modal-block">
+            <span id="session-label-why">Warum jetzt</span>
+            <strong id="session-modal-why"></strong>
+          </div>
+          <div class="session-modal-block" id="session-cycle-block" hidden>
+            <span id="session-label-cycle">Cycle Note</span>
+            <strong id="session-modal-cycle"></strong>
+          </div>
+        </div>
+        <div class="session-modal-nutrition">
+          <div class="session-modal-kcal">
+            <span id="session-label-kcal">Tageskalorien</span>
+            <strong id="session-modal-kcal">-</strong>
+          </div>
+          <div class="session-modal-macros">
+            <div class="macro-chip" id="macro-carb" title="Carbs">
+              <span class="macro-icon">⚡</span>
+              <strong id="session-modal-carb">-</strong>
+            </div>
+            <div class="macro-chip" id="macro-protein" title="Protein">
+              <span class="macro-icon">◼</span>
+              <strong id="session-modal-protein">-</strong>
+            </div>
+            <div class="macro-chip" id="macro-fat" title="Fat">
+              <span class="macro-icon">◐</span>
+              <strong id="session-modal-fat">-</strong>
+            </div>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+  </html>
