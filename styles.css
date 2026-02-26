@@ -2633,6 +2633,11 @@ body.has-output .section-data { border-color: rgba(255, 255, 255, 0.1); }
 }
 
 @media (max-width: 760px) {
+  body.app-view-profile .content-shell,
+  body.app-view-crew .content-shell {
+    margin-top: 92px;
+  }
+
   .scroll-stage {
     height: auto;
     min-height: 100svh;
@@ -2652,44 +2657,54 @@ body.has-output .section-data { border-color: rgba(255, 255, 255, 0.1); }
     inset: auto;
     transform: none !important;
     opacity: 1 !important;
-    padding-top: clamp(74px, 11svh, 96px);
+    padding-top: clamp(96px, 14svh, 120px);
     z-index: 2;
   }
 
   .brand-anchor {
     left: 12px;
-    top: 12px;
+    top: 14px;
+    max-width: calc(100vw - 112px);
   }
 
   .lang-switch {
-    top: 10px;
+    top: 12px;
     right: 10px;
+    transform: scale(0.94);
+    transform-origin: top right;
   }
 
   .account-bar {
-    top: 84px;
-    left: 10px;
-    right: 10px;
-    gap: 4px;
-    max-width: calc(100vw - 20px);
+    top: 102px;
+    left: 12px;
+    right: 12px;
+    gap: 3px 4px;
+    max-width: calc(100vw - 24px);
     justify-content: flex-start;
+    align-items: center;
+    padding-right: 2px;
   }
 
   .account-pill {
-    padding-inline: 8px;
-    max-width: 92px;
+    height: 26px;
+    padding-inline: 7px;
+    max-width: 84px;
+    font-size: 10px;
+    letter-spacing: 0.06em;
   }
 
   .account-btn {
     min-width: 0;
-    padding: 0 8px;
-    letter-spacing: 0.06em;
+    height: 26px;
+    padding: 0 6px;
+    letter-spacing: 0.04em;
     font-size: 10px;
+    white-space: nowrap;
   }
 
   .landing-panel {
-    width: calc(100vw - 14px);
-    padding: 62px 12px 12px;
+    width: calc(100vw - 16px);
+    padding: 72px 10px 12px;
   }
 
   .landing-copy h1 {
@@ -2706,14 +2721,86 @@ body.has-output .section-data { border-color: rgba(255, 255, 255, 0.1); }
     grid-template-columns: 1fr;
   }
 
+  .advanced-grid {
+    gap: 8px;
+  }
+
+  .account-section-tabs {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    margin-bottom: 12px;
+    padding-bottom: 6px;
+  }
+
+  .account-section-tab {
+    height: 30px;
+    padding: 0 6px;
+    text-align: center;
+  }
+
   .profile-pane-toolbar {
     flex-direction: column;
     align-items: stretch;
+    margin-bottom: 12px;
   }
 
   .profile-view-tabs {
     width: 100%;
-    justify-content: space-between;
+    justify-content: stretch;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2px;
+    padding: 2px;
+  }
+
+  .profile-view-tab {
+    width: 100%;
+    padding: 0 6px;
+    letter-spacing: 0.05em;
+  }
+
+  .profile-settings-rail-card {
+    top: auto;
+  }
+
+  .profile-settings-nav {
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+  }
+
+  .profile-settings-nav-btn {
+    min-height: 34px;
+    font-size: 11px;
+    padding: 8px 9px;
+  }
+
+  .profile-settings-card,
+  .profile-main-card {
+    padding: 10px;
+  }
+
+  .activity-meta-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .account-inline-actions {
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .account-inline-actions .ghost {
+    min-height: 30px;
+    padding-inline: 10px;
+  }
+
+  .saved-plan-item,
+  .account-search-item,
+  .activity-card,
+  .friend-item {
+    padding: 10px;
   }
 
   .glossary-toolbar {
@@ -2722,6 +2809,58 @@ body.has-output .section-data { border-color: rgba(255, 255, 255, 0.1); }
 
   .legal-nav {
     grid-template-columns: 1fr;
+    gap: 2px;
+    padding-right: 0;
+  }
+
+  .legal-nav-btn {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    color: rgba(255,255,255,0.8);
+    padding: 10px 0;
+  }
+
+  .legal-nav-btn.is-active {
+    background: transparent;
+    border-color: rgba(255,255,255,0.14);
+  }
+
+  .site-footer {
+    margin-top: 24px;
+    padding: 14px 12px 20px;
+    gap: 12px;
+  }
+
+  .footer-brand {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .footer-links {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .footer-link {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: rgba(255,255,255,0.76);
+    text-align: left;
+    padding: 8px 0;
+    font-size: 11px;
+    letter-spacing: 0.02em;
+  }
+
+  .footer-link:hover {
+    border-color: transparent;
   }
 
   .cycle-detail-group {
@@ -2749,13 +2888,26 @@ body.has-output .section-data { border-color: rgba(255, 255, 255, 0.1); }
   }
 
   .content-shell {
-    margin-top: -3svh;
+    margin-top: -1svh;
     padding-inline: 10px;
   }
 
   .surface {
     border-radius: 16px;
     padding: 12px;
+  }
+
+  .surface-head {
+    gap: 6px;
+  }
+
+  .surface-head h3 {
+    font-size: 20px;
+    line-height: 1.06;
+  }
+
+  .surface-head .micro-label {
+    font-size: 10px;
   }
 
   #plan-overview-svg {
@@ -2803,6 +2955,12 @@ body.has-output .section-data { border-color: rgba(255, 255, 255, 0.1); }
   .week-head {
     flex-direction: column;
     align-items: start;
+  }
+
+  .legal-modal-card,
+  .glossary-modal-card {
+    width: min(100vw - 12px, 980px);
+    max-height: min(90svh, 920px);
   }
 }
 
