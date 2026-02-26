@@ -23,6 +23,18 @@
       <button type="button" class="lang-btn" data-lang="en" aria-label="English">EN</button>
       <button type="button" class="lang-btn" data-lang="ja" aria-label="日本語">JP</button>
     </nav>
+    <div class="account-bar" id="account-bar" aria-live="polite">
+      <div class="account-pill" id="account-pill">
+        <span class="account-dot"></span>
+        <span id="account-label">Guest</span>
+      </div>
+      <button type="button" class="account-btn is-active" id="account-home-btn">Home</button>
+      <button type="button" class="account-btn" id="account-profile-btn">Profil</button>
+      <button type="button" class="account-btn" id="account-crew-btn">Crew</button>
+      <button type="button" class="account-btn" id="account-login-btn">Login</button>
+      <button type="button" class="account-btn" id="account-register-btn">Create</button>
+      <button type="button" class="account-btn" id="account-logout-btn" hidden>Logout</button>
+    </div>
 
     <main class="site-shell">
       <section class="scroll-stage" id="scroll-stage">
@@ -200,6 +212,175 @@
           </div>
         </section>
 
+        <section class="surface section-account stage-reveal" id="crew-section">
+          <div class="surface-head">
+            <div>
+              <p class="micro-label">01B / Account</p>
+              <h3>Profil & Crew</h3>
+            </div>
+            <span class="status-dot">Sync Ready</span>
+          </div>
+
+          <div class="account-section-tabs" role="tablist" aria-label="Profil und Crew">
+            <button type="button" class="account-section-tab is-active" id="account-tab-profile" data-account-section="profile">Profil</button>
+            <button type="button" class="account-section-tab" id="account-tab-crew" data-account-section="crew">Crew</button>
+          </div>
+
+          <div class="account-pane is-active" id="account-pane-profile">
+          <div class="account-grid">
+            <section class="result-card account-card">
+              <div class="result-title-row">
+                <h4>Profil</h4>
+                <span class="tag subtle" id="account-status-tag">Guest</span>
+              </div>
+              <p class="card-copy" id="account-status-copy">
+                Erstelle einen Account, um Trainingspläne zu speichern, Quellen zu verbinden und Freunde hinzuzufügen.
+              </p>
+              <div class="account-inline-actions">
+                <button type="button" class="ghost" id="account-open-login">Login</button>
+                <button type="button" class="ghost" id="account-open-register">Account erstellen</button>
+                <button type="button" class="ghost" id="save-plan-btn" disabled>Plan speichern</button>
+              </div>
+              <div class="profile-identity">
+                <label class="profile-avatar-upload" for="profile-avatar-input">
+                  <span id="profile-avatar-preview" class="profile-avatar-preview">A</span>
+                  <span class="ghost">Profilbild</span>
+                </label>
+                <input id="profile-avatar-input" type="file" accept="image/*" hidden />
+              </div>
+            </section>
+
+            <section class="result-card account-card">
+              <div class="result-title-row">
+                <h4>Gespeicherte Pläne</h4>
+                <span class="tag subtle" id="saved-plan-count">0</span>
+              </div>
+              <div id="saved-plans-list" class="saved-plan-list">
+                <div class="empty-copy">Noch keine gespeicherten Pläne.</div>
+              </div>
+            </section>
+
+            <section class="result-card account-card account-stats-card">
+              <div class="result-title-row">
+                <h4>Profile Stats</h4>
+                <span class="tag subtle" id="profile-points-badge">0 pts</span>
+              </div>
+              <div class="profile-stats-grid">
+                <div class="profile-stat"><span>Run</span><strong id="profile-stat-run-km">0 km</strong></div>
+                <div class="profile-stat"><span>Bike</span><strong id="profile-stat-bike-km">0 km</strong></div>
+                <div class="profile-stat"><span>Swim</span><strong id="profile-stat-swim-km">0 km</strong></div>
+                <div class="profile-stat"><span>Races</span><strong id="profile-stat-races">0</strong></div>
+                <div class="profile-stat"><span>Props</span><strong id="profile-stat-props">0</strong></div>
+                <div class="profile-stat"><span>Total Points</span><strong id="profile-stat-points">0</strong></div>
+              </div>
+            </section>
+
+            <section class="result-card account-card account-post-card">
+              <div class="result-title-row">
+                <h4>Neue Aktivität</h4>
+                <span class="tag subtle">Post</span>
+              </div>
+              <form id="activity-post-form" class="activity-post-form">
+                <div class="activity-type-toggle" role="radiogroup" aria-label="Aktivitätstyp">
+                  <label class="activity-type-chip">
+                    <input type="radio" name="activityKind" value="training" checked />
+                    <span>Training</span>
+                  </label>
+                  <label class="activity-type-chip activity-type-chip-race">
+                    <input type="radio" name="activityKind" value="race" />
+                    <span>race.</span>
+                  </label>
+                </div>
+                <div class="activity-meta-row">
+                  <label class="field is-select">
+                    <span>Sport</span>
+                    <select name="sportType">
+                      <option value="run">Run</option>
+                      <option value="bike">Bike</option>
+                      <option value="swim">Swim</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    <span>Distanz (km)</span>
+                    <input type="number" name="distanceKm" min="0" step="0.1" placeholder="z. B. 12.4" />
+                  </label>
+                </div>
+                <input type="text" name="title" placeholder="z. B. Threshold Run in der City" required />
+                <textarea name="note" rows="3" placeholder="Wie lief die Einheit? Gefühl, Pace, Learnings ..."></textarea>
+                <div class="activity-post-row">
+                  <input type="file" name="image" accept="image/*" />
+                  <button type="submit" class="ghost">Posten</button>
+                </div>
+              </form>
+            </section>
+
+            <section class="result-card account-card account-feed-card account-social-card">
+              <div class="result-title-row">
+                <h4>Mein Feed</h4>
+                <span class="tag subtle" id="profile-feed-count">0</span>
+              </div>
+              <div id="profile-feed-list" class="activity-feed-list">
+                <div class="empty-copy">Noch keine Aktivitäten gepostet.</div>
+              </div>
+            </section>
+          </div>
+          </div>
+
+          <div class="account-pane" id="account-pane-crew">
+          <div class="account-grid">
+            <section class="result-card account-card">
+              <div class="result-title-row">
+                <h4>Friends Connect</h4>
+                <span class="tag subtle">MVP</span>
+              </div>
+              <form id="friend-form" class="friend-form">
+                <input type="email" name="friendEmail" placeholder="friend@email.com" />
+                <button type="submit" class="ghost">Verbinden</button>
+              </form>
+              <div id="friends-list" class="friends-list">
+                <div class="empty-copy">Noch keine Verbindungen.</div>
+              </div>
+            </section>
+
+            <section class="result-card account-card">
+              <div class="result-title-row">
+                <h4>Crew Ranking</h4>
+                <span class="tag subtle" id="crew-ranking-count">0</span>
+              </div>
+              <div id="crew-ranking-list" class="friends-list">
+                <div class="empty-copy">Keine Crew-Daten vorhanden.</div>
+              </div>
+            </section>
+
+            <section class="result-card account-card account-social-card">
+              <div class="result-title-row">
+                <h4>Crew Search</h4>
+                <span class="tag subtle" id="crew-result-count">0</span>
+              </div>
+              <p class="card-copy">Suche andere Accounts, verbinde dich und sieh später gemeinsame Aktivitäten / Pläne.</p>
+              <form id="account-search-form" class="friend-form">
+                <input type="search" name="query" placeholder="Accounts suchen (E-Mail / Name)" />
+                <button type="submit" class="ghost">Suchen</button>
+              </form>
+              <div id="account-search-results" class="friends-list">
+                <div class="empty-copy">Suche nach einem Account, um dich zu verbinden.</div>
+              </div>
+            </section>
+
+            <section class="result-card account-card account-social-card">
+              <div class="result-title-row">
+                <h4>Crew Feed</h4>
+                <span class="tag subtle" id="crew-feed-count">0</span>
+              </div>
+              <div id="crew-feed-list" class="activity-feed-list">
+                <div class="empty-copy">Verbinde dich mit deiner Crew, um ihren Feed zu sehen.</div>
+              </div>
+            </section>
+          </div>
+          </div>
+        </section>
+
         <section class="surface section-data stage-reveal">
           <div class="surface-head">
             <div>
@@ -371,6 +552,37 @@
       </article>
     </div>
 
+    <div id="account-modal" class="account-modal" hidden>
+      <div class="account-modal-backdrop" data-close-account-modal></div>
+      <article class="account-modal-card" role="dialog" aria-modal="true" aria-labelledby="account-modal-title">
+        <button type="button" class="session-modal-close" data-close-account-modal aria-label="Close">×</button>
+        <div class="result-title-row">
+          <h4 id="account-modal-title">Account</h4>
+          <div class="account-auth-tabs">
+            <button type="button" class="account-tab is-active" data-auth-mode="login">Login</button>
+            <button type="button" class="account-tab" data-auth-mode="register">Create</button>
+          </div>
+        </div>
+        <form id="account-form" class="account-form">
+          <label class="field">
+            <span>E-Mail</span>
+            <input type="email" name="email" required placeholder="you@email.com" />
+          </label>
+          <label class="field">
+            <span>Passwort</span>
+            <input type="password" name="password" required minlength="6" placeholder="mind. 6 Zeichen" />
+          </label>
+          <div class="account-inline-actions">
+            <button type="submit" class="cta cta-race" id="account-submit-btn">login</button>
+            <span class="connection-state" id="account-form-status" aria-live="polite"></span>
+          </div>
+          <p class="micro-copy">
+            MVP Hinweis: Accounts laufen aktuell lokal im Browser (LocalStorage), bis das Backend/OAuth live ist.
+          </p>
+        </form>
+      </article>
+    </div>
+
     <script src="./app.js"></script>
   </body>
-  </html>
+</html>

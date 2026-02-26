@@ -34,6 +34,27 @@ body {
   overflow-x: hidden;
 }
 
+body.app-view-home .section-account,
+body.app-view-home .section-data {
+  display: none;
+}
+
+body.app-view-profile .scroll-stage,
+body.app-view-profile .section-calendar {
+  display: none;
+}
+
+body.app-view-crew .scroll-stage,
+body.app-view-crew .section-calendar,
+body.app-view-crew .section-data {
+  display: none;
+}
+
+body.app-view-profile .content-shell,
+body.app-view-crew .content-shell {
+  margin-top: 68px;
+}
+
 .lang-switch {
   position: fixed;
   top: 14px;
@@ -45,6 +66,99 @@ body {
   border-top: 1px solid rgba(255, 255, 255, 0.16);
   border-bottom: 1px solid rgba(255, 255, 255, 0.16);
   background: transparent;
+}
+
+.account-bar {
+  position: fixed;
+  top: 48px;
+  right: 14px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.account-pill {
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.account-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.32);
+}
+
+body.is-authenticated .account-dot {
+  background: #9aff80;
+  box-shadow: 0 0 0 4px rgba(154, 255, 128, 0.12);
+}
+
+.account-btn {
+  height: 28px;
+  padding: 0 10px;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.account-btn:hover {
+  color: #fff;
+}
+
+.account-btn.is-active {
+  color: #fff;
+}
+
+#account-crew-btn {
+  color: rgba(154, 255, 128, 0.9);
+}
+
+.account-section-tabs {
+  display: inline-flex;
+  gap: 4px;
+  margin: 0 0 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 8px;
+}
+
+.account-section-tab {
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.48);
+  padding: 0 8px;
+  height: 28px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.account-section-tab.is-active {
+  color: #fff;
+}
+
+.account-pane {
+  display: none;
+}
+
+.account-pane.is-active {
+  display: block;
 }
 
 .lang-btn {
@@ -641,6 +755,389 @@ select {
   gap: 12px;
 }
 
+.account-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 1.15fr 0.9fr;
+  gap: 12px;
+}
+
+.account-social-card {
+  grid-column: 1 / -1;
+}
+
+.account-post-card {
+  grid-column: span 2;
+}
+
+.account-feed-card {
+  grid-column: 1 / -1;
+}
+
+.account-stats-card {
+  grid-column: span 2;
+}
+
+.account-card .card-copy {
+  margin-top: 8px;
+}
+
+.profile-identity {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.profile-avatar-upload {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.profile-avatar-preview {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  background-size: cover;
+  background-position: center;
+}
+
+.profile-avatar-preview.has-image {
+  color: transparent;
+}
+
+.account-inline-actions {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.saved-plan-list,
+.friends-list {
+  margin-top: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.saved-plan-item,
+.friend-item,
+.account-search-item {
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.01);
+  padding: 10px;
+}
+
+.saved-plan-item strong,
+.friend-item strong,
+.account-search-item strong {
+  display: block;
+  font-size: 13px;
+  letter-spacing: -0.02em;
+}
+
+.saved-plan-item small,
+.friend-item small,
+.account-search-item small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.saved-plan-item button {
+  margin-top: 8px;
+}
+
+.friend-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+.activity-post-form {
+  margin-top: 8px;
+  display: grid;
+  gap: 8px;
+}
+
+.activity-meta-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.activity-post-form textarea {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.008);
+  color: var(--text);
+  padding: 10px 12px;
+  resize: vertical;
+  min-height: 72px;
+}
+
+.activity-post-form textarea:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.016);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.03);
+}
+
+.activity-post-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.account-search-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.account-search-actions {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.activity-type-toggle {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.activity-type-chip {
+  cursor: pointer;
+}
+
+.activity-type-chip input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.activity-type-chip span {
+  height: 28px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.64);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: rgba(255, 255, 255, 0.012);
+}
+
+.activity-type-chip input:checked + span {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.activity-type-chip-race input:checked + span {
+  color: #000;
+  background: #fff;
+  border-color: #fff;
+  text-transform: lowercase;
+  font-weight: 700;
+}
+
+.activity-feed-list {
+  margin-top: 10px;
+  display: grid;
+  gap: 10px;
+}
+
+.activity-card {
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(255, 255, 255, 0.04), transparent 58%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.018), rgba(255, 255, 255, 0.008));
+  overflow: hidden;
+}
+
+.activity-card-head {
+  padding: 10px 12px 8px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+
+.activity-card-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.activity-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  background-size: cover;
+  background-position: center;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.activity-avatar.has-image {
+  color: transparent;
+}
+
+.activity-card-user strong {
+  display: block;
+  font-size: 12px;
+}
+
+.activity-card-user small {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.activity-kind-badge {
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.74);
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.activity-kind-badge.race {
+  background: #fff;
+  color: #000;
+  border-color: #fff;
+  text-transform: lowercase;
+  font-weight: 700;
+}
+
+.activity-card-body {
+  padding: 0 12px 12px;
+}
+
+.activity-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.activity-card-note {
+  margin-top: 6px;
+  color: #d5dbe4;
+  font-size: 12px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.activity-card-image {
+  margin-top: 10px;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.activity-card-foot {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.props-btn {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.012);
+  color: rgba(255, 255, 255, 0.72);
+  border-radius: 999px;
+  height: 28px;
+  padding: 0 10px;
+  cursor: pointer;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.props-btn.is-active {
+  color: #000;
+  background: #fff;
+  border-color: #fff;
+}
+
+.activity-points {
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.profile-stats-grid {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.profile-stat {
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.01);
+  padding: 10px;
+}
+
+.profile-stat span {
+  display: block;
+  color: var(--muted-2);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.profile-stat strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 15px;
+  letter-spacing: -0.02em;
+}
+
+.empty-copy {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.micro-copy {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
 .metric-grid {
   margin-top: 10px;
   display: grid;
@@ -1082,6 +1579,63 @@ select {
   animation: sessionPop 260ms ease;
 }
 
+.account-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+}
+
+.account-modal[hidden] {
+  display: none;
+}
+
+.account-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 3, 4, 0.76);
+  backdrop-filter: blur(4px);
+}
+
+.account-modal-card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(460px, calc(100vw - 24px));
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: linear-gradient(180deg, rgba(16, 18, 20, 0.97), rgba(8, 9, 11, 0.95));
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.58);
+  padding: 14px;
+}
+
+.account-auth-tabs {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.account-tab {
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.48);
+  height: 28px;
+  padding: 0 8px;
+  cursor: pointer;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.account-tab.is-active {
+  color: #fff;
+}
+
+.account-form {
+  margin-top: 8px;
+  display: grid;
+  gap: 10px;
+}
+
 @keyframes sessionPop {
   from { opacity: 0; transform: translate(-50%, -46%) rotateX(14deg) scale(0.92); }
   to { opacity: 1; transform: translate(-50%, -50%) rotateX(0deg) scale(1); }
@@ -1254,7 +1808,26 @@ body.has-output .section-data { border-color: rgba(255, 255, 255, 0.1); }
 
 @media (max-width: 760px) {
   .scroll-stage {
-    height: 150svh;
+    height: auto;
+    min-height: 100svh;
+  }
+
+  .scroll-sticky {
+    position: relative;
+    top: auto;
+    height: auto;
+    min-height: 100svh;
+    overflow: visible;
+    display: block;
+  }
+
+  .landing-layer {
+    position: relative;
+    inset: auto;
+    transform: none !important;
+    opacity: 1 !important;
+    padding-top: clamp(74px, 11svh, 96px);
+    z-index: 2;
   }
 
   .brand-anchor {
@@ -1265,6 +1838,16 @@ body.has-output .section-data { border-color: rgba(255, 255, 255, 0.1); }
   .lang-switch {
     top: 10px;
     right: 10px;
+  }
+
+  .account-bar {
+    top: 42px;
+    right: 10px;
+    gap: 4px;
+  }
+
+  .account-pill {
+    padding-inline: 8px;
   }
 
   .landing-panel {
@@ -1281,7 +1864,8 @@ body.has-output .section-data { border-color: rgba(255, 255, 255, 0.1); }
   }
 
   .quick-grid,
-  .advanced-grid {
+  .advanced-grid,
+  .account-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1296,6 +1880,12 @@ body.has-output .section-data { border-color: rgba(255, 255, 255, 0.1); }
     gap: 0;
     transform: none;
     opacity: 0.24;
+  }
+
+  .photo-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
   }
 
   .content-shell {

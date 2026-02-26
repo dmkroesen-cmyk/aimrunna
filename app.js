@@ -63,6 +63,53 @@ const sessionModalKcalEl = document.getElementById("session-modal-kcal");
 const sessionModalCarbEl = document.getElementById("session-modal-carb");
 const sessionModalProteinEl = document.getElementById("session-modal-protein");
 const sessionModalFatEl = document.getElementById("session-modal-fat");
+const accountBarEl = document.getElementById("account-bar");
+const accountLabelEl = document.getElementById("account-label");
+const accountHomeBtn = document.getElementById("account-home-btn");
+const accountCrewBtn = document.getElementById("account-crew-btn");
+const accountProfileBtn = document.getElementById("account-profile-btn");
+const accountLoginBtn = document.getElementById("account-login-btn");
+const accountRegisterBtn = document.getElementById("account-register-btn");
+const accountLogoutBtn = document.getElementById("account-logout-btn");
+const accountStatusTagEl = document.getElementById("account-status-tag");
+const accountStatusCopyEl = document.getElementById("account-status-copy");
+const accountOpenLoginBtn = document.getElementById("account-open-login");
+const accountOpenRegisterBtn = document.getElementById("account-open-register");
+const savePlanBtn = document.getElementById("save-plan-btn");
+const profileAvatarInputEl = document.getElementById("profile-avatar-input");
+const profileAvatarPreviewEl = document.getElementById("profile-avatar-preview");
+const activityPostFormEl = document.getElementById("activity-post-form");
+const profileFeedCountEl = document.getElementById("profile-feed-count");
+const profileFeedListEl = document.getElementById("profile-feed-list");
+const profilePointsBadgeEl = document.getElementById("profile-points-badge");
+const profileStatRunKmEl = document.getElementById("profile-stat-run-km");
+const profileStatBikeKmEl = document.getElementById("profile-stat-bike-km");
+const profileStatSwimKmEl = document.getElementById("profile-stat-swim-km");
+const profileStatRacesEl = document.getElementById("profile-stat-races");
+const profileStatPropsEl = document.getElementById("profile-stat-props");
+const profileStatPointsEl = document.getElementById("profile-stat-points");
+const savedPlanCountEl = document.getElementById("saved-plan-count");
+const savedPlansListEl = document.getElementById("saved-plans-list");
+const friendFormEl = document.getElementById("friend-form");
+const friendsListEl = document.getElementById("friends-list");
+const accountSearchFormEl = document.getElementById("account-search-form");
+const accountSearchResultsEl = document.getElementById("account-search-results");
+const crewResultCountEl = document.getElementById("crew-result-count");
+const crewFeedCountEl = document.getElementById("crew-feed-count");
+const crewFeedListEl = document.getElementById("crew-feed-list");
+const crewRankingCountEl = document.getElementById("crew-ranking-count");
+const crewRankingListEl = document.getElementById("crew-ranking-list");
+const accountSectionTabButtons = [...document.querySelectorAll(".account-section-tab")];
+const accountPaneProfileEl = document.getElementById("account-pane-profile");
+const accountPaneCrewEl = document.getElementById("account-pane-crew");
+const sectionCalendarEl = document.querySelector(".section-calendar");
+const sectionAccountEl = document.querySelector(".section-account");
+const sectionDataEl = document.querySelector(".section-data");
+const accountModalEl = document.getElementById("account-modal");
+const accountFormEl = document.getElementById("account-form");
+const accountFormStatusEl = document.getElementById("account-form-status");
+const accountSubmitBtn = document.getElementById("account-submit-btn");
+const accountTabButtons = [...document.querySelectorAll(".account-tab")];
 
 let generatedSessions = [];
 const connectedSources = new Set();
@@ -71,6 +118,19 @@ let latestProfile = null;
 let latestPlan = null;
 let currentLang = "de";
 let expandedSessionId = null;
+let authMode = "login";
+let appStore = null;
+let currentAccountId = null;
+let lastAccountSearchQuery = "";
+let activeAccountSection = "profile";
+let activeAppView = "home";
+
+const STORAGE_KEY = "aimrunna_mvp_store_v1";
+const OAUTH_ENDPOINTS = {
+  Strava: "/api/oauth/strava/start",
+  Whoop: "/api/oauth/whoop/start",
+  Garmin: "/api/oauth/garmin/start",
+};
 
 const I18N = {
   de: {
@@ -177,18 +237,20 @@ const GOAL_OPTIONS_BY_DISCIPLINE = {
 connectorButtons.forEach((button) => {
   button.addEventListener("click", () => {
     const source = button.dataset.source;
+    if (!source) return;
     if (connectedSources.has(source)) {
       connectedSources.delete(source);
-      button.classList.remove("active");
     } else {
       connectedSources.add(source);
-      button.classList.add("active");
     }
-    connectionState.textContent =
-      connectedSources.size > 0
-        ? `Verbunden (Mock): ${[...connectedSources].join(", ")}`
-        : t("no_sources");
+    syncConnectorButtons();
+    persistConnectedSourcesForCurrentUser();
+    const endpoint = OAUTH_ENDPOINTS[source] || "/api/oauth/start";
+    connectionState.textContent = connectedSources.size
+      ? `OAuth ready (MVP Mock): ${[...connectedSources].join(", ")} • next: ${endpoint}`
+      : t("no_sources");
     syncUiState();
+    renderAccountUi();
   });
 });
 
@@ -198,8 +260,10 @@ initAdvancedSettingsToggle();
 initScrollFx();
 initStageReveals();
 initLanguageSwitcher();
+initAccountUi();
 applyTranslations();
 renderPerformanceInsights();
+setAppView("home");
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -220,6 +284,132 @@ form.addEventListener("submit", (event) => {
   exportIcalBtn.disabled = false;
   document.body.classList.add("has-output");
   syncUiState();
+  if (getCurrentAccount()) {
+    savePlanToLibrary(getCurrentAccount(), latestProfile, latestPlan);
+    persistStore();
+  }
+  renderAccountUi();
+});
+
+savePlanBtn?.addEventListener("click", () => {
+  if (!latestPlan || !latestProfile) return;
+  const account = getCurrentAccount();
+  if (!account) {
+    openAccountModal("login");
+    setText(accountFormStatusEl, "Bitte zuerst einloggen.");
+    return;
+  }
+  savePlanToLibrary(account, latestProfile, latestPlan);
+  persistStore();
+  renderAccountUi();
+});
+
+friendFormEl?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const account = getCurrentAccount();
+  if (!account) {
+    openAccountModal("login");
+    setText(accountFormStatusEl, "Bitte zuerst einloggen.");
+    return;
+  }
+  const email = String(new FormData(friendFormEl).get("friendEmail") || "").trim().toLowerCase();
+  const result = addFriendByEmail(account, email);
+  renderAccountUi();
+  if (email) {
+    lastAccountSearchQuery = email;
+    renderAccountSearchResults(email);
+  }
+  if (friendFormEl && result.ok) friendFormEl.reset();
+});
+
+accountLoginBtn?.addEventListener("click", () => openAccountModal("login"));
+accountRegisterBtn?.addEventListener("click", () => openAccountModal("register"));
+accountOpenLoginBtn?.addEventListener("click", () => openAccountModal("login"));
+accountOpenRegisterBtn?.addEventListener("click", () => openAccountModal("register"));
+accountLogoutBtn?.addEventListener("click", logoutCurrentAccount);
+accountHomeBtn?.addEventListener("click", () => setAppView("home"));
+accountProfileBtn?.addEventListener("click", () => {
+  setAppView("profile");
+  setActiveAccountSection("profile");
+});
+accountCrewBtn?.addEventListener("click", () => {
+  setAppView("crew");
+  setActiveAccountSection("crew");
+});
+accountSectionTabButtons.forEach((btn) =>
+  btn.addEventListener("click", () => {
+    const section = btn.dataset.accountSection || "profile";
+    setAppView(section === "crew" ? "crew" : "profile");
+    setActiveAccountSection(section);
+  })
+);
+
+profileAvatarInputEl?.addEventListener("change", async () => {
+  const account = getCurrentAccount();
+  if (!account) {
+    openAccountModal("login");
+    return;
+  }
+  const file = profileAvatarInputEl.files?.[0];
+  if (!file) return;
+  const dataUrl = await readFileAsDataUrl(file);
+  account.profileImage = dataUrl;
+  persistStore();
+  renderAccountUi();
+});
+
+activityPostFormEl?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const account = getCurrentAccount();
+  if (!account) {
+    openAccountModal("login");
+    setText(accountFormStatusEl, "Bitte zuerst einloggen.");
+    return;
+  }
+  const fd = new FormData(activityPostFormEl);
+  const title = String(fd.get("title") || "").trim();
+  if (!title) return;
+  const note = String(fd.get("note") || "").trim();
+  const kind = String(fd.get("activityKind") || "training") === "race" ? "race" : "training";
+  const sportType = String(fd.get("sportType") || "run");
+  const distanceKm = Number(fd.get("distanceKm") || 0) || 0;
+  const imageFile = fd.get("image");
+  const imageDataUrl = imageFile && imageFile.size ? await readFileAsDataUrl(imageFile) : null;
+  postActivity(account, { title, note, kind, sportType, distanceKm, imageDataUrl });
+  persistStore();
+  activityPostFormEl.reset();
+  renderAccountUi();
+});
+
+accountSearchFormEl?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const query = String(new FormData(accountSearchFormEl).get("query") || "").trim();
+  lastAccountSearchQuery = query;
+  renderAccountSearchResults(query);
+});
+
+accountTabButtons.forEach((btn) =>
+  btn.addEventListener("click", () => openAccountModal(btn.dataset.authMode || "login"))
+);
+
+accountFormEl?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const fd = new FormData(accountFormEl);
+  const email = String(fd.get("email") || "").trim().toLowerCase();
+  const password = String(fd.get("password") || "");
+  const result = authMode === "register" ? registerAccount(email, password) : loginAccount(email, password);
+  setText(accountFormStatusEl, result.message);
+  if (result.ok) {
+    renderAccountUi();
+    syncConnectorButtons();
+    connectionState.textContent = connectedSources.size ? `OAuth ready (MVP Mock): ${[...connectedSources].join(", ")}` : t("no_sources");
+    setTimeout(() => closeAccountModal(), 200);
+  }
+});
+
+accountModalEl?.addEventListener("click", (event) => {
+  if (!event.target.closest?.("[data-close-account-modal]")) return;
+  closeAccountModal();
 });
 
 exportIcalBtn.addEventListener("click", () => {
@@ -318,6 +508,611 @@ sessionOverlayEl?.addEventListener("click", (event) => {
   syncExpandedDayCards();
   closeSessionOverlay();
 });
+
+function initAccountUi() {
+  appStore = loadStore();
+  currentAccountId = appStore.currentAccountId || null;
+  if (getCurrentAccount()) {
+    hydrateConnectedSourcesFromAccount();
+    document.body.classList.add("is-authenticated");
+  }
+  syncConnectorButtons();
+  if (connectionState) {
+    connectionState.textContent = connectedSources.size ? `OAuth ready (MVP Mock): ${[...connectedSources].join(", ")}` : t("no_sources");
+  }
+  renderAccountUi();
+  setAuthMode("login");
+}
+
+function loadStore() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return { accounts: [], currentAccountId: null };
+    const parsed = JSON.parse(raw);
+    return {
+      accounts: Array.isArray(parsed.accounts) ? parsed.accounts : [],
+      currentAccountId: parsed.currentAccountId || null,
+    };
+  } catch {
+    return { accounts: [], currentAccountId: null };
+  }
+}
+
+function persistStore() {
+  if (!appStore) return;
+  appStore.currentAccountId = currentAccountId;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(appStore));
+}
+
+function getCurrentAccount() {
+  if (!appStore || !currentAccountId) return null;
+  return appStore.accounts.find((a) => a.id === currentAccountId) || null;
+}
+
+function setAuthMode(mode) {
+  authMode = mode === "register" ? "register" : "login";
+  accountTabButtons.forEach((btn) => btn.classList.toggle("is-active", btn.dataset.authMode === authMode));
+  if (accountSubmitBtn) accountSubmitBtn.textContent = authMode === "register" ? "create" : "login";
+  if (accountFormStatusEl) accountFormStatusEl.textContent = "";
+}
+
+function openAccountModal(mode = authMode) {
+  if (!accountModalEl) return;
+  setAuthMode(mode);
+  accountModalEl.hidden = false;
+}
+
+function closeAccountModal() {
+  if (!accountModalEl) return;
+  accountModalEl.hidden = true;
+}
+
+function registerAccount(email, password) {
+  if (!email || !email.includes("@")) return { ok: false, message: "Bitte gültige E-Mail eingeben." };
+  if (!password || password.length < 6) return { ok: false, message: "Passwort muss mindestens 6 Zeichen haben." };
+  if (appStore.accounts.some((a) => a.email === email)) return { ok: false, message: "E-Mail existiert bereits." };
+
+  const account = {
+    id: `acc_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    email,
+    password, // Local MVP only (replace with backend auth + hashing)
+    createdAt: new Date().toISOString(),
+    plans: [],
+    friends: [],
+    connectedSources: [],
+  };
+  appStore.accounts.push(account);
+  currentAccountId = account.id;
+  persistStore();
+  hydrateConnectedSourcesFromAccount();
+  document.body.classList.add("is-authenticated");
+  return { ok: true, message: "Account erstellt." };
+}
+
+function loginAccount(email, password) {
+  const account = appStore.accounts.find((a) => a.email === email);
+  if (!account) return { ok: false, message: "Account nicht gefunden." };
+  if (account.password !== password) return { ok: false, message: "Passwort falsch." };
+  currentAccountId = account.id;
+  persistStore();
+  hydrateConnectedSourcesFromAccount();
+  document.body.classList.add("is-authenticated");
+  return { ok: true, message: "Eingeloggt." };
+}
+
+function logoutCurrentAccount() {
+  currentAccountId = null;
+  connectedSources.clear();
+  connectorButtons.forEach((b) => b.classList.remove("active"));
+  persistStore();
+  document.body.classList.remove("is-authenticated");
+  renderAccountUi();
+  connectionState.textContent = t("no_sources");
+}
+
+function hydrateConnectedSourcesFromAccount() {
+  connectedSources.clear();
+  const account = getCurrentAccount();
+  (account?.connectedSources || []).forEach((src) => connectedSources.add(src));
+}
+
+function persistConnectedSourcesForCurrentUser() {
+  const account = getCurrentAccount();
+  if (!account) return;
+  account.connectedSources = [...connectedSources];
+  persistStore();
+}
+
+function syncConnectorButtons() {
+  connectorButtons.forEach((button) => {
+    const source = button.dataset.source;
+    button.classList.toggle("active", connectedSources.has(source));
+  });
+}
+
+function savePlanToLibrary(account, profile, plan) {
+  account.plans = Array.isArray(account.plans) ? account.plans : [];
+  const item = {
+    id: `plan_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+    createdAt: new Date().toISOString(),
+    title: `${disciplineLabel(profile.discipline)} • ${labelDistance(profile.goalDistance)} • ${profile.goalTime}`,
+    summary: `${plan.weeks.length} Wochen • ${Math.round(plan.meta.weeklyKmBase)} Base`,
+    profile: serializeProfile(profile),
+    plan: serializePlan(plan),
+  };
+  account.plans.unshift(item);
+  account.plans = account.plans.slice(0, 20);
+}
+
+function serializeProfile(profile) {
+  return {
+    ...profile,
+    raceDate: profile?.raceDate instanceof Date ? profile.raceDate.toISOString() : profile?.raceDate,
+  };
+}
+
+function serializePlan(plan) {
+  return {
+    ...plan,
+    weeks: (plan.weeks || []).map((week) => ({
+      ...week,
+      weekStart: week.weekStart instanceof Date ? week.weekStart.toISOString() : week.weekStart,
+      days: (week.days || []).map((day) => ({
+        ...day,
+        date: day.date instanceof Date ? day.date.toISOString() : day.date,
+      })),
+    })),
+    sessions: (plan.sessions || []).map((session) => ({
+      ...session,
+      date: session.date instanceof Date ? session.date.toISOString() : session.date,
+    })),
+  };
+}
+
+function hydrateStoredProfile(profile) {
+  return {
+    ...profile,
+    raceDate: profile?.raceDate ? new Date(profile.raceDate) : null,
+  };
+}
+
+function hydrateStoredPlan(plan) {
+  return {
+    ...plan,
+    weeks: (plan.weeks || []).map((week) => ({
+      ...week,
+      weekStart: week.weekStart ? new Date(week.weekStart) : null,
+      days: (week.days || []).map((day) => ({
+        ...day,
+        date: day.date ? new Date(day.date) : null,
+      })),
+    })),
+    sessions: (plan.sessions || []).map((session, index) => ({
+      ...session,
+      _id: session._id || `session-${index}`,
+      date: session.date ? new Date(session.date) : null,
+    })),
+  };
+}
+
+function loadSavedPlanById(planId) {
+  const account = getCurrentAccount();
+  if (!account) return;
+  const item = (account.plans || []).find((p) => p.id === planId);
+  if (!item) return;
+  latestProfile = hydrateStoredProfile(item.profile);
+  latestPlan = hydrateStoredPlan(item.plan);
+  generatedSessions = latestPlan.sessions || [];
+  renderAnalysis(latestProfile, latestPlan);
+  renderPlan(latestPlan);
+  renderPerformanceInsights(latestProfile, latestPlan);
+  exportIcalBtn.disabled = generatedSessions.length === 0;
+  document.body.classList.add("has-output");
+  syncUiState();
+}
+
+function addFriendByEmail(account, email) {
+  if (!email || !email.includes("@")) return { ok: false, message: "Ungültige E-Mail." };
+  if (email === account.email) return { ok: false, message: "Eigene E-Mail kann nicht hinzugefügt werden." };
+  const exists = appStore.accounts.find((a) => a.email === email);
+  if (!exists) return { ok: false, message: "Account nicht gefunden (MVP lokal)." };
+  account.friends = Array.isArray(account.friends) ? account.friends : [];
+  if (!account.friends.includes(email)) account.friends.push(email);
+  persistStore();
+  return { ok: true, message: "Verbunden." };
+}
+
+function renderAccountUi() {
+  const account = getCurrentAccount();
+  const isAuth = Boolean(account);
+  document.body.classList.toggle("is-authenticated", isAuth);
+
+  if (accountLabelEl) accountLabelEl.textContent = isAuth ? account.email.split("@")[0] : "Guest";
+  if (accountStatusTagEl) accountStatusTagEl.textContent = isAuth ? "Signed in" : "Guest";
+  if (accountStatusCopyEl) {
+    accountStatusCopyEl.textContent = isAuth
+      ? "Du kannst jetzt Pläne speichern, Connector-Status pro Account halten und Freunde lokal verbinden."
+      : "Erstelle einen Account, um Trainingspläne zu speichern, Quellen zu verbinden und Freunde hinzuzufügen.";
+  }
+  if (accountLoginBtn) accountLoginBtn.hidden = isAuth;
+  if (accountRegisterBtn) accountRegisterBtn.hidden = isAuth;
+  if (accountLogoutBtn) accountLogoutBtn.hidden = !isAuth;
+  if (accountOpenLoginBtn) accountOpenLoginBtn.hidden = isAuth;
+  if (accountOpenRegisterBtn) accountOpenRegisterBtn.hidden = isAuth;
+  if (savePlanBtn) savePlanBtn.disabled = !isAuth || !latestPlan || !latestProfile;
+  renderProfileAvatar(account);
+
+  renderSavedPlansList(account);
+  renderFriendsList(account);
+  renderAccountSearchResults(lastAccountSearchQuery);
+  renderProfileStats(account);
+  renderProfileFeed(account);
+  renderCrewFeed(account);
+  renderCrewRanking(account);
+  setActiveAccountSection(activeAccountSection);
+}
+
+function renderSavedPlansList(account) {
+  const plans = account?.plans || [];
+  if (savedPlanCountEl) savedPlanCountEl.textContent = String(plans.length);
+  if (!savedPlansListEl) return;
+  if (!plans.length) {
+    savedPlansListEl.innerHTML = `<div class="empty-copy">Noch keine gespeicherten Pläne.</div>`;
+    return;
+  }
+  savedPlansListEl.innerHTML = plans
+    .map(
+      (plan) => `
+      <div class="saved-plan-item">
+        <strong>${escapeHtml(plan.title)}</strong>
+        <small>${escapeHtml(plan.summary)} • ${escapeHtml(formatDateShort(new Date(plan.createdAt)))}</small>
+        <button type="button" class="ghost" data-load-plan-id="${escapeHtml(plan.id)}">Plan laden</button>
+      </div>`
+    )
+    .join("");
+
+  savedPlansListEl.querySelectorAll("[data-load-plan-id]").forEach((btn) => {
+    btn.addEventListener("click", () => loadSavedPlanById(btn.getAttribute("data-load-plan-id")));
+  });
+}
+
+function renderFriendsList(account) {
+  const friends = account?.friends || [];
+  if (!friendsListEl) return;
+  if (!friends.length) {
+    friendsListEl.innerHTML = `<div class="empty-copy">Noch keine Verbindungen.</div>`;
+    return;
+  }
+  friendsListEl.innerHTML = friends
+    .map((email) => {
+      const friend = (appStore.accounts || []).find((a) => a.email === email);
+      const stats = computeAccountStats(friend);
+      const latest = (friend?.activities || [])[0];
+      const latestText = latest
+        ? `${latest.kind === "race" ? "race." : "Training"} • ${String(latest.sportType || "other").toUpperCase()}${latest.distanceKm ? ` • ${Number(latest.distanceKm).toFixed(1)} km` : ""}`
+        : "Noch keine Aktivität";
+      return `
+      <div class="friend-item">
+        <strong>${escapeHtml(email)}</strong>
+        <small>${stats.points} pts • ${stats.races} races • ${escapeHtml(latestText)}</small>
+      </div>`
+    })
+    .join("");
+}
+
+function renderAccountSearchResults(query = "") {
+  if (!accountSearchResultsEl) return;
+  const q = String(query || "").trim().toLowerCase();
+  const account = getCurrentAccount();
+  const ownEmail = account?.email || "";
+  const all = appStore?.accounts || [];
+
+  if (!q) {
+    if (crewResultCountEl) crewResultCountEl.textContent = "0";
+    accountSearchResultsEl.innerHTML = `<div class="empty-copy">Suche nach einem Account, um dich zu verbinden.</div>`;
+    return;
+  }
+
+  const results = all
+    .filter((a) => a.email !== ownEmail)
+    .filter((a) => a.email.toLowerCase().includes(q) || a.email.split("@")[0].toLowerCase().includes(q))
+    .slice(0, 12);
+
+  if (crewResultCountEl) crewResultCountEl.textContent = String(results.length);
+
+  if (!results.length) {
+    accountSearchResultsEl.innerHTML = `<div class="empty-copy">Keine Accounts gefunden.</div>`;
+    return;
+  }
+
+  accountSearchResultsEl.innerHTML = results
+    .map((a) => {
+      const isConnected = Boolean(account?.friends?.includes(a.email));
+      return `
+      <div class="account-search-item">
+        <div class="account-search-row">
+          <div>
+            <strong>${escapeHtml(a.email.split("@")[0])}</strong>
+            <small>${escapeHtml(a.email)} • ${Array.isArray(a.plans) ? a.plans.length : 0} Plans</small>
+          </div>
+          <div class="account-search-actions">
+            <button type="button" class="ghost" data-connect-account-email="${escapeHtml(a.email)}" ${isConnected ? "disabled" : ""}>
+              ${isConnected ? "Connected" : "Connect"}
+            </button>
+          </div>
+        </div>
+      </div>`;
+    })
+    .join("");
+
+  accountSearchResultsEl.querySelectorAll("[data-connect-account-email]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const current = getCurrentAccount();
+      if (!current) {
+        openAccountModal("login");
+        setText(accountFormStatusEl, "Bitte zuerst einloggen.");
+        return;
+      }
+      const email = btn.getAttribute("data-connect-account-email");
+      const result = addFriendByEmail(current, email);
+      if (result.ok) persistStore();
+      renderAccountUi();
+    });
+  });
+}
+
+function setActiveAccountSection(section) {
+  activeAccountSection = section === "crew" ? "crew" : "profile";
+  accountSectionTabButtons.forEach((btn) =>
+    btn.classList.toggle("is-active", btn.dataset.accountSection === activeAccountSection)
+  );
+  if (accountPaneProfileEl) accountPaneProfileEl.classList.toggle("is-active", activeAccountSection === "profile");
+  if (accountPaneCrewEl) accountPaneCrewEl.classList.toggle("is-active", activeAccountSection === "crew");
+}
+
+function setAppView(view) {
+  activeAppView = ["home", "profile", "crew"].includes(view) ? view : "home";
+  document.body.classList.remove("app-view-home", "app-view-profile", "app-view-crew");
+  document.body.classList.add(`app-view-${activeAppView}`);
+
+  accountHomeBtn?.classList.toggle("is-active", activeAppView === "home");
+  accountProfileBtn?.classList.toggle("is-active", activeAppView === "profile");
+  accountCrewBtn?.classList.toggle("is-active", activeAppView === "crew");
+
+  if (activeAppView === "profile") {
+    sectionAccountEl?.classList.add("is-visible");
+    sectionDataEl?.classList.add("is-visible");
+    sectionAccountEl?.scrollIntoView({ behavior: "smooth", block: "start" });
+  } else if (activeAppView === "crew") {
+    sectionAccountEl?.classList.add("is-visible");
+    sectionAccountEl?.scrollIntoView({ behavior: "smooth", block: "start" });
+  } else {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+}
+
+function renderProfileAvatar(account) {
+  if (!profileAvatarPreviewEl) return;
+  const label = (account?.email?.[0] || "A").toUpperCase();
+  profileAvatarPreviewEl.textContent = label;
+  if (account?.profileImage) {
+    profileAvatarPreviewEl.style.backgroundImage = `url('${account.profileImage}')`;
+    profileAvatarPreviewEl.classList.add("has-image");
+  } else {
+    profileAvatarPreviewEl.style.backgroundImage = "";
+    profileAvatarPreviewEl.classList.remove("has-image");
+  }
+}
+
+function postActivity(account, { title, note, kind, sportType, distanceKm, imageDataUrl }) {
+  account.activities = Array.isArray(account.activities) ? account.activities : [];
+  account.activities.unshift({
+    id: `act_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+    createdAt: new Date().toISOString(),
+    title,
+    note,
+    kind,
+    sportType: ["run", "bike", "swim", "other"].includes(sportType) ? sportType : "other",
+    distanceKm: clamp(Number(distanceKm) || 0, 0, 1000),
+    imageDataUrl: imageDataUrl || null,
+    propsBy: [],
+  });
+  account.activities = account.activities.slice(0, 60);
+}
+
+function renderProfileStats(account) {
+  const stats = computeAccountStats(account);
+  if (profilePointsBadgeEl) profilePointsBadgeEl.textContent = `${stats.points} pts`;
+  if (profileStatRunKmEl) profileStatRunKmEl.textContent = `${stats.runKm.toFixed(1)} km`;
+  if (profileStatBikeKmEl) profileStatBikeKmEl.textContent = `${stats.bikeKm.toFixed(1)} km`;
+  if (profileStatSwimKmEl) profileStatSwimKmEl.textContent = `${stats.swimKm.toFixed(1)} km`;
+  if (profileStatRacesEl) profileStatRacesEl.textContent = String(stats.races);
+  if (profileStatPropsEl) profileStatPropsEl.textContent = String(stats.propsReceived);
+  if (profileStatPointsEl) profileStatPointsEl.textContent = String(stats.points);
+}
+
+function renderProfileFeed(account) {
+  const activities = account?.activities || [];
+  if (profileFeedCountEl) profileFeedCountEl.textContent = String(activities.length);
+  if (!profileFeedListEl) return;
+  if (!activities.length) {
+    profileFeedListEl.innerHTML = `<div class="empty-copy">Noch keine Aktivitäten gepostet.</div>`;
+    return;
+  }
+  profileFeedListEl.innerHTML = activities.map((item) => buildActivityCardHtml({
+    item,
+    actorEmail: account.email,
+    actorAvatar: account.profileImage || null,
+    actorPoints: activityPoints(item),
+    viewerEmail: account.email,
+    showPropsAction: false,
+  })).join("");
+}
+
+function renderCrewFeed(account) {
+  if (!crewFeedListEl) return;
+  if (!account) {
+    if (crewFeedCountEl) crewFeedCountEl.textContent = "0";
+    crewFeedListEl.innerHTML = `<div class="empty-copy">Bitte einloggen, um die Crew zu sehen.</div>`;
+    return;
+  }
+  const friendEmails = account.friends || [];
+  const items = (appStore.accounts || [])
+    .filter((a) => friendEmails.includes(a.email))
+    .flatMap((a) => (a.activities || []).map((item) => ({ item, actorEmail: a.email, actorAvatar: a.profileImage || null })))
+    .sort((a, b) => new Date(b.item.createdAt) - new Date(a.item.createdAt))
+    .slice(0, 40);
+
+  if (crewFeedCountEl) crewFeedCountEl.textContent = String(items.length);
+  if (!items.length) {
+    crewFeedListEl.innerHTML = `<div class="empty-copy">Verbinde dich mit deiner Crew, um ihren Feed zu sehen.</div>`;
+    return;
+  }
+  crewFeedListEl.innerHTML = items
+    .map((entry) =>
+      buildActivityCardHtml({
+        ...entry,
+        actorPoints: activityPoints(entry.item),
+        viewerEmail: account.email,
+        showPropsAction: true,
+      })
+    )
+    .join("");
+
+  crewFeedListEl.querySelectorAll("[data-props-activity]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const ownerEmail = btn.getAttribute("data-props-owner");
+      const activityId = btn.getAttribute("data-props-activity");
+      const viewer = getCurrentAccount();
+      if (!viewer || !ownerEmail || !activityId) return;
+      togglePropsOnActivity(ownerEmail, activityId, viewer.email);
+      persistStore();
+      renderAccountUi();
+    });
+  });
+}
+
+function renderCrewRanking(account) {
+  if (!crewRankingListEl) return;
+  if (!account) {
+    if (crewRankingCountEl) crewRankingCountEl.textContent = "0";
+    crewRankingListEl.innerHTML = `<div class="empty-copy">Bitte einloggen, um Ranking zu sehen.</div>`;
+    return;
+  }
+  const emails = [account.email, ...(account.friends || [])];
+  const rows = (appStore.accounts || [])
+    .filter((a) => emails.includes(a.email))
+    .map((a) => ({ account: a, stats: computeAccountStats(a) }))
+    .sort((a, b) => b.stats.points - a.stats.points)
+    .slice(0, 10);
+
+  if (crewRankingCountEl) crewRankingCountEl.textContent = String(rows.length);
+  if (!rows.length) {
+    crewRankingListEl.innerHTML = `<div class="empty-copy">Keine Crew-Daten vorhanden.</div>`;
+    return;
+  }
+  crewRankingListEl.innerHTML = rows
+    .map(
+      ({ account: rowAcc, stats }, index) => `
+      <div class="friend-item">
+        <strong>#${index + 1} ${escapeHtml(rowAcc.email.split("@")[0])}</strong>
+        <small>${stats.points} pts • ${stats.runKm.toFixed(0)}k run • ${stats.bikeKm.toFixed(0)}k bike • ${stats.races} races</small>
+      </div>`
+    )
+    .join("");
+}
+
+function buildActivityCardHtml({ item, actorEmail, actorAvatar, actorPoints = 0, viewerEmail = "", showPropsAction = false }) {
+  const actorName = String(actorEmail || "Athlete").split("@")[0];
+  const initials = (actorName[0] || "A").toUpperCase();
+  const created = formatRelativeTime(item.createdAt);
+  const isRace = item.kind === "race";
+  const propsCount = Array.isArray(item.propsBy) ? item.propsBy.length : 0;
+  const hasPropd = viewerEmail && Array.isArray(item.propsBy) && item.propsBy.includes(viewerEmail);
+  const distanceMeta = item.distanceKm ? ` • ${Number(item.distanceKm).toFixed(1)} km` : "";
+  const sportMeta = item.sportType ? ` • ${String(item.sportType).toUpperCase()}` : "";
+  return `
+    <article class="activity-card">
+      <div class="activity-card-head">
+        <div class="activity-card-user">
+          <div class="activity-avatar ${actorAvatar ? "has-image" : ""}" style="${actorAvatar ? `background-image:url('${actorAvatar}')` : ""}">${escapeHtml(initials)}</div>
+          <div>
+            <strong>${escapeHtml(actorName)}</strong>
+            <small>${escapeHtml(created)}</small>
+          </div>
+        </div>
+        <span class="activity-kind-badge ${isRace ? "race" : ""}">${isRace ? "race." : "Training"}</span>
+      </div>
+      <div class="activity-card-body">
+        <div class="activity-card-title">${escapeHtml(item.title)}</div>
+        <div class="activity-points">${actorPoints} pts${sportMeta}${distanceMeta}</div>
+        ${item.note ? `<div class="activity-card-note">${escapeHtml(item.note)}</div>` : ""}
+        ${item.imageDataUrl ? `<img class="activity-card-image" src="${item.imageDataUrl}" alt="Activity image" loading="lazy" />` : ""}
+        <div class="activity-card-foot">
+          <div class="activity-points">${propsCount} props</div>
+          ${showPropsAction && viewerEmail && viewerEmail !== actorEmail ? `<button type="button" class="props-btn ${hasPropd ? "is-active" : ""}" data-props-owner="${escapeHtml(actorEmail)}" data-props-activity="${escapeHtml(item.id)}">${hasPropd ? "Props" : "Props"}</button>` : ""}
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+function togglePropsOnActivity(ownerEmail, activityId, viewerEmail) {
+  const owner = (appStore.accounts || []).find((a) => a.email === ownerEmail);
+  if (!owner) return;
+  owner.activities = Array.isArray(owner.activities) ? owner.activities : [];
+  const activity = owner.activities.find((a) => a.id === activityId);
+  if (!activity) return;
+  activity.propsBy = Array.isArray(activity.propsBy) ? activity.propsBy : [];
+  if (activity.propsBy.includes(viewerEmail)) {
+    activity.propsBy = activity.propsBy.filter((e) => e !== viewerEmail);
+  } else {
+    activity.propsBy.push(viewerEmail);
+  }
+}
+
+function computeAccountStats(account) {
+  const activities = account?.activities || [];
+  const runKm = sumBy(activities.filter((a) => a.sportType === "run"), (a) => Number(a.distanceKm) || 0);
+  const bikeKm = sumBy(activities.filter((a) => a.sportType === "bike"), (a) => Number(a.distanceKm) || 0);
+  const swimKm = sumBy(activities.filter((a) => a.sportType === "swim"), (a) => Number(a.distanceKm) || 0);
+  const races = activities.filter((a) => a.kind === "race").length;
+  const propsReceived = sumBy(activities, (a) => (Array.isArray(a.propsBy) ? a.propsBy.length : 0));
+  const points = Math.round(sumBy(activities, activityPoints) + propsReceived * 3);
+  return { runKm, bikeKm, swimKm, races, propsReceived, points };
+}
+
+function activityPoints(item) {
+  const km = Number(item?.distanceKm) || 0;
+  const sportFactor = { run: 5, bike: 2, swim: 10, other: 1 }[item?.sportType] || 1;
+  const base = Math.round(km * sportFactor);
+  const raceBonus = item?.kind === "race" ? 60 + Math.round(km * 2) : 8;
+  return base + raceBonus;
+}
+
+function sumBy(list, fn) {
+  return (list || []).reduce((sum, item) => sum + (Number(fn(item)) || 0), 0);
+}
+
+function formatRelativeTime(iso) {
+  const d = new Date(iso);
+  const mins = Math.round((Date.now() - d.getTime()) / 60000);
+  if (mins < 1) return "Gerade eben";
+  if (mins < 60) return `vor ${mins} min`;
+  const h = Math.round(mins / 60);
+  if (h < 24) return `vor ${h} h`;
+  const days = Math.round(h / 24);
+  return `vor ${days} d`;
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(new Error("file_read_failed"));
+    reader.readAsDataURL(file);
+  });
+}
 
 function setDefaultRaceDate() {
   const raceDateInput = form.elements.raceDate;
@@ -1758,6 +2553,14 @@ function goalSpecificBoost(profile) {
   return profile.goalDistance === "marathon" ? 4 : profile.goalDistance === "half" ? 2 : 0.8;
 }
 
+function disciplineLabel(value) {
+  return {
+    running: "Laufen",
+    triathlon: "Triathlon",
+    cycling: "Rad",
+  }[value] || "Training";
+}
+
 function sessionTypeLabel(type) {
   return {
     threshold: "Threshold",
@@ -1895,7 +2698,8 @@ function initScrollFx() {
   if (!scrollStage || !parallaxLayers.length) return;
 
   const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-  if (reduceMotion) return;
+  const mobileViewport = window.matchMedia?.("(max-width: 760px)")?.matches;
+  if (reduceMotion || mobileViewport) return;
 
   const applyProgress = (progress) => {
     parallaxLayers.forEach((layer) => {
