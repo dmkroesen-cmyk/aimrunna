@@ -96,6 +96,7 @@ const accountLabelEl = document.getElementById("account-label");
 const accountHomeBtn = document.getElementById("account-home-btn");
 const accountCrewBtn = document.getElementById("account-crew-btn");
 const accountProfileBtn = document.getElementById("account-profile-btn");
+const accountSettingsBtn = document.getElementById("account-settings-btn");
 const accountLoginBtn = document.getElementById("account-login-btn");
 const accountRegisterBtn = document.getElementById("account-register-btn");
 const accountLogoutBtn = document.getElementById("account-logout-btn");
@@ -110,12 +111,38 @@ const activityPostFormEl = document.getElementById("activity-post-form");
 const profileFeedCountEl = document.getElementById("profile-feed-count");
 const profileFeedListEl = document.getElementById("profile-feed-list");
 const profilePointsBadgeEl = document.getElementById("profile-points-badge");
-const profileStatRunKmEl = document.getElementById("profile-stat-run-km");
-const profileStatBikeKmEl = document.getElementById("profile-stat-bike-km");
-const profileStatSwimKmEl = document.getElementById("profile-stat-swim-km");
-const profileStatRacesEl = document.getElementById("profile-stat-races");
-const profileStatPropsEl = document.getElementById("profile-stat-props");
-const profileStatPointsEl = document.getElementById("profile-stat-points");
+const profileQuickAddBtnEl = document.getElementById("profile-quick-add-btn");
+const profilePostCardEl = document.getElementById("profile-card-post");
+const activityComposeModalEl = document.getElementById("activity-compose-modal");
+const profileStatBindings = {
+  today: {
+    run: document.getElementById("profile-stat-today-run-km"),
+    bike: document.getElementById("profile-stat-today-bike-km"),
+    swim: document.getElementById("profile-stat-today-swim-km"),
+    races: document.getElementById("profile-stat-today-races"),
+    props: document.getElementById("profile-stat-today-props"),
+    points: document.getElementById("profile-stat-today-points-total"),
+    badge: document.getElementById("profile-stats-today-points"),
+  },
+  year: {
+    run: document.getElementById("profile-stat-year-run-km"),
+    bike: document.getElementById("profile-stat-year-bike-km"),
+    swim: document.getElementById("profile-stat-year-swim-km"),
+    races: document.getElementById("profile-stat-year-races"),
+    props: document.getElementById("profile-stat-year-props"),
+    points: document.getElementById("profile-stat-year-points-total"),
+    badge: document.getElementById("profile-stats-year-points"),
+  },
+  all: {
+    run: document.getElementById("profile-stat-all-run-km"),
+    bike: document.getElementById("profile-stat-all-bike-km"),
+    swim: document.getElementById("profile-stat-all-swim-km"),
+    races: document.getElementById("profile-stat-all-races"),
+    props: document.getElementById("profile-stat-all-props"),
+    points: document.getElementById("profile-stat-all-points-total"),
+    badge: document.getElementById("profile-stats-all-points"),
+  },
+};
 const savedPlanCountEl = document.getElementById("saved-plan-count");
 const savedPlansListEl = document.getElementById("saved-plans-list");
 const friendFormEl = document.getElementById("friend-form");
@@ -201,6 +228,8 @@ let planOverviewState = {
 let shareHintHideTimer = 0;
 let stravaFetchInFlight = false;
 let stravaStatusFetchedForUserId = null;
+let generatedPlanScrollRaf = 0;
+let profileComposerExpanded = false;
 
 const STORAGE_KEY = "aimrunna_mvp_store_v1";
 const STRAVA_OAUTH_DEV_BASE =
@@ -491,6 +520,9 @@ const I18N = {
     saved_plans: "Gespeicherte Pläne",
     empty_saved_plans: "Noch keine gespeicherten Pläne.",
     profile_stats: "Profil-Stats",
+    profile_period_today: "Heute",
+    profile_period_12m: "Letzte 12 Monate",
+    profile_period_all: "Gesamt",
     new_activity: "Neue Aktivität",
     post_label: "Post",
     activity_kind_training: "Training",
@@ -520,15 +552,15 @@ const I18N = {
     login_first: "Bitte zuerst einloggen.",
     account_signed_in: "Eingeloggt",
     account_guest: "Gast",
-    account_status_signed_in: "Du kannst jetzt Pläne speichern, Connector-Status pro Account halten und Freunde lokal verbinden.",
+    account_status_signed_in: "Dein Profil-Überblick mit Plänen, Aktivitäten und Health-Daten. Einstellungen findest du oben unter Settings.",
     account_status_guest: "Erstelle einen Account, um Trainingspläne zu speichern, Quellen zu verbinden und Freunde hinzuzufügen.",
     placeholder_distance_example: "z. B. 12.4",
     placeholder_activity_title: "z. B. Threshold Run in der City",
     placeholder_activity_note: "Wie lief die Einheit? Gefühl, Pace, Learnings ...",
     placeholder_friend_email: "friend@email.com",
     placeholder_search_accounts: "Accounts suchen (E-Mail / Name)",
-    unit_points: "pts",
-    unit_races: "Races",
+    unit_points: "Pkt.",
+    unit_races: "Rennen",
     profile_total_points: "Gesamtpunkte",
     label_training: "Training",
     label_no_activity: "Noch keine Aktivität",
@@ -580,6 +612,9 @@ const I18N = {
     saved_plans: "Saved plans",
     empty_saved_plans: "No saved plans yet.",
     profile_stats: "Profile Stats",
+    profile_period_today: "Today",
+    profile_period_12m: "Last 12 months",
+    profile_period_all: "All time",
     new_activity: "New activity",
     post_label: "Post",
     activity_kind_training: "Training",
@@ -669,6 +704,9 @@ const I18N = {
     saved_plans: "保存済みプラン",
     empty_saved_plans: "保存済みプランはまだありません。",
     profile_stats: "プロフィール統計",
+    profile_period_today: "今日",
+    profile_period_12m: "過去12か月",
+    profile_period_all: "累計",
     new_activity: "新しいアクティビティ",
     post_label: "投稿",
     activity_kind_training: "トレーニング",
@@ -832,6 +870,7 @@ form.addEventListener("submit", (event) => {
     exportIcalBtn.disabled = false;
     document.body.classList.add("has-output");
     syncUiState();
+    scrollToGeneratedPlan();
     if (getCurrentAccount()) {
       savePlanToLibrary(getCurrentAccount(), latestProfile, latestPlan);
       persistStore();
@@ -886,12 +925,18 @@ accountOpenRegisterBtn?.addEventListener("click", () => openAccountModal("regist
 accountLogoutBtn?.addEventListener("click", logoutCurrentAccount);
 accountHomeBtn?.addEventListener("click", () => setAppView("home"));
 accountProfileBtn?.addEventListener("click", () => {
+  setActiveProfileView("overview");
   setAppView("profile");
   setActiveAccountSection("profile");
 });
 accountCrewBtn?.addEventListener("click", () => {
   setAppView("crew");
   setActiveAccountSection("crew");
+});
+accountSettingsBtn?.addEventListener("click", () => {
+  setActiveProfileView("settings");
+  setAppView("profile");
+  setActiveAccountSection("profile");
 });
 accountSectionTabButtons.forEach((btn) =>
   btn.addEventListener("click", () => {
@@ -906,19 +951,13 @@ profileViewTabButtons.forEach((btn) =>
     const view = btn.dataset.profileView || "overview";
     setActiveProfileView(view);
     if (activeAppView !== "profile") setAppView("profile");
-    if (view === "health") {
-      sectionDataEl?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+    scrollToSectionStart(sectionAccountEl, { mobileOffset: 150, desktopOffset: 114, duration: 420 });
   })
 );
 
 profileSettingsNavButtons.forEach((btn) =>
   btn.addEventListener("click", () => {
     const view = btn.dataset.profileSettingsView || "account";
-    if (view === "legal") {
-      openLegalModal("imprint");
-      return;
-    }
     setActiveProfileSettingsView(view);
   })
 );
@@ -957,7 +996,14 @@ activityPostFormEl?.addEventListener("submit", async (event) => {
   postActivity(account, { title, note, kind, sportType, distanceKm, imageDataUrl });
   persistStore();
   activityPostFormEl.reset();
+  profileComposerExpanded = false;
+  closeActivityComposeModal();
   renderAccountUi();
+});
+
+profileQuickAddBtnEl?.addEventListener("click", () => {
+  profileComposerExpanded = !profileComposerExpanded;
+  syncProfileComposerVisibility();
 });
 
 accountSearchFormEl?.addEventListener("submit", (event) => {
@@ -1237,6 +1283,10 @@ document.addEventListener("click", (event) => {
 
 document.addEventListener("keydown", (event) => {
   if (event.key !== "Escape") return;
+  if (!activityComposeModalEl?.hidden) {
+    closeActivityComposeModal();
+    return;
+  }
   if (!glossaryModalEl?.hidden) {
     closeGlossaryModal();
     return;
@@ -1253,6 +1303,11 @@ document.addEventListener("keydown", (event) => {
   expandedSessionId = null;
   syncExpandedDayCards();
   closeSessionOverlay();
+});
+
+activityComposeModalEl?.addEventListener("click", (event) => {
+  if (!event.target.closest?.("[data-close-activity-compose]")) return;
+  closeActivityComposeModal();
 });
 
 sessionOverlayEl?.addEventListener("click", (event) => {
@@ -1845,11 +1900,13 @@ function renderAccountUi() {
       ? t("account_status_signed_in")
       : t("account_status_guest");
   }
-  if (accountLoginBtn) accountLoginBtn.hidden = isAuth;
-  if (accountRegisterBtn) accountRegisterBtn.hidden = isAuth;
+  const topAuthActionsVisible = !isAuth && activeAppView === "home";
+  if (accountLoginBtn) accountLoginBtn.hidden = !topAuthActionsVisible;
+  if (accountRegisterBtn) accountRegisterBtn.hidden = !topAuthActionsVisible;
+  if (accountSettingsBtn) accountSettingsBtn.hidden = !isAuth;
   if (accountLogoutBtn) accountLogoutBtn.hidden = !isAuth;
-  if (accountOpenLoginBtn) accountOpenLoginBtn.hidden = isAuth;
-  if (accountOpenRegisterBtn) accountOpenRegisterBtn.hidden = isAuth;
+  if (accountOpenLoginBtn) accountOpenLoginBtn.hidden = true;
+  if (accountOpenRegisterBtn) accountOpenRegisterBtn.hidden = true;
   if (savePlanBtn) savePlanBtn.disabled = !isAuth || !latestPlan || !latestProfile;
   renderProfileAvatar(account);
   populateSettingsForms(account);
@@ -1862,6 +1919,7 @@ function renderAccountUi() {
   renderCrewFeed(account);
   renderCrewRanking(account);
   setActiveAccountSection(activeAccountSection);
+  syncProfileComposerVisibility();
   renderStravaProfileStatus(account);
   updateConnectionStateCopy();
   maybeFetchStravaStatus(account);
@@ -2014,15 +2072,18 @@ function setActiveAccountSection(section) {
 }
 
 function setActiveProfileView(view) {
-  activeProfileView = ["overview", "activities", "health"].includes(view) ? view : "overview";
-  document.body.classList.remove("profile-view-overview", "profile-view-activities", "profile-view-health");
+  activeProfileView = ["overview", "activities", "health", "settings"].includes(view) ? view : "overview";
+  document.body.classList.remove("profile-view-overview", "profile-view-activities", "profile-view-health", "profile-view-settings");
   document.body.classList.add(`profile-view-${activeProfileView}`);
   profileViewTabButtons.forEach((btn) => btn.classList.toggle("is-active", btn.dataset.profileView === activeProfileView));
+  if (activeProfileView === "settings") {
+    setActiveProfileSettingsView(activeProfileSettingsView || "account");
+  }
   if (activeProfileView === "overview") maybeFetchStravaStatus(getCurrentAccount());
 }
 
 function setActiveProfileSettingsView(view) {
-  activeProfileSettingsView = ["account", "privacy", "safety"].includes(view) ? view : "account";
+  activeProfileSettingsView = ["account", "privacy"].includes(view) ? view : "account";
   profileSettingsNavButtons.forEach((btn) =>
     btn.classList.toggle("is-active", btn.dataset.profileSettingsView === activeProfileSettingsView)
   );
@@ -2036,21 +2097,24 @@ function setAppView(view) {
   document.body.classList.remove("app-view-home", "app-view-profile", "app-view-crew");
   document.body.classList.add(`app-view-${activeAppView}`);
 
+  const isSettingsView = activeAppView === "profile" && activeProfileView === "settings";
   accountHomeBtn?.classList.toggle("is-active", activeAppView === "home");
-  accountProfileBtn?.classList.toggle("is-active", activeAppView === "profile");
+  accountProfileBtn?.classList.toggle("is-active", activeAppView === "profile" && !isSettingsView);
   accountCrewBtn?.classList.toggle("is-active", activeAppView === "crew");
+  accountSettingsBtn?.classList.toggle("is-active", isSettingsView);
 
   if (activeAppView === "profile") {
     setActiveProfileView(activeProfileView);
     sectionAccountEl?.classList.add("is-visible");
     sectionDataEl?.classList.add("is-visible");
-    sectionAccountEl?.scrollIntoView({ behavior: "smooth", block: "start" });
+    scrollToSectionStart(sectionAccountEl, { mobileOffset: 150, desktopOffset: 114, duration: 520 });
   } else if (activeAppView === "crew") {
     sectionAccountEl?.classList.add("is-visible");
-    sectionAccountEl?.scrollIntoView({ behavior: "smooth", block: "start" });
+    scrollToSectionStart(sectionAccountEl, { mobileOffset: 150, desktopOffset: 114, duration: 520 });
   } else {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
+  renderAccountUi();
 }
 
 function renderProfileAvatar(account) {
@@ -2083,14 +2147,13 @@ function postActivity(account, { title, note, kind, sportType, distanceKm, image
 }
 
 function renderProfileStats(account) {
-  const stats = computeAccountStats(account);
-  if (profilePointsBadgeEl) profilePointsBadgeEl.textContent = `${stats.points} ${t("unit_points")}`;
-  if (profileStatRunKmEl) profileStatRunKmEl.textContent = `${stats.runKm.toFixed(1)} km`;
-  if (profileStatBikeKmEl) profileStatBikeKmEl.textContent = `${stats.bikeKm.toFixed(1)} km`;
-  if (profileStatSwimKmEl) profileStatSwimKmEl.textContent = `${stats.swimKm.toFixed(1)} km`;
-  if (profileStatRacesEl) profileStatRacesEl.textContent = String(stats.races);
-  if (profileStatPropsEl) profileStatPropsEl.textContent = String(stats.propsReceived);
-  if (profileStatPointsEl) profileStatPointsEl.textContent = String(stats.points);
+  const statsToday = computeAccountStats(account, { range: "today" });
+  const statsYear = computeAccountStats(account, { range: "12m" });
+  const statsAll = computeAccountStats(account, { range: "all" });
+  if (profilePointsBadgeEl) profilePointsBadgeEl.textContent = `${statsAll.points} ${t("unit_points")}`;
+  applyProfileStatsToBindings(profileStatBindings.today, statsToday);
+  applyProfileStatsToBindings(profileStatBindings.year, statsYear);
+  applyProfileStatsToBindings(profileStatBindings.all, statsAll);
 }
 
 function renderProfileFeed(account) {
@@ -2233,8 +2296,24 @@ function togglePropsOnActivity(ownerEmail, activityId, viewerEmail) {
   }
 }
 
-function computeAccountStats(account) {
-  const activities = account?.activities || [];
+function computeAccountStats(account, { range = "all" } = {}) {
+  const now = Date.now();
+  const activities = (account?.activities || []).filter((a) => {
+    if (range === "all") return true;
+    const ts = new Date(a.createdAt || 0).getTime();
+    if (!Number.isFinite(ts) || !ts) return false;
+    if (range === "today") {
+      const d = new Date(ts);
+      const n = new Date(now);
+      return d.getFullYear() === n.getFullYear() && d.getMonth() === n.getMonth() && d.getDate() === n.getDate();
+    }
+    if (range === "12m") {
+      const twelveMonthsAgo = new Date();
+      twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
+      return ts >= twelveMonthsAgo.getTime();
+    }
+    return true;
+  });
   const runKm = sumBy(activities.filter((a) => a.sportType === "run"), (a) => Number(a.distanceKm) || 0);
   const bikeKm = sumBy(activities.filter((a) => a.sportType === "bike"), (a) => Number(a.distanceKm) || 0);
   const swimKm = sumBy(activities.filter((a) => a.sportType === "swim"), (a) => Number(a.distanceKm) || 0);
@@ -2242,6 +2321,32 @@ function computeAccountStats(account) {
   const propsReceived = sumBy(activities, (a) => (Array.isArray(a.propsBy) ? a.propsBy.length : 0));
   const points = Math.round(sumBy(activities, activityPoints) + propsReceived * 3);
   return { runKm, bikeKm, swimKm, races, propsReceived, points };
+}
+
+function applyProfileStatsToBindings(bindings, stats) {
+  if (!bindings || !stats) return;
+  if (bindings.badge) bindings.badge.textContent = `${stats.points} ${t("unit_points")}`;
+  if (bindings.run) bindings.run.textContent = `${stats.runKm.toFixed(1)} km`;
+  if (bindings.bike) bindings.bike.textContent = `${stats.bikeKm.toFixed(1)} km`;
+  if (bindings.swim) bindings.swim.textContent = `${stats.swimKm.toFixed(1)} km`;
+  if (bindings.races) bindings.races.textContent = String(stats.races);
+  if (bindings.props) bindings.props.textContent = String(stats.propsReceived);
+  if (bindings.points) bindings.points.textContent = String(stats.points);
+}
+
+function syncProfileComposerVisibility() {
+  const shouldShow = activeAppView === "profile" && activeProfileView === "activities" && profileComposerExpanded;
+  if (activityComposeModalEl) activityComposeModalEl.hidden = !shouldShow;
+  if (profilePostCardEl) profilePostCardEl.hidden = !shouldShow;
+  if (profileQuickAddBtnEl) {
+    profileQuickAddBtnEl.classList.toggle("is-active", shouldShow);
+    profileQuickAddBtnEl.setAttribute("aria-label", shouldShow ? "Manuelle Aktivität verbergen" : "Manuelle Aktivität hinzufügen");
+  }
+}
+
+function closeActivityComposeModal() {
+  profileComposerExpanded = false;
+  syncProfileComposerVisibility();
 }
 
 function activityPoints(item) {
@@ -5293,6 +5398,52 @@ function setText(el, value) {
   if (el) el.textContent = value;
 }
 
+function scrollToGeneratedPlan() {
+  const target = sectionCalendarEl || planMetaEl || calendarEl;
+  if (!target) return;
+  window.requestAnimationFrame(() => {
+    const mobile = window.matchMedia?.("(max-width: 760px)")?.matches;
+    const offset = mobile ? 154 : 108;
+    const targetTop = Math.max(0, window.scrollY + target.getBoundingClientRect().top - offset);
+    animateWindowScrollTo(targetTop, mobile ? 820 : 760);
+  });
+}
+
+function scrollToSectionStart(target, { mobileOffset = 154, desktopOffset = 108, duration = 520 } = {}) {
+  if (!target) return;
+  window.requestAnimationFrame(() => {
+    const mobile = window.matchMedia?.("(max-width: 760px)")?.matches;
+    const offset = mobile ? mobileOffset : desktopOffset;
+    const targetTop = Math.max(0, window.scrollY + target.getBoundingClientRect().top - offset);
+    animateWindowScrollTo(targetTop, duration);
+  });
+}
+
+function animateWindowScrollTo(targetTop, duration = 760) {
+  const startY = window.scrollY || window.pageYOffset || 0;
+  const distance = targetTop - startY;
+  if (Math.abs(distance) < 4) return;
+  if (generatedPlanScrollRaf) {
+    window.cancelAnimationFrame(generatedPlanScrollRaf);
+    generatedPlanScrollRaf = 0;
+  }
+  const startTs = performance.now();
+  const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
+  const step = (now) => {
+    const elapsed = now - startTs;
+    const progress = clamp(elapsed / duration, 0, 1);
+    const eased = easeInOut(progress);
+    window.scrollTo(0, startY + distance * eased);
+    if (progress < 1) {
+      generatedPlanScrollRaf = window.requestAnimationFrame(step);
+    } else {
+      generatedPlanScrollRaf = 0;
+    }
+  };
+  generatedPlanScrollRaf = window.requestAnimationFrame(step);
+}
+
 function estimateSessionNutrition(session, profile) {
   const weight = Number(profile?.weightKg) || (profile?.sex === "female" ? 62 : 74);
   const heightCm = Number(profile?.heightCm) || (profile?.sex === "female" ? 168 : 178);
@@ -5948,9 +6099,20 @@ function escapeHtml(value) {
 function initScrollFx() {
   if (!scrollStage || !parallaxLayers.length) return;
 
+  if (brandAnchorEl) {
+    brandAnchorEl.style.setProperty("--brand-shift", "0");
+    brandAnchorEl.style.setProperty("--brand-opacity", "1");
+  }
+
   const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
   const mobileViewport = window.matchMedia?.("(max-width: 760px)")?.matches;
-  if (reduceMotion || mobileViewport) return;
+  if (mobileViewport) {
+    document.documentElement.style.setProperty("--mobile-account-bar-top", "102px");
+    document.documentElement.style.setProperty("--global-header-mask-height", "148px");
+    document.documentElement.style.setProperty("--global-header-line-top", "136px");
+    return;
+  }
+  if (reduceMotion) return;
 
   const applyProgress = (progress) => {
     parallaxLayers.forEach((layer) => {
@@ -5971,11 +6133,8 @@ function initScrollFx() {
     }
 
     if (brandAnchorEl) {
-      const push = clamp((progress - 0.5) / 0.34, 0, 1);
-      const shift = Math.round(push * 90);
-      const opacity = clamp(1 - push * 1.15, 0, 1);
-      brandAnchorEl.style.setProperty("--brand-shift", String(shift));
-      brandAnchorEl.style.setProperty("--brand-opacity", opacity.toFixed(3));
+      brandAnchorEl.style.setProperty("--brand-shift", "0");
+      brandAnchorEl.style.setProperty("--brand-opacity", "1");
     }
 
     document.documentElement.style.setProperty("--hero-glint", `${-25 + progress * 120}%`);
@@ -5998,6 +6157,34 @@ function initScrollFx() {
   window.addEventListener("scroll", queueUpdate, { passive: true });
   window.addEventListener("resize", queueUpdate);
   queueUpdate();
+}
+
+function initMobileHeaderScrollFx() {
+  const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  let raf = 0;
+  const root = document.documentElement;
+
+  const update = () => {
+    raf = 0;
+    const y = window.scrollY || window.pageYOffset || 0;
+    const startTop = 102;
+    const minTop = 70;
+    const travel = startTop - minTop;
+    const progress = reduceMotion ? 1 : clamp(y / 72, 0, 1);
+    const top = startTop - travel * progress;
+    root.style.setProperty("--mobile-account-bar-top", `${top.toFixed(1)}px`);
+    const maskHeight = Math.round(top + 44);
+    root.style.setProperty("--mobile-header-mask-height", `${maskHeight}px`);
+  };
+
+  const queue = () => {
+    if (raf) return;
+    raf = window.requestAnimationFrame(update);
+  };
+
+  window.addEventListener("scroll", queue, { passive: true });
+  window.addEventListener("resize", queue);
+  queue();
 }
 
 function initStageReveals() {

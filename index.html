@@ -31,26 +31,27 @@
       <button type="button" class="account-btn is-active" id="account-home-btn" data-i18n="nav_home">Home</button>
       <button type="button" class="account-btn" id="account-profile-btn" data-i18n="nav_profile">Profil</button>
       <button type="button" class="account-btn" id="account-crew-btn" data-i18n="nav_crew">Crew</button>
+      <button type="button" class="account-btn" id="account-settings-btn">Settings</button>
       <button type="button" class="account-btn" id="account-login-btn" data-i18n="nav_login">Login</button>
       <button type="button" class="account-btn" id="account-register-btn" data-i18n="nav_create">Create</button>
       <button type="button" class="account-btn" id="account-logout-btn" hidden>Logout</button>
     </div>
 
+    <div class="brand-anchor" id="brand-anchor">
+      <div class="brand-row">
+        <div class="brand-mark" aria-hidden="true">
+          <span>A</span>
+        </div>
+        <div class="brand-copy">
+          <strong>AImRUNNA</strong>
+          <small>Planning Prototype · Beta</small>
+        </div>
+      </div>
+    </div>
+
     <main class="site-shell">
       <section class="scroll-stage" id="scroll-stage">
         <div class="scroll-sticky">
-          <div class="brand-anchor" id="brand-anchor">
-            <div class="brand-row">
-              <div class="brand-mark" aria-hidden="true">
-                <span>A</span>
-              </div>
-              <div class="brand-copy">
-                <strong>AImRUNNA</strong>
-                <small>Planning Prototype · Beta</small>
-              </div>
-            </div>
-          </div>
-
           <div class="hero-layer photo-layer layer-back" data-parallax="-0.18">
             <div class="photo-strip">
               <article class="photo-card tall" style="--photo: url('https://images.pexels.com/photos/30476469/pexels-photo-30476469.jpeg?auto=compress&cs=tinysrgb&fm=webp&q=82&w=1200'); --photo-pos: 40% 86%; --photo-size: 132% auto;"></article>
@@ -306,7 +307,7 @@
             <section class="result-card account-card profile-main-card profile-card-overview" id="profile-card-identity">
               <div class="result-title-row">
                 <h4 data-i18n="profile_card_title">Profil</h4>
-                <span class="tag subtle" id="account-status-tag">Guest</span>
+                <span class="tag subtle" id="account-status-tag" hidden>Guest</span>
               </div>
               <p class="card-copy" id="account-status-copy">
                 Erstelle einen Account, um Trainingspläne zu speichern, Quellen zu verbinden und Freunde hinzuzufügen.
@@ -338,37 +339,84 @@
             <section class="result-card account-card account-stats-card profile-main-card profile-card-overview" id="profile-card-stats">
               <div class="result-title-row">
                 <h4 data-i18n="profile_stats">Profile Stats</h4>
-                <span class="tag subtle" id="profile-points-badge">0 pts</span>
+                <span class="tag subtle" id="profile-points-badge">0 Pkt.</span>
               </div>
-              <div class="profile-stats-grid">
-                <div class="profile-stat"><span data-i18n="label_run_short">Run</span><strong id="profile-stat-run-km">0 km</strong></div>
-                <div class="profile-stat"><span data-i18n="label_bike_short">Bike</span><strong id="profile-stat-bike-km">0 km</strong></div>
-                <div class="profile-stat"><span data-i18n="label_swim_short">Swim</span><strong id="profile-stat-swim-km">0 km</strong></div>
-                <div class="profile-stat"><span data-i18n="unit_races">Races</span><strong id="profile-stat-races">0</strong></div>
-                <div class="profile-stat"><span data-i18n="label_props">Props</span><strong id="profile-stat-props">0</strong></div>
-                <div class="profile-stat"><span data-i18n="profile_total_points">Total Points</span><strong id="profile-stat-points">0</strong></div>
+              <div class="profile-period-stats">
+                <section class="profile-period-card">
+                  <div class="result-title-row compact">
+                    <h5 data-i18n="profile_period_today">Heute</h5>
+                    <span class="tag subtle" id="profile-stats-today-points">0 Pkt.</span>
+                  </div>
+                  <div class="profile-stats-grid">
+                    <div class="profile-stat"><span data-i18n="label_run_short">Run</span><strong id="profile-stat-today-run-km">0 km</strong></div>
+                    <div class="profile-stat"><span data-i18n="label_bike_short">Bike</span><strong id="profile-stat-today-bike-km">0 km</strong></div>
+                    <div class="profile-stat"><span data-i18n="label_swim_short">Swim</span><strong id="profile-stat-today-swim-km">0 km</strong></div>
+                    <div class="profile-stat"><span data-i18n="unit_races">Races</span><strong id="profile-stat-today-races">0</strong></div>
+                    <div class="profile-stat"><span data-i18n="label_props">Props</span><strong id="profile-stat-today-props">0</strong></div>
+                    <div class="profile-stat"><span data-i18n="profile_total_points">Total Points</span><strong id="profile-stat-today-points-total">0</strong></div>
+                  </div>
+                </section>
+                <section class="profile-period-card">
+                  <div class="result-title-row compact">
+                    <h5 data-i18n="profile_period_12m">Letzte 12 Monate</h5>
+                    <span class="tag subtle" id="profile-stats-year-points">0 Pkt.</span>
+                  </div>
+                  <div class="profile-stats-grid">
+                    <div class="profile-stat"><span data-i18n="label_run_short">Run</span><strong id="profile-stat-year-run-km">0 km</strong></div>
+                    <div class="profile-stat"><span data-i18n="label_bike_short">Bike</span><strong id="profile-stat-year-bike-km">0 km</strong></div>
+                    <div class="profile-stat"><span data-i18n="label_swim_short">Swim</span><strong id="profile-stat-year-swim-km">0 km</strong></div>
+                    <div class="profile-stat"><span data-i18n="unit_races">Races</span><strong id="profile-stat-year-races">0</strong></div>
+                    <div class="profile-stat"><span data-i18n="label_props">Props</span><strong id="profile-stat-year-props">0</strong></div>
+                    <div class="profile-stat"><span data-i18n="profile_total_points">Total Points</span><strong id="profile-stat-year-points-total">0</strong></div>
+                  </div>
+                </section>
+                <section class="profile-period-card">
+                  <div class="result-title-row compact">
+                    <h5 data-i18n="profile_period_all">Gesamt</h5>
+                    <span class="tag subtle" id="profile-stats-all-points">0 Pkt.</span>
+                  </div>
+                  <div class="profile-stats-grid">
+                    <div class="profile-stat"><span data-i18n="label_run_short">Run</span><strong id="profile-stat-all-run-km">0 km</strong></div>
+                    <div class="profile-stat"><span data-i18n="label_bike_short">Bike</span><strong id="profile-stat-all-bike-km">0 km</strong></div>
+                    <div class="profile-stat"><span data-i18n="label_swim_short">Swim</span><strong id="profile-stat-all-swim-km">0 km</strong></div>
+                    <div class="profile-stat"><span data-i18n="unit_races">Races</span><strong id="profile-stat-all-races">0</strong></div>
+                    <div class="profile-stat"><span data-i18n="label_props">Props</span><strong id="profile-stat-all-props">0</strong></div>
+                    <div class="profile-stat"><span data-i18n="profile_total_points">Total Points</span><strong id="profile-stat-all-points-total">0</strong></div>
+                  </div>
+                </section>
               </div>
             </section>
 
             <section class="result-card account-card profile-settings-rail-card">
               <div class="result-title-row">
-                <h4>⚙ Settings</h4>
+                <h4>Settings</h4>
                 <span class="tag subtle">Beta</span>
               </div>
+              <p class="card-copy settings-rail-copy">Persönliche Profil- und Kontoeinstellungen sowie Privatsphäre für dein eigenes Profil.</p>
               <div class="profile-settings-nav" id="profile-settings-nav">
-                <button type="button" class="profile-settings-nav-btn is-active" data-profile-settings-view="account">⚙ Profileinstellungen</button>
-                <button type="button" class="profile-settings-nav-btn" data-profile-settings-view="privacy">🔒 Privacy</button>
-                <button type="button" class="profile-settings-nav-btn" data-profile-settings-view="safety">🛡 Trust & Safety</button>
-                <button type="button" class="profile-settings-nav-btn" data-profile-settings-view="legal">📄 Legal</button>
+                <button type="button" class="profile-settings-nav-btn is-active" data-profile-settings-view="account">
+                  <span class="settings-nav-icon">⚙</span>
+                  <span class="settings-nav-copy">
+                    <strong>Profil & Konto</strong>
+                    <small>Sprache, Einheiten, Strava, Passwort</small>
+                  </span>
+                </button>
+                <button type="button" class="profile-settings-nav-btn" data-profile-settings-view="privacy">
+                  <span class="settings-nav-icon">🔒</span>
+                  <span class="settings-nav-copy">
+                    <strong>Privatsphäre</strong>
+                    <small>Sichtbarkeit, Suche, Nachrichten, Karte</small>
+                  </span>
+                </button>
               </div>
-              <p class="card-copy">Rechts findest du alle Konto-, Datenschutz- und Safety-Einstellungen gebündelt.</p>
             </section>
 
             <section class="result-card account-card profile-settings-card is-active" data-profile-settings-panel="account">
               <div class="result-title-row">
-                <h4>Account Settings</h4>
+                <h4>Konto & Verbindungen</h4>
                 <span class="tag subtle">Beta</span>
               </div>
+              <p class="card-copy settings-panel-copy">Verwalte Sprache, Einheiten, Benachrichtigungen, Passwort und verbundene Dienste.</p>
               <div class="connector-status-card" id="strava-profile-card">
                 <div class="result-title-row">
                   <h5>Strava Connect</h5>
@@ -467,23 +515,24 @@
 
             <section class="result-card account-card profile-settings-card" data-profile-settings-panel="privacy">
               <div class="result-title-row">
-                <h4>Privacy Controls</h4>
+                <h4>Privatsphäre</h4>
                 <span class="tag subtle">Beta</span>
               </div>
+              <p class="card-copy settings-panel-copy">Steuere, wer dein Profil, deine Aktivitäten und Karteninformationen sehen darf.</p>
               <form id="privacy-settings-form" class="account-form">
                 <div class="activity-meta-row">
                   <label class="field is-select">
                     <span>Profil sichtbar für</span>
                     <select name="profileVisibility">
                       <option value="public">Alle</option>
-                      <option value="followers">Nur Connections</option>
+                      <option value="followers">Nur Follower</option>
                       <option value="private">Nur ich</option>
                     </select>
                   </label>
                   <label class="field is-select">
-                    <span>Aktivitäten Standard</span>
+                    <span>Aktivitäten standardmäßig sichtbar für</span>
                     <select name="activityVisibility">
-                      <option value="followers">Nur Connections</option>
+                      <option value="followers">Nur Follower</option>
                       <option value="public">Alle</option>
                       <option value="private">Nur ich</option>
                     </select>
@@ -500,7 +549,7 @@
                   <label class="field is-select">
                     <span>Nachrichten von</span>
                     <select name="messagingPermission">
-                      <option value="connections">Connections</option>
+                      <option value="connections">Follower</option>
                       <option value="everyone">Alle</option>
                       <option value="none">Niemand</option>
                     </select>
@@ -518,7 +567,7 @@
                   <label class="field is-select">
                     <span>Mentions/Tags</span>
                     <select name="mentionsPermission">
-                      <option value="connections">Connections</option>
+                      <option value="connections">Follower</option>
                       <option value="everyone">Alle</option>
                       <option value="none">Niemand</option>
                     </select>
@@ -536,6 +585,7 @@
                 <h4>Trust & Safety</h4>
                 <span class="tag subtle">Beta</span>
               </div>
+              <p class="card-copy settings-panel-copy">Moderation, Hinweise und Community-Schutz für einen sicheren Umgang mit Inhalten.</p>
               <form id="safety-settings-form" class="account-form">
                 <div class="activity-meta-row">
                   <label class="field is-select">
@@ -577,51 +627,13 @@
               </form>
             </section>
 
-            <section class="result-card account-card account-post-card profile-main-card profile-card-activities" id="profile-card-post">
-              <div class="result-title-row">
-                <h4 data-i18n="new_activity">Neue Aktivität</h4>
-                <span class="tag subtle" data-i18n="post_label">Post</span>
-              </div>
-              <form id="activity-post-form" class="activity-post-form">
-                <div class="activity-type-toggle" role="radiogroup" aria-label="Aktivitätstyp">
-                  <label class="activity-type-chip">
-                    <input type="radio" name="activityKind" value="training" checked />
-                    <span data-i18n="activity_kind_training">Training</span>
-                  </label>
-                  <label class="activity-type-chip activity-type-chip-race">
-                    <input type="radio" name="activityKind" value="race" />
-                    <span>race.</span>
-                  </label>
-                </div>
-                <div class="activity-meta-row">
-                  <label class="field is-select">
-                    <span data-i18n="field_sport">Sport</span>
-                    <select name="sportType">
-                      <option value="run">Run</option>
-                      <option value="bike">Bike</option>
-                      <option value="swim">Swim</option>
-                      <option value="hyrox">Hyrox</option>
-                      <option value="other">Other</option>
-                    </select>
-                  </label>
-                  <label class="field">
-                    <span data-i18n="field_distance_km">Distanz (km)</span>
-                    <input type="number" name="distanceKm" min="0" step="0.1" placeholder="z. B. 12.4" data-i18n-placeholder="placeholder_distance_example" />
-                  </label>
-                </div>
-                <input type="text" name="title" placeholder="z. B. Threshold Run in der City" data-i18n-placeholder="placeholder_activity_title" required />
-                <textarea name="note" rows="3" placeholder="Wie lief die Einheit? Gefühl, Pace, Learnings ..." data-i18n-placeholder="placeholder_activity_note"></textarea>
-                <div class="activity-post-row">
-                  <input type="file" name="image" accept="image/*" />
-                  <button type="submit" class="ghost" data-i18n="post_submit">Posten</button>
-                </div>
-              </form>
-            </section>
-
             <section class="result-card account-card account-feed-card account-social-card profile-main-card profile-card-activities" id="profile-card-feed">
               <div class="result-title-row">
                 <h4 data-i18n="my_feed">Mein Feed</h4>
-                <span class="tag subtle" id="profile-feed-count">0</span>
+                <div class="result-inline-actions">
+                  <button type="button" class="ghost icon-only" id="profile-quick-add-btn" aria-label="Manuelle Aktivität hinzufügen">+</button>
+                  <span class="tag subtle" id="profile-feed-count">0</span>
+                </div>
               </div>
               <div id="profile-feed-list" class="activity-feed-list">
                 <div class="empty-copy" data-i18n="empty_profile_feed">Noch keine Aktivitäten gepostet.</div>
@@ -687,17 +699,17 @@
         <section class="surface section-data stage-reveal">
           <div class="surface-head">
             <div>
-              <p class="micro-label">02 / Data & Analysis</p>
+              <p class="micro-label">Health</p>
               <h3 data-i18n="section_fitness">Aktueller Fitnessstand</h3>
             </div>
-            <span class="status-dot">Analysis</span>
+            <span class="status-dot">Live</span>
           </div>
 
           <div class="data-grid">
             <section class="result-card data-connect-card stage-reveal">
               <div class="result-title-row">
                 <h4>Quellen verbinden</h4>
-                <span class="tag">MVP Mock</span>
+                <span class="tag subtle">Connectors</span>
               </div>
               <p class="card-copy">
                 Garmin, Strava und Whoop werden später per OAuth verbunden und liefern die
@@ -905,6 +917,52 @@
           <p class="micro-copy">
             MVP Hinweis: Accounts laufen aktuell lokal im Browser (LocalStorage), bis das Backend/OAuth live ist.
           </p>
+        </form>
+      </article>
+    </div>
+
+    <div id="activity-compose-modal" class="account-modal" hidden>
+      <div class="account-modal-backdrop" data-close-activity-compose></div>
+      <article id="profile-card-post" class="account-modal-card activity-compose-modal-card" role="dialog" aria-modal="true" aria-labelledby="activity-compose-title">
+        <button type="button" class="session-modal-close" data-close-activity-compose aria-label="Close">×</button>
+        <div class="result-title-row">
+          <h4 id="activity-compose-title" data-i18n="new_activity">Neue Aktivität</h4>
+          <span class="tag subtle" data-i18n="post_label">Post</span>
+        </div>
+        <p class="micro-copy">Optionaler manueller Post (z. B. Kommentar / Bild). Primär kommen Aktivitäten später über Strava/Garmin/WHOOP-Import.</p>
+        <form id="activity-post-form" class="activity-post-form">
+          <div class="activity-type-toggle" role="radiogroup" aria-label="Aktivitätstyp">
+            <label class="activity-type-chip">
+              <input type="radio" name="activityKind" value="training" checked />
+              <span data-i18n="activity_kind_training">Training</span>
+            </label>
+            <label class="activity-type-chip activity-type-chip-race">
+              <input type="radio" name="activityKind" value="race" />
+              <span>race.</span>
+            </label>
+          </div>
+          <div class="activity-meta-row">
+            <label class="field is-select">
+              <span data-i18n="field_sport">Sport</span>
+              <select name="sportType">
+                <option value="run">Run</option>
+                <option value="bike">Bike</option>
+                <option value="swim">Swim</option>
+                <option value="hyrox">Hyrox</option>
+                <option value="other">Other</option>
+              </select>
+            </label>
+            <label class="field">
+              <span data-i18n="field_distance_km">Distanz (km)</span>
+              <input type="number" name="distanceKm" min="0" step="0.1" placeholder="z. B. 12.4" data-i18n-placeholder="placeholder_distance_example" />
+            </label>
+          </div>
+          <input type="text" name="title" placeholder="z. B. Threshold Run in der City" data-i18n-placeholder="placeholder_activity_title" required />
+          <textarea name="note" rows="3" placeholder="Wie lief die Einheit? Gefühl, Pace, Learnings ..." data-i18n-placeholder="placeholder_activity_note"></textarea>
+          <div class="activity-post-row">
+            <input type="file" name="image" accept="image/*" />
+            <button type="submit" class="ghost" data-i18n="post_submit">Posten</button>
+          </div>
         </form>
       </article>
     </div>

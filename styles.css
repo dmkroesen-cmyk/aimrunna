@@ -14,6 +14,8 @@
   --accent-ready: #fff07a;
   --accent-vo2: #d0b2ff;
   --container: 1240px;
+  --global-header-mask-height: 98px;
+  --global-header-line-top: 92px;
 }
 
 * {
@@ -32,6 +34,28 @@ body {
 
 body {
   overflow-x: hidden;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: var(--global-header-mask-height);
+  background: linear-gradient(to bottom, rgba(6, 7, 9, 0.98) 0%, rgba(6, 7, 9, 0.94) 72%, rgba(6, 7, 9, 0) 100%);
+  pointer-events: none;
+  z-index: 18;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: var(--global-header-line-top);
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+  pointer-events: none;
+  z-index: 18;
 }
 
 .section-account,
@@ -69,7 +93,7 @@ body.app-view-crew .content-shell {
   position: fixed;
   top: 14px;
   right: 14px;
-  z-index: 20;
+  z-index: 24;
   display: flex;
   gap: 0;
   padding: 0 4px;
@@ -82,7 +106,7 @@ body.app-view-crew .content-shell {
   position: fixed;
   top: 56px;
   right: 14px;
-  z-index: 20;
+  z-index: 24;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -92,6 +116,7 @@ body.app-view-crew .content-shell {
 }
 
 .account-pill {
+  display: none !important;
   height: 28px;
   display: inline-flex;
   align-items: center;
@@ -152,6 +177,17 @@ body.is-authenticated .account-dot {
   margin: 0 0 10px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   padding-bottom: 8px;
+  position: sticky;
+  top: 102px;
+  z-index: 16;
+  background: rgba(7, 8, 10, 0.92);
+  backdrop-filter: blur(4px);
+  padding-top: 8px;
+}
+
+.section-account > .surface-head,
+.account-section-tabs {
+  display: none !important;
 }
 
 .account-section-tab {
@@ -183,34 +219,45 @@ body.is-authenticated .account-dot {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin: 0 0 10px;
+  margin: 0 0 12px;
+  position: relative;
+  top: auto;
+  z-index: 1;
+  background: transparent;
+  backdrop-filter: none;
+  padding: 6px 0 8px;
+  border-bottom: 0;
 }
 
 .profile-view-tabs {
   display: inline-flex;
-  gap: 4px;
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.07);
-  background: rgba(255,255,255,0.01);
-  padding: 3px;
+  gap: 10px;
+  border: 0;
+  background: transparent;
+  border-radius: 0;
+  border: 0;
+  padding: 0;
+  box-shadow: none;
 }
 
 .profile-view-tab {
   border: 0;
   background: transparent;
-  color: rgba(255,255,255,0.58);
+  color: rgba(255,255,255,0.56);
   height: 28px;
-  padding: 0 10px;
-  border-radius: 999px;
+  padding: 0 6px;
+  border-radius: 0;
   cursor: pointer;
   font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  border-bottom: 1px solid transparent;
 }
 
 .profile-view-tab.is-active {
   color: #fff;
-  background: rgba(255,255,255,0.04);
+  background: transparent;
+  border-bottom-color: rgba(255,255,255,0.55);
 }
 
 .lang-btn {
@@ -280,7 +327,6 @@ body.is-authenticated .account-dot {
 
 .site-shell {
   position: relative;
-  z-index: 1;
 }
 
 .scroll-stage {
@@ -381,17 +427,18 @@ body.is-authenticated .account-dot {
   transform: translate3d(0, calc(var(--landing-shift, 0px) * 1px), 0) scale(var(--landing-scale, 1));
   opacity: var(--landing-opacity, 1);
   transition: opacity 180ms ease;
+  z-index: 4;
 }
 
 .brand-anchor {
   position: fixed;
   top: 24px;
   left: 22px;
-  z-index: 3;
+  z-index: 60;
   pointer-events: none;
-  transform: translate3d(0, calc(var(--brand-shift, 0px) * 1px), 0);
-  opacity: var(--brand-opacity, 1);
-  will-change: transform, opacity;
+  transform: none !important;
+  opacity: 1 !important;
+  will-change: auto;
 }
 
 .landing-panel {
@@ -793,7 +840,7 @@ select {
   display: grid;
   gap: 14px;
   position: relative;
-  z-index: 5;
+  z-index: 10;
   content-visibility: auto;
   contain-intrinsic-size: 1400px;
 }
@@ -807,7 +854,7 @@ select {
   padding: 14px;
   transition: opacity 220ms ease, border-color 220ms ease, background-color 220ms ease;
   position: relative;
-  z-index: 6;
+  z-index: 11;
 }
 
 .surface-head {
@@ -883,8 +930,8 @@ select {
 
 .stage-reveal {
   opacity: 0;
-  transform: translateY(14px);
-  transition: opacity 480ms ease, transform 480ms ease, border-color 220ms ease;
+  transform: translateY(10px);
+  transition: opacity 360ms ease, transform 360ms ease, border-color 220ms ease;
 }
 
 .stage-reveal.is-visible {
@@ -973,6 +1020,17 @@ select {
   gap: 12px;
 }
 
+body.app-view-profile:not(.profile-view-settings) .account-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+body.profile-view-overview #profile-card-identity,
+body.profile-view-overview #profile-card-plans,
+body.profile-view-overview #profile-card-stats,
+body.profile-view-activities #profile-card-feed {
+  grid-column: 1 / -1;
+}
+
 .profile-main-card {
   grid-column: 1 / span 2;
 }
@@ -983,29 +1041,81 @@ select {
   position: sticky;
   top: 108px;
   align-self: start;
+  z-index: 4;
+  background: rgba(10, 11, 14, 0.9);
+  border-color: rgba(255,255,255,0.08);
+  box-shadow: 0 14px 34px rgba(0,0,0,0.22);
+}
+
+.settings-rail-copy {
+  margin: 8px 0 12px;
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .profile-settings-nav {
-  margin-top: 10px;
+  margin-top: 0;
   display: grid;
   gap: 6px;
 }
 
 .profile-settings-nav-btn {
   border: 1px solid rgba(255,255,255,0.06);
-  background: rgba(255,255,255,0.01);
+  background:
+    radial-gradient(circle at 95% 8%, rgba(255,255,255,0.03), transparent 60%),
+    rgba(255,255,255,0.01);
   color: rgba(255,255,255,0.68);
-  border-radius: 10px;
-  padding: 9px 10px;
+  border-radius: 12px;
+  padding: 10px 12px;
   text-align: left;
   font-size: 12px;
   cursor: pointer;
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  gap: 10px;
+  align-items: start;
+  transition: border-color 140ms ease, background-color 140ms ease, transform 140ms ease;
 }
 
 .profile-settings-nav-btn.is-active {
   color: #fff;
-  border-color: rgba(255,255,255,0.13);
-  background: rgba(255,255,255,0.025);
+  border-color: rgba(255,255,255,0.16);
+  background:
+    radial-gradient(circle at 95% 8%, rgba(255,255,255,0.05), transparent 60%),
+    rgba(255,255,255,0.03);
+}
+
+.profile-settings-nav-btn:hover {
+  border-color: rgba(255,255,255,0.11);
+  transform: translateY(-1px);
+}
+
+.settings-nav-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.settings-nav-copy {
+  display: grid;
+  gap: 3px;
+}
+
+.settings-nav-copy strong {
+  display: block;
+  font-size: 12px;
+  color: inherit;
+  letter-spacing: -0.01em;
+}
+
+.settings-nav-copy small {
+  display: block;
+  color: rgba(255,255,255,0.5);
+  font-size: 10px;
+  line-height: 1.3;
 }
 
 .profile-settings-card {
@@ -1015,6 +1125,11 @@ select {
 
 .profile-settings-card.is-active {
   display: block;
+}
+
+.settings-panel-copy {
+  margin-top: 8px;
+  margin-bottom: 12px;
 }
 
 .connector-status-card {
@@ -1078,9 +1193,22 @@ select {
   font-size: 11px;
 }
 
+.section-account .surface-head .status-dot {
+  display: none;
+}
+
 body.profile-view-overview #profile-card-post,
 body.profile-view-overview #profile-card-feed {
   display: none;
+}
+
+body.profile-view-overview .profile-settings-rail-card,
+body.profile-view-overview .profile-settings-card,
+body.profile-view-activities .profile-settings-rail-card,
+body.profile-view-activities .profile-settings-card,
+body.profile-view-health .profile-settings-rail-card,
+body.profile-view-health .profile-settings-card {
+  display: none !important;
 }
 
 body.profile-view-activities #profile-card-identity,
@@ -1092,6 +1220,48 @@ body.profile-view-activities #profile-card-stats {
 body.profile-view-health .section-account .profile-main-card,
 body.profile-view-health .section-account .profile-settings-card {
   display: none;
+}
+
+body.profile-view-health .section-data > .surface-head {
+  display: none;
+}
+
+body.profile-view-health .section-data {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+
+body.profile-view-settings .section-account .profile-main-card {
+  display: none !important;
+}
+
+body.profile-view-settings .profile-pane-toolbar {
+  display: none !important;
+}
+
+body.profile-view-settings .account-grid {
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+body.profile-view-settings .profile-settings-rail-card {
+  display: block;
+  grid-column: 1;
+  grid-row: 1;
+}
+
+body.profile-view-settings .profile-settings-card {
+  display: none;
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+}
+
+body.profile-view-settings .profile-settings-card.is-active {
+  display: block;
 }
 
 .account-social-card {
@@ -1108,6 +1278,55 @@ body.profile-view-health .section-account .profile-settings-card {
 
 .account-stats-card {
   grid-column: span 2;
+}
+
+.result-title-row.compact {
+  gap: 8px;
+}
+
+.result-title-row.compact h5 {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: -0.015em;
+  color: #f1f4f9;
+}
+
+.result-inline-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ghost.icon-only {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: inline-grid;
+  place-items: center;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.ghost.icon-only.is-active {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.account-post-card[hidden] {
+  display: none !important;
+}
+
+.profile-period-stats {
+  margin-top: 10px;
+  display: grid;
+  gap: 10px;
+}
+
+.profile-period-card {
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.008);
+  padding: 10px;
 }
 
 .account-card .card-copy {
@@ -2633,6 +2852,27 @@ body.has-output .section-data { border-color: rgba(255, 255, 255, 0.1); }
 }
 
 @media (max-width: 760px) {
+  :root {
+    --global-header-mask-height: 148px;
+    --global-header-line-top: 136px;
+  }
+
+  body::before {
+    height: var(--global-header-mask-height);
+    background:
+      linear-gradient(
+        to bottom,
+        rgba(6, 7, 9, 0.99) 0%,
+        rgba(6, 7, 9, 0.97) 70%,
+        rgba(6, 7, 9, 0.89) 86%,
+        rgba(6, 7, 9, 0) 100%
+      );
+  }
+
+  body::after {
+    top: var(--global-header-line-top);
+  }
+
   body.app-view-profile .content-shell,
   body.app-view-crew .content-shell {
     margin-top: 92px;
@@ -2675,7 +2915,7 @@ body.has-output .section-data { border-color: rgba(255, 255, 255, 0.1); }
   }
 
   .account-bar {
-    top: 102px;
+    top: var(--mobile-account-bar-top, 102px);
     left: 12px;
     right: 12px;
     gap: 3px 4px;
@@ -2686,11 +2926,7 @@ body.has-output .section-data { border-color: rgba(255, 255, 255, 0.1); }
   }
 
   .account-pill {
-    height: 26px;
-    padding-inline: 7px;
-    max-width: 84px;
-    font-size: 10px;
-    letter-spacing: 0.06em;
+    display: none !important;
   }
 
   .account-btn {
@@ -2732,6 +2968,9 @@ body.has-output .section-data { border-color: rgba(255, 255, 255, 0.1); }
     gap: 2px;
     margin-bottom: 12px;
     padding-bottom: 6px;
+    top: 142px;
+    padding-top: 6px;
+    backdrop-filter: none;
   }
 
   .account-section-tab {
@@ -2744,6 +2983,9 @@ body.has-output .section-data { border-color: rgba(255, 255, 255, 0.1); }
     flex-direction: column;
     align-items: stretch;
     margin-bottom: 12px;
+    top: auto;
+    padding-top: 4px;
+    backdrop-filter: none;
   }
 
   .profile-view-tabs {
@@ -2751,18 +2993,20 @@ body.has-output .section-data { border-color: rgba(255, 255, 255, 0.1); }
     justify-content: stretch;
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 2px;
-    padding: 2px;
+    gap: 6px;
+    padding: 0;
   }
 
   .profile-view-tab {
     width: 100%;
-    padding: 0 6px;
-    letter-spacing: 0.05em;
+    padding: 0 4px;
+    letter-spacing: 0.04em;
+    text-align: center;
   }
 
   .profile-settings-rail-card {
     top: auto;
+    z-index: auto;
   }
 
   .profile-settings-nav {
@@ -2774,11 +3018,26 @@ body.has-output .section-data { border-color: rgba(255, 255, 255, 0.1); }
     min-height: 34px;
     font-size: 11px;
     padding: 8px 9px;
+    grid-template-columns: 18px 1fr;
+    gap: 8px;
+  }
+
+  .settings-nav-copy small {
+    display: none;
   }
 
   .profile-settings-card,
   .profile-main-card {
     padding: 10px;
+  }
+
+  .profile-period-card {
+    padding: 9px;
+  }
+
+  .profile-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
   }
 
   .activity-meta-row {
