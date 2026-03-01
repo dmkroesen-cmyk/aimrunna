@@ -30,8 +30,7 @@
       </div>
       <button type="button" class="account-btn is-active" id="account-home-btn" data-i18n="nav_home">Home</button>
       <button type="button" class="account-btn" id="account-profile-btn" data-i18n="nav_profile">Profil</button>
-      <button type="button" class="account-btn" id="account-crew-btn" data-i18n="nav_crew">Crew</button>
-      <button type="button" class="account-btn" id="account-settings-btn">Settings</button>
+      <button type="button" class="account-btn" id="account-crew-btn" data-i18n="nav_crew">Community</button>
       <button type="button" class="account-btn" id="account-login-btn" data-i18n="nav_login">Login</button>
       <button type="button" class="account-btn" id="account-register-btn" data-i18n="nav_create">Create</button>
       <button type="button" class="account-btn" id="account-logout-btn" hidden>Logout</button>
@@ -75,8 +74,8 @@
               </div>
 
               <form id="plan-form" class="intake-form">
-                <div class="quick-grid quick-grid-minimal">
-                  <label class="field is-select">
+                <div class="quick-grid plan-top-controls">
+                  <label class="field is-select" id="top-discipline-field">
                     <span data-i18n="field_discipline">Disziplin</span>
                     <select name="discipline" required>
                       <option value="running">Laufen</option>
@@ -86,151 +85,276 @@
                       <option value="shape">Shape</option>
                     </select>
                   </label>
-
-                  <label class="field is-select">
-                    <span data-i18n="field_goal_format">Ziel-Format</span>
-                    <select name="goalDistance" id="goal-distance-select" required>
-                      <option value="sprint">Sprint Triathlon</option>
-                      <option value="olympic" selected>Olympic Triathlon</option>
-                      <option value="703">70.3</option>
-                      <option value="ironman">Ironman</option>
+                  <label class="field is-select" id="top-mode-field">
+                    <span data-i18n="field_mode">Modus</span>
+                    <select name="planMode" id="plan-mode-select" required>
+                      <option value="quick" selected data-i18n="mode_quick">Quick</option>
+                      <option value="pro" data-i18n="mode_pro">Pro</option>
                     </select>
-                  </label>
-
-                  <label class="field">
-                    <span id="goal-time-label" data-i18n="field_goal_time">Zielzeit</span>
-                    <input id="goal-time-input" type="text" name="goalTime" value="2:59:00" placeholder="2:59:00" required />
                   </label>
                 </div>
 
-                <button type="button" id="advanced-toggle" class="advanced-toggle" aria-expanded="false" aria-controls="advanced-settings" data-i18n="btn_tuning">
-                  Feintuning
-                </button>
+                <div id="quick-plan-fields" class="advanced-grid quick-plan-fields">
+                  <label class="field is-select">
+                    <span data-i18n="quick_goal_format">Zielformat</span>
+                    <select name="quickGoalDistance" id="quick-goal-distance-select"></select>
+                  </label>
+                  <label class="field">
+                    <span data-i18n="quick_goal_time">Zielzeit</span>
+                    <input type="text" name="quickGoalTime" id="quick-goal-time-input" placeholder="2:59:00" required />
+                  </label>
+                  <label class="field">
+                    <span data-i18n="quick_date">Datum</span>
+                    <input type="date" name="quickRaceDate" id="quick-race-date-input" required />
+                  </label>
+                </div>
 
-                <div id="advanced-settings" class="advanced-settings" hidden>
-                  <div class="advanced-grid">
-                    <label class="field is-select" id="level-field">
-                      <span data-i18n="field_level">Level</span>
-                      <select name="fitnessLevel" required>
-                        <option value="starter">Einsteiger</option>
-                        <option value="intermediate" selected>Fortgeschritten</option>
-                        <option value="advanced">Sehr fit</option>
-                      </select>
-                    </label>
+                <div id="advanced-settings" class="advanced-settings">
+                  <div class="tuning-toggle-row" role="toolbar" aria-label="Fine tuning categories">
+                    <button type="button" class="advanced-toggle tuning-toggle-btn" data-tuning-toggle="goals" aria-expanded="false" aria-controls="tuning-panel-goals">
+                      Ziele
+                    </button>
+                    <button type="button" class="advanced-toggle tuning-toggle-btn" data-tuning-toggle="personal" aria-expanded="false" aria-controls="tuning-panel-personal">
+                      Athlet
+                    </button>
+                    <button type="button" class="advanced-toggle tuning-toggle-btn" data-tuning-toggle="performance" aria-expanded="false" aria-controls="tuning-panel-performance">
+                      Performance
+                    </button>
+                    <button type="button" class="advanced-toggle tuning-toggle-btn" data-tuning-toggle="setup" aria-expanded="false" aria-controls="tuning-panel-setup">
+                      Trainingssetup
+                    </button>
+                  </div>
 
-                    <label class="field is-select" id="experience-field">
-                      <span data-i18n="field_experience">Erfahrung</span>
-                      <select name="experience" required>
-                        <option value="lt1">Unter 1 Jahr</option>
-                        <option value="1to3" selected>1-3 Jahre</option>
-                        <option value="3to5">3-5 Jahre</option>
-                        <option value="5plus">5+ Jahre</option>
-                      </select>
-                    </label>
-
-                    <label class="field" id="weekly-hours-field">
-                      <span data-i18n="field_hours">Std/Woche</span>
-                      <input type="number" name="weeklyHours" min="2" max="30" step="1" value="8" required />
-                    </label>
-
-                    <label class="field" id="race-date-field">
-                      <span id="race-date-label">Race Date</span>
-                      <input type="date" name="raceDate" required />
-                    </label>
-
-                    <label class="field" id="constraints-field">
-                      <span>Constraints</span>
-                      <input type="text" name="constraints" placeholder="z. B. Long Run nur Sonntag" />
-                    </label>
-
-                    <label class="field is-select" id="sex-field">
-                      <span data-i18n="field_sex_optional">Geschlecht (optional)</span>
-                      <select name="sex">
-                        <option value="" selected>Optional</option>
-                        <option value="female">Female</option>
-                        <option value="male">Male</option>
-                      </select>
-                    </label>
-
-                    <label class="field" id="age-field">
-                      <span data-i18n="field_age_optional">Alter (optional)</span>
-                      <input type="number" name="age" min="14" max="90" step="1" placeholder="z. B. 32" />
-                    </label>
-
-                    <label class="field" id="weight-field">
-                      <span data-i18n="field_weight_optional">Gewicht kg (optional)</span>
-                      <input type="number" name="weightKg" min="35" max="180" step="0.1" placeholder="z. B. 68.5" />
-                    </label>
-
-                    <label class="field" id="height-field">
-                      <span data-i18n="field_height_optional">Größe cm (optional)</span>
-                      <input type="number" name="heightCm" min="130" max="230" step="1" placeholder="z. B. 178" />
-                    </label>
-
-                    <div class="field" id="shape-target-weight-field" hidden>
-                      <span data-i18n="field_target_weight_optional">Zielgewicht kg (optional)</span>
-                      <input type="number" name="targetWeightKg" min="35" max="180" step="0.1" placeholder="z. B. 74.0" />
-                    </div>
-
-                    <div class="field is-select" id="shape-target-focus-field" hidden>
-                      <span id="discipline-target-focus-label">Target Focus</span>
-                      <select name="shapeTargetFocus" id="shape-target-focus-select">
-                        <option value="weight">Weight</option>
-                        <option value="consistency">Consistency</option>
-                        <option value="conditioning">Conditioning</option>
-                      </select>
-                    </div>
-
-                    <div class="field" id="shape-gym-share-field" hidden>
-                      <span id="discipline-share-label" data-i18n="field_gym_share">Gym-Anteil</span>
-                      <input id="shape-gym-share-input" type="range" name="gymShare" min="0" max="100" step="10" value="40" />
-                      <small id="shape-gym-share-value">40% Gym / 60% Outdoor-Home</small>
-                    </div>
-
-                    <div class="field is-select" id="bike-outdoor-day-field" hidden>
-                      <span id="bike-outdoor-day-label">Outdoor Ride Day</span>
-                      <select name="bikeOutdoorDay" id="bike-outdoor-day-select">
-                        <option value="none">Kein fixer Tag</option>
-                        <option value="saturday">Samstag</option>
-                        <option value="sunday" selected>Sonntag</option>
-                        <option value="wednesday">Mittwoch</option>
-                        <option value="friday">Freitag</option>
-                        <option value="never">Nie (nur Rolle)</option>
-                      </select>
-                    </div>
-
-                    <div class="field is-select" id="long-run-day-field" hidden>
-                      <span id="long-run-day-label">Long Run Day (optional)</span>
-                      <select name="longRunDay" id="long-run-day-select">
-                        <option value="none">Kein fixer Tag</option>
-                        <option value="saturday">Samstag</option>
-                        <option value="sunday" selected>Sonntag</option>
-                        <option value="wednesday">Mittwoch</option>
-                        <option value="friday">Freitag</option>
-                      </select>
-                    </div>
-
-                    <div class="field field-checkbox" id="cycle-training-field">
-                      <span data-i18n="field_cycle_optional">Zyklusbasiertes Training (optional)</span>
-                      <label class="checkbox-row cycle-toggle-row" for="cycle-based-training">
-                        <input id="cycle-based-training" type="checkbox" name="cycleBasedTraining" />
-                        <span class="cycle-toggle-icon" aria-hidden="true"></span>
-                        <span data-i18n="field_cycle_toggle">Zyklusbasierte Planung berücksichtigen</span>
-                      </label>
-                    </div>
-
-                    <div class="cycle-detail-group" id="cycle-detail-group">
-                      <label class="field" id="cycle-day-field">
-                        <span data-i18n="field_cycle_day_optional">Zyklustag (optional)</span>
-                        <input type="number" name="cycleDay" min="1" max="35" step="1" placeholder="z. B. 14" />
+                  <div id="tuning-panel-host" class="tuning-panel-host" hidden>
+                    <div class="advanced-grid tuning-panel-grid" id="tuning-panel-personal" data-tuning-panel="personal" hidden>
+                      <label class="field" id="age-field">
+                        <span data-i18n="field_age_optional">Alter (optional)</span>
+                        <input type="number" name="age" min="14" max="90" step="1" placeholder="z. B. 32" />
                       </label>
 
-                      <label class="field" id="cycle-length-field">
-                        <span data-i18n="field_cycle_length_optional">Ø Zykluslänge Tage (optional)</span>
-                        <input type="number" name="cycleLengthDays" min="21" max="40" step="1" placeholder="z. B. 28" />
+                      <label class="field" id="weight-field">
+                        <span data-i18n="field_weight_optional">Gewicht kg (optional)</span>
+                        <input type="number" name="weightKg" min="35" max="180" step="0.1" placeholder="z. B. 68.5" />
                       </label>
+
+                      <label class="field" id="height-field">
+                        <span data-i18n="field_height_optional">Größe cm (optional)</span>
+                        <input type="number" name="heightCm" min="130" max="230" step="1" placeholder="z. B. 178" />
+                      </label>
+
+                      <label class="field is-select" id="sex-field">
+                        <span data-i18n="field_sex_optional">Geschlecht (optional)</span>
+                        <select name="sex">
+                          <option value="" selected>—</option>
+                          <option value="female">Female</option>
+                          <option value="male">Male</option>
+                        </select>
+                      </label>
+
+                      <div class="field field-checkbox" id="cycle-training-field">
+                        <span data-i18n="field_cycle_optional">Zyklusbasiertes Training (optional)</span>
+                        <label class="checkbox-row cycle-toggle-row" for="cycle-based-training">
+                          <input id="cycle-based-training" type="checkbox" name="cycleBasedTraining" />
+                          <span class="cycle-toggle-icon" aria-hidden="true"></span>
+                          <span data-i18n="field_cycle_toggle">Zyklusbasierte Planung berücksichtigen</span>
+                        </label>
+                      </div>
+
+                      <div class="cycle-detail-group" id="cycle-detail-group">
+                        <label class="field" id="cycle-day-field">
+                          <span data-i18n="field_cycle_day_optional">Zyklustag (optional)</span>
+                          <input type="number" name="cycleDay" min="1" max="35" step="1" placeholder="z. B. 14" />
+                        </label>
+
+                        <label class="field" id="cycle-length-field">
+                          <span data-i18n="field_cycle_length_optional">Ø Zykluslänge Tage (optional)</span>
+                          <input type="number" name="cycleLengthDays" min="21" max="40" step="1" placeholder="z. B. 28" />
+                        </label>
+                      </div>
+                    </div>
+
+                    <div class="advanced-grid tuning-panel-grid" id="tuning-panel-performance" data-tuning-panel="performance" hidden>
+                      <label class="field is-select" id="level-field">
+                        <span data-i18n="field_level">Level</span>
+                        <select name="fitnessLevel" required>
+                          <option value="starter">Einsteiger</option>
+                          <option value="intermediate" selected>Fortgeschritten</option>
+                          <option value="advanced">Sehr fit</option>
+                        </select>
+                      </label>
+
+                      <label class="field is-select" id="experience-field">
+                        <span data-i18n="field_experience">Erfahrung</span>
+                        <select name="experience" required>
+                          <option value="lt1">Unter 1 Jahr</option>
+                          <option value="1to3" selected>1-3 Jahre</option>
+                          <option value="3to5">3-5 Jahre</option>
+                          <option value="5plus">5+ Jahre</option>
+                        </select>
+                      </label>
+
+                      <label class="field" id="bike-ftp-field">
+                        <span>FTP Bike (W)</span>
+                        <input type="number" name="bikeFtp" id="threshold-bike-ftp-hidden" min="90" max="550" step="1" placeholder="z. B. 265" />
+                      </label>
+
+                      <label class="field" id="bike-thr-hr-field">
+                        <span>Bike Schwellen-HF (bpm)</span>
+                        <input type="number" name="bikeThresholdHr" id="threshold-bike-thr-hr-hidden" min="100" max="210" step="1" placeholder="z. B. 172" />
+                      </label>
+
+                      <label class="field" id="bike-lactate-field">
+                        <span>Bike LT2-Laktat (mmol/L)</span>
+                        <input type="number" name="bikeThresholdLactate" id="threshold-bike-lactate-hidden" min="2" max="6" step="0.1" placeholder="z. B. 3.5" />
+                      </label>
+
+                      <label class="field" id="run-thr-pace-field">
+                        <span>Lauf Schwellenpace (/km)</span>
+                        <input type="text" name="runThresholdPace" id="threshold-run-thr-pace-hidden" placeholder="z. B. 4:18" />
+                      </label>
+
+                      <label class="field" id="run-thr-hr-field">
+                        <span>Lauf Schwellen-HF (bpm)</span>
+                        <input type="number" name="runThresholdHr" id="threshold-run-thr-hr-hidden" min="100" max="210" step="1" placeholder="z. B. 178" />
+                      </label>
+
+                      <label class="field" id="run-lactate-field">
+                        <span>Lauf LT2-Laktat (mmol/L)</span>
+                        <input type="number" name="runThresholdLactate" id="threshold-run-lactate-hidden" min="2" max="6" step="0.1" placeholder="z. B. 3.8" />
+                      </label>
+
+                      <div class="field" id="recent-pbs-field">
+                        <span>Letzte Bestzeiten (optional)</span>
+                        <div class="pb-entry-list">
+                          <div class="pb-entry-row">
+                            <select name="pb1Discipline" id="pb1-discipline-select">
+                              <option value="running" selected>Laufen</option>
+                              <option value="triathlon">Triathlon</option>
+                              <option value="cycling">Rad</option>
+                              <option value="hyrox">Hyrox</option>
+                            </select>
+                            <select name="pb1Distance" id="pb1-distance-select"></select>
+                            <input type="text" name="pb1Time" placeholder="Zeit (z. B. 41:20)" />
+                          </div>
+                          <div class="pb-entry-row">
+                            <select name="pb2Discipline" id="pb2-discipline-select">
+                              <option value="running" selected>Laufen</option>
+                              <option value="triathlon">Triathlon</option>
+                              <option value="cycling">Rad</option>
+                              <option value="hyrox">Hyrox</option>
+                            </select>
+                            <select name="pb2Distance" id="pb2-distance-select"></select>
+                            <input type="text" name="pb2Time" placeholder="Zeit (z. B. 1:32:00)" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="advanced-grid tuning-panel-grid" id="tuning-panel-setup" data-tuning-panel="setup" hidden>
+                      <div class="field" id="shape-gym-share-field" hidden>
+                        <span id="discipline-share-label" data-i18n="field_gym_share">Gym-Anteil</span>
+                        <input id="shape-gym-share-input" type="range" name="gymShare" min="0" max="100" step="10" value="40" />
+                        <small id="shape-gym-share-value">40% Gym / 60% Outdoor-Home</small>
+                      </div>
+
+                      <div class="field is-select" id="bike-outdoor-day-field" hidden>
+                        <span id="bike-outdoor-day-label">Outdoor Ride Day</span>
+                        <select name="bikeOutdoorDay" id="bike-outdoor-day-select">
+                          <option value="none">Kein fixer Tag</option>
+                          <option value="saturday">Samstag</option>
+                          <option value="sunday" selected>Sonntag</option>
+                          <option value="wednesday">Mittwoch</option>
+                          <option value="friday">Freitag</option>
+                          <option value="never">Nie (nur Rolle)</option>
+                        </select>
+                      </div>
+
+                      <div class="field is-select" id="long-run-day-field" hidden>
+                        <span id="long-run-day-label">Long Run Day (optional)</span>
+                        <select name="longRunDay" id="long-run-day-select">
+                          <option value="none">Kein fixer Tag</option>
+                          <option value="saturday">Samstag</option>
+                          <option value="sunday" selected>Sonntag</option>
+                          <option value="wednesday">Mittwoch</option>
+                          <option value="friday">Freitag</option>
+                        </select>
+                      </div>
+
+                      <label class="field" id="weekly-hours-field">
+                        <span data-i18n="field_hours">Std/Woche</span>
+                        <input type="number" name="weeklyHours" min="2" max="30" step="1" value="8" required />
+                      </label>
+
+                      <div class="field is-select" id="shape-target-focus-field" hidden>
+                        <span id="discipline-target-focus-label">Target Focus</span>
+                        <select name="shapeTargetFocus" id="shape-target-focus-select">
+                          <option value="weight">Weight</option>
+                          <option value="consistency">Consistency</option>
+                          <option value="conditioning">Conditioning</option>
+                        </select>
+                      </div>
+
+                    </div>
+
+                    <div class="advanced-grid tuning-panel-grid" id="tuning-panel-goals" data-tuning-panel="goals" hidden>
+                      <label class="field is-select" id="ltad-mode-field">
+                        <span>Planhorizont</span>
+                        <select name="ltadMode" id="ltad-mode-select">
+                          <option value="off" selected>Standard</option>
+                          <option value="one_year">Season (1 Jahr)</option>
+                          <option value="two_year">LTAD (2 Jahre)</option>
+                        </select>
+                      </label>
+
+                      <label class="field is-select" id="goal-distance-field">
+                        <span data-i18n="field_goal_format">Ziel-Format</span>
+                        <select name="goalDistance" id="goal-distance-select" required>
+                          <option value="sprint">Sprint Triathlon</option>
+                          <option value="olympic" selected>Olympic Triathlon</option>
+                          <option value="703">70.3</option>
+                          <option value="ironman">Ironman</option>
+                        </select>
+                      </label>
+
+                      <label class="field" id="goal-time-field">
+                        <span id="goal-time-label" data-i18n="field_goal_time">Zielzeit</span>
+                        <input id="goal-time-input" type="text" name="goalTime" value="2:59:00" placeholder="2:59:00" required />
+                      </label>
+
+                      <label class="field" id="race-date-field">
+                        <span id="race-date-label">Race Date</span>
+                        <input type="date" name="raceDate" required />
+                      </label>
+
+                      <label class="field is-select" id="shape-target-weight-field" hidden>
+                        <span data-i18n="field_target_weight_optional">Zielgewicht kg (optional)</span>
+                        <select name="targetWeightKg" id="shape-target-weight-select">
+                          <option value="">Bitte wählen</option>
+                        </select>
+                      </label>
+
+                      <div class="field" id="race-calendar-field">
+                        <span></span>
+                        <input type="hidden" name="raceEventsJson" id="race-events-json" value="[]" />
+                        <div class="race-inline-head" aria-hidden="true">
+                          <span>Typ</span>
+                          <span data-i18n="race_col_discipline">Disziplin</span>
+                          <span data-i18n="race_col_format">Wettkampfsort / Block</span>
+                          <span data-i18n="race_col_goal_time">Zielzeit / Notiz</span>
+                          <span data-i18n="race_col_date">Start</span>
+                          <span>Ende</span>
+                          <span data-i18n="race_col_priority">Priorität / Intensität</span>
+                          <span></span>
+                        </div>
+                        <div id="race-inline-list" class="race-inline-list"></div>
+                        <div class="constraints-action-row">
+                          <button type="button" class="ghost race-calendar-open-btn" id="race-inline-add-btn">+ Rennen hinzufügen</button>
+                          <button type="button" class="ghost race-calendar-open-btn" id="race-inline-add-block-btn">+ Block hinzufügen</button>
+                        </div>
+                      </div>
                     </div>
                   </div>
+
                   <div id="shape-goal-guidance" class="shape-goal-guidance" hidden>Gib Startgewicht, Zielgewicht und Zieldatum an.</div>
                 </div>
 
@@ -261,6 +385,14 @@
               <h4 data-i18n="calendar_view">Kalenderansicht</h4>
             </div>
             <div id="plan-meta" class="plan-meta">Noch kein Plan generiert.</div>
+            <div id="plan-mission-brief" class="plan-mission-brief" hidden></div>
+            <section id="threshold-track-card" class="threshold-track-card" hidden aria-label="Current vs required thresholds">
+              <div class="threshold-track-head">
+                <p class="micro-label">Target Track</p>
+                <h5 id="threshold-track-title">On Track Check</h5>
+              </div>
+              <div id="threshold-track-body" class="threshold-track-body"></div>
+            </section>
             <section id="plan-overview-card" class="plan-overview-card" hidden aria-label="Plan Timeline Overview">
               <div class="plan-overview-head">
                 <div>
@@ -275,6 +407,7 @@
               </div>
               <div class="plan-overview-plot">
                 <svg id="plan-overview-svg" viewBox="0 0 980 290" preserveAspectRatio="none" aria-hidden="true"></svg>
+                <div id="plan-overview-hover" class="plan-overview-hover" hidden></div>
               </div>
             </section>
             <div id="calendar-view" class="calendar-list" aria-live="polite"></div>
@@ -285,22 +418,23 @@
           <div class="surface-head">
             <div>
               <p class="micro-label">01B / Account</p>
-              <h3 data-i18n="section_profile_crew">Profil & Crew</h3>
+              <h3 data-i18n="section_profile_crew">Profil & Community</h3>
             </div>
             <span class="status-dot">Sync Ready</span>
           </div>
 
-          <div class="account-section-tabs" role="tablist" aria-label="Profil und Crew">
+          <div class="account-section-tabs" role="tablist" aria-label="Profil und Community">
             <button type="button" class="account-section-tab is-active" id="account-tab-profile" data-account-section="profile" data-i18n="nav_profile">Profil</button>
-            <button type="button" class="account-section-tab" id="account-tab-crew" data-account-section="crew" data-i18n="nav_crew">Crew</button>
+            <button type="button" class="account-section-tab" id="account-tab-crew" data-account-section="crew" data-i18n="nav_crew">Community</button>
           </div>
 
           <div class="account-pane is-active" id="account-pane-profile">
           <div class="profile-pane-toolbar">
             <div class="profile-view-tabs" role="tablist" aria-label="Profile sections">
-              <button type="button" class="profile-view-tab is-active" data-profile-view="overview">Overview</button>
-              <button type="button" class="profile-view-tab" data-profile-view="activities">Activities</button>
-              <button type="button" class="profile-view-tab" data-profile-view="health">Health</button>
+              <button type="button" class="profile-view-tab is-active" data-profile-view="overview" data-i18n="profile_tab_overview">Überblick</button>
+              <button type="button" class="profile-view-tab" data-profile-view="activities" data-i18n="profile_tab_activities">Aktivitäten</button>
+              <button type="button" class="profile-view-tab" data-profile-view="health" data-i18n="profile_tab_health">Gesundheit</button>
+              <button type="button" class="profile-view-tab" data-profile-view="settings" data-i18n="profile_tab_settings">Einstellungen</button>
             </div>
           </div>
           <div class="account-grid">
@@ -389,7 +523,7 @@
 
             <section class="result-card account-card profile-settings-rail-card">
               <div class="result-title-row">
-                <h4>Settings</h4>
+                <h4 data-i18n="profile_tab_settings">Einstellungen</h4>
                 <span class="tag subtle">Beta</span>
               </div>
               <p class="card-copy settings-rail-copy">Persönliche Profil- und Kontoeinstellungen sowie Privatsphäre für dein eigenes Profil.</p>
@@ -472,7 +606,7 @@
                   </label>
                 </div>
                 <div class="account-inline-actions">
-                  <button type="submit" class="ghost">Settings speichern</button>
+                  <button type="submit" class="ghost">Einstellungen speichern</button>
                   <span class="connection-state" id="account-settings-status" aria-live="polite"></span>
                 </div>
               </form>
@@ -660,7 +794,7 @@
 
             <section class="result-card account-card">
               <div class="result-title-row">
-                <h4 data-i18n="crew_ranking">Crew Ranking</h4>
+                <h4 data-i18n="crew_ranking">Community Ranking</h4>
                 <span class="tag subtle" id="crew-ranking-count">0</span>
               </div>
               <div id="crew-ranking-list" class="friends-list">
@@ -670,7 +804,7 @@
 
             <section class="result-card account-card account-social-card">
               <div class="result-title-row">
-                <h4 data-i18n="crew_search">Crew Search</h4>
+                <h4 data-i18n="crew_search">Community Suche</h4>
                 <span class="tag subtle" id="crew-result-count">0</span>
               </div>
               <p class="card-copy" data-i18n="crew_search_copy">Suche andere Accounts, verbinde dich und sieh später gemeinsame Aktivitäten / Pläne.</p>
@@ -685,11 +819,11 @@
 
             <section class="result-card account-card account-social-card">
               <div class="result-title-row">
-                <h4 data-i18n="crew_feed">Crew Feed</h4>
+                <h4 data-i18n="crew_feed">Community Feed</h4>
                 <span class="tag subtle" id="crew-feed-count">0</span>
               </div>
               <div id="crew-feed-list" class="activity-feed-list">
-                <div class="empty-copy" data-i18n="empty_crew_feed">Verbinde dich mit deiner Crew, um ihren Feed zu sehen.</div>
+                <div class="empty-copy" data-i18n="empty_crew_feed">Verbinde dich mit deiner Community, um den Feed zu sehen.</div>
               </div>
             </section>
           </div>
@@ -699,7 +833,7 @@
         <section class="surface section-data stage-reveal">
           <div class="surface-head">
             <div>
-              <p class="micro-label">Health</p>
+              <p class="micro-label">Gesundheit</p>
               <h3 data-i18n="section_fitness">Aktueller Fitnessstand</h3>
             </div>
             <span class="status-dot">Live</span>
@@ -855,6 +989,14 @@
             <span id="session-label-why">Warum jetzt</span>
             <strong id="session-modal-why"></strong>
           </div>
+          <div class="session-modal-block" id="session-execution-block" hidden>
+            <span id="session-label-execution">Steuerung</span>
+            <strong id="session-modal-execution"></strong>
+          </div>
+          <div class="session-modal-block" id="session-workout-block" hidden>
+            <span id="session-label-workout">Workout Plan</span>
+            <strong id="session-modal-workout"></strong>
+          </div>
           <div class="session-modal-block" id="session-cycle-block" hidden>
             <span id="session-label-cycle">Cycle Note</span>
             <strong id="session-modal-cycle"></strong>
@@ -1007,8 +1149,87 @@
           <strong id="goal-realism-suggestion-text"></strong>
         </div>
         <div class="account-inline-actions" style="margin-top:10px;">
+          <button type="button" class="ghost" id="goal-realism-force-btn">Ziel trotzdem setzen</button>
           <button type="button" class="ghost" id="goal-realism-apply-btn" hidden>Vorschlag übernehmen</button>
           <button type="button" class="ghost" data-close-goal-realism>Zurück</button>
+        </div>
+      </article>
+    </div>
+
+    <div id="race-calendar-modal" class="account-modal" hidden>
+      <div class="account-modal-backdrop" data-close-race-calendar></div>
+      <article class="account-modal-card race-calendar-modal-card" role="dialog" aria-modal="true" aria-labelledby="race-calendar-title">
+        <button type="button" class="session-modal-close" data-close-race-calendar aria-label="Close">×</button>
+        <div class="session-modal-head">
+          <div class="session-modal-meta">Race Calendar</div>
+          <h4 id="race-calendar-title">Wettkämpfe planen</h4>
+          <p>Trage Vorbereitungsrennen ein. Der Trainingsplan reagiert mit Entlastung und Wettkampf-Einheiten.</p>
+        </div>
+        <div class="activity-meta-row race-calendar-input-row">
+          <label class="field">
+            <span>Datum</span>
+            <input type="date" id="race-cal-date" />
+          </label>
+          <label class="field">
+            <span>Name</span>
+            <input type="text" id="race-cal-name" placeholder="z. B. 10k City Race" />
+          </label>
+        </div>
+        <div class="activity-meta-row race-calendar-input-row">
+          <label class="field is-select">
+            <span>Disziplin</span>
+            <select id="race-cal-discipline">
+              <option value="running">Run</option>
+              <option value="triathlon">Triathlon</option>
+              <option value="cycling">Bike</option>
+              <option value="hyrox">HYROX</option>
+              <option value="shape">Shape</option>
+            </select>
+          </label>
+          <label class="field is-select">
+            <span>Distanz / Format</span>
+            <select id="race-cal-distance"></select>
+          </label>
+          <label class="field is-select">
+            <span>Priorität</span>
+            <select id="race-cal-priority">
+              <option value="C">C (Training Race)</option>
+              <option value="B">B (Wichtig)</option>
+              <option value="A">A (Key Race)</option>
+            </select>
+          </label>
+        </div>
+        <div class="account-inline-actions race-calendar-actions">
+          <button type="button" class="ghost" id="race-cal-add-btn">Hinzufügen</button>
+          <span class="connection-state" id="race-cal-status" aria-live="polite"></span>
+        </div>
+        <div id="race-cal-list" class="saved-plan-list">
+          <div class="empty-copy">Noch keine zusätzlichen Wettkämpfe.</div>
+        </div>
+        <div class="account-inline-actions race-calendar-actions">
+          <button type="button" class="ghost" id="race-cal-save-btn">Übernehmen</button>
+          <button type="button" class="ghost" data-close-race-calendar>Schließen</button>
+        </div>
+      </article>
+    </div>
+
+    <div id="threshold-modal" class="account-modal" hidden>
+      <div class="account-modal-backdrop" data-close-threshold-modal></div>
+      <article class="account-modal-card race-calendar-modal-card" role="dialog" aria-modal="true" aria-labelledby="threshold-modal-title">
+        <button type="button" class="session-modal-close" data-close-threshold-modal aria-label="Close">×</button>
+        <div class="session-modal-head">
+          <div class="session-modal-meta">Thresholds</div>
+          <h4 id="threshold-modal-title">Schwellenwerte</h4>
+          <p id="threshold-modal-copy">Hinterlege sinnvolle Referenzwerte für deine Disziplin. Diese steuern Pace-/FTP-Ziele im Plan.</p>
+        </div>
+        <div id="threshold-modal-fields" class="activity-meta-row race-calendar-input-row"></div>
+        <div class="account-inline-actions race-calendar-actions">
+          <button type="button" class="ghost" id="threshold-clear-btn">Zurücksetzen</button>
+          <button type="button" class="ghost" id="threshold-save-btn">Speichern</button>
+        </div>
+        <div class="account-inline-actions race-calendar-actions">
+          <small id="threshold-modal-status" class="empty-copy"></small>
+          <button type="button" class="ghost" data-close-threshold-modal>Schließen</button>
         </div>
       </article>
     </div>

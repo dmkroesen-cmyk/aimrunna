@@ -510,8 +510,12 @@ body.is-authenticated .account-dot {
 
 .quick-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 10px;
+}
+
+.quick-grid.plan-top-controls {
+  grid-template-columns: minmax(0, 3fr) minmax(0, 1fr);
 }
 
 .quick-grid-minimal {
@@ -737,43 +741,122 @@ select {
   color: rgba(255, 255, 255, 0.78);
 }
 
+.tuning-toggle-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.tuning-toggle-btn {
+  width: 100%;
+  height: 34px;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.02);
+  color: rgba(255,255,255,0.72);
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: border-color 130ms ease, background-color 130ms ease, color 130ms ease;
+}
+
+.tuning-toggle-btn:hover {
+  color: rgba(255,255,255,0.9);
+  border-color: rgba(255,255,255,0.14);
+}
+
+.tuning-toggle-btn.is-active {
+  border-color: rgba(255,255,255,0.22);
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.96);
+}
+
 .advanced-settings {
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   padding-top: 12px;
 }
 
+.tuning-panel-host {
+  margin-top: 10px;
+}
+
 .advanced-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
   align-items: start;
 }
 
-.advanced-grid > .field,
-.advanced-grid > label.field,
-.advanced-grid > .cycle-detail-group {
+.advanced-grid[hidden] {
+  display: none !important;
+}
+
+.tuning-category {
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.008));
+  padding: 10px;
+  display: grid;
+  gap: 10px;
+}
+
+.tuning-category-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.tuning-category-head h5 {
+  margin: 0;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  color: rgba(255,255,255,0.9);
+}
+
+.tuning-fields {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.tuning-fields > .field,
+.tuning-fields > label.field,
+.tuning-fields > .cycle-detail-group {
   align-self: start;
 }
 
-#level-field { grid-column: 1; grid-row: 1; }
-#experience-field { grid-column: 2; grid-row: 1; }
-#weekly-hours-field { grid-column: 3; grid-row: 1; }
-#race-date-field { grid-column: 4; grid-row: 1; }
+.tuning-fields > [id] {
+  grid-column: auto;
+  grid-row: auto;
+}
 
-#age-field { grid-column: 1; grid-row: 2; }
-#weight-field { grid-column: 2; grid-row: 2; }
-#height-field { grid-column: 3; grid-row: 2; }
-#sex-field { grid-column: 4; grid-row: 2; }
+.tuning-panel-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
 
-#shape-target-focus-field { grid-column: 1; grid-row: 3; }
-#shape-gym-share-field { grid-column: 2; grid-row: 3; }
-#shape-target-weight-field { grid-column: 3; grid-row: 3; }
-#bike-outdoor-day-field { grid-column: 3; grid-row: 3; }
-#long-run-day-field { grid-column: 4; grid-row: 3; }
+#tuning-panel-performance {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
 
-#cycle-training-field { grid-column: 1; grid-row: 4; }
-.cycle-detail-group { grid-column: 2 / span 2; grid-row: 4; }
-#constraints-field { grid-column: 4; grid-row: 4; }
+#tuning-panel-setup {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+#shape-target-focus-field {
+  grid-column: 1 / -1;
+}
+
+#tuning-panel-host[hidden] {
+  display: none !important;
+}
+
+.tuning-panel-grid[hidden] {
+  display: none !important;
+}
 
 #shape-gym-share-field {
   align-content: start;
@@ -804,6 +887,108 @@ select {
 #constraints-field textarea,
 #constraints-field input {
   height: 42px;
+}
+
+.constraints-action-row {
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.quick-plan-fields {
+  margin-top: 10px;
+}
+
+.advanced-settings.is-quick-hidden {
+  margin-top: 0;
+}
+
+.race-inline-list {
+  margin-top: 8px;
+  display: grid;
+  gap: 10px;
+}
+
+.race-inline-head {
+  display: grid;
+  grid-template-columns: 0.8fr repeat(6, minmax(0, 1fr)) auto;
+  gap: 8px;
+  align-items: center;
+  color: rgba(233, 239, 251, 0.72);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.race-inline-row {
+  display: grid;
+  grid-template-columns: 0.8fr repeat(6, minmax(0, 1fr)) auto;
+  gap: 8px;
+  align-items: end;
+}
+
+.race-inline-cell select,
+.race-inline-cell input {
+  width: 100%;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+  color: #f2f6fd;
+  padding: 0 10px;
+}
+
+.race-inline-remove-btn {
+  height: 40px;
+}
+
+#recent-pbs-field {
+  grid-column: 1 / -1;
+}
+
+.pb-entry-list {
+  margin-top: 8px;
+  display: grid;
+  gap: 8px;
+}
+
+.pb-entry-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.pb-entry-row select,
+.pb-entry-row input {
+  height: 40px;
+}
+
+#race-calendar-field {
+  grid-column: 1 / -1;
+}
+
+#race-calendar-field > span:empty {
+  display: none;
+}
+
+.race-calendar-open-btn {
+  width: 100%;
+  height: 34px;
+  margin-top: 0;
+}
+
+.race-calendar-modal-card {
+  width: min(760px, calc(100vw - 24px));
+}
+
+.race-calendar-input-row {
+  margin-top: 6px;
+}
+
+.race-calendar-actions {
+  margin-top: 8px;
 }
 
 .shape-goal-guidance {
@@ -913,6 +1098,19 @@ select {
   padding: 9px 12px;
   cursor: pointer;
   font-size: 13px;
+  transition: border-color 160ms ease, background-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+
+.ghost:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.04);
+  transform: translateY(-1px);
+}
+
+.ghost:focus-visible {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08);
 }
 
 .ghost:disabled {
@@ -925,7 +1123,14 @@ select {
   border: 1px solid var(--line-soft);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.015), rgba(255, 255, 255, 0.006));
   padding: 14px;
-  transition: opacity 220ms ease, transform 220ms ease, border-color 220ms ease;
+  transition: opacity 220ms ease, transform 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .result-card:hover {
+    border-color: rgba(255, 255, 255, 0.11);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24);
+  }
 }
 
 .stage-reveal {
@@ -1223,14 +1428,14 @@ body.profile-view-health .section-account .profile-settings-card {
 }
 
 body.profile-view-health .section-data > .surface-head {
-  display: none;
+  display: flex;
 }
 
 body.profile-view-health .section-data {
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-  padding: 0;
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, var(--surface-2), var(--surface));
+  box-shadow: var(--shadow);
+  padding: 16px;
 }
 
 body.profile-view-settings .section-account .profile-main-card {
@@ -1238,7 +1443,7 @@ body.profile-view-settings .section-account .profile-main-card {
 }
 
 body.profile-view-settings .profile-pane-toolbar {
-  display: none !important;
+  display: flex !important;
 }
 
 body.profile-view-settings .account-grid {
@@ -1389,6 +1594,17 @@ body.profile-view-settings .profile-settings-card.is-active {
   border: 1px solid rgba(255, 255, 255, 0.06);
   background: rgba(255, 255, 255, 0.01);
   padding: 10px;
+  transition: border-color 160ms ease, background-color 160ms ease, transform 160ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .saved-plan-item:hover,
+  .friend-item:hover,
+  .account-search-item:hover {
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.02);
+    transform: translateY(-1px);
+  }
 }
 
 .saved-plan-item strong,
@@ -1522,6 +1738,15 @@ body.profile-view-settings .profile-settings-card.is-active {
     radial-gradient(circle at 100% 0%, rgba(255, 255, 255, 0.04), transparent 58%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.018), rgba(255, 255, 255, 0.008));
   overflow: hidden;
+  transition: border-color 170ms ease, transform 170ms ease, box-shadow 170ms ease, background-color 170ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .activity-card:hover {
+    border-color: rgba(255, 255, 255, 0.13);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.22);
+  }
 }
 
 .activity-card-head {
@@ -1905,6 +2130,68 @@ body.profile-view-settings .profile-settings-card.is-active {
   font-size: 12px;
 }
 
+.plan-mission-brief {
+  margin-top: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.036), rgba(255, 255, 255, 0.012));
+  color: #e9eef8;
+  font-size: 13px;
+  line-height: 1.45;
+  letter-spacing: 0.01em;
+}
+
+.plan-mission-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.plan-mission-title {
+  font-size: 11px;
+  color: #f4f7ff;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.plan-mission-toggle {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.02);
+  color: #dbe2ee;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  cursor: pointer;
+}
+
+.plan-mission-toggle:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.plan-mission-copy {
+  margin: 0;
+}
+
+.plan-mission-long {
+  margin-top: 6px;
+  color: #c4ccda;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 220ms ease, opacity 180ms ease;
+}
+
+.plan-mission-long.is-open {
+  max-height: 140px;
+  opacity: 1;
+}
+
 .plan-overview-card {
   margin-top: 12px;
   margin-bottom: 10px;
@@ -1912,6 +2199,56 @@ body.profile-view-settings .profile-settings-card.is-active {
   border: 1px solid rgba(255, 255, 255, 0.075);
   background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.008));
   padding: 10px;
+}
+
+.threshold-track-card {
+  margin-top: 10px;
+  margin-bottom: 8px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.085);
+  background: linear-gradient(180deg, rgba(255,255,255,0.022), rgba(255,255,255,0.008));
+  padding: 10px;
+}
+
+.threshold-track-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.threshold-track-head h5 {
+  margin: 2px 0 0;
+  font-size: 14px;
+  letter-spacing: -0.02em;
+  color: #f0f4fb;
+}
+
+.threshold-track-body {
+  margin-top: 8px;
+  display: grid;
+  gap: 8px;
+}
+
+.threshold-track-row {
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 8px 9px;
+  background: rgba(255,255,255,0.012);
+}
+
+.threshold-track-row strong {
+  display: block;
+  color: #edf2fd;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+
+.threshold-track-row p {
+  margin: 4px 0 0;
+  color: rgba(233, 239, 251, 0.78);
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .plan-overview-head {
@@ -1995,12 +2332,81 @@ body.profile-view-settings .profile-settings-card.is-active {
   border: 1px solid rgba(255,255,255,0.06);
   background: rgba(255,255,255,0.01);
   overflow: hidden;
+  position: relative;
 }
 
 #plan-overview-svg {
   display: block;
   width: 100%;
   height: 290px;
+}
+
+.plan-day-hit {
+  fill: rgba(255, 255, 255, 0);
+  cursor: pointer;
+  transition: fill 120ms ease;
+}
+
+.plan-day-hit.is-hover {
+  fill: rgba(255, 255, 255, 0.035);
+}
+
+.plan-bar-segment {
+  transition: opacity 140ms ease, stroke 140ms ease, filter 140ms ease;
+}
+
+.plan-bar-segment.is-hover {
+  opacity: 1 !important;
+  stroke: rgba(255, 255, 255, 0.5);
+  stroke-width: 1;
+  filter: brightness(1.06);
+}
+
+.plan-overview-hover {
+  position: absolute;
+  z-index: 4;
+  min-width: 180px;
+  max-width: 250px;
+  padding: 10px 11px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(7, 9, 14, 0.93);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(8px);
+  pointer-events: none;
+}
+
+.plan-overview-hover-date {
+  margin: 0 0 8px;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 11px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.plan-overview-hover-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.plan-overview-hover-row strong {
+  color: rgba(255, 255, 255, 0.97);
+  font-size: 12px;
+}
+
+.plan-overview-hover-row.is-total {
+  margin-top: 7px;
+  padding-top: 7px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.plan-overview-hover-row.is-line {
+  color: rgba(255, 255, 255, 0.72);
 }
 
 .calendar-list {
@@ -2028,6 +2434,16 @@ body.profile-view-settings .profile-settings-card.is-active {
   border: 1px solid var(--line-soft);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.016), rgba(255, 255, 255, 0.006));
   padding: 12px;
+  transition: border-color 170ms ease, background-color 170ms ease, transform 170ms ease, box-shadow 170ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .week-card:hover {
+    border-color: rgba(255, 255, 255, 0.11);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.022), rgba(255, 255, 255, 0.01));
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  }
 }
 
 .week-head {
@@ -2081,6 +2497,29 @@ body.profile-view-settings .profile-settings-card.is-active {
   transition: border-color 160ms ease, background-color 160ms ease, transform 160ms ease, min-height 180ms ease;
 }
 
+.day-card.is-key {
+  border-color: rgba(255, 193, 112, 0.28);
+  box-shadow: inset 0 0 0 1px rgba(255, 193, 112, 0.08);
+}
+
+.day-card.scheduled-race {
+  border-color: rgba(255, 210, 120, 0.45);
+  background: linear-gradient(180deg, rgba(255, 214, 120, 0.12), rgba(255, 214, 120, 0.04));
+}
+
+.day-card.scheduled-race.race-a {
+  border-color: rgba(255, 220, 133, 0.64);
+  box-shadow: inset 0 0 0 1px rgba(255, 220, 133, 0.22);
+}
+
+.day-card.scheduled-race.race-b {
+  border-color: rgba(220, 194, 116, 0.48);
+}
+
+.day-card.scheduled-race.race-c {
+  border-color: rgba(194, 176, 122, 0.4);
+}
+
 .day-card.rest { opacity: 0.7; }
 .day-card:hover {
   border-color: rgba(255, 255, 255, 0.1);
@@ -2101,6 +2540,12 @@ body.profile-view-settings .profile-settings-card.is-active {
   gap: 6px;
 }
 
+.day-top-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .day-name {
   font-size: 12px;
   color: #e4e8ef;
@@ -2110,6 +2555,12 @@ body.profile-view-settings .profile-settings-card.is-active {
 .day-date {
   font-size: 11px;
   color: var(--muted);
+}
+
+.day-key-flag {
+  font-size: 12px;
+  line-height: 1;
+  filter: drop-shadow(0 0 8px rgba(255, 164, 79, 0.28));
 }
 
 .day-type {
@@ -2127,6 +2578,16 @@ body.profile-view-settings .profile-settings-card.is-active {
 .day-type.threshold { border-color: rgba(134, 215, 255, 0.22); color: #cdeeff; background: rgba(134, 215, 255, 0.11); }
 .day-type.quality { border-color: rgba(170, 245, 124, 0.22); color: #ddffc7; background: rgba(170, 245, 124, 0.1); }
 .day-type.longrun { border-color: rgba(255, 214, 120, 0.22); color: #ffe5aa; background: rgba(255, 214, 120, 0.11); }
+.day-type.race-pill {
+  border-color: rgba(255, 220, 133, 0.52);
+  color: #ffe9bb;
+  background: rgba(255, 220, 133, 0.2);
+}
+.day-type.race-pill.race-a {
+  border-color: rgba(255, 226, 148, 0.68);
+  color: #fff1ce;
+  background: rgba(255, 226, 148, 0.24);
+}
 
 .day-main {
   font-size: 12px;
@@ -2138,6 +2599,13 @@ body.profile-view-settings .profile-settings-card.is-active {
   font-size: 11px;
   line-height: 1.35;
   color: var(--muted);
+}
+
+.day-load {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.62);
 }
 
 .day-action-row {
@@ -2693,6 +3161,11 @@ body.profile-view-settings .profile-settings-card.is-active {
   line-height: 1.38;
 }
 
+#session-modal-workout {
+  white-space: pre-line;
+  font-family: "Inter", sans-serif;
+}
+
 .session-modal-nutrition {
   margin-top: 12px;
   border-radius: 14px;
@@ -2772,6 +3245,10 @@ body.has-output .section-data { border-color: rgba(255, 255, 255, 0.1); }
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .quick-grid.plan-top-controls {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 1fr);
+  }
+
   .data-grid {
     grid-template-columns: 1fr;
   }
@@ -2816,9 +3293,33 @@ body.has-output .section-data { border-color: rgba(255, 255, 255, 0.1); }
   #shape-target-focus-field,
   #shape-gym-share-field,
   #bike-outdoor-day-field,
-  #long-run-day-field {
+  #long-run-day-field,
+  #bike-ftp-field,
+  #bike-thr-hr-field,
+  #bike-lactate-field,
+  #run-thr-pace-field,
+  #run-thr-hr-field,
+  #run-lactate-field,
+  #recent-pbs-field,
+  #race-calendar-field {
     grid-column: auto;
     grid-row: auto;
+  }
+
+  .race-inline-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .race-inline-head {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pb-entry-row {
+    grid-template-columns: 1fr;
+  }
+
+  .tuning-category {
+    padding: 9px;
   }
 
   .plan-overview-head {
@@ -2853,8 +3354,8 @@ body.has-output .section-data { border-color: rgba(255, 255, 255, 0.1); }
 
 @media (max-width: 760px) {
   :root {
-    --global-header-mask-height: 148px;
-    --global-header-line-top: 136px;
+    --global-header-mask-height: 160px;
+    --global-header-line-top: 148px;
   }
 
   body::before {
@@ -2875,7 +3376,7 @@ body.has-output .section-data { border-color: rgba(255, 255, 255, 0.1); }
 
   body.app-view-profile .content-shell,
   body.app-view-crew .content-shell {
-    margin-top: 92px;
+    margin-top: 104px;
   }
 
   .scroll-stage {
@@ -2897,7 +3398,7 @@ body.has-output .section-data { border-color: rgba(255, 255, 255, 0.1); }
     inset: auto;
     transform: none !important;
     opacity: 1 !important;
-    padding-top: clamp(96px, 14svh, 120px);
+    padding-top: clamp(110px, 16svh, 136px);
     z-index: 2;
   }
 
@@ -2915,14 +3416,28 @@ body.has-output .section-data { border-color: rgba(255, 255, 255, 0.1); }
   }
 
   .account-bar {
-    top: var(--mobile-account-bar-top, 102px);
+    top: var(--mobile-account-bar-top, 112px);
     left: 12px;
     right: 12px;
     gap: 3px 4px;
     max-width: calc(100vw - 24px);
     justify-content: flex-start;
     align-items: center;
-    padding-right: 2px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 4px 6px;
+    padding-right: 6px;
+    background: rgba(6, 7, 9, 0.94);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    backdrop-filter: blur(6px);
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .account-bar::-webkit-scrollbar {
+    display: none;
   }
 
   .account-pill {
@@ -2940,7 +3455,7 @@ body.has-output .section-data { border-color: rgba(255, 255, 255, 0.1); }
 
   .landing-panel {
     width: calc(100vw - 16px);
-    padding: 72px 10px 12px;
+    padding: 86px 10px 12px;
   }
 
   .landing-copy h1 {
@@ -2957,8 +3472,36 @@ body.has-output .section-data { border-color: rgba(255, 255, 255, 0.1); }
     grid-template-columns: 1fr;
   }
 
+  .quick-grid.plan-top-controls {
+    grid-template-columns: 1fr;
+  }
+
   .advanced-grid {
     gap: 8px;
+  }
+
+  .tuning-toggle-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  #tuning-panel-host {
+    max-height: min(44svh, 380px);
+    overflow-y: auto;
+    padding-right: 3px;
+    scrollbar-width: thin;
+  }
+
+  .constraints-action-row {
+    grid-template-columns: 1fr;
+  }
+
+  .race-inline-row {
+    grid-template-columns: 1fr;
+  }
+
+  .race-inline-head {
+    display: none;
   }
 
   .account-section-tabs {
@@ -2983,17 +3526,22 @@ body.has-output .section-data { border-color: rgba(255, 255, 255, 0.1); }
     flex-direction: column;
     align-items: stretch;
     margin-bottom: 12px;
-    top: auto;
-    padding-top: 4px;
-    backdrop-filter: none;
+    position: sticky;
+    top: 148px;
+    z-index: 15;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    background: rgba(6, 7, 9, 0.96);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(4px);
   }
 
   .profile-view-tabs {
     width: 100%;
     justify-content: stretch;
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 6px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 4px;
     padding: 0;
   }
 
@@ -3002,6 +3550,7 @@ body.has-output .section-data { border-color: rgba(255, 255, 255, 0.1); }
     padding: 0 4px;
     letter-spacing: 0.04em;
     text-align: center;
+    font-size: 10px;
   }
 
   .profile-settings-rail-card {
@@ -3130,6 +3679,11 @@ body.has-output .section-data { border-color: rgba(255, 255, 255, 0.1); }
   .landing-actions {
     align-items: start;
     flex-direction: column;
+    position: sticky;
+    bottom: 6px;
+    z-index: 8;
+    padding-top: 8px;
+    background: linear-gradient(to top, rgba(6, 7, 9, 0.95), rgba(6, 7, 9, 0));
   }
 
   .photo-strip,
@@ -3147,7 +3701,7 @@ body.has-output .section-data { border-color: rgba(255, 255, 255, 0.1); }
   }
 
   .content-shell {
-    margin-top: -1svh;
+    margin-top: 0;
     padding-inline: 10px;
   }
 
