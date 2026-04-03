@@ -319,9 +319,9 @@ let activeTuningPanel = null;
 
 const STORAGE_KEY = "aimrunna_mvp_store_v1";
 const STRAVA_OAUTH_DEV_BASE =
-  window.location.hostname === "localhost" && window.location.port === "8787"
-    ? `${window.location.protocol}//${window.location.host}`
-    : "http://localhost:8787";
+  window.location.hostname === "localhost"
+    ? "http://localhost:8787"
+    : `${window.location.protocol}//${window.location.host}`;
 
 const LEGAL_CONTENT = {
   imprint: `Impressum (Draft, DE)\n\nDiese Seite ist eine Beta-Version von AImRUNNA.\n\nHier eintragen:\n• Anbieter / Firma / Rechtsform\n• Vertretungsberechtigte Person\n• Anschrift\n• Kontakt (E-Mail, Telefon)\n• Registereintrag (falls vorhanden)\n• USt-IdNr. (falls vorhanden)\n• Verantwortlich i.S.d. § 18 MStV (falls relevant)\n\nHinweis: Vor Veröffentlichung mit deutscher/europäischer Rechtsberatung final prüfen.`,
