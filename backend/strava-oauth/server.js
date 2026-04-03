@@ -8,6 +8,10 @@ const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = path.join(ROOT, "data");
 const TOKEN_FILE = path.join(DATA_DIR, "strava_tokens.dev.json");
 const ACTIVITY_FILE = path.join(DATA_DIR, "strava_activities.dev.json");
+const GARMIN_TOKEN_FILE = path.join(DATA_DIR, "garmin_tokens.dev.json");
+const GARMIN_ACTIVITY_FILE = path.join(DATA_DIR, "garmin_activities.dev.json");
+const WHOOP_TOKEN_FILE = path.join(DATA_DIR, "whoop_tokens.dev.json");
+const WHOOP_ACTIVITY_FILE = path.join(DATA_DIR, "whoop_activities.dev.json");
 const env = loadEnv(path.join(ROOT, ".env"));
 
 const PORT = Number(env.PORT || 8787);
@@ -18,6 +22,27 @@ const STRAVA_CLIENT_SECRET = env.STRAVA_CLIENT_SECRET || "";
 const STRAVA_REDIRECT_URI = env.STRAVA_REDIRECT_URI || `${APP_BASE_URL}/api/oauth/strava/callback`;
 const STRAVA_SCOPES = env.STRAVA_SCOPES || "read,activity:read_all";
 const OAUTH_STATE_SECRET = env.OAUTH_STATE_SECRET || "dev-secret-change-me";
+
+// Garmin OAuth 1.0a
+const GARMIN_CONSUMER_KEY = env.GARMIN_CONSUMER_KEY || "";
+const GARMIN_CONSUMER_SECRET = env.GARMIN_CONSUMER_SECRET || "";
+const GARMIN_REDIRECT_URI = env.GARMIN_REDIRECT_URI || `${APP_BASE_URL}/api/oauth/garmin/callback`;
+const GARMIN_REQUEST_TOKEN_URL = "https://connectapi.garmin.com/oauth-service/oauth/request_token";
+const GARMIN_AUTHORIZE_URL = "https://connect.garmin.com/oauthConfirm";
+const GARMIN_ACCESS_TOKEN_URL = "https://connectapi.garmin.com/oauth-service/oauth/access_token";
+const GARMIN_API_BASE = "https://apis.garmin.com";
+
+// WHOOP OAuth 2.0
+const WHOOP_CLIENT_ID = env.WHOOP_CLIENT_ID || "";
+const WHOOP_CLIENT_SECRET = env.WHOOP_CLIENT_SECRET || "";
+const WHOOP_REDIRECT_URI = env.WHOOP_REDIRECT_URI || `${APP_BASE_URL}/api/oauth/whoop/callback`;
+const WHOOP_AUTHORIZE_URL = "https://api.prod.whoop.com/oauth/oauth2/auth";
+const WHOOP_TOKEN_URL = "https://api.prod.whoop.com/oauth/oauth2/token";
+const WHOOP_API_BASE = "https://api.prod.whoop.com/developer/v1";
+const WHOOP_SCOPES = env.WHOOP_SCOPES || "read:recovery read:cycles read:workout read:sleep read:profile read:body_measurement";
+
+// In-memory store for Garmin OAuth 1.0a request tokens (short-lived, per-flow)
+const garminRequestTokens = new Map();
 
 ensureDir(DATA_DIR);
 
@@ -340,6 +365,584 @@ const server = http.createServer(async (req, res) => {
       });
     }
 
+    // ─── GARMIN OAuth 1.0a ───────────────────────────────────────────
+
+    if (pathname === "/api/oauth/garmin/start" && req.method === "GET") {
+      if (!GARMIN_CONSUMER_KEY || !GARMIN_CONSUMER_SECRET) {
+        return json(res, 500, { ok: false, error: "Missing GARMIN_CONSUMER_KEY / GARMIN_CONSUMER_SECRET in .env" });
+      }
+      const userId = String(url.searchParams.get("user_id") || "local-user").trim();
+
+      // Step 1: Get a request token from Garmin
+      const oauthParams = {
+        oauth_consumer_key: GARMIN_CONSUMER_KEY,
+        oauth_signature_method: "HMAC-SHA1",
+        oauth_timestamp: String(Math.floor(Date.now() / 1000)),
+        oauth_nonce: crypto.randomBytes(16).toString("hex"),
+        oauth_version: "1.0",
+        oauth_callback: GARMIN_REDIRECT_URI,
+      };
+      const signature = buildOAuth1Signature("POST", GARMIN_REQUEST_TOKEN_URL, oauthParams, GARMIN_CONSUMER_SECRET, "");
+      oauthParams.oauth_signature = signature;
+
+      try {
+        const reqTokenRes = await fetch(GARMIN_REQUEST_TOKEN_URL, {
+          method: "POST",
+          headers: { Authorization: buildOAuth1Header(oauthParams) },
+        });
+        const reqTokenBody = await reqTokenRes.text();
+        if (!reqTokenRes.ok) {
+          return json(res, 400, { ok: false, error: "Garmin request token failed", details: reqTokenBody });
+        }
+        const parsed = new URLSearchParams(reqTokenBody);
+        const oauthToken = parsed.get("oauth_token") || "";
+        const oauthTokenSecret = parsed.get("oauth_token_secret") || "";
+        if (!oauthToken) {
+          return json(res, 400, { ok: false, error: "No oauth_token in Garmin response" });
+        }
+
+        // Store the request token secret temporarily (needed for access token exchange)
+        garminRequestTokens.set(oauthToken, { oauthTokenSecret, userId, ts: Date.now() });
+        // Clean up old entries (> 10 min)
+        for (const [key, val] of garminRequestTokens) {
+          if (Date.now() - val.ts > 600_000) garminRequestTokens.delete(key);
+        }
+
+        const authorizeUrl = new URL(GARMIN_AUTHORIZE_URL);
+        authorizeUrl.searchParams.set("oauth_token", oauthToken);
+        res.writeHead(302, { Location: authorizeUrl.toString() });
+        return res.end();
+      } catch (err) {
+        return json(res, 500, { ok: false, error: "Garmin request token error", details: String(err?.message || err) });
+      }
+    }
+
+    if (pathname === "/api/oauth/garmin/callback" && req.method === "GET") {
+      const oauthToken = String(url.searchParams.get("oauth_token") || "");
+      const oauthVerifier = String(url.searchParams.get("oauth_verifier") || "");
+      if (!oauthToken || !oauthVerifier) {
+        return json(res, 400, { ok: false, error: "Missing oauth_token or oauth_verifier" });
+      }
+
+      const stored = garminRequestTokens.get(oauthToken);
+      if (!stored) {
+        return json(res, 400, { ok: false, error: "Unknown or expired request token" });
+      }
+      garminRequestTokens.delete(oauthToken);
+      const { oauthTokenSecret, userId } = stored;
+
+      // Step 3: Exchange for access token
+      const oauthParams = {
+        oauth_consumer_key: GARMIN_CONSUMER_KEY,
+        oauth_token: oauthToken,
+        oauth_signature_method: "HMAC-SHA1",
+        oauth_timestamp: String(Math.floor(Date.now() / 1000)),
+        oauth_nonce: crypto.randomBytes(16).toString("hex"),
+        oauth_version: "1.0",
+        oauth_verifier: oauthVerifier,
+      };
+      const signature = buildOAuth1Signature("POST", GARMIN_ACCESS_TOKEN_URL, oauthParams, GARMIN_CONSUMER_SECRET, oauthTokenSecret);
+      oauthParams.oauth_signature = signature;
+
+      try {
+        const accessRes = await fetch(GARMIN_ACCESS_TOKEN_URL, {
+          method: "POST",
+          headers: { Authorization: buildOAuth1Header(oauthParams) },
+        });
+        const accessBody = await accessRes.text();
+        if (!accessRes.ok) {
+          return json(res, 400, { ok: false, error: "Garmin access token failed", details: accessBody });
+        }
+        const parsed = new URLSearchParams(accessBody);
+        const accessToken = parsed.get("oauth_token") || "";
+        const accessTokenSecret = parsed.get("oauth_token_secret") || "";
+        if (!accessToken) {
+          return json(res, 400, { ok: false, error: "No access token in Garmin response" });
+        }
+
+        const store = readGarminTokenStore();
+        store[userId] = {
+          provider: "garmin",
+          userId,
+          connectedAt: new Date().toISOString(),
+          oauth_token: accessToken,
+          oauth_token_secret: accessTokenSecret,
+        };
+        writeGarminTokenStore(store);
+
+        if (FRONTEND_URL) {
+          const redirect = new URL(FRONTEND_URL);
+          redirect.searchParams.set("oauth", "garmin");
+          redirect.searchParams.set("status", "connected");
+          redirect.searchParams.set("user_id", userId);
+          res.writeHead(302, { Location: redirect.toString() });
+          return res.end();
+        }
+
+        return html(res, 200, successHtml("Garmin verbunden", `User: ${escapeHtml(userId)} · Garmin-Tokens lokal gespeichert (Dev-MVP)`));
+      } catch (err) {
+        return json(res, 500, { ok: false, error: "Garmin access token error", details: String(err?.message || err) });
+      }
+    }
+
+    if (pathname === "/api/oauth/garmin/status" && req.method === "GET") {
+      const userId = String(url.searchParams.get("user_id") || "local-user").trim();
+      const store = readGarminTokenStore();
+      const item = store[userId];
+      if (!item) return json(res, 404, { ok: false, connected: false, error: "No Garmin token for user_id" });
+      return json(res, 200, {
+        ok: true,
+        connected: true,
+        userId,
+        connectedAt: item.connectedAt || null,
+      });
+    }
+
+    if (pathname === "/api/oauth/garmin/activities" && req.method === "GET") {
+      const userId = String(url.searchParams.get("user_id") || "local-user").trim();
+      const startDate = url.searchParams.get("start") || new Date(Date.now() - 30 * 86400_000).toISOString().slice(0, 10);
+      const endDate = url.searchParams.get("end") || new Date().toISOString().slice(0, 10);
+
+      const store = readGarminTokenStore();
+      const item = store[userId];
+      if (!item?.oauth_token) return json(res, 404, { ok: false, error: "No Garmin token for user_id" });
+
+      try {
+        const apiUrl = `${GARMIN_API_BASE}/wellness-api/rest/activities?uploadStartTimeInSeconds=${Math.floor(new Date(startDate).getTime() / 1000)}&uploadEndTimeInSeconds=${Math.floor(new Date(endDate).getTime() / 1000)}`;
+        const apiRes = await garminApiFetch("GET", apiUrl, item.oauth_token, item.oauth_token_secret);
+        const apiJson = await apiRes.json().catch(() => ({}));
+        if (!apiRes.ok) return json(res, apiRes.status, { ok: false, error: "Garmin API error", details: apiJson });
+        return json(res, 200, { ok: true, userId, activities: Array.isArray(apiJson) ? apiJson : [] });
+      } catch (err) {
+        return json(res, 500, { ok: false, error: "Garmin API fetch error", details: String(err?.message || err) });
+      }
+    }
+
+    if (pathname === "/api/oauth/garmin/health" && req.method === "GET") {
+      const userId = String(url.searchParams.get("user_id") || "local-user").trim();
+      const dataType = url.searchParams.get("type") || "dailies"; // dailies, epochs, sleeps, bodyComps, stressDetails, userMetrics, pulseOx, respiration, hrv
+      const startDate = url.searchParams.get("start") || new Date(Date.now() - 7 * 86400_000).toISOString().slice(0, 10);
+      const endDate = url.searchParams.get("end") || new Date().toISOString().slice(0, 10);
+
+      const store = readGarminTokenStore();
+      const item = store[userId];
+      if (!item?.oauth_token) return json(res, 404, { ok: false, error: "No Garmin token for user_id" });
+
+      const typeEndpoints = {
+        dailies: "/wellness-api/rest/dailies",
+        epochs: "/wellness-api/rest/epochs",
+        sleeps: "/wellness-api/rest/sleeps",
+        bodyComps: "/wellness-api/rest/bodyComps",
+        stressDetails: "/wellness-api/rest/stressDetails",
+        userMetrics: "/wellness-api/rest/userMetrics",
+        pulseOx: "/wellness-api/rest/pulseOx",
+        respiration: "/wellness-api/rest/respiration",
+        hrv: "/wellness-api/rest/hrv",
+      };
+      const endpoint = typeEndpoints[dataType];
+      if (!endpoint) return json(res, 400, { ok: false, error: `Unknown health type: ${dataType}. Valid: ${Object.keys(typeEndpoints).join(", ")}` });
+
+      try {
+        const apiUrl = `${GARMIN_API_BASE}${endpoint}?uploadStartTimeInSeconds=${Math.floor(new Date(startDate).getTime() / 1000)}&uploadEndTimeInSeconds=${Math.floor(new Date(endDate).getTime() / 1000)}`;
+        const apiRes = await garminApiFetch("GET", apiUrl, item.oauth_token, item.oauth_token_secret);
+        const apiJson = await apiRes.json().catch(() => ({}));
+        if (!apiRes.ok) return json(res, apiRes.status, { ok: false, error: "Garmin health API error", details: apiJson });
+        return json(res, 200, { ok: true, userId, dataType, data: Array.isArray(apiJson) ? apiJson : apiJson });
+      } catch (err) {
+        return json(res, 500, { ok: false, error: "Garmin health fetch error", details: String(err?.message || err) });
+      }
+    }
+
+    if (pathname === "/api/oauth/garmin/import-history" && req.method === "POST") {
+      const userId = String(url.searchParams.get("user_id") || "local-user").trim();
+      const daysBack = clampNumber(url.searchParams.get("days"), 1, 730, 90);
+
+      const tokenStore = readGarminTokenStore();
+      const item = tokenStore[userId];
+      if (!item?.oauth_token) return json(res, 404, { ok: false, error: "No Garmin token for user_id" });
+
+      const activityStore = readGarminActivityStore();
+      const existing = activityStore[userId] || { activities: [], summary: null };
+      const existingById = new Map(
+        (existing.activities || [])
+          .filter((row) => row && row.activityId)
+          .map((row) => [String(row.activityId), row])
+      );
+
+      const startSec = Math.floor((Date.now() - daysBack * 86400_000) / 1000);
+      const endSec = Math.floor(Date.now() / 1000);
+
+      try {
+        const apiUrl = `${GARMIN_API_BASE}/wellness-api/rest/activities?uploadStartTimeInSeconds=${startSec}&uploadEndTimeInSeconds=${endSec}`;
+        const apiRes = await garminApiFetch("GET", apiUrl, item.oauth_token, item.oauth_token_secret);
+        const apiJson = await apiRes.json().catch(() => []);
+        if (!apiRes.ok) return json(res, apiRes.status, { ok: false, error: "Garmin import failed", details: apiJson });
+
+        const activities = Array.isArray(apiJson) ? apiJson : [];
+        let imported = 0;
+        let updated = 0;
+        for (const activity of activities) {
+          const key = String(activity.activityId || activity.summaryId || "");
+          if (!key) continue;
+          if (!existingById.has(key)) imported++;
+          else updated++;
+          existingById.set(key, normalizeGarminActivity(activity));
+        }
+
+        const merged = Array.from(existingById.values())
+          .sort((a, b) => (b.startTimeInSeconds || 0) - (a.startTimeInSeconds || 0));
+        const nowIso = new Date().toISOString();
+        activityStore[userId] = {
+          activities: merged,
+          summary: { userId, imported, updated, fetched: activities.length, totalStored: merged.length, daysBack, importedAt: nowIso },
+        };
+        writeGarminActivityStore(activityStore);
+
+        return json(res, 200, { ok: true, userId, imported, updated, fetched: activities.length, totalStored: merged.length, importedAt: nowIso });
+      } catch (err) {
+        return json(res, 500, { ok: false, error: "Garmin import error", details: String(err?.message || err) });
+      }
+    }
+
+    if (pathname === "/api/oauth/garmin/import-summary" && req.method === "GET") {
+      const userId = String(url.searchParams.get("user_id") || "local-user").trim();
+      const activityStore = readGarminActivityStore();
+      const item = activityStore[userId];
+      return json(res, 200, {
+        ok: true,
+        userId,
+        summary: item?.summary || null,
+        totalStored: Array.isArray(item?.activities) ? item.activities.length : 0,
+      });
+    }
+
+    if (pathname === "/api/oauth/garmin/disconnect" && req.method === "POST") {
+      const userId = String(url.searchParams.get("user_id") || "local-user").trim();
+      const store = readGarminTokenStore();
+      delete store[userId];
+      writeGarminTokenStore(store);
+      return json(res, 200, { ok: true, userId, message: "Garmin disconnected" });
+    }
+
+    // ─── WHOOP OAuth 2.0 ──────────────────────────────────────────
+
+    if (pathname === "/api/oauth/whoop/start" && req.method === "GET") {
+      if (!WHOOP_CLIENT_ID) {
+        return json(res, 500, { ok: false, error: "Missing WHOOP_CLIENT_ID in .env" });
+      }
+      const userId = String(url.searchParams.get("user_id") || "local-user").trim();
+      const state = signState({ userId, ts: Date.now(), provider: "whoop" });
+      const authorizeUrl = new URL(WHOOP_AUTHORIZE_URL);
+      authorizeUrl.searchParams.set("client_id", WHOOP_CLIENT_ID);
+      authorizeUrl.searchParams.set("redirect_uri", WHOOP_REDIRECT_URI);
+      authorizeUrl.searchParams.set("response_type", "code");
+      authorizeUrl.searchParams.set("scope", WHOOP_SCOPES);
+      authorizeUrl.searchParams.set("state", state);
+      res.writeHead(302, { Location: authorizeUrl.toString() });
+      return res.end();
+    }
+
+    if (pathname === "/api/oauth/whoop/callback" && req.method === "GET") {
+      const error = url.searchParams.get("error");
+      if (error) return json(res, 400, { ok: false, error, message: url.searchParams.get("error_description") || "WHOOP OAuth error" });
+
+      const code = String(url.searchParams.get("code") || "");
+      const state = String(url.searchParams.get("state") || "");
+      if (!code || !state) return json(res, 400, { ok: false, error: "Missing code/state" });
+
+      const stateData = verifyState(state);
+      if (!stateData.ok) return json(res, 400, { ok: false, error: "Invalid state" });
+      const userId = stateData.payload.userId;
+
+      if (!WHOOP_CLIENT_ID || !WHOOP_CLIENT_SECRET) {
+        return json(res, 500, { ok: false, error: "Missing WHOOP client credentials in .env" });
+      }
+
+      const tokenRes = await fetch(WHOOP_TOKEN_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          client_id: WHOOP_CLIENT_ID,
+          client_secret: WHOOP_CLIENT_SECRET,
+          code,
+          grant_type: "authorization_code",
+          redirect_uri: WHOOP_REDIRECT_URI,
+        }),
+      });
+
+      const tokenJson = await tokenRes.json().catch(() => ({}));
+      if (!tokenRes.ok) {
+        return json(res, 400, { ok: false, error: "WHOOP token exchange failed", details: tokenJson });
+      }
+
+      // Fetch profile after successful auth
+      let profile = null;
+      try {
+        const profileRes = await fetch(`${WHOOP_API_BASE}/user/profile/basic`, {
+          headers: { Authorization: `Bearer ${tokenJson.access_token}` },
+        });
+        if (profileRes.ok) profile = await profileRes.json();
+      } catch { /* noop */ }
+
+      const store = readWhoopTokenStore();
+      store[userId] = {
+        provider: "whoop",
+        userId,
+        connectedAt: new Date().toISOString(),
+        profile: profile || null,
+        access_token: tokenJson.access_token,
+        refresh_token: tokenJson.refresh_token,
+        expires_at: tokenJson.expires_in ? Math.floor(Date.now() / 1000) + Number(tokenJson.expires_in) : null,
+        scope: tokenJson.scope || WHOOP_SCOPES,
+        token_type: tokenJson.token_type || "Bearer",
+      };
+      writeWhoopTokenStore(store);
+
+      if (FRONTEND_URL) {
+        const redirect = new URL(FRONTEND_URL);
+        redirect.searchParams.set("oauth", "whoop");
+        redirect.searchParams.set("status", "connected");
+        redirect.searchParams.set("user_id", userId);
+        res.writeHead(302, { Location: redirect.toString() });
+        return res.end();
+      }
+
+      return html(res, 200, successHtml("WHOOP verbunden", `User: ${escapeHtml(userId)} · WHOOP-Tokens lokal gespeichert (Dev-MVP)`));
+    }
+
+    if (pathname === "/api/oauth/whoop/status" && req.method === "GET") {
+      const userId = String(url.searchParams.get("user_id") || "local-user").trim();
+      const store = readWhoopTokenStore();
+      const item = store[userId];
+      if (!item) return json(res, 404, { ok: false, connected: false, error: "No WHOOP token for user_id" });
+      return json(res, 200, {
+        ok: true,
+        connected: true,
+        userId,
+        profile: item.profile || null,
+        expires_at: item.expires_at,
+        expires_in_sec: Math.max(0, Number(item.expires_at || 0) - Math.floor(Date.now() / 1000)),
+        scope: item.scope,
+      });
+    }
+
+    if (pathname === "/api/oauth/whoop/refresh" && req.method === "POST") {
+      const userId = String(url.searchParams.get("user_id") || "local-user").trim();
+      const store = readWhoopTokenStore();
+      const item = store[userId];
+      if (!item?.refresh_token) return json(res, 404, { ok: false, error: "No WHOOP refresh token for user_id" });
+
+      const tokenRes = await fetch(WHOOP_TOKEN_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          client_id: WHOOP_CLIENT_ID,
+          client_secret: WHOOP_CLIENT_SECRET,
+          grant_type: "refresh_token",
+          refresh_token: item.refresh_token,
+        }),
+      });
+      const tokenJson = await tokenRes.json().catch(() => ({}));
+      if (!tokenRes.ok) return json(res, 400, { ok: false, error: "WHOOP refresh failed", details: tokenJson });
+
+      store[userId] = {
+        ...item,
+        access_token: tokenJson.access_token,
+        refresh_token: tokenJson.refresh_token || item.refresh_token,
+        expires_at: tokenJson.expires_in ? Math.floor(Date.now() / 1000) + Number(tokenJson.expires_in) : item.expires_at,
+        scope: tokenJson.scope || item.scope,
+        token_type: tokenJson.token_type || item.token_type,
+        refreshedAt: new Date().toISOString(),
+      };
+      writeWhoopTokenStore(store);
+      return json(res, 200, { ok: true, userId, expires_at: store[userId].expires_at });
+    }
+
+    if (pathname === "/api/oauth/whoop/profile" && req.method === "GET") {
+      const userId = String(url.searchParams.get("user_id") || "local-user").trim();
+      const store = readWhoopTokenStore();
+      const item = await ensureValidWhoopToken(userId, store);
+      if (!item?.access_token) return json(res, 404, { ok: false, error: "No WHOOP access token for user_id" });
+
+      const profileRes = await fetch(`${WHOOP_API_BASE}/user/profile/basic`, {
+        headers: { Authorization: `Bearer ${item.access_token}` },
+      });
+      const profileJson = await profileRes.json().catch(() => ({}));
+      if (!profileRes.ok) return json(res, profileRes.status, { ok: false, error: "WHOOP profile fetch failed", details: profileJson });
+      return json(res, 200, { ok: true, profile: profileJson });
+    }
+
+    if (pathname === "/api/oauth/whoop/recovery" && req.method === "GET") {
+      const userId = String(url.searchParams.get("user_id") || "local-user").trim();
+      const limit = clampNumber(url.searchParams.get("limit"), 1, 100, 25);
+      const nextToken = url.searchParams.get("next_token") || "";
+      const store = readWhoopTokenStore();
+      const item = await ensureValidWhoopToken(userId, store);
+      if (!item?.access_token) return json(res, 404, { ok: false, error: "No WHOOP access token" });
+
+      const apiUrl = new URL(`${WHOOP_API_BASE}/recovery`);
+      apiUrl.searchParams.set("limit", String(limit));
+      if (nextToken) apiUrl.searchParams.set("nextToken", nextToken);
+
+      const apiRes = await fetch(apiUrl, { headers: { Authorization: `Bearer ${item.access_token}` } });
+      const apiJson = await apiRes.json().catch(() => ({}));
+      if (!apiRes.ok) return json(res, apiRes.status, { ok: false, error: "WHOOP recovery fetch failed", details: apiJson });
+      return json(res, 200, { ok: true, userId, ...apiJson });
+    }
+
+    if (pathname === "/api/oauth/whoop/cycles" && req.method === "GET") {
+      const userId = String(url.searchParams.get("user_id") || "local-user").trim();
+      const limit = clampNumber(url.searchParams.get("limit"), 1, 100, 25);
+      const nextToken = url.searchParams.get("next_token") || "";
+      const store = readWhoopTokenStore();
+      const item = await ensureValidWhoopToken(userId, store);
+      if (!item?.access_token) return json(res, 404, { ok: false, error: "No WHOOP access token" });
+
+      const apiUrl = new URL(`${WHOOP_API_BASE}/cycle`);
+      apiUrl.searchParams.set("limit", String(limit));
+      if (nextToken) apiUrl.searchParams.set("nextToken", nextToken);
+
+      const apiRes = await fetch(apiUrl, { headers: { Authorization: `Bearer ${item.access_token}` } });
+      const apiJson = await apiRes.json().catch(() => ({}));
+      if (!apiRes.ok) return json(res, apiRes.status, { ok: false, error: "WHOOP cycles fetch failed", details: apiJson });
+      return json(res, 200, { ok: true, userId, ...apiJson });
+    }
+
+    if (pathname === "/api/oauth/whoop/sleep" && req.method === "GET") {
+      const userId = String(url.searchParams.get("user_id") || "local-user").trim();
+      const limit = clampNumber(url.searchParams.get("limit"), 1, 100, 25);
+      const nextToken = url.searchParams.get("next_token") || "";
+      const store = readWhoopTokenStore();
+      const item = await ensureValidWhoopToken(userId, store);
+      if (!item?.access_token) return json(res, 404, { ok: false, error: "No WHOOP access token" });
+
+      const apiUrl = new URL(`${WHOOP_API_BASE}/activity/sleep`);
+      apiUrl.searchParams.set("limit", String(limit));
+      if (nextToken) apiUrl.searchParams.set("nextToken", nextToken);
+
+      const apiRes = await fetch(apiUrl, { headers: { Authorization: `Bearer ${item.access_token}` } });
+      const apiJson = await apiRes.json().catch(() => ({}));
+      if (!apiRes.ok) return json(res, apiRes.status, { ok: false, error: "WHOOP sleep fetch failed", details: apiJson });
+      return json(res, 200, { ok: true, userId, ...apiJson });
+    }
+
+    if (pathname === "/api/oauth/whoop/workouts" && req.method === "GET") {
+      const userId = String(url.searchParams.get("user_id") || "local-user").trim();
+      const limit = clampNumber(url.searchParams.get("limit"), 1, 100, 25);
+      const nextToken = url.searchParams.get("next_token") || "";
+      const store = readWhoopTokenStore();
+      const item = await ensureValidWhoopToken(userId, store);
+      if (!item?.access_token) return json(res, 404, { ok: false, error: "No WHOOP access token" });
+
+      const apiUrl = new URL(`${WHOOP_API_BASE}/activity/workout`);
+      apiUrl.searchParams.set("limit", String(limit));
+      if (nextToken) apiUrl.searchParams.set("nextToken", nextToken);
+
+      const apiRes = await fetch(apiUrl, { headers: { Authorization: `Bearer ${item.access_token}` } });
+      const apiJson = await apiRes.json().catch(() => ({}));
+      if (!apiRes.ok) return json(res, apiRes.status, { ok: false, error: "WHOOP workouts fetch failed", details: apiJson });
+      return json(res, 200, { ok: true, userId, ...apiJson });
+    }
+
+    if (pathname === "/api/oauth/whoop/body-measurement" && req.method === "GET") {
+      const userId = String(url.searchParams.get("user_id") || "local-user").trim();
+      const limit = clampNumber(url.searchParams.get("limit"), 1, 100, 25);
+      const nextToken = url.searchParams.get("next_token") || "";
+      const store = readWhoopTokenStore();
+      const item = await ensureValidWhoopToken(userId, store);
+      if (!item?.access_token) return json(res, 404, { ok: false, error: "No WHOOP access token" });
+
+      const apiUrl = new URL(`${WHOOP_API_BASE}/body_measurement`);
+      apiUrl.searchParams.set("limit", String(limit));
+      if (nextToken) apiUrl.searchParams.set("nextToken", nextToken);
+
+      const apiRes = await fetch(apiUrl, { headers: { Authorization: `Bearer ${item.access_token}` } });
+      const apiJson = await apiRes.json().catch(() => ({}));
+      if (!apiRes.ok) return json(res, apiRes.status, { ok: false, error: "WHOOP body measurement fetch failed", details: apiJson });
+      return json(res, 200, { ok: true, userId, ...apiJson });
+    }
+
+    if (pathname === "/api/oauth/whoop/import-history" && req.method === "POST") {
+      const userId = String(url.searchParams.get("user_id") || "local-user").trim();
+      const store = readWhoopTokenStore();
+      const tokenItem = await ensureValidWhoopToken(userId, store);
+      if (!tokenItem?.access_token) return json(res, 404, { ok: false, error: "No WHOOP token for user_id" });
+
+      const activityStore = readWhoopActivityStore();
+      const existing = activityStore[userId] || { workouts: [], recovery: [], sleep: [], summary: null };
+
+      try {
+        // Fetch workouts
+        const workoutsRes = await fetch(`${WHOOP_API_BASE}/activity/workout?limit=100`, {
+          headers: { Authorization: `Bearer ${tokenItem.access_token}` },
+        });
+        const workoutsJson = workoutsRes.ok ? await workoutsRes.json().catch(() => ({})) : {};
+        const workouts = Array.isArray(workoutsJson.records) ? workoutsJson.records : [];
+
+        // Fetch recovery
+        const recoveryRes = await fetch(`${WHOOP_API_BASE}/recovery?limit=100`, {
+          headers: { Authorization: `Bearer ${tokenItem.access_token}` },
+        });
+        const recoveryJson = recoveryRes.ok ? await recoveryRes.json().catch(() => ({})) : {};
+        const recovery = Array.isArray(recoveryJson.records) ? recoveryJson.records : [];
+
+        // Fetch sleep
+        const sleepRes = await fetch(`${WHOOP_API_BASE}/activity/sleep?limit=100`, {
+          headers: { Authorization: `Bearer ${tokenItem.access_token}` },
+        });
+        const sleepJson = sleepRes.ok ? await sleepRes.json().catch(() => ({})) : {};
+        const sleepData = Array.isArray(sleepJson.records) ? sleepJson.records : [];
+
+        const nowIso = new Date().toISOString();
+        activityStore[userId] = {
+          workouts: workouts.map(normalizeWhoopWorkout),
+          recovery,
+          sleep: sleepData,
+          summary: {
+            userId,
+            workoutCount: workouts.length,
+            recoveryCount: recovery.length,
+            sleepCount: sleepData.length,
+            importedAt: nowIso,
+          },
+        };
+        writeWhoopActivityStore(activityStore);
+
+        return json(res, 200, {
+          ok: true,
+          userId,
+          workoutCount: workouts.length,
+          recoveryCount: recovery.length,
+          sleepCount: sleepData.length,
+          importedAt: nowIso,
+        });
+      } catch (err) {
+        return json(res, 500, { ok: false, error: "WHOOP import error", details: String(err?.message || err) });
+      }
+    }
+
+    if (pathname === "/api/oauth/whoop/import-summary" && req.method === "GET") {
+      const userId = String(url.searchParams.get("user_id") || "local-user").trim();
+      const activityStore = readWhoopActivityStore();
+      const item = activityStore[userId];
+      return json(res, 200, {
+        ok: true,
+        userId,
+        summary: item?.summary || null,
+        workoutCount: Array.isArray(item?.workouts) ? item.workouts.length : 0,
+        recoveryCount: Array.isArray(item?.recovery) ? item.recovery.length : 0,
+        sleepCount: Array.isArray(item?.sleep) ? item.sleep.length : 0,
+      });
+    }
+
+    if (pathname === "/api/oauth/whoop/disconnect" && req.method === "POST") {
+      const userId = String(url.searchParams.get("user_id") || "local-user").trim();
+      const store = readWhoopTokenStore();
+      delete store[userId];
+      writeWhoopTokenStore(store);
+      return json(res, 200, { ok: true, userId, message: "WHOOP disconnected" });
+    }
+
     return json(res, 404, { ok: false, error: "Not found" });
   } catch (error) {
     return json(res, 500, { ok: false, error: "Server error", details: String(error?.message || error) });
@@ -347,8 +950,10 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`[AImRUNNA] Strava OAuth dev server listening on ${APP_BASE_URL}`);
-  console.log(`[AImRUNNA] Start OAuth: ${APP_BASE_URL}/api/oauth/strava/start?user_id=daniel`);
+  console.log(`[AImRUNNA] OAuth dev server listening on ${APP_BASE_URL}`);
+  console.log(`[AImRUNNA] Strava OAuth:  ${APP_BASE_URL}/api/oauth/strava/start?user_id=daniel`);
+  console.log(`[AImRUNNA] Garmin OAuth:  ${APP_BASE_URL}/api/oauth/garmin/start?user_id=daniel`);
+  console.log(`[AImRUNNA] WHOOP OAuth:   ${APP_BASE_URL}/api/oauth/whoop/start?user_id=daniel`);
 });
 
 function readTokenStore() {
@@ -560,6 +1165,12 @@ function normalizeStravaActivity(activity) {
     max_speed_mps: Number(activity.max_speed) || 0,
     average_heartrate: Number(activity.average_heartrate) || null,
     max_heartrate: Number(activity.max_heartrate) || null,
+    average_watts: Number(activity.average_watts) || null,
+    max_watts: Number(activity.max_watts) || null,
+    weighted_average_watts: Number(activity.weighted_average_watts) || null,
+    average_cadence: Number(activity.average_cadence) || null,
+    kilojoules: Number(activity.kilojoules) || null,
+    device_watts: Boolean(activity.device_watts),
     suffer_score: Number(activity.suffer_score) || null,
     kudos_count: Number(activity.kudos_count) || 0,
     achievement_count: Number(activity.achievement_count) || 0,
@@ -568,7 +1179,6 @@ function normalizeStravaActivity(activity) {
     start_date: activity.start_date || null,
     start_date_local: activity.start_date_local || null,
     timezone: activity.timezone || null,
-    raw: activity,
     imported_at: new Date().toISOString(),
   };
 }
