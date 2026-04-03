@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" role="img" aria-label="Night bridge endurance scene">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#06080d"/>
+      <stop offset="1" stop-color="#151c27"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#bg)"/>
+  <g stroke="#d9e5f7" stroke-opacity="0.28" stroke-width="4" fill="none">
+    <line x1="170" y1="140" x2="800" y2="520"/>
+    <line x1="1430" y1="140" x2="800" y2="520"/>
+    <line x1="170" y1="140" x2="1430" y2="140"/>
+  </g>
+  <rect x="0" y="620" width="1600" height="380" fill="#0a0f15"/>
+  <g fill="#f7fbff" opacity="0.9">
+    <circle cx="820" cy="560" r="24"/>
+    <path d="M808 586l76 28-16 34-48-16-28 48-34-20 34-58z"/>
+    <circle cx="712" cy="784" r="50" fill="none" stroke="#f7fbff" stroke-width="10"/>
+    <circle cx="900" cy="784" r="50" fill="none" stroke="#f7fbff" stroke-width="10"/>
+    <rect x="698" y="758" width="220" height="16" rx="8"/>
+  </g>
+</svg>

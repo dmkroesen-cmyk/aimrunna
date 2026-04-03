@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" role="img" aria-label="Cyclist in urban night scene">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#06080d"/>
+      <stop offset="1" stop-color="#141a24"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#bg)"/>
+  <g opacity="0.22" fill="#d9e3f3">
+    <rect x="80" y="130" width="160" height="500"/><rect x="280" y="95" width="150" height="530"/><rect x="470" y="150" width="130" height="470"/>
+    <rect x="1030" y="120" width="130" height="500"/><rect x="1190" y="90" width="160" height="540"/><rect x="1380" y="170" width="120" height="460"/>
+  </g>
+  <polygon points="0,640 1600,610 1600,1000 0,1000" fill="#090d13"/>
+  <g fill="none" stroke="#f7fbff" stroke-width="12" opacity="0.92">
+    <circle cx="660" cy="790" r="88"/>
+    <circle cx="970" cy="790" r="88"/>
+    <path d="M660 790l170-120 140 0"/>
+    <path d="M830 670l80 120"/>
+    <path d="M830 670l-56-74"/>
+    <path d="M774 596h-70"/>
+  </g>
+  <g fill="#f7fbff" opacity="0.9">
+    <circle cx="880" cy="560" r="24"/>
+    <path d="M870 586l60 24-18 38-46-18-40 64-34-22 48-74z"/>
+  </g>
+</svg>

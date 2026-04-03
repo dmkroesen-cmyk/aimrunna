@@ -1,0 +1,10388 @@
+const form = document.getElementById("plan-form");
+const statusEl = document.getElementById("status-analysis");
+const planMetaEl = document.getElementById("plan-meta");
+const planMissionBriefEl = document.getElementById("plan-mission-brief");
+const calendarEl = document.getElementById("calendar-view");
+const planOverviewCardEl = document.getElementById("plan-overview-card");
+const planOverviewSvgEl = document.getElementById("plan-overview-svg");
+const planOverviewLegendEl = document.getElementById("plan-overview-legend");
+const planOverviewTitleEl = document.getElementById("plan-overview-title");
+const planOverviewLeftAxisEl = document.getElementById("plan-overview-left-axis");
+const planOverviewRightAxisEl = document.getElementById("plan-overview-right-axis");
+const planOverviewPlotEl = document.querySelector(".plan-overview-plot");
+const planOverviewHoverEl = document.getElementById("plan-overview-hover");
+const thresholdTrackCardEl = document.getElementById("threshold-track-card");
+const thresholdTrackTitleEl = document.getElementById("threshold-track-title");
+const thresholdTrackBodyEl = document.getElementById("threshold-track-body");
+const exportIcalBtn = document.getElementById("export-ical");
+const weekTemplate = document.getElementById("week-template");
+const connectionState = document.getElementById("connection-state");
+const connectorButtons = [...document.querySelectorAll(".connector")];
+const scrollStage = document.getElementById("scroll-stage");
+const parallaxLayers = [...document.querySelectorAll("[data-parallax]")];
+const landingLayerEl = document.getElementById("landing-layer");
+const brandAnchorEl = document.getElementById("brand-anchor");
+const disciplineSelect = form?.elements?.discipline;
+const planModeSelect = document.getElementById("plan-mode-select");
+const goalDistanceSelect = document.getElementById("goal-distance-select");
+const quickPlanFieldsEl = document.getElementById("quick-plan-fields");
+const quickGoalDistanceSelect = document.getElementById("quick-goal-distance-select");
+const quickGoalTimeInput = document.getElementById("quick-goal-time-input");
+const quickRaceDateInput = document.getElementById("quick-race-date-input");
+const sexSelect = form?.elements?.sex;
+const goalTimeLabelEl = document.getElementById("goal-time-label");
+const goalTimeInputEl = document.getElementById("goal-time-input");
+const raceDateLabelEl = document.getElementById("race-date-label");
+const goalDistanceFieldEl = document.getElementById("goal-distance-field");
+const goalTimeFieldEl = document.getElementById("goal-time-field");
+const raceDateFieldEl = document.getElementById("race-date-field");
+const plannerSubmitBtnEl = document.getElementById("planner-submit-btn");
+const constraintsInputEl = form?.elements?.constraints || null;
+const raceCalendarFieldEl = document.getElementById("race-calendar-field");
+const shapeTargetWeightFieldEl = document.getElementById("shape-target-weight-field");
+const shapeTargetWeightSelectEl = document.getElementById("shape-target-weight-select");
+const shapeGoalGuidanceEl = document.getElementById("shape-goal-guidance");
+const shapeTargetFocusFieldEl = document.getElementById("shape-target-focus-field");
+const shapeTargetFocusSelectEl = document.getElementById("shape-target-focus-select");
+const disciplineTargetFocusLabelEl = document.getElementById("discipline-target-focus-label");
+const shapeGymShareFieldEl = document.getElementById("shape-gym-share-field");
+const shapeGymShareInputEl = document.getElementById("shape-gym-share-input");
+const shapeGymShareValueEl = document.getElementById("shape-gym-share-value");
+const disciplineShareLabelEl = document.getElementById("discipline-share-label");
+const bikeOutdoorDayFieldEl = document.getElementById("bike-outdoor-day-field");
+const bikeOutdoorDayLabelEl = document.getElementById("bike-outdoor-day-label");
+const bikeOutdoorDaySelectEl = document.getElementById("bike-outdoor-day-select");
+const longRunDayFieldEl = document.getElementById("long-run-day-field");
+const longRunDayLabelEl = document.getElementById("long-run-day-label");
+const longRunDaySelectEl = document.getElementById("long-run-day-select");
+const thresholdBikeFtpHiddenEl = document.getElementById("threshold-bike-ftp-hidden");
+const thresholdBikeThrHrHiddenEl = document.getElementById("threshold-bike-thr-hr-hidden");
+const thresholdBikeLactateHiddenEl = document.getElementById("threshold-bike-lactate-hidden");
+const thresholdRunThrPaceHiddenEl = document.getElementById("threshold-run-thr-pace-hidden");
+const thresholdRunThrHrHiddenEl = document.getElementById("threshold-run-thr-hr-hidden");
+const thresholdRunLactateHiddenEl = document.getElementById("threshold-run-lactate-hidden");
+const bikeFtpFieldEl = document.getElementById("bike-ftp-field");
+const bikeThresholdHrFieldEl = document.getElementById("bike-thr-hr-field");
+const bikeLactateFieldEl = document.getElementById("bike-lactate-field");
+const runThresholdPaceFieldEl = document.getElementById("run-thr-pace-field");
+const runThresholdHrFieldEl = document.getElementById("run-thr-hr-field");
+const runLactateFieldEl = document.getElementById("run-lactate-field");
+const recentPbsFieldEl = document.getElementById("recent-pbs-field");
+const pb1DisciplineSelectEl = document.getElementById("pb1-discipline-select");
+const pb1DistanceSelectEl = document.getElementById("pb1-distance-select");
+const pb2DisciplineSelectEl = document.getElementById("pb2-discipline-select");
+const pb2DistanceSelectEl = document.getElementById("pb2-distance-select");
+const raceInlineListEl = document.getElementById("race-inline-list");
+const raceInlineAddBtnEl = document.getElementById("race-inline-add-btn");
+const raceInlineAddBlockBtnEl = document.getElementById("race-inline-add-block-btn");
+const ltadModeSelectEl = document.getElementById("ltad-mode-select");
+const cycleTrainingField = document.getElementById("cycle-training-field");
+const cycleDetailsGroup = document.getElementById("cycle-detail-group");
+const cycleTrainingCheckbox = document.getElementById("cycle-based-training");
+const langButtons = [...document.querySelectorAll(".lang-btn")];
+const advancedSettingsEl = document.getElementById("advanced-settings");
+const tuningToggleButtons = [...document.querySelectorAll("[data-tuning-toggle]")];
+const tuningPanels = [...document.querySelectorAll("[data-tuning-panel]")];
+const tuningPanelHostEl = document.getElementById("tuning-panel-host");
+const tuningToggleRowEl = document.querySelector(".tuning-toggle-row");
+const fitnessChartEl = document.getElementById("fitness-chart");
+const metricVo2El = document.getElementById("metric-vo2");
+const metricFitnessEl = document.getElementById("metric-fitness");
+const metricFatigueEl = document.getElementById("metric-fatigue");
+const metricFreshnessEl = document.getElementById("metric-freshness");
+const metricReadinessEl = document.getElementById("metric-readiness");
+const metricHrvBaselineEl = document.getElementById("metric-hrv-baseline");
+const metricHrvCurrentEl = document.getElementById("metric-hrv-current");
+const metricRhrTrendEl = document.getElementById("metric-rhr-trend");
+const metricRhrValueEl = document.getElementById("metric-rhr-value");
+const metricLoadRatioEl = document.getElementById("metric-load-ratio");
+const metricLoadAbsEl = document.getElementById("metric-load-abs");
+const metricMonotonyEl = document.getElementById("metric-monotony");
+const metricStrainEl = document.getElementById("metric-strain");
+const metricSleepScoreEl = document.getElementById("metric-sleep-score");
+const metricSleepDurationEl = document.getElementById("metric-sleep-duration");
+const metricThresholdPaceEl = document.getElementById("metric-threshold-pace");
+const metricThresholdHrEl = document.getElementById("metric-threshold-hr");
+const metricLongrunToleranceEl = document.getElementById("metric-longrun-tolerance");
+const metricLongrunContextEl = document.getElementById("metric-longrun-context");
+const metricRaceTrendEl = document.getElementById("metric-race-trend");
+const metricRaceDeltaEl = document.getElementById("metric-race-delta");
+const predSprintEl = document.getElementById("pred-sprint");
+const predOlympicEl = document.getElementById("pred-olympic");
+const pred703El = document.getElementById("pred-703");
+const predIronmanEl = document.getElementById("pred-ironman");
+const stageRevealEls = [...document.querySelectorAll(".stage-reveal")];
+const sessionOverlayEl = document.getElementById("session-overlay");
+const sessionModalMetaEl = document.getElementById("session-modal-meta");
+const sessionModalTitleEl = document.getElementById("session-modal-title");
+const sessionModalSubEl = document.getElementById("session-modal-sub");
+const sessionModalPurposeEl = document.getElementById("session-modal-purpose");
+const sessionModalAdaptationEl = document.getElementById("session-modal-adaptation");
+const sessionModalPhysiologyEl = document.getElementById("session-modal-physiology");
+const sessionModalWhyEl = document.getElementById("session-modal-why");
+const sessionModalExecutionEl = document.getElementById("session-modal-execution");
+const sessionModalWorkoutEl = document.getElementById("session-modal-workout");
+const sessionExecutionBlockEl = document.getElementById("session-execution-block");
+const sessionWorkoutBlockEl = document.getElementById("session-workout-block");
+const sessionModalNutritionFocusEl = document.getElementById("session-modal-nutrition-focus");
+const sessionLabelPurposeEl = document.getElementById("session-label-purpose");
+const sessionLabelAdaptationEl = document.getElementById("session-label-adaptation");
+const sessionLabelPhysiologyEl = document.getElementById("session-label-physiology");
+const sessionLabelWhyEl = document.getElementById("session-label-why");
+const sessionLabelExecutionEl = document.getElementById("session-label-execution");
+const sessionLabelWorkoutEl = document.getElementById("session-label-workout");
+const sessionLabelKcalEl = document.getElementById("session-label-kcal");
+const sessionLabelNutritionFocusEl = document.getElementById("session-label-nutrition-focus");
+const sessionModalKcalEl = document.getElementById("session-modal-kcal");
+const sessionModalCarbEl = document.getElementById("session-modal-carb");
+const sessionModalProteinEl = document.getElementById("session-modal-protein");
+const sessionModalFatEl = document.getElementById("session-modal-fat");
+const accountBarEl = document.getElementById("account-bar");
+const accountLabelEl = document.getElementById("account-label");
+const accountHomeBtn = document.getElementById("account-home-btn");
+const accountCrewBtn = document.getElementById("account-crew-btn");
+const accountProfileBtn = document.getElementById("account-profile-btn");
+const accountSettingsBtn = document.getElementById("account-settings-btn");
+const accountLoginBtn = document.getElementById("account-login-btn");
+const accountRegisterBtn = document.getElementById("account-register-btn");
+const accountLogoutBtn = document.getElementById("account-logout-btn");
+const accountStatusTagEl = document.getElementById("account-status-tag");
+const accountStatusCopyEl = document.getElementById("account-status-copy");
+const accountOpenLoginBtn = document.getElementById("account-open-login");
+const accountOpenRegisterBtn = document.getElementById("account-open-register");
+const savePlanBtn = document.getElementById("save-plan-btn");
+const profileAvatarInputEl = document.getElementById("profile-avatar-input");
+const profileAvatarPreviewEl = document.getElementById("profile-avatar-preview");
+const activityPostFormEl = document.getElementById("activity-post-form");
+const profileFeedCountEl = document.getElementById("profile-feed-count");
+const profileFeedListEl = document.getElementById("profile-feed-list");
+const profilePointsBadgeEl = document.getElementById("profile-points-badge");
+const profileQuickAddBtnEl = document.getElementById("profile-quick-add-btn");
+const profilePostCardEl = document.getElementById("profile-card-post");
+const activityComposeModalEl = document.getElementById("activity-compose-modal");
+const profileStatBindings = {
+  today: {
+    run: document.getElementById("profile-stat-today-run-km"),
+    bike: document.getElementById("profile-stat-today-bike-km"),
+    swim: document.getElementById("profile-stat-today-swim-km"),
+    races: document.getElementById("profile-stat-today-races"),
+    props: document.getElementById("profile-stat-today-props"),
+    points: document.getElementById("profile-stat-today-points-total"),
+    badge: document.getElementById("profile-stats-today-points"),
+  },
+  year: {
+    run: document.getElementById("profile-stat-year-run-km"),
+    bike: document.getElementById("profile-stat-year-bike-km"),
+    swim: document.getElementById("profile-stat-year-swim-km"),
+    races: document.getElementById("profile-stat-year-races"),
+    props: document.getElementById("profile-stat-year-props"),
+    points: document.getElementById("profile-stat-year-points-total"),
+    badge: document.getElementById("profile-stats-year-points"),
+  },
+  all: {
+    run: document.getElementById("profile-stat-all-run-km"),
+    bike: document.getElementById("profile-stat-all-bike-km"),
+    swim: document.getElementById("profile-stat-all-swim-km"),
+    races: document.getElementById("profile-stat-all-races"),
+    props: document.getElementById("profile-stat-all-props"),
+    points: document.getElementById("profile-stat-all-points-total"),
+    badge: document.getElementById("profile-stats-all-points"),
+  },
+};
+const savedPlanCountEl = document.getElementById("saved-plan-count");
+const savedPlansListEl = document.getElementById("saved-plans-list");
+const friendFormEl = document.getElementById("friend-form");
+const friendsListEl = document.getElementById("friends-list");
+const accountSearchFormEl = document.getElementById("account-search-form");
+const accountSearchResultsEl = document.getElementById("account-search-results");
+const crewResultCountEl = document.getElementById("crew-result-count");
+const crewFeedCountEl = document.getElementById("crew-feed-count");
+const crewFeedListEl = document.getElementById("crew-feed-list");
+const crewRankingCountEl = document.getElementById("crew-ranking-count");
+const crewRankingListEl = document.getElementById("crew-ranking-list");
+const accountSectionTabButtons = [...document.querySelectorAll(".account-section-tab")];
+const accountPaneProfileEl = document.getElementById("account-pane-profile");
+const accountPaneCrewEl = document.getElementById("account-pane-crew");
+const profileViewTabButtons = [...document.querySelectorAll(".profile-view-tab")];
+const profileSettingsNavButtons = [...document.querySelectorAll(".profile-settings-nav-btn")];
+const profileSettingsPanels = [...document.querySelectorAll("[data-profile-settings-panel]")];
+const heroPhotoCards = [...document.querySelectorAll(".photo-card")];
+const openGlossaryBtn = document.getElementById("open-glossary");
+const sectionCalendarEl = document.querySelector(".section-calendar");
+const sectionAccountEl = document.querySelector(".section-account");
+const sectionDataEl = document.querySelector(".section-data");
+const accountModalEl = document.getElementById("account-modal");
+const glossaryModalEl = document.getElementById("glossary-modal");
+const glossarySearchEl = document.getElementById("glossary-search");
+const glossaryCategoryEl = document.getElementById("glossary-category");
+const glossaryListEl = document.getElementById("glossary-list");
+const goalRealismModalEl = document.getElementById("goal-realism-modal");
+const goalRealismMessageEl = document.getElementById("goal-realism-message");
+const goalRealismSuggestionEl = document.getElementById("goal-realism-suggestion");
+const goalRealismSuggestionTextEl = document.getElementById("goal-realism-suggestion-text");
+const goalRealismApplyBtnEl = document.getElementById("goal-realism-apply-btn");
+const goalRealismForceBtnEl = document.getElementById("goal-realism-force-btn");
+const raceEventsJsonInputEl = document.getElementById("race-events-json");
+const openRaceCalendarBtnEl = document.getElementById("open-race-calendar-btn");
+const raceCalendarModalEl = document.getElementById("race-calendar-modal");
+const raceCalDateEl = document.getElementById("race-cal-date");
+const raceCalNameEl = document.getElementById("race-cal-name");
+const raceCalDisciplineEl = document.getElementById("race-cal-discipline");
+const raceCalDistanceEl = document.getElementById("race-cal-distance");
+const raceCalPriorityEl = document.getElementById("race-cal-priority");
+const raceCalAddBtnEl = document.getElementById("race-cal-add-btn");
+const raceCalSaveBtnEl = document.getElementById("race-cal-save-btn");
+const raceCalListEl = document.getElementById("race-cal-list");
+const raceCalStatusEl = document.getElementById("race-cal-status");
+const openThresholdModalBtnEl = document.getElementById("open-threshold-modal-btn");
+const thresholdModalEl = document.getElementById("threshold-modal");
+const thresholdModalFieldsEl = document.getElementById("threshold-modal-fields");
+const thresholdModalCopyEl = document.getElementById("threshold-modal-copy");
+const thresholdModalStatusEl = document.getElementById("threshold-modal-status");
+const thresholdSaveBtnEl = document.getElementById("threshold-save-btn");
+const thresholdClearBtnEl = document.getElementById("threshold-clear-btn");
+const accountFormEl = document.getElementById("account-form");
+const accountFormStatusEl = document.getElementById("account-form-status");
+const accountSubmitBtn = document.getElementById("account-submit-btn");
+const accountForgotPasswordBtn = document.getElementById("account-forgot-password-btn");
+const accountTabButtons = [...document.querySelectorAll(".account-tab")];
+const accountSettingsFormEl = document.getElementById("account-settings-form");
+const accountSettingsStatusEl = document.getElementById("account-settings-status");
+const privacySettingsFormEl = document.getElementById("privacy-settings-form");
+const privacySettingsStatusEl = document.getElementById("privacy-settings-status");
+const safetySettingsFormEl = document.getElementById("safety-settings-form");
+const safetySettingsStatusEl = document.getElementById("safety-settings-status");
+const passwordChangeFormEl = document.getElementById("password-change-form");
+const passwordChangeStatusEl = document.getElementById("password-change-status");
+const exportAccountDataBtn = document.getElementById("export-account-data-btn");
+const deleteAccountBtn = document.getElementById("delete-account-btn");
+const accountOpsStatusEl = document.getElementById("account-ops-status");
+const legalModalEl = document.getElementById("legal-modal");
+const legalNavEl = document.getElementById("legal-nav");
+const legalContentBodyEl = document.getElementById("legal-content-body");
+const stravaProfileCardEl = document.getElementById("strava-profile-card");
+const stravaProfileStatusBadgeEl = document.getElementById("strava-profile-status-badge");
+const stravaProfileStatusCopyEl = document.getElementById("strava-profile-status-copy");
+const stravaProfileAthleteMetaEl = document.getElementById("strava-profile-athlete-meta");
+const stravaProfileConnectBtn = document.getElementById("strava-profile-connect-btn");
+const stravaProfileRefreshBtn = document.getElementById("strava-profile-refresh-btn");
+const stravaProfileImportBtn = document.getElementById("strava-profile-import-btn");
+const stravaProfileFetchStatusEl = document.getElementById("strava-profile-fetch-status");
+const stravaProfileImportSummaryEl = document.getElementById("strava-profile-import-summary");
+
+let generatedSessions = [];
+const connectedSources = new Set();
+let scrollFxRaf = 0;
+let latestProfile = null;
+let latestPlan = null;
+let currentLang = "de";
+let expandedSessionId = null;
+let authMode = "login";
+let appStore = null;
+let currentAccountId = null;
+let lastAccountSearchQuery = "";
+let activeAccountSection = "profile";
+let activeAppView = "home";
+let activeProfileView = "overview";
+let activeProfileSettingsView = "account";
+let pendingGoalRealismSuggestion = null;
+let pendingGoalRealismProfile = null;
+let draftRaceEvents = parseRaceEventsJson(raceEventsJsonInputEl?.value);
+let draftThresholds = {
+  bikeFtp: "",
+  bikeThresholdHr: "",
+  bikeThresholdLactate: "",
+  runThresholdPace: "",
+  runThresholdHr: "",
+  runThresholdLactate: "",
+};
+let glossaryOpenCategories = new Set(["run", "hyrox"]);
+let glossaryOpenTerms = new Set();
+let activeLegalSection = "imprint";
+let planOverviewState = {
+  bars: { run: true, bike: true, swim: true, strength: true, other: false },
+  lines: { fitness: true, fatigue: true, freshness: true, readiness: false, weight: false },
+};
+let planOverviewRenderState = { points: [], lineData: null, profile: null };
+let planOverviewHoverIndex = -1;
+let planOverviewHoverBound = false;
+let shareHintHideTimer = 0;
+let stravaFetchInFlight = false;
+let stravaImportInFlight = false;
+let stravaStatusFetchedForUserId = null;
+let generatedPlanScrollRaf = 0;
+let profileComposerExpanded = false;
+let missionBriefExpanded = false;
+let activeTuningPanel = null;
+
+const STORAGE_KEY = "aimrunna_mvp_store_v1";
+const STRAVA_OAUTH_DEV_BASE =
+  window.location.hostname === "localhost" && window.location.port === "8787"
+    ? `${window.location.protocol}//${window.location.host}`
+    : "http://localhost:8787";
+
+const LEGAL_CONTENT = {
+  imprint: `Impressum (Draft, DE)\n\nDiese Seite ist eine Beta-Version von AImRUNNA.\n\nHier eintragen:\n• Anbieter / Firma / Rechtsform\n• Vertretungsberechtigte Person\n• Anschrift\n• Kontakt (E-Mail, Telefon)\n• Registereintrag (falls vorhanden)\n• USt-IdNr. (falls vorhanden)\n• Verantwortlich i.S.d. § 18 MStV (falls relevant)\n\nHinweis: Vor Veröffentlichung mit deutscher/europäischer Rechtsberatung final prüfen.`,
+  privacy: `Datenschutzerklärung (Draft)\n\n1. Verantwortlicher\n2. Verarbeitete Daten (Account, Trainingsdaten, Gesundheitsnahe Daten, Geräte-IDs, Logs)\n3. Zwecke (Trainingsplanung, Analyse, Community, Sicherheit)\n4. Rechtsgrundlagen (Art. 6 DSGVO; ggf. Einwilligung)\n5. Datenquellen (Strava, Garmin, WHOOP, manuelle Eingaben)\n6. Empfänger / Auftragsverarbeiter\n7. Speicherdauer\n8. Betroffenenrechte (Auskunft, Löschung, Berichtigung, Export, Widerspruch)\n9. Widerruf von Einwilligungen\n10. Sicherheit / Verschlüsselung\n11. Internationale Datenübermittlungen\n12. Cookies / Tracking\n\nWichtig: Gesundheits-/Fitnessdaten sauber klassifizieren und Rechtsgrundlagen juristisch prüfen.`,
+  terms: `Nutzungsbedingungen (Draft)\n\n• Leistungsbeschreibung (Beta, Trainingsplanung, Community, Datenimport)\n• Nutzerkonto / Zugang\n• Pflichten der Nutzer (wahre Angaben, keine rechtswidrigen Inhalte)\n• Verfügbarkeit / Änderungen / Beta-Status\n• Geistiges Eigentum\n• Community-Regeln / Sanktionen / Sperrung\n• Haftungsbegrenzung (rechtlich zulässig)\n• Hinweis: Trainingspläne sind keine medizinische Beratung\n• Kündigung / Account-Löschung\n• Anwendbares Recht / Gerichtsstand (soweit zulässig)\n\nVor Livegang rechtlich prüfen lassen.`,
+  agb: `AGB (Draft)\n\nNur erforderlich/sinnvoll, sobald kostenpflichtige Leistungen / Abos / Verträge angeboten werden.\n\nDann typischer Inhalt:\n• Vertragspartner\n• Vertragsschluss\n• Preise / Zahlung / Abrechnung\n• Laufzeit / Kündigung / Verlängerung\n• Widerrufsrechte (Verbraucher)\n• Leistungsumfang / Änderungen\n• Gewährleistung / Haftung\n• Support / Kontakt\n• Datenschutzverweis\n\nAGB bitte nicht aus Standard-Generator blind übernehmen – auf Trainings-/Datenprodukt anpassen und prüfen lassen.`,
+  disclaimer: `Health & Training Disclaimer (Draft)\n\nAImRUNNA liefert Trainingspläne, Analysen und Prognosen zur Orientierung.\n\nKein medizinischer Rat / keine Diagnose:\n• Die Inhalte ersetzen keine ärztliche, physiotherapeutische oder ernährungsmedizinische Beratung.\n• Vor Beginn oder Änderung intensiver Trainingsprogramme gesundheitliche Eignung prüfen lassen.\n• Bei Schmerzen, Schwindel, Atemnot oder anderen Beschwerden Training abbrechen und medizinischen Rat einholen.\n\nEigenverantwortung:\n• Nutzer trainieren auf eigene Verantwortung.\n• Angaben/Prognosen können unvollständig oder fehlerhaft sein (insb. in Beta-Versionen).\n\nWichtig für Beta:\n• Modelle/Projektionen sind Entwicklungsstände und können sich ändern.`,
+  cookies: `Cookies & Tracking (Draft)\n\nEmpfohlen für Public Beta:\n• Technisch notwendige Cookies\n• Präferenz-Cookies (Sprache, Einheiten)\n• Analyse/Telemetry (optional, nur mit Consent)\n• Marketing (optional, später)\n\nUmsetzen:\n• Consent-Banner / Consent-Management\n• Einwilligungen speichern & widerrufbar machen\n• Cookie-Übersicht / Zwecke / Laufzeiten dokumentieren\n\nFür erste Beta möglichst tracking-arm starten.`,
+  community: `Community Regeln (Draft)\n\nNicht erlaubt:\n• Hassrede, Belästigung, Drohungen\n• Spam / Betrug / irreführende Inhalte\n• Unerlaubte Gesundheitsversprechen / gefährliche Ratschläge\n• Verletzung von Rechten Dritter\n\nErwünscht:\n• Respektvoller Umgang\n• Konstruktives Feedback\n• Transparenz bei Race-/Training-Posts\n\nModeration:\n• Inhalte melden\n• Temporäre Sperren / Account-Sperren bei Verstößen\n• Wiederholte Verstöße = dauerhafte Sperre möglich`,
+  "data-processing": `Datenverarbeitung & Connector-Hinweise (Draft)\n\nZweckbindung (wichtig):\n• Strava/Garmin/WHOOP-Daten werden nur für Trainingsplanung, Leistungsanalyse, Recovery-Einschätzung und Nutzeransichten verarbeitet.\n• Keine Weitergabe an Dritte ohne Rechtsgrundlage / Einwilligung.\n\nTechnik (üblich und machbar):\n• OAuth-Verbindung pro Anbieter\n• Tokens serverseitig speichern (verschlüsselt)\n• Refresh-Tokens rotieren\n• Webhooks/Sync-Jobs nutzen\n• Nutzer kann Verbindungen trennen und Daten löschen/exportieren\n\nHinweis:\n• Pushing Limits und ähnliche Produkte nutzen ebenfalls OAuth-Connects + eigene Auswertungsschicht; dafür ist keine exklusive Partnerschaft mit jedem Anbieter zwingend nötig (abhängig von API-Zugang/Scopes, besonders bei Garmin variabel).`,
+};
+
+function defaultAccountSettings() {
+  return {
+    account: {
+      language: currentLang || "de",
+      units: "metric",
+      timezone: "Europe/Berlin",
+      emailNotifications: "important",
+    },
+    privacy: {
+      profileVisibility: "public",
+      activityVisibility: "followers",
+      searchDiscoverability: "on",
+      messagingPermission: "connections",
+      mapPrivacy: "blur_start_end",
+      mentionsPermission: "connections",
+    },
+    safety: {
+      commentFilter: "standard",
+      imageModeration: "on",
+      riskWarnings: "on",
+      communityGuidelinesAccepted: "yes",
+    },
+  };
+}
+const OAUTH_ENDPOINTS = {
+  Strava: "/api/oauth/strava/start",
+  Whoop: "/api/oauth/whoop/start",
+  Garmin: "/api/oauth/garmin/start",
+};
+const RACE_EVENT_DISCIPLINES = ["running", "triathlon", "cycling", "hyrox"];
+
+const HERO_IMAGE_SETS = {
+  triathlon: [
+    { url: "./pics/IMG_5985.jpeg", pos: "40% 86%", size: "132% auto" },
+    { url: "./pics/ai/tri_neon_wet.svg", pos: "50% 76%", size: "cover" },
+    { url: "./pics/IMG_7505.jpeg", pos: "52% 84%", size: "118% auto" },
+    { url: "./pics/ai/tri_bridge_night.svg", pos: "54% 70%", size: "cover" },
+    { url: "./pics/93124896-5C3F-41E0-9034-3463509696F4.jpeg", pos: "54% 84%", size: "122% auto" },
+    { url: "./pics/ai/run_tokyo_night.svg", pos: "52% 82%", size: "112% auto" },
+  ],
+  running: [
+    { url: "./pics/ai/run_tokyo_night.svg", pos: "56% 72%", size: "cover" },
+    { url: "./pics/IMG_7505.jpeg", pos: "50% 82%", size: "cover" },
+    { url: "./pics/ai/run_manhattan_rain.svg", pos: "52% 83%", size: "118% auto" },
+    { url: "./pics/93124896-5C3F-41E0-9034-3463509696F4.jpeg", pos: "53% 86%", size: "122% auto" },
+    { url: "./pics/ai/run_berlin_track.svg", pos: "46% 88%", size: "128% auto" },
+    { url: "./pics/IMG_5985.jpeg", pos: "44% 78%", size: "cover" },
+  ],
+  cycling: [
+    { url: "./pics/ai/bike_city_night.svg", pos: "46% 82%", size: "cover" },
+    { url: "./pics/93124896-5C3F-41E0-9034-3463509696F4.jpeg", pos: "58% 76%", size: "cover" },
+    { url: "./pics/ai/tri_bridge_night.svg", pos: "48% 86%", size: "116% auto" },
+    { url: "./pics/IMG_5985.jpeg", pos: "58% 84%", size: "114% auto" },
+    { url: "./pics/ai/run_tokyo_night.svg", pos: "52% 86%", size: "120% auto" },
+    { url: "./pics/IMG_7505.jpeg", pos: "54% 79%", size: "cover" },
+  ],
+  hyrox: [
+    { url: "./pics/ai/hyrox_industrial.svg", pos: "50% 84%", size: "116% auto" },
+    { url: "./pics/IMG_7505.jpeg", pos: "52% 74%", size: "cover" },
+    { url: "./pics/ai/shape_street_workout.svg", pos: "50% 85%", size: "122% auto" },
+    { url: "./pics/93124896-5C3F-41E0-9034-3463509696F4.jpeg", pos: "44% 88%", size: "130% auto" },
+    { url: "./pics/ai/run_manhattan_rain.svg", pos: "50% 80%", size: "cover" },
+    { url: "./pics/IMG_5985.jpeg", pos: "46% 79%", size: "cover" },
+  ],
+  shape: [
+    { url: "./pics/ai/shape_street_workout.svg", pos: "52% 84%", size: "118% auto" },
+    { url: "./pics/IMG_5985.jpeg", pos: "50% 75%", size: "cover" },
+    { url: "./pics/ai/run_berlin_track.svg", pos: "48% 88%", size: "128% auto" },
+    { url: "./pics/93124896-5C3F-41E0-9034-3463509696F4.jpeg", pos: "54% 85%", size: "120% auto" },
+    { url: "./pics/ai/run_tokyo_night.svg", pos: "50% 81%", size: "cover" },
+    { url: "./pics/IMG_7505.jpeg", pos: "46% 78%", size: "cover" },
+  ],
+};
+
+const TRAINING_GLOSSARY = [
+  {
+    term: "Strides",
+    category: "run",
+    text: "Kurze kontrollierte Steigerungen (10-25 Sek.), kein Vollsprint. Verbessert Rhythmus und Lauftechnik.",
+    detail: "Meist nach lockerem Lauf: 4-8 Wiederholungen, locker anlaufen, sauber beschleunigen, entspannt auslaufen. Fokus auf Technik, nicht auf Ermüdung.",
+    cues: ["Aufrecht + locker", "Schnelle, kurze Bodenkontaktzeit", "Zwischen Wdh. komplett ruhig traben"],
+    steps: ["Locker anlaufen", "Über 5-8 Sek. beschleunigen", "Kurz flott halten, sauber ausrollen"],
+    visual: "stride",
+  },
+  {
+    term: "Threshold / Schwelle",
+    category: "run",
+    text: "Hart, aber kontrolliert an/unter der Laktatschwelle. Baut Tempohärte und Pace-Stabilität auf.",
+    detail: "Typische Blöcke sind 3-6 x 6-10 min oder längere kontinuierliche Abschnitte. Atmung deutlich erhöht, aber rhythmisch und kontrollierbar.",
+    cues: ["Nicht zu schnell starten", "Pace stabil halten", "Saubere Technik unter Druck"],
+    steps: ["Warm-up", "Kontrollierte Schwellenblöcke", "Cooldown + lockere Nachbelastung"],
+    visual: "run",
+  },
+  {
+    term: "Zone 2",
+    category: "recovery",
+    text: "Lockerer aerober Bereich mit Gesprächsfähigkeit. Basis für Ausdauer, Recovery und Belastungsverträglichkeit.",
+    detail: "Soll bewusst leicht bleiben. Zone-2-Einheiten machen Volumen möglich, ohne unnötig viel Ermüdung zu erzeugen.",
+    cues: ["Nasenatmung/Gespräch möglich", "Pace nicht jagen", "Lieber länger locker als zu hart"],
+    steps: ["Locker einrollen/einlaufen", "Konstanter easy Block", "Kurz mobilisieren"],
+    visual: "run",
+  },
+  {
+    term: "Brick Session",
+    category: "triathlon",
+    text: "Bike direkt gefolgt von Run. Trainiert Wechsel und Laufen unter Vorermüdung.",
+    detail: "Im Plan oft als kontrollierte Bike-Session mit kurzem Anschlusslauf. Ziel ist ein sauberer Übergang und gutes Laufgefühl, nicht maximaler Stress.",
+    cues: ["Fueling auf dem Bike üben", "Schneller Wechsel", "Erste Laufminuten bewusst kontrollieren"],
+    steps: ["Bike Hauptteil", "Schneller Wechsel", "Kurzer Run mit Technikfokus"],
+    visual: "brick",
+  },
+  {
+    term: "CSS (Swim)",
+    category: "swim",
+    text: "Critical Swim Speed als Referenztempo für kontrollierte Ausdauer-/Schwellenintensitäten im Wasser.",
+    detail: "Hilft bei der Schwimmsteuerung ähnlich wie Schwellenpace beim Laufen. Typisch: Serien mit konstanter Technik und sauberem Rhythmus.",
+    cues: ["Zuglänge halten", "Ruhige Atmung", "Tempo aus Technik, nicht Hektik"],
+    steps: ["Einschwimmen", "Technik + CSS-Serien", "Ausschwimmen"],
+    visual: "swim",
+  },
+  {
+    term: "Sweet Spot",
+    category: "bike",
+    text: "Effizienter Leistungsbereich unterhalb der Schwelle. Viel Trainingsnutzen bei moderater Ermüdung.",
+    detail: "Beliebt für Aufbauphasen: z. B. längere Blöcke im Bereich ~88-94% FTP (als Konzept, individuell anpassen).",
+    cues: ["Druck konstant halten", "Nicht in Schwelle kippen", "Saubere Trittfrequenz"],
+    steps: ["Einrollen", "Sweet-Spot Blöcke", "Ausrollen"],
+    visual: "bike",
+  },
+  {
+    term: "Cadence Spin-ups",
+    category: "bike",
+    text: "Kurze Phasen mit hoher Trittfrequenz bei geringer Last. Verbessert Koordination und Pedaltechnik.",
+    detail: "Ziel ist nicht Leistung, sondern runder Tritt und Kontrolle bei steigender Kadenz. Kein wildes Wippen im Sattel.",
+    cues: ["Oberkörper ruhig", "Runder Tritt", "Niedrige Last beibehalten"],
+    steps: ["Leicht rollen", "Kadenz hochdrehen", "Locker resetten"],
+    visual: "bike",
+  },
+  {
+    term: "Carries (Farmers Carry)",
+    category: "strength",
+    text: "Gewichte über Strecke/Zeit tragen. Trainiert Griffkraft, Haltung, Rumpfspannung und alltagstaugliche Kraft.",
+    detail: "Perfekt für HYROX/Shape. Zuhause auch mit Wasserkanistern/Rucksäcken möglich. Qualität vor Gewicht.",
+    cues: ["Rippen runter, Rumpf fest", "Kurze stabile Schritte", "Schultern tief halten"],
+    steps: ["Gewichte sauber aufnehmen", "Kontrolliert gehen", "Absetzen ohne Einrunden"],
+    visual: "carry",
+  },
+  {
+    term: "Lunges",
+    category: "strength",
+    text: "Ausfallschritte für Beine, Hüfte und Stabilität. Gut skalierbar von Einsteiger bis Fortgeschritten.",
+    detail: "Einsteiger starten oft mit Reverse Lunges oder Unterstützung. Fortgeschrittene können Last oder Volumen erhöhen.",
+    cues: ["Knie stabil über Fuß", "Rumpf aufrecht", "Kontrolliert absenken"],
+    steps: ["Schritt setzen", "Kontrolliert tief", "Über vorderen Fuß zurück"],
+    visual: "lunge",
+  },
+  {
+    term: "Trunk Stability / Core",
+    category: "strength",
+    text: "Rumpfstabilität für Kraftübertragung, Haltung und Verletzungsprävention.",
+    detail: "Im Plan oft als kurze Ergänzung: Dead Bugs, Planks, Side Planks, Carries, Anti-Rotation. Qualität wichtiger als Dauerrekord.",
+    cues: ["Atmung kontrollieren", "Neutral bleiben", "Spannung ohne Verkrampfen"],
+    steps: ["Setup", "Spannung aufbauen", "Sauber kontrollierte Wiederholungen/Haltezeit"],
+    visual: "core",
+  },
+  {
+    term: "Push-ups (skalierbar)",
+    category: "strength",
+    text: "Drückübung für Oberkörper und Rumpf. Sehr gut skalierbar über Höhe/Neigung.",
+    detail: "Bei Einsteiger:innen zuerst auf erhöhter Fläche (Bank, Tisch, Wand). Ziel ist saubere Spannung und volle Kontrolle.",
+    cues: ["Körper in Linie", "Ellbogen kontrolliert", "Rumpf fest"],
+    steps: ["Setup in Linie", "Kontrolliert absenken", "Gleichmäßig hochdrücken"],
+    visual: "push",
+  },
+  {
+    term: "Burpees",
+    category: "hyrox",
+    text: "Ganzkörperübung mit hoher metabolischer Last. Für Einsteiger low-impact skalieren.",
+    detail: "Nicht sofort maximal. Erst Technik und Rhythmus: Schritt zurück, kontrollierte Stützphase, aufstehen, optional kleiner Sprung.",
+    cues: ["Sauberer Rücken im Übergang", "Rhythmus finden", "Bei Fatigue skalieren statt brechen"],
+    steps: ["Runter in Stütz/Boden", "Zurück nach oben", "Aufrichten + (optional) Sprung"],
+    visual: "burpee",
+  },
+  {
+    term: "Compromised Intervals",
+    category: "hyrox",
+    text: "Wechsel aus Run und Stationen. Simuliert Race-Belastung und Transitions.",
+    detail: "Beispiel: 500-1000 m Run + 1 Functional Block. Ziel ist sauberes Pacing unter Vorermüdung, nicht nur Härte.",
+    cues: ["Run-Pace kontrollieren", "Station technisch sauber", "Übergänge ruhig + effizient"],
+    steps: ["Run-Intervall", "Station/Funktionsblock", "Kurzer Reset, nächste Runde"],
+    visual: "hyrox",
+  },
+  {
+    term: "Wall Balls (ohne Wall möglich)",
+    category: "hyrox",
+    text: "Squat + Ballwurf. Zuhause auch als Medball Thruster / Air Squat to Reach skalierbar.",
+    detail: "Wichtig ist rhythmische Beinarbeit und stabile Position, nicht nur Schulterkraft. Ohne Wall: Zielpunkt an Wand markieren oder Reach-Variante nutzen.",
+    cues: ["Tiefe kontrollieren", "Aus den Beinen arbeiten", "Atmung rhythmisch"],
+    steps: ["Squat", "Explosiv aufrichten + werfen/reachen", "Fangen/Reset"],
+    visual: "squat",
+  },
+  {
+    term: "Sled Push/Pull Ersatz",
+    category: "hyrox",
+    text: "Wenn keine Box verfügbar ist: Hill Pushes, Heavy Carries, Band-Drags oder Towel-Drags als Ersatz.",
+    detail: "Ziel ist ein ähnlicher Reiz (lokale Beinmuskelausdauer + Vortrieb unter Last), nicht die perfekte 1:1-Kopie.",
+    cues: ["Kurze kräftige Schritte", "Rumpf stabil", "Intensität über Zeit/Distanz steuern"],
+    steps: ["Ersatz wählen", "Arbeitsblöcke setzen", "Pausen sauber timen"],
+    visual: "carry",
+  },
+  {
+    term: "Mobility Flow",
+    category: "recovery",
+    text: "Kurzer Beweglichkeitsblock für Hüfte, Thorax, Sprunggelenk und Schulter.",
+    detail: "Soll sich 'besser' anfühlen, nicht zerstören. Besonders sinnvoll nach langen Sitzphasen oder lockeren Einheiten.",
+    cues: ["Langsam + kontrolliert", "Atmung mitbewegen", "Nur in schmerzfreie Range"],
+    steps: ["Atmung/Reset", "Mobilitätsübungen", "Leichte Aktivierung"],
+    visual: "mobility",
+  },
+  {
+    term: "Deload",
+    category: "recovery",
+    text: "Geplante Entlastungsphase mit weniger Volumen/Intensität zur Anpassung und Regeneration.",
+    detail: "Deload ist kein Rückschritt. Er sorgt dafür, dass Trainingseffekte ankommen und Motivation/Belastbarkeit stabil bleiben.",
+    cues: ["Weniger ist geplant", "Schlaf/Erholung priorisieren", "Technik sauber halten"],
+    steps: ["Volumen senken", "Intensität selektiv reduzieren", "Frische für nächsten Block sammeln"],
+    visual: "recovery",
+  },
+  {
+    term: "Taper",
+    category: "recovery",
+    text: "Belastung vor dem Wettkampf reduzieren, damit du frischer und leistungsbereit startest.",
+    detail: "Weniger Gesamtlast, aber etwas Qualität bleibt drin. Ziel ist Frische ohne das Gefühl, 'einzurosten'.",
+    cues: ["Routine beibehalten", "Volumen runter", "Fueling/Schlaf optimieren"],
+    steps: ["Volumen reduzieren", "Kurze Aktivierungen behalten", "Raceday vorbereitet starten"],
+    visual: "recovery",
+  },
+  {
+    term: "Long Run Durability",
+    category: "run",
+    text: "Lange Läufe verbessern nicht nur Ausdauer, sondern die Fähigkeit, über Zeit stabil zu bleiben.",
+    detail: "Mit passender Dauer und Progression steigen metabolische Robustheit, muskuläre Ermüdungsresistenz und Fueling-Verträglichkeit. Das macht Schlussphasen im Rennen stabiler.",
+    cues: ["Früh ruhig starten", "Pace kontrollieren", "Fueling/Hydration mittrainieren"],
+    steps: ["Easy Start", "Steady Mittelteil", "Optional kontrolliert progressiver Schluss"],
+    visual: "run",
+  },
+  {
+    term: "Periodisierung (Base/Build/Specific/Taper)",
+    category: "recovery",
+    text: "Der Plan steuert Last nicht linear, sondern in Blöcken mit Zielschwerpunkt.",
+    detail: "Base baut Grundlage und Technik, Build erhöht strukturierte Last, Specific wird race-näher, Taper reduziert Ermüdung bei erhaltener Schärfe.",
+    cues: ["Blockziel akzeptieren", "Nicht jede Woche maximal", "Deloads bewusst nutzen"],
+    steps: ["Base", "Build", "Specific", "Taper"],
+    visual: "recovery",
+  },
+  {
+    term: "Fitness-Fatigue-Modell",
+    category: "recovery",
+    text: "Leistung entsteht aus positiver Anpassung minus kurzfristiger Ermüdung.",
+    detail: "Harte Reize erhöhen Fitness und Ermüdung gleichzeitig. Deload/Recovery senkt Ermüdung schneller, damit die Anpassung sichtbar wird.",
+    cues: ["Readiness mitdenken", "Ermüdung nicht ignorieren", "Qualität gezielt platzieren"],
+    steps: ["Belastung setzen", "Ermüdung zulassen", "Absorbieren/entlasten"],
+    visual: "recovery",
+  },
+  {
+    term: "Zyklusbasierte Steuerung",
+    category: "recovery",
+    text: "Bei aktivierter Zyklusplanung wird Intensität phasenabhängig feinjustiert.",
+    detail: "Die App arbeitet mit moderaten Anpassungen je Phase (z. B. high-intensity toleranter in Follicular, konservativer in frühen/late Phasen). Individuelle Readiness bleibt entscheidend.",
+    cues: ["Tagesform priorisieren", "High-Intensity flexibel halten", "Fueling/Hydration früh setzen"],
+    steps: ["Phase erkennen", "Session skalieren", "Feedback in Readiness spiegeln"],
+    visual: "recovery",
+  },
+  {
+    term: "Race-Pace Spezifität",
+    category: "triathlon",
+    text: "Näher zum Wettkampf wird ein Teil der Qualität race-pace-nah gesetzt.",
+    detail: "Specific-Phase trainiert Zieltempo, Pacing-Stabilität und Technik unter kontrollierter Vorermüdung statt nur 'hart um hart'.",
+    cues: ["Pacing diszipliniert", "Saubere Technik", "Nicht überzocken"],
+    steps: ["Race-pace Block", "Kontrollierte Erholung", "Kurzer Qualitätsabschluss"],
+    visual: "brick",
+  },
+];
+
+const I18N = {
+  de: {
+    hero_title: "Plan your next race.",
+    field_discipline: "Disziplin",
+    field_mode: "Modus",
+    mode_quick: "Quick",
+    mode_pro: "Pro",
+    field_level: "Level",
+    field_experience: "Erfahrung",
+    field_hours: "Std/Woche",
+    field_goal_format: "Ziel-Format",
+    field_goal_time: "Zielzeit",
+    quick_goal_format: "Zielformat",
+    quick_goal_time: "Zielzeit",
+    quick_date: "Datum",
+    race_col_discipline: "Disziplin",
+    race_col_format: "Wettkampfsort",
+    race_col_goal_time: "Zielzeit",
+    race_col_date: "Datum",
+    race_col_priority: "Priorität",
+    field_sex_optional: "Geschlecht (optional)",
+    field_age_optional: "Alter (optional)",
+    field_weight_optional: "Gewicht kg (optional)",
+    field_height_optional: "Größe cm (optional)",
+    field_target_weight_optional: "Zielgewicht kg (optional)",
+    field_gym_share: "Gym-Anteil",
+    field_cycle_optional: "Zyklusbasiertes Training (optional)",
+    field_cycle_toggle: "Zyklusbasierte Planung berücksichtigen",
+    field_cycle_day_optional: "Zyklustag (optional)",
+    field_cycle_length_optional: "Ø Zykluslänge Tage (optional)",
+    btn_generate: "race.",
+    btn_tuning: "Feintuning",
+    tuning_goals: "Ziele",
+    tuning_athlete: "Athlet",
+    tuning_performance: "Performance",
+    tuning_setup: "Trainingssetup",
+    field_bike_ftp: "FTP Bike (W)",
+    field_bike_thr_hr: "Bike Schwellen-HF (bpm)",
+    field_bike_lactate: "Bike LT2-Laktat (mmol/L)",
+    field_run_thr_pace: "Lauf Schwellenpace (/km)",
+    field_run_thr_hr: "Lauf Schwellen-HF (bpm)",
+    field_run_lactate: "Lauf LT2-Laktat (mmol/L)",
+    field_recent_pbs: "Letzte Bestzeiten",
+    field_plan_horizon: "Planhorizont",
+    horizon_standard: "Standard",
+    horizon_one_year: "Season (1 Jahr)",
+    horizon_two_year: "LTAD (2 Jahre)",
+    nav_home: "Home",
+    nav_profile: "Profil",
+    nav_crew: "Community",
+    nav_login: "Login",
+    nav_create: "Registrieren",
+    section_profile_crew: "Profil & Community",
+    profile_tab_overview: "Überblick",
+    profile_tab_activities: "Aktivitäten",
+    profile_tab_health: "Gesundheit",
+    profile_tab_settings: "Einstellungen",
+    profile_card_title: "Profil",
+    profile_create_account: "Account erstellen",
+    profile_save_plan: "Plan speichern",
+    profile_avatar: "Profilbild",
+    saved_plans: "Gespeicherte Pläne",
+    empty_saved_plans: "Noch keine gespeicherten Pläne.",
+    profile_stats: "Profilstatistik",
+    profile_period_today: "Heute",
+    profile_period_12m: "Letzte 12 Monate",
+    profile_period_all: "Gesamt",
+    new_activity: "Neue Aktivität",
+    post_label: "Post",
+    activity_kind_training: "Training",
+    field_sport: "Sport",
+    field_distance_km: "Distanz (km)",
+    post_submit: "Posten",
+    my_feed: "Mein Feed",
+    empty_profile_feed: "Noch keine Aktivitäten gepostet.",
+    crew_friends_connect: "Verbindungen",
+    crew_ranking: "Community Ranking",
+    crew_search: "Community Suche",
+    crew_feed: "Community Feed",
+    crew_search_copy: "Suche andere Accounts, verbinde dich und sieh später gemeinsame Aktivitäten / Pläne.",
+    connect: "Verbinden",
+    connected: "Verbunden",
+    search: "Suchen",
+    empty_connections: "Noch keine Verbindungen.",
+    empty_crew_data: "Keine Community-Daten vorhanden.",
+    empty_search_prompt: "Suche nach einem Account, um dich zu verbinden.",
+    empty_search_none: "Keine Accounts gefunden.",
+    empty_crew_feed: "Verbinde dich mit deiner Community, um den Feed zu sehen.",
+    empty_login_crew: "Bitte einloggen, um die Community zu sehen.",
+    empty_login_ranking: "Bitte einloggen, um Ranking zu sehen.",
+    invalid_email: "Ungültige E-Mail.",
+    own_email_not_allowed: "Eigene E-Mail kann nicht hinzugefügt werden.",
+    account_not_found_local: "Account nicht gefunden (MVP lokal).",
+    login_first: "Bitte zuerst einloggen.",
+    account_signed_in: "Eingeloggt",
+    account_guest: "Gast",
+    account_status_signed_in: "Dein Profil-Überblick mit Plänen, Aktivitäten und Gesundheitsdaten. Einstellungen findest du im Profil-Tab.",
+    account_status_guest: "Erstelle einen Account, um Trainingspläne zu speichern, Quellen zu verbinden und Freunde hinzuzufügen.",
+    placeholder_distance_example: "z. B. 12.4",
+    placeholder_activity_title: "z. B. Threshold Run in der City",
+    placeholder_activity_note: "Wie lief die Einheit? Gefühl, Pace, Learnings ...",
+    placeholder_friend_email: "friend@email.com",
+    placeholder_search_accounts: "Accounts suchen (E-Mail / Name)",
+    unit_points: "Pkt.",
+    unit_races: "Rennen",
+    profile_total_points: "Gesamtpunkte",
+    label_training: "Training",
+    label_no_activity: "Noch keine Aktivität",
+    label_plans: "Pläne",
+    label_run_short: "Lauf",
+    label_bike_short: "Rad",
+    label_swim_short: "Swim",
+    label_props: "Props",
+    connected_mock: "Verbunden (Mock)",
+    section_calendar: "Wochenkalender",
+    calendar_view: "Kalenderansicht",
+    section_fitness: "Aktueller Fitnessstand",
+    no_sources: "Noch keine Quelle verbunden.",
+    purpose: "Zweck der Einheit",
+    adaptation: "Trainingseffekt",
+    physiology: "Physio-Fokus",
+    why: "Warum jetzt",
+    execution: "Steuerung",
+    workout_plan: "Workout-Plan",
+  },
+  en: {
+    hero_title: "Plan your next race.",
+    field_discipline: "Discipline",
+    field_mode: "Mode",
+    mode_quick: "Quick",
+    mode_pro: "Pro",
+    field_level: "Level",
+    field_experience: "Experience",
+    field_hours: "Hours/week",
+    field_goal_format: "Goal format",
+    field_goal_time: "Goal time",
+    quick_goal_format: "Goal format",
+    quick_goal_time: "Goal time",
+    quick_date: "Date",
+    race_col_discipline: "Discipline",
+    race_col_format: "Race format",
+    race_col_goal_time: "Goal time",
+    race_col_date: "Date",
+    race_col_priority: "Priority",
+    field_sex_optional: "Sex (optional)",
+    field_age_optional: "Age (optional)",
+    field_weight_optional: "Weight kg (optional)",
+    field_height_optional: "Height cm (optional)",
+    field_target_weight_optional: "Target weight kg (optional)",
+    field_gym_share: "Gym share",
+    field_cycle_optional: "Cycle-based training (optional)",
+    field_cycle_toggle: "Use cycle-based planning",
+    field_cycle_day_optional: "Cycle day (optional)",
+    field_cycle_length_optional: "Avg cycle length days (optional)",
+    btn_generate: "race.",
+    btn_tuning: "Fine tune",
+    tuning_goals: "Goals",
+    tuning_athlete: "Athlete",
+    tuning_performance: "Performance",
+    tuning_setup: "Training setup",
+    field_bike_ftp: "Bike FTP (W)",
+    field_bike_thr_hr: "Bike threshold HR (bpm)",
+    field_bike_lactate: "Bike LT2 lactate (mmol/L)",
+    field_run_thr_pace: "Run threshold pace (/km)",
+    field_run_thr_hr: "Run threshold HR (bpm)",
+    field_run_lactate: "Run LT2 lactate (mmol/L)",
+    field_recent_pbs: "Recent PBs",
+    field_plan_horizon: "Plan horizon",
+    horizon_standard: "Standard",
+    horizon_one_year: "Season (1 year)",
+    horizon_two_year: "LTAD (2 years)",
+    nav_home: "Home",
+    nav_profile: "Profile",
+    nav_crew: "Community",
+    nav_login: "Login",
+    nav_create: "Create",
+    section_profile_crew: "Profile & Community",
+    profile_tab_overview: "Overview",
+    profile_tab_activities: "Activities",
+    profile_tab_health: "Health",
+    profile_tab_settings: "Settings",
+    profile_card_title: "Profile",
+    profile_create_account: "Create account",
+    profile_save_plan: "Save plan",
+    profile_avatar: "Profile photo",
+    saved_plans: "Saved plans",
+    empty_saved_plans: "No saved plans yet.",
+    profile_stats: "Profile Stats",
+    profile_period_today: "Today",
+    profile_period_12m: "Last 12 months",
+    profile_period_all: "All time",
+    new_activity: "New activity",
+    post_label: "Post",
+    activity_kind_training: "Training",
+    field_sport: "Sport",
+    field_distance_km: "Distance (km)",
+    post_submit: "Post",
+    my_feed: "My feed",
+    empty_profile_feed: "No activities posted yet.",
+    crew_friends_connect: "Connections",
+    crew_ranking: "Community ranking",
+    crew_search: "Community search",
+    crew_feed: "Community feed",
+    crew_search_copy: "Find other accounts, connect, and later see shared activities / plans.",
+    connect: "Connect",
+    connected: "Connected",
+    search: "Search",
+    empty_connections: "No connections yet.",
+    empty_crew_data: "No community data available.",
+    empty_search_prompt: "Search for an account to connect.",
+    empty_search_none: "No accounts found.",
+    empty_crew_feed: "Connect with your community to see their feed.",
+    empty_login_crew: "Please sign in to view your community.",
+    empty_login_ranking: "Please sign in to view ranking.",
+    invalid_email: "Invalid email.",
+    own_email_not_allowed: "You cannot add your own email.",
+    account_not_found_local: "Account not found (local MVP).",
+    login_first: "Please sign in first.",
+    account_signed_in: "Signed in",
+    account_guest: "Guest",
+    account_status_signed_in: "You can now save plans, store connector status per account, and connect local friends.",
+    account_status_guest: "Create an account to save plans, connect sources, and add friends.",
+    placeholder_distance_example: "e.g. 12.4",
+    placeholder_activity_title: "e.g. Threshold run in the city",
+    placeholder_activity_note: "How did the session feel? Pace, effort, learnings ...",
+    placeholder_friend_email: "friend@email.com",
+    placeholder_search_accounts: "Search accounts (email / name)",
+    unit_points: "pts",
+    unit_races: "races",
+    profile_total_points: "Total Points",
+    label_training: "Training",
+    label_no_activity: "No activity yet",
+    label_plans: "Plans",
+    label_run_short: "Run",
+    label_bike_short: "Bike",
+    label_swim_short: "Swim",
+    label_props: "Props",
+    connected_mock: "Connected (Mock)",
+    section_calendar: "Weekly calendar",
+    calendar_view: "Calendar view",
+    section_fitness: "Current fitness status",
+    no_sources: "No source connected yet.",
+    purpose: "Session purpose",
+    adaptation: "Training effect",
+    physiology: "Physiology focus",
+    why: "Why it matters",
+    execution: "Execution",
+    workout_plan: "Workout plan",
+  },
+  ja: {
+    hero_title: "Plan your next race.",
+    field_discipline: "種目",
+    field_mode: "モード",
+    mode_quick: "クイック",
+    mode_pro: "プロ",
+    field_level: "レベル",
+    field_experience: "経験",
+    field_hours: "週あたり時間",
+    field_goal_format: "目標フォーマット",
+    field_goal_time: "目標タイム",
+    quick_goal_format: "目標フォーマット",
+    quick_goal_time: "目標タイム",
+    quick_date: "日付",
+    race_col_discipline: "種目",
+    race_col_format: "レース形式",
+    race_col_goal_time: "目標タイム",
+    race_col_date: "日付",
+    race_col_priority: "優先度",
+    field_sex_optional: "性別（任意）",
+    field_age_optional: "年齢（任意）",
+    field_weight_optional: "体重kg（任意）",
+    field_height_optional: "身長 cm（任意）",
+    field_target_weight_optional: "目標体重 kg（任意）",
+    field_gym_share: "ジム比率",
+    field_cycle_optional: "周期ベーストレーニング（任意）",
+    field_cycle_toggle: "周期ベース計画を使う",
+    field_cycle_day_optional: "周期日（任意）",
+    field_cycle_length_optional: "平均周期日数（任意）",
+    btn_generate: "race.",
+    btn_tuning: "詳細設定",
+    tuning_goals: "目標",
+    tuning_athlete: "アスリート",
+    tuning_performance: "パフォーマンス",
+    tuning_setup: "トレーニング設定",
+    field_bike_ftp: "バイクFTP (W)",
+    field_bike_thr_hr: "バイク閾値HR (bpm)",
+    field_bike_lactate: "バイク LT2 乳酸 (mmol/L)",
+    field_run_thr_pace: "ラン閾値ペース (/km)",
+    field_run_thr_hr: "ラン閾値HR (bpm)",
+    field_run_lactate: "ラン LT2 乳酸 (mmol/L)",
+    field_recent_pbs: "最近のベスト",
+    field_plan_horizon: "計画期間",
+    horizon_standard: "標準",
+    horizon_one_year: "シーズン (1年)",
+    horizon_two_year: "LTAD (2年)",
+    nav_home: "ホーム",
+    nav_profile: "プロフィール",
+    nav_crew: "コミュニティ",
+    nav_login: "ログイン",
+    nav_create: "作成",
+    section_profile_crew: "プロフィール & コミュニティ",
+    profile_tab_overview: "概要",
+    profile_tab_activities: "アクティビティ",
+    profile_tab_health: "ヘルス",
+    profile_tab_settings: "設定",
+    profile_card_title: "プロフィール",
+    profile_create_account: "アカウント作成",
+    profile_save_plan: "プラン保存",
+    profile_avatar: "プロフィール画像",
+    saved_plans: "保存済みプラン",
+    empty_saved_plans: "保存済みプランはまだありません。",
+    profile_stats: "プロフィール統計",
+    profile_period_today: "今日",
+    profile_period_12m: "過去12か月",
+    profile_period_all: "累計",
+    new_activity: "新しいアクティビティ",
+    post_label: "投稿",
+    activity_kind_training: "トレーニング",
+    field_sport: "種目",
+    field_distance_km: "距離 (km)",
+    post_submit: "投稿",
+    my_feed: "マイフィード",
+    empty_profile_feed: "まだアクティビティ投稿はありません。",
+    crew_friends_connect: "接続",
+    crew_ranking: "コミュニティランキング",
+    crew_search: "コミュニティ検索",
+    crew_feed: "コミュニティフィード",
+    crew_search_copy: "他のアカウントを検索して接続し、あとで共同のアクティビティ / プランを見られます。",
+    connect: "接続",
+    connected: "接続済み",
+    search: "検索",
+    empty_connections: "接続はまだありません。",
+    empty_crew_data: "コミュニティデータがありません。",
+    empty_search_prompt: "接続するアカウントを検索してください。",
+    empty_search_none: "アカウントが見つかりません。",
+    empty_crew_feed: "コミュニティと接続するとフィードが表示されます。",
+    empty_login_crew: "コミュニティを見るにはログインしてください。",
+    empty_login_ranking: "ランキングを見るにはログインしてください。",
+    invalid_email: "無効なメールアドレスです。",
+    own_email_not_allowed: "自分のメールは追加できません。",
+    account_not_found_local: "アカウントが見つかりません（ローカルMVP）。",
+    login_first: "先にログインしてください。",
+    account_signed_in: "ログイン中",
+    account_guest: "ゲスト",
+    account_status_signed_in: "プラン保存、アカウントごとのコネクタ状態保持、ローカルの友達接続ができます。",
+    account_status_guest: "プラン保存、データ接続、友達追加のためにアカウントを作成してください。",
+    placeholder_distance_example: "例: 12.4",
+    placeholder_activity_title: "例: シティでのスレッショルド走",
+    placeholder_activity_note: "セッションの感覚、ペース、学びなど...",
+    placeholder_friend_email: "friend@email.com",
+    placeholder_search_accounts: "アカウント検索（メール / 名前）",
+    unit_points: "pts",
+    unit_races: "レース",
+    profile_total_points: "合計ポイント",
+    label_training: "トレーニング",
+    label_no_activity: "まだアクティビティなし",
+    label_plans: "プラン",
+    label_run_short: "Run",
+    label_bike_short: "Bike",
+    label_swim_short: "Swim",
+    label_props: "Props",
+    connected_mock: "接続済み (Mock)",
+    section_calendar: "週間カレンダー",
+    calendar_view: "カレンダー表示",
+    section_fitness: "現在のフィットネス状態",
+    no_sources: "まだ接続されたデータソースはありません。",
+    purpose: "目的",
+    adaptation: "トレーニング効果",
+    physiology: "生理学フォーカス",
+    why: "効果",
+    execution: "実行ガイド",
+    workout_plan: "ワークアウト計画",
+  },
+};
+
+const GOAL_OPTIONS_BY_DISCIPLINE = {
+  running: [
+    { value: "5k", label: "5 km" },
+    { value: "10k", label: "10 km" },
+    { value: "half", label: "Halbmarathon" },
+    { value: "marathon", label: "Marathon" },
+  ],
+  triathlon: [
+    { value: "sprint", label: "Sprint Triathlon" },
+    { value: "olympic", label: "Olympic Triathlon" },
+    { value: "703", label: "70.3" },
+    { value: "ironman", label: "Ironman" },
+  ],
+  cycling: [
+    { value: "crit", label: "Crit / Race" },
+    { value: "tt40", label: "TT 40 km" },
+    { value: "granfondo", label: "Gran Fondo" },
+    { value: "century", label: "Century 100 mi" },
+  ],
+  hyrox: [
+    { value: "open", label: "HYROX Open" },
+    { value: "pro", label: "HYROX Pro" },
+    { value: "doubles", label: "HYROX Doubles" },
+    { value: "doublespro", label: "HYROX Doubles Pro" },
+    { value: "relay", label: "HYROX Relay" },
+  ],
+  shape: [
+    { value: "fatloss", label: "Lean Cut" },
+    { value: "recomp", label: "Body Recomp" },
+    { value: "build", label: "Strength Build" },
+    { value: "fitness", label: "General Fitness" },
+  ],
+};
+
+connectorButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    const source = button.dataset.source;
+    if (!source) return;
+    if (source === "Strava") {
+      startStravaOAuthFlow();
+      return;
+    }
+    if (connectedSources.has(source)) {
+      connectedSources.delete(source);
+    } else {
+      connectedSources.add(source);
+    }
+    syncConnectorButtons();
+    persistConnectedSourcesForCurrentUser();
+    const endpoint = OAUTH_ENDPOINTS[source] || "/api/oauth/start";
+    setText(connectionState, connectedSources.size ? `OAuth ready (MVP Mock): ${[...connectedSources].join(", ")} • next: ${endpoint}` : t("no_sources"));
+    syncUiState();
+    renderAccountUi();
+  });
+});
+
+stravaProfileConnectBtn?.addEventListener("click", () => startStravaOAuthFlow());
+stravaProfileRefreshBtn?.addEventListener("click", () => {
+  fetchStravaStatusAndAthlete({ force: true });
+});
+stravaProfileImportBtn?.addEventListener("click", () => {
+  importStravaHistory();
+});
+
+try {
+  setDefaultRaceDate();
+  initDynamicGoalOptions();
+  initAdvancedSettingsToggle();
+  initScrollFx();
+  initStageReveals();
+  initLanguageSwitcher();
+  initAccountUi();
+  setActiveProfileView("overview");
+  setActiveProfileSettingsView("account");
+  applyTranslations();
+  loadThresholdDraftFromHiddenInputs();
+  initInlineRaceEvents();
+  renderInlineRaceList();
+  renderPerformanceInsights();
+  setAppView("home");
+} catch (err) {
+  console.error("AImRUNNA init failed:", err);
+}
+
+form.addEventListener("submit", (event) => {
+  event.preventDefault();
+  try {
+    syncShapeGoalConsistency();
+    applyQuickModeToPrimaryGoalFields();
+    if (typeof form.reportValidity === "function" && !form.reportValidity()) return;
+    const data = new FormData(form);
+    const profile = extractProfile(data);
+    const realismCheck = checkGoalRealismBeforePlan(profile);
+    if (realismCheck?.block) {
+      openGoalRealismModal({
+        ...realismCheck,
+        forceProfile: profile,
+      });
+      return;
+    }
+
+    generatePlanFromProfile(profile);
+  } catch (err) {
+    console.error("Plan generation failed:", err);
+    if (statusEl) {
+      statusEl.textContent =
+        `Plan konnte nicht erstellt werden.\n` +
+        `Bitte Eingaben prüfen (insb. Disziplin/Zielformat/Zeit) und erneut versuchen.\n\n` +
+        `Debug: ${String(err?.message || err)}`;
+    }
+  }
+});
+
+function generatePlanFromProfile(profile) {
+  const plan = buildPlan(profile);
+  generatedSessions = plan.sessions;
+  generatedSessions.forEach((session, index) => {
+    session._id = `session-${index}`;
+  });
+  latestProfile = profile;
+  latestPlan = plan;
+
+  renderAnalysis(profile, plan);
+  renderPlan(plan);
+  renderPerformanceInsights(profile, plan);
+  exportIcalBtn.disabled = false;
+  document.body.classList.add("has-output");
+  syncUiState();
+  scrollToGeneratedPlan();
+  if (getCurrentAccount()) {
+    savePlanToLibrary(getCurrentAccount(), latestProfile, latestPlan);
+    persistStore();
+  }
+  renderAccountUi();
+}
+
+savePlanBtn?.addEventListener("click", () => {
+  if (!latestPlan || !latestProfile) return;
+  const account = getCurrentAccount();
+  if (!account) {
+    openAccountModal("login");
+    setText(accountFormStatusEl, "Bitte zuerst einloggen.");
+    return;
+  }
+  savePlanToLibrary(account, latestProfile, latestPlan);
+  persistStore();
+  renderAccountUi();
+});
+
+friendFormEl?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const account = getCurrentAccount();
+  if (!account) {
+    openAccountModal("login");
+    setText(accountFormStatusEl, "Bitte zuerst einloggen.");
+    return;
+  }
+  const email = String(new FormData(friendFormEl).get("friendEmail") || "").trim().toLowerCase();
+  const result = addFriendByEmail(account, email);
+  renderAccountUi();
+  if (email) {
+    lastAccountSearchQuery = email;
+    renderAccountSearchResults(email);
+  }
+  if (friendFormEl && result.ok) friendFormEl.reset();
+});
+
+accountLoginBtn?.addEventListener("click", () => openAccountModal("login"));
+accountRegisterBtn?.addEventListener("click", () => openAccountModal("register"));
+accountOpenLoginBtn?.addEventListener("click", () => openAccountModal("login"));
+accountOpenRegisterBtn?.addEventListener("click", () => openAccountModal("register"));
+accountLogoutBtn?.addEventListener("click", logoutCurrentAccount);
+accountHomeBtn?.addEventListener("click", () => setAppView("home"));
+accountProfileBtn?.addEventListener("click", () => {
+  setActiveProfileView("overview");
+  setAppView("profile");
+  setActiveAccountSection("profile");
+});
+accountCrewBtn?.addEventListener("click", () => {
+  setAppView("crew");
+  setActiveAccountSection("crew");
+});
+accountSectionTabButtons.forEach((btn) =>
+  btn.addEventListener("click", () => {
+    const section = btn.dataset.accountSection || "profile";
+    setAppView(section === "crew" ? "crew" : "profile");
+    setActiveAccountSection(section);
+  })
+);
+
+profileViewTabButtons.forEach((btn) =>
+  btn.addEventListener("click", () => {
+    const view = btn.dataset.profileView || "overview";
+    setActiveProfileView(view);
+    if (activeAppView !== "profile") setAppView("profile");
+    scrollToSectionStart(sectionAccountEl, { mobileOffset: 150, desktopOffset: 114, duration: 420 });
+  })
+);
+
+profileSettingsNavButtons.forEach((btn) =>
+  btn.addEventListener("click", () => {
+    const view = btn.dataset.profileSettingsView || "account";
+    setActiveProfileSettingsView(view);
+  })
+);
+
+profileAvatarInputEl?.addEventListener("change", async () => {
+  const account = getCurrentAccount();
+  if (!account) {
+    openAccountModal("login");
+    return;
+  }
+  const file = profileAvatarInputEl.files?.[0];
+  if (!file) return;
+  const dataUrl = await readFileAsDataUrl(file);
+  account.profileImage = dataUrl;
+  persistStore();
+  renderAccountUi();
+});
+
+activityPostFormEl?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const account = getCurrentAccount();
+  if (!account) {
+    openAccountModal("login");
+    setText(accountFormStatusEl, "Bitte zuerst einloggen.");
+    return;
+  }
+  const fd = new FormData(activityPostFormEl);
+  const title = String(fd.get("title") || "").trim();
+  if (!title) return;
+  const note = String(fd.get("note") || "").trim();
+  const kind = String(fd.get("activityKind") || "training") === "race" ? "race" : "training";
+  const sportType = String(fd.get("sportType") || "run");
+  const distanceKm = Number(fd.get("distanceKm") || 0) || 0;
+  const imageFile = fd.get("image");
+  const imageDataUrl = imageFile && imageFile.size ? await readFileAsDataUrl(imageFile) : null;
+  postActivity(account, { title, note, kind, sportType, distanceKm, imageDataUrl });
+  persistStore();
+  activityPostFormEl.reset();
+  profileComposerExpanded = false;
+  closeActivityComposeModal();
+  renderAccountUi();
+});
+
+profileQuickAddBtnEl?.addEventListener("click", () => {
+  profileComposerExpanded = !profileComposerExpanded;
+  syncProfileComposerVisibility();
+});
+
+accountSearchFormEl?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const query = String(new FormData(accountSearchFormEl).get("query") || "").trim();
+  lastAccountSearchQuery = query;
+  renderAccountSearchResults(query);
+});
+
+accountTabButtons.forEach((btn) =>
+  btn.addEventListener("click", () => openAccountModal(btn.dataset.authMode || "login"))
+);
+
+accountFormEl?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const fd = new FormData(accountFormEl);
+  const email = String(fd.get("email") || "").trim().toLowerCase();
+  const password = String(fd.get("password") || "");
+  const result = authMode === "register" ? registerAccount(email, password) : loginAccount(email, password);
+  setText(accountFormStatusEl, result.message);
+  if (result.ok) {
+    renderAccountUi();
+    syncConnectorButtons();
+    updateConnectionStateCopy();
+    setTimeout(() => closeAccountModal(), 200);
+  }
+});
+
+accountForgotPasswordBtn?.addEventListener("click", () => {
+  const email = String(accountFormEl?.elements?.email?.value || "").trim().toLowerCase();
+  const result = requestPasswordReset(email);
+  setText(accountFormStatusEl, result.message);
+});
+
+accountSettingsFormEl?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const account = getCurrentAccount();
+  if (!account) {
+    openAccountModal("login");
+    setText(accountSettingsStatusEl, "Bitte zuerst einloggen.");
+    return;
+  }
+  ensureAccountSettingsShape(account);
+  const fd = new FormData(accountSettingsFormEl);
+  account.settings.account = {
+    ...account.settings.account,
+    language: String(fd.get("language") || "de"),
+    units: String(fd.get("units") || "metric"),
+    timezone: String(fd.get("timezone") || "Europe/Berlin"),
+    emailNotifications: String(fd.get("emailNotifications") || "important"),
+  };
+  persistStore();
+  setText(accountSettingsStatusEl, "Gespeichert.");
+});
+
+privacySettingsFormEl?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const account = getCurrentAccount();
+  if (!account) {
+    openAccountModal("login");
+    setText(privacySettingsStatusEl, "Bitte zuerst einloggen.");
+    return;
+  }
+  ensureAccountSettingsShape(account);
+  const fd = new FormData(privacySettingsFormEl);
+  account.settings.privacy = {
+    ...account.settings.privacy,
+    profileVisibility: String(fd.get("profileVisibility") || "public"),
+    activityVisibility: String(fd.get("activityVisibility") || "followers"),
+    searchDiscoverability: String(fd.get("searchDiscoverability") || "on"),
+    messagingPermission: String(fd.get("messagingPermission") || "connections"),
+    mapPrivacy: String(fd.get("mapPrivacy") || "blur_start_end"),
+    mentionsPermission: String(fd.get("mentionsPermission") || "connections"),
+  };
+  persistStore();
+  setText(privacySettingsStatusEl, "Gespeichert.");
+});
+
+safetySettingsFormEl?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const account = getCurrentAccount();
+  if (!account) {
+    openAccountModal("login");
+    setText(safetySettingsStatusEl, "Bitte zuerst einloggen.");
+    return;
+  }
+  ensureAccountSettingsShape(account);
+  const fd = new FormData(safetySettingsFormEl);
+  account.settings.safety = {
+    ...account.settings.safety,
+    commentFilter: String(fd.get("commentFilter") || "standard"),
+    imageModeration: String(fd.get("imageModeration") || "on"),
+    riskWarnings: String(fd.get("riskWarnings") || "on"),
+    communityGuidelinesAccepted: String(fd.get("communityGuidelinesAccepted") || "yes"),
+  };
+  persistStore();
+  setText(safetySettingsStatusEl, "Gespeichert.");
+});
+
+passwordChangeFormEl?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const fd = new FormData(passwordChangeFormEl);
+  const result = changeCurrentAccountPassword(String(fd.get("currentPassword") || ""), String(fd.get("newPassword") || ""));
+  setText(passwordChangeStatusEl, result.message);
+  if (result.ok) passwordChangeFormEl.reset();
+});
+
+exportAccountDataBtn?.addEventListener("click", () => {
+  const result = exportCurrentAccountData();
+  setText(accountOpsStatusEl, result.message);
+});
+
+deleteAccountBtn?.addEventListener("click", () => {
+  const result = deleteCurrentAccountLocalMvp();
+  setText(accountOpsStatusEl, result.message);
+  if (result.ok) setAppView("home");
+});
+
+document.querySelectorAll("[data-legal-open]").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const key = String(btn.getAttribute("data-legal-open") || "imprint");
+    openLegalModal(key);
+  });
+});
+
+legalNavEl?.addEventListener("click", (event) => {
+  const btn = event.target.closest?.("[data-legal-section]");
+  if (!btn) return;
+  const key = String(btn.getAttribute("data-legal-section") || "imprint");
+  setLegalSection(key);
+});
+
+legalModalEl?.addEventListener("click", (event) => {
+  if (!event.target.closest?.("[data-close-legal-modal]")) return;
+  closeLegalModal();
+});
+
+accountModalEl?.addEventListener("click", (event) => {
+  if (!event.target.closest?.("[data-close-account-modal]")) return;
+  closeAccountModal();
+});
+
+openRaceCalendarBtnEl?.addEventListener("click", () => {
+  draftRaceEvents = parseRaceEventsJson(raceEventsJsonInputEl?.value);
+  if (raceCalDisciplineEl && disciplineSelect?.value) raceCalDisciplineEl.value = String(disciplineSelect.value);
+  syncRaceCalendarDistanceOptions(raceCalDisciplineEl?.value || disciplineSelect?.value || "running");
+  renderRaceCalendarList();
+  setText(raceCalStatusEl, "");
+  if (raceCalendarModalEl) raceCalendarModalEl.hidden = false;
+});
+
+raceInlineAddBtnEl?.addEventListener("click", () => {
+  addInlineRaceEvent();
+});
+raceInlineAddBlockBtnEl?.addEventListener("click", () => {
+  addInlineTrainingBlock();
+});
+
+raceInlineListEl?.addEventListener("change", (event) => {
+  const row = event.target.closest?.("[data-race-inline-row]");
+  if (!row) return;
+  const id = String(row.getAttribute("data-race-inline-row") || "");
+  const key = String(event.target.getAttribute?.("data-race-inline-key") || "");
+  if (!id || !key) return;
+  const idx = draftRaceEvents.findIndex((item) => item.id === id);
+  if (idx < 0) return;
+  const current = draftRaceEvents[idx];
+  if (key === "discipline") {
+    const nextDiscipline = String(event.target.value || "running");
+    const allowedDiscipline = RACE_EVENT_DISCIPLINES.includes(nextDiscipline) ? nextDiscipline : "running";
+    current.discipline = allowedDiscipline;
+    const opts = raceEventDistanceOptions(current.discipline);
+    current.distance = opts.some((opt) => opt.value === current.distance) ? current.distance : (opts[0]?.value || current.distance);
+  } else if (key === "blockType") {
+    const next = String(event.target.value || "camp");
+    const opts = trainingBlockTypeOptions();
+    current.blockType = opts.some((opt) => opt.value === next) ? next : "camp";
+  } else if (key === "distance") {
+    const nextDistance = String(event.target.value || "");
+    const opts = raceEventDistanceOptions(current.discipline);
+    current.distance = opts.some((opt) => opt.value === nextDistance) ? nextDistance : (opts[0]?.value || nextDistance);
+  } else if (key === "date") {
+    const dateRaw = String(event.target.value || "").trim();
+    const date = dateRaw ? new Date(`${dateRaw}T09:00:00`) : current.date;
+    current.date = Number.isNaN(date.getTime()) ? current.date : startOfDay(date);
+    if (current.itemKind === "block" && (!current.endDate || current.endDate < current.date)) current.endDate = current.date;
+  } else if (key === "endDate") {
+    const dateRaw = String(event.target.value || "").trim();
+    const date = dateRaw ? new Date(`${dateRaw}T09:00:00`) : current.endDate || current.date;
+    const nextEnd = Number.isNaN(date.getTime()) ? (current.endDate || current.date) : startOfDay(date);
+    current.endDate = nextEnd < current.date ? current.date : nextEnd;
+  } else if (key === "goalTime") {
+    current.goalTime = String(event.target.value || "").trim();
+  } else if (key === "priority") {
+    const priority = String(event.target.value || "C").toUpperCase();
+    current.priority = ["A", "B", "C"].includes(priority) ? priority : "C";
+  } else if (key === "intensity") {
+    const intensity = String(event.target.value || "moderate").toLowerCase();
+    current.intensity = ["low", "moderate", "high"].includes(intensity) ? intensity : "moderate";
+  }
+  persistInlineRaceEvents();
+  syncMainGoalFromPrimaryRaceEvent();
+  renderInlineRaceList();
+});
+
+raceInlineListEl?.addEventListener("click", (event) => {
+  const removeBtn = event.target.closest?.("[data-race-inline-remove]");
+  if (!removeBtn) return;
+  const id = String(removeBtn.getAttribute("data-race-inline-remove") || "");
+  if (!id) return;
+  draftRaceEvents = draftRaceEvents.filter((item) => item.id !== id);
+  if (!draftRaceEvents.length) {
+    addInlineRaceEvent({ asMainEvent: true });
+    return;
+  }
+  persistInlineRaceEvents();
+  syncMainGoalFromPrimaryRaceEvent();
+  renderInlineRaceList();
+});
+
+openThresholdModalBtnEl?.addEventListener("click", () => {
+  loadThresholdDraftFromHiddenInputs();
+  renderThresholdModalFields(disciplineSelect?.value || "running");
+  setText(thresholdModalStatusEl, "");
+  if (thresholdModalEl) thresholdModalEl.hidden = false;
+});
+
+raceCalDisciplineEl?.addEventListener("change", () => {
+  syncRaceCalendarDistanceOptions(raceCalDisciplineEl.value);
+});
+
+raceCalAddBtnEl?.addEventListener("click", () => {
+  const dateRaw = String(raceCalDateEl?.value || "").trim();
+  if (!dateRaw) {
+    setText(raceCalStatusEl, "Bitte Datum setzen.");
+    return;
+  }
+  const event = normalizeRaceEvent({
+    date: new Date(`${dateRaw}T09:00:00`),
+    title: String(raceCalNameEl?.value || "").trim() || null,
+    discipline: String(raceCalDisciplineEl?.value || disciplineSelect?.value || "running"),
+    distance: String(raceCalDistanceEl?.value || ""),
+    priority: String(raceCalPriorityEl?.value || "C").toUpperCase(),
+  });
+  if (!event) {
+    setText(raceCalStatusEl, "Ungültiger Termin.");
+    return;
+  }
+  draftRaceEvents.push(event);
+  draftRaceEvents.sort((a, b) => a.date - b.date);
+  renderRaceCalendarList();
+  setText(raceCalStatusEl, "Wettkampf hinzugefügt.");
+  if (raceCalDateEl) raceCalDateEl.value = "";
+  if (raceCalNameEl) raceCalNameEl.value = "";
+  if (raceCalPriorityEl) raceCalPriorityEl.value = "C";
+  syncRaceCalendarDistanceOptions(raceCalDisciplineEl?.value || "running");
+});
+
+raceCalListEl?.addEventListener("click", (event) => {
+  const btn = event.target.closest?.("[data-race-cal-remove]");
+  if (!btn) return;
+  const id = String(btn.getAttribute("data-race-cal-remove") || "");
+  if (!id) return;
+  draftRaceEvents = draftRaceEvents.filter((item) => item.id !== id);
+  renderRaceCalendarList();
+});
+
+raceCalSaveBtnEl?.addEventListener("click", () => {
+  if (raceEventsJsonInputEl) raceEventsJsonInputEl.value = JSON.stringify(serializeRaceEvents(draftRaceEvents));
+  closeRaceCalendarModal();
+  setText(raceCalStatusEl, "");
+});
+
+raceCalendarModalEl?.addEventListener("click", (event) => {
+  if (!event.target.closest?.("[data-close-race-calendar]")) return;
+  closeRaceCalendarModal();
+});
+
+thresholdModalFieldsEl?.addEventListener("input", (event) => {
+  const input = event.target.closest?.("[data-threshold-key]");
+  if (!input) return;
+  const key = String(input.getAttribute("data-threshold-key") || "");
+  if (!key) return;
+  draftThresholds[key] = String(input.value || "").trim();
+});
+
+thresholdClearBtnEl?.addEventListener("click", () => {
+  const fields = getThresholdModalFieldsByDiscipline(disciplineSelect?.value || "running");
+  fields.forEach((field) => {
+    draftThresholds[field.key] = "";
+  });
+  renderThresholdModalFields(disciplineSelect?.value || "running");
+  setText(thresholdModalStatusEl, "Zurückgesetzt.");
+});
+
+thresholdSaveBtnEl?.addEventListener("click", () => {
+  const fields = getThresholdModalFieldsByDiscipline(disciplineSelect?.value || "running");
+  const next = { ...draftThresholds };
+  let invalid = "";
+  fields.forEach((field) => {
+    const raw = String(next[field.key] || "").trim();
+    if (!raw) return;
+    if (field.key === "runThresholdPace") {
+      const parsed = parsePacePerKmToSeconds(raw);
+      if (!parsed) {
+        invalid = "Ungültige Laufpace. Bitte z. B. 4:18 eingeben.";
+        return;
+      }
+      next[field.key] = formatPacePerKm(parsed).replace("/km", "");
+    } else if (field.key === "runThresholdLactate" || field.key === "bikeThresholdLactate") {
+      const num = Number(String(raw).replace(",", "."));
+      if (!Number.isFinite(num) || num < 2 || num > 6) {
+        invalid = "Ungültiger LT2-Laktatwert. Bitte 2.0 bis 6.0 mmol/L eingeben.";
+        return;
+      }
+      next[field.key] = String(Math.round(num * 10) / 10);
+    } else {
+      const num = Number(raw);
+      if (!Number.isFinite(num)) {
+        invalid = "Ungültiger Zahlenwert.";
+        return;
+      }
+      next[field.key] = String(Math.round(num));
+    }
+  });
+  if (invalid) {
+    setText(thresholdModalStatusEl, invalid);
+    return;
+  }
+  draftThresholds = next;
+  persistThresholdDraftToHiddenInputs();
+  closeThresholdModal();
+  setText(thresholdModalStatusEl, "");
+});
+
+thresholdModalEl?.addEventListener("click", (event) => {
+  if (!event.target.closest?.("[data-close-threshold-modal]")) return;
+  closeThresholdModal();
+});
+
+openGlossaryBtn?.addEventListener("click", () => {
+  renderGlossary();
+  if (glossaryModalEl) glossaryModalEl.hidden = false;
+});
+
+glossaryListEl?.addEventListener("click", (event) => {
+  const categoryBtn = event.target.closest?.("[data-glossary-category]");
+  if (categoryBtn) {
+    const key = String(categoryBtn.getAttribute("data-glossary-category") || "");
+    if (key) {
+      const categorySection = categoryBtn.closest(".glossary-category");
+      const body = categorySection?.querySelector(".glossary-category-body");
+      const willOpen = !glossaryOpenCategories.has(key);
+      if (willOpen) glossaryOpenCategories.add(key);
+      else glossaryOpenCategories.delete(key);
+      if (categorySection) categorySection.classList.toggle("is-open", willOpen);
+      if (body) body.hidden = !willOpen;
+      categoryBtn.setAttribute("aria-expanded", String(willOpen));
+    }
+    return;
+  }
+  const itemBtn = event.target.closest?.("[data-glossary-item]");
+  if (!itemBtn) return;
+  const key = String(itemBtn.getAttribute("data-glossary-item") || "");
+  if (!key) return;
+  const item = itemBtn.closest(".glossary-item");
+  const detail = item?.querySelector(".glossary-item-detail");
+  const willOpen = !glossaryOpenTerms.has(key);
+  if (willOpen) glossaryOpenTerms.add(key);
+  else glossaryOpenTerms.delete(key);
+  if (item) item.classList.toggle("is-open", willOpen);
+  if (detail) detail.hidden = !willOpen;
+  itemBtn.setAttribute("aria-expanded", String(willOpen));
+  const chevron = itemBtn.querySelector(".glossary-chevron");
+  if (chevron) chevron.textContent = willOpen ? "−" : "+";
+});
+
+glossaryModalEl?.addEventListener("click", (event) => {
+  if (!event.target.closest?.("[data-close-glossary-modal]")) return;
+  closeGlossaryModal();
+});
+goalRealismModalEl?.addEventListener("click", (event) => {
+  if (!event.target.closest?.("[data-close-goal-realism]")) return;
+  closeGoalRealismModal();
+});
+goalRealismApplyBtnEl?.addEventListener("click", () => {
+  if (typeof pendingGoalRealismSuggestion === "function") pendingGoalRealismSuggestion();
+  pendingGoalRealismSuggestion = null;
+  closeGoalRealismModal();
+  syncShapeGoalConsistency();
+});
+goalRealismForceBtnEl?.addEventListener("click", () => {
+  if (!pendingGoalRealismProfile) {
+    closeGoalRealismModal();
+    return;
+  }
+  try {
+    const profile = pendingGoalRealismProfile;
+    closeGoalRealismModal();
+    generatePlanFromProfile(profile);
+  } catch (err) {
+    console.error("Forced goal plan generation failed:", err);
+    if (statusEl) {
+      statusEl.textContent =
+        `Plan konnte nicht erstellt werden.\n` +
+        `Bitte Eingaben prüfen und erneut versuchen.\n\n` +
+        `Debug: ${String(err?.message || err)}`;
+    }
+  }
+});
+
+glossarySearchEl?.addEventListener("input", renderGlossary);
+glossaryCategoryEl?.addEventListener("change", renderGlossary);
+planMissionBriefEl?.addEventListener("click", (event) => {
+  if (!event.target.closest?.("[data-mission-toggle]")) return;
+  missionBriefExpanded = !missionBriefExpanded;
+  if (latestProfile && latestPlan) renderPlanMissionBrief(latestProfile, latestPlan);
+});
+planOverviewLegendEl?.addEventListener("click", (event) => {
+  const btn = event.target.closest?.("[data-plan-toggle]");
+  if (!btn || !latestPlan || !latestProfile) return;
+  const key = String(btn.getAttribute("data-plan-toggle") || "");
+  const group = String(btn.getAttribute("data-plan-group") || "");
+  if (!key || !group || !planOverviewState[group]) return;
+  planOverviewState[group][key] = !planOverviewState[group][key];
+  renderPlanOverviewChart(latestProfile, latestPlan);
+});
+
+exportIcalBtn.addEventListener("click", () => {
+  if (!generatedSessions.length) return;
+  const ics = buildIcs(generatedSessions);
+  const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "aimrunna-trainingsplan.ics";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+});
+
+calendarEl?.addEventListener("click", (event) => {
+  const button = event.target.closest?.("[data-zwift-session]");
+  if (button) {
+    const sessionId = button.getAttribute("data-zwift-session");
+    const session = generatedSessions.find((item) => item._id === sessionId);
+    if (!session) return;
+
+    const zwo = buildZwiftWorkoutFile(session, latestProfile);
+    downloadTextFile({
+      content: zwo,
+      filename: `${formatDateForFile(session.date)}-${slugify(session.title)}.zwo`,
+      mimeType: "application/xml;charset=utf-8",
+    });
+    return;
+  }
+
+  const garminButton = event.target.closest?.("[data-garmin-session]");
+  if (garminButton) {
+    const sessionId = garminButton.getAttribute("data-garmin-session");
+    const session = generatedSessions.find((item) => item._id === sessionId);
+    if (!session) return;
+    const payload = buildGarminWorkoutPlaceholder(session, latestProfile);
+    downloadTextFile({
+      content: JSON.stringify(payload, null, 2),
+      filename: `${formatDateForFile(session.date)}-${slugify(session.title)}-garmin-workout.json`,
+      mimeType: "application/json;charset=utf-8",
+    });
+    return;
+  }
+
+  const card = event.target.closest?.(".day-card[data-session-id]");
+  if (!card) return;
+
+  const sessionId = card.getAttribute("data-session-id");
+  expandedSessionId = expandedSessionId === sessionId ? null : sessionId;
+  syncExpandedDayCards();
+  if (expandedSessionId) {
+    const session = generatedSessions.find((item) => item._id === expandedSessionId);
+    if (session) openSessionOverlay(session);
+  } else {
+    closeSessionOverlay();
+  }
+});
+
+calendarEl?.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter" && event.key !== " ") return;
+  const card = event.target.closest?.(".day-card[data-session-id]");
+  if (!card) return;
+  event.preventDefault();
+  const sessionId = card.getAttribute("data-session-id");
+  expandedSessionId = expandedSessionId === sessionId ? null : sessionId;
+  syncExpandedDayCards();
+  if (expandedSessionId) {
+    const session = generatedSessions.find((item) => item._id === expandedSessionId);
+    if (session) openSessionOverlay(session);
+  } else {
+    closeSessionOverlay();
+  }
+});
+
+document.addEventListener("click", (event) => {
+  if (!expandedSessionId) return;
+  if (event.target.closest?.(".day-card[data-session-id]")) return;
+  if (event.target.closest?.(".session-modal-card")) return;
+  expandedSessionId = null;
+  syncExpandedDayCards();
+  closeSessionOverlay();
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+  if (!activityComposeModalEl?.hidden) {
+    closeActivityComposeModal();
+    return;
+  }
+  if (!glossaryModalEl?.hidden) {
+    closeGlossaryModal();
+    return;
+  }
+  if (!raceCalendarModalEl?.hidden) {
+    closeRaceCalendarModal();
+    return;
+  }
+  if (!thresholdModalEl?.hidden) {
+    closeThresholdModal();
+    return;
+  }
+  if (!goalRealismModalEl?.hidden) {
+    closeGoalRealismModal();
+    return;
+  }
+  if (!legalModalEl?.hidden) {
+    closeLegalModal();
+    return;
+  }
+  if (!expandedSessionId) return;
+  expandedSessionId = null;
+  syncExpandedDayCards();
+  closeSessionOverlay();
+});
+
+activityComposeModalEl?.addEventListener("click", (event) => {
+  if (!event.target.closest?.("[data-close-activity-compose]")) return;
+  closeActivityComposeModal();
+});
+
+sessionOverlayEl?.addEventListener("click", (event) => {
+  if (!event.target.closest?.("[data-close-overlay]")) return;
+  expandedSessionId = null;
+  syncExpandedDayCards();
+  closeSessionOverlay();
+});
+
+function initAccountUi() {
+  appStore = loadStore();
+  currentAccountId = appStore.currentAccountId || null;
+  if (getCurrentAccount()) {
+    hydrateConnectedSourcesFromAccount();
+    document.body.classList.add("is-authenticated");
+  }
+  syncConnectorButtons();
+  if (connectionState) {
+    updateConnectionStateCopy();
+  }
+  renderAccountUi();
+  setAuthMode("login");
+  handleOAuthReturnParams();
+}
+
+function closeGlossaryModal() {
+  if (glossaryModalEl) glossaryModalEl.hidden = true;
+}
+
+function closeRaceCalendarModal() {
+  if (raceCalendarModalEl) raceCalendarModalEl.hidden = true;
+}
+
+function closeThresholdModal() {
+  if (thresholdModalEl) thresholdModalEl.hidden = true;
+}
+
+function getThresholdModalFieldsByDiscipline(discipline) {
+  const key = String(discipline || "running");
+  if (key === "running") {
+    return [
+      { key: "runThresholdPace", label: "Lauf Schwellenpace (/km)", type: "text", placeholder: "z. B. 4:18" },
+      { key: "runThresholdHr", label: "Lauf Schwellen-HF (bpm)", type: "number", min: 100, max: 210, step: 1, placeholder: "z. B. 178" },
+      { key: "runThresholdLactate", label: "Lauf LT2-Laktat (mmol/L)", type: "number", min: 2, max: 6, step: 0.1, placeholder: "z. B. 3.8" },
+    ];
+  }
+  if (key === "cycling") {
+    return [
+      { key: "bikeFtp", label: "FTP Bike (W)", type: "number", min: 90, max: 550, step: 1, placeholder: "z. B. 265" },
+      { key: "bikeThresholdHr", label: "Bike Schwellen-HF (bpm)", type: "number", min: 100, max: 210, step: 1, placeholder: "z. B. 172" },
+      { key: "bikeThresholdLactate", label: "Bike LT2-Laktat (mmol/L)", type: "number", min: 2, max: 6, step: 0.1, placeholder: "z. B. 3.5" },
+    ];
+  }
+  if (key === "triathlon") {
+    return [
+      { key: "bikeFtp", label: "FTP Bike (W)", type: "number", min: 90, max: 550, step: 1, placeholder: "z. B. 265" },
+      { key: "bikeThresholdHr", label: "Bike Schwellen-HF (bpm)", type: "number", min: 100, max: 210, step: 1, placeholder: "z. B. 172" },
+      { key: "bikeThresholdLactate", label: "Bike LT2-Laktat (mmol/L)", type: "number", min: 2, max: 6, step: 0.1, placeholder: "z. B. 3.5" },
+      { key: "runThresholdPace", label: "Lauf Schwellenpace (/km)", type: "text", placeholder: "z. B. 4:18" },
+      { key: "runThresholdHr", label: "Lauf Schwellen-HF (bpm)", type: "number", min: 100, max: 210, step: 1, placeholder: "z. B. 178" },
+      { key: "runThresholdLactate", label: "Lauf LT2-Laktat (mmol/L)", type: "number", min: 2, max: 6, step: 0.1, placeholder: "z. B. 3.8" },
+    ];
+  }
+  if (key === "hyrox") {
+    return [
+      { key: "runThresholdPace", label: "Lauf Schwellenpace (/km)", type: "text", placeholder: "z. B. 4:10" },
+      { key: "runThresholdHr", label: "Lauf Schwellen-HF (bpm)", type: "number", min: 100, max: 210, step: 1, placeholder: "z. B. 180" },
+      { key: "runThresholdLactate", label: "Lauf LT2-Laktat (mmol/L)", type: "number", min: 2, max: 6, step: 0.1, placeholder: "z. B. 4.0" },
+    ];
+  }
+  return [];
+}
+
+function loadThresholdDraftFromHiddenInputs() {
+  draftThresholds = {
+    bikeFtp: String(thresholdBikeFtpHiddenEl?.value || "").trim(),
+    bikeThresholdHr: String(thresholdBikeThrHrHiddenEl?.value || "").trim(),
+    bikeThresholdLactate: String(thresholdBikeLactateHiddenEl?.value || "").trim(),
+    runThresholdPace: String(thresholdRunThrPaceHiddenEl?.value || "").trim(),
+    runThresholdHr: String(thresholdRunThrHrHiddenEl?.value || "").trim(),
+    runThresholdLactate: String(thresholdRunLactateHiddenEl?.value || "").trim(),
+  };
+}
+
+function persistThresholdDraftToHiddenInputs() {
+  if (thresholdBikeFtpHiddenEl) thresholdBikeFtpHiddenEl.value = String(draftThresholds.bikeFtp || "").trim();
+  if (thresholdBikeThrHrHiddenEl) thresholdBikeThrHrHiddenEl.value = String(draftThresholds.bikeThresholdHr || "").trim();
+  if (thresholdBikeLactateHiddenEl) thresholdBikeLactateHiddenEl.value = String(draftThresholds.bikeThresholdLactate || "").trim();
+  if (thresholdRunThrPaceHiddenEl) thresholdRunThrPaceHiddenEl.value = String(draftThresholds.runThresholdPace || "").trim();
+  if (thresholdRunThrHrHiddenEl) thresholdRunThrHrHiddenEl.value = String(draftThresholds.runThresholdHr || "").trim();
+  if (thresholdRunLactateHiddenEl) thresholdRunLactateHiddenEl.value = String(draftThresholds.runThresholdLactate || "").trim();
+}
+
+function renderThresholdModalFields(discipline) {
+  if (!thresholdModalFieldsEl) return;
+  const fields = getThresholdModalFieldsByDiscipline(discipline);
+  if (thresholdModalCopyEl) {
+    thresholdModalCopyEl.textContent = fields.length
+      ? "Hinterlege disziplinspezifische Schwellenwerte. Laktat bitte als LT2-Wert in mmol/L eintragen (typisch ~2.5 bis 5.0)."
+      : "Für diese Disziplin nutzen wir aktuell keine separaten Schwellenwerte.";
+  }
+  if (!fields.length) {
+    thresholdModalFieldsEl.innerHTML = `<div class="empty-copy">Keine disziplinspezifischen Schwellenwerte nötig.</div>`;
+    return;
+  }
+  thresholdModalFieldsEl.innerHTML = fields.map((field) => `
+    <label class="field">
+      <span>${escapeHtml(field.label)}</span>
+      <input
+        type="${escapeHtml(field.type)}"
+        data-threshold-key="${escapeHtml(field.key)}"
+        ${field.min != null ? `min="${escapeHtml(String(field.min))}"` : ""}
+        ${field.max != null ? `max="${escapeHtml(String(field.max))}"` : ""}
+        ${field.step != null ? `step="${escapeHtml(String(field.step))}"` : ""}
+        placeholder="${escapeHtml(field.placeholder || "")}"
+        value="${escapeHtml(String(draftThresholds[field.key] || ""))}"
+      />
+    </label>
+  `).join("");
+}
+
+function closeGoalRealismModal() {
+  if (goalRealismModalEl) goalRealismModalEl.hidden = true;
+  pendingGoalRealismSuggestion = null;
+  pendingGoalRealismProfile = null;
+}
+
+function raceEventDistanceOptions(discipline) {
+  const key = String(discipline || "running");
+  return GOAL_OPTIONS_BY_DISCIPLINE[key] || GOAL_OPTIONS_BY_DISCIPLINE.running;
+}
+
+function allowedPbDisciplines(planDiscipline = disciplineSelect?.value) {
+  const key = String(planDiscipline || "running");
+  if (key === "triathlon") return ["running", "triathlon", "cycling"];
+  if (key === "cycling") return ["cycling", "running"];
+  if (key === "hyrox") return ["hyrox", "running"];
+  if (key === "running") return ["running", "triathlon"];
+  return ["running", "triathlon", "cycling", "hyrox"];
+}
+
+function disciplineOptionLabel(value) {
+  if (value === "running") return currentLang === "de" ? "Laufen" : currentLang === "ja" ? "ラン" : "Run";
+  if (value === "triathlon") return "Triathlon";
+  if (value === "cycling") return currentLang === "de" ? "Rad" : currentLang === "ja" ? "バイク" : "Bike";
+  if (value === "hyrox") return "Hyrox";
+  return value;
+}
+
+function syncPbDisciplineOptions(planDiscipline = disciplineSelect?.value) {
+  const allowed = allowedPbDisciplines(planDiscipline);
+  [pb1DisciplineSelectEl, pb2DisciplineSelectEl].forEach((selectEl) => {
+    if (!selectEl) return;
+    const prev = String(selectEl.value || allowed[0] || "running");
+    selectEl.innerHTML = allowed
+      .map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(disciplineOptionLabel(value))}</option>`)
+      .join("");
+    selectEl.value = allowed.includes(prev) ? prev : (allowed[0] || "running");
+  });
+}
+
+function syncPbDistanceOptions(slot = 1) {
+  const disciplineSelectEl = slot === 1 ? pb1DisciplineSelectEl : pb2DisciplineSelectEl;
+  const distanceSelectEl = slot === 1 ? pb1DistanceSelectEl : pb2DistanceSelectEl;
+  if (!disciplineSelectEl || !distanceSelectEl) return;
+  const discipline = String(disciplineSelectEl.value || "running");
+  const options = raceEventDistanceOptions(discipline);
+  const selected = String(distanceSelectEl.value || options[0]?.value || "");
+  distanceSelectEl.innerHTML = options
+    .map((opt) => `<option value="${escapeHtml(opt.value)}">${escapeHtml(opt.label)}</option>`)
+    .join("");
+  distanceSelectEl.value = options.some((opt) => opt.value === selected) ? selected : (options[0]?.value || "");
+}
+
+function syncRaceCalendarDistanceOptions(discipline, selectedValue = "") {
+  if (!raceCalDistanceEl) return;
+  const options = raceEventDistanceOptions(discipline);
+  const selected = String(selectedValue || raceCalDistanceEl.value || options[0]?.value || "");
+  raceCalDistanceEl.innerHTML = options
+    .map((opt) => `<option value="${opt.value}">${escapeHtml(opt.label)}</option>`)
+    .join("");
+  raceCalDistanceEl.value = options.some((opt) => opt.value === selected) ? selected : options[0]?.value || "";
+}
+
+function raceEventDistanceLabel(discipline, distance) {
+  const match = raceEventDistanceOptions(discipline).find((opt) => String(opt.value) === String(distance));
+  return match?.label || labelDistance(distance);
+}
+
+function trainingBlockTypeOptions() {
+  const de = currentLang === "de";
+  const ja = currentLang === "ja";
+  return [
+    { value: "camp", label: de ? "Trainingslager" : ja ? "キャンプ" : "Training camp" },
+    { value: "run_block", label: de ? "Run-Block" : ja ? "ランブロック" : "Run block" },
+    { value: "bike_block", label: de ? "Bike-Block" : ja ? "バイクブロック" : "Bike block" },
+    { value: "swim_block", label: de ? "Swim-Block" : ja ? "スイムブロック" : "Swim block" },
+    { value: "build_block", label: de ? "Build-Block" : ja ? "ビルドブロック" : "Build block" },
+    { value: "recovery_block", label: de ? "Recovery-Block" : ja ? "回復ブロック" : "Recovery block" },
+    { value: "taper_block", label: de ? "Taper-Block" : ja ? "テーパーブロック" : "Taper block" },
+  ];
+}
+
+function blockTypeLabel(blockType) {
+  const match = trainingBlockTypeOptions().find((opt) => String(opt.value) === String(blockType));
+  return match?.label || String(blockType || "Block");
+}
+
+function normalizeRaceEvent(eventLike) {
+  const itemKindRaw = String(eventLike?.itemKind || eventLike?.kind || "event").toLowerCase();
+  const itemKind = itemKindRaw === "block" ? "block" : "event";
+  const dateRaw = eventLike?.date instanceof Date ? eventLike.date : eventLike?.date ? new Date(eventLike.date) : null;
+  if (!dateRaw || Number.isNaN(dateRaw.getTime())) return null;
+  const date = startOfDay(dateRaw);
+  const endDateRaw = eventLike?.endDate instanceof Date ? eventLike.endDate : eventLike?.endDate ? new Date(eventLike.endDate) : null;
+  const endDate = endDateRaw && !Number.isNaN(endDateRaw.getTime()) ? startOfDay(endDateRaw) : date;
+  const rawDiscipline = String(eventLike?.discipline || "running");
+  const discipline = RACE_EVENT_DISCIPLINES.includes(rawDiscipline) ? rawDiscipline : "running";
+  const distanceOpts = raceEventDistanceOptions(discipline);
+  const distanceRaw = String(eventLike?.distance || distanceOpts[0]?.value || "");
+  const distance = distanceOpts.some((opt) => opt.value === distanceRaw) ? distanceRaw : (distanceOpts[0]?.value || distanceRaw);
+  const priorityRaw = String(eventLike?.priority || "C").toUpperCase();
+  const priority = ["A", "B", "C"].includes(priorityRaw) ? priorityRaw : "C";
+  const title = String(eventLike?.title || "").trim() || null;
+  const goalTime = String(eventLike?.goalTime || "").trim() || null;
+  const blockTypeRaw = String(eventLike?.blockType || "camp");
+  const blockOpts = trainingBlockTypeOptions();
+  const blockType = blockOpts.some((opt) => opt.value === blockTypeRaw) ? blockTypeRaw : "camp";
+  const intensityRaw = String(eventLike?.intensity || "moderate").toLowerCase();
+  const intensity = ["low", "moderate", "high"].includes(intensityRaw) ? intensityRaw : "moderate";
+  return {
+    id: String(eventLike?.id || `race-${date.getTime()}-${Math.random().toString(36).slice(2, 7)}`),
+    itemKind,
+    date,
+    endDate,
+    title,
+    discipline,
+    distance,
+    priority,
+    goalTime,
+    blockType,
+    intensity,
+  };
+}
+
+function serializeRaceEvents(events) {
+  return (Array.isArray(events) ? events : [])
+    .map((event) => normalizeRaceEvent(event))
+    .filter(Boolean)
+    .sort((a, b) => a.date - b.date)
+    .map((event) => ({
+      id: event.id,
+      itemKind: event.itemKind || "event",
+      date: event.date.toISOString(),
+      endDate: (event.endDate || event.date).toISOString(),
+      title: event.title,
+      discipline: event.discipline,
+      distance: event.distance,
+      priority: event.priority,
+      goalTime: event.goalTime || null,
+      blockType: event.blockType || "camp",
+      intensity: event.intensity || "moderate",
+    }));
+}
+
+function parseRaceEventsJson(raw) {
+  try {
+    const parsed = JSON.parse(String(raw || "[]"));
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .map((event) => normalizeRaceEvent(event))
+      .filter(Boolean)
+      .sort((a, b) => a.date - b.date);
+  } catch {
+    return [];
+  }
+}
+
+function racePriorityLabel(priority) {
+  const key = String(priority || "C").toUpperCase();
+  if (key === "A") return currentLang === "de" ? "Hauptevent" : currentLang === "ja" ? "メイン" : "Main event";
+  if (key === "B") return currentLang === "de" ? "Vorbereitungswettkampf" : currentLang === "ja" ? "準備レース" : "Prep race";
+  return currentLang === "de" ? "Trainingswettkampf" : currentLang === "ja" ? "トレーニングレース" : "Training race";
+}
+
+function eventLoadClass(discipline, distance) {
+  const d = String(discipline || "").toLowerCase();
+  const dist = String(distance || "").toLowerCase();
+  if (d === "triathlon") {
+    if (dist === "ironman") return "very_high";
+    if (dist === "703") return "high";
+    if (dist === "olympic") return "moderate";
+    return "moderate";
+  }
+  if (d === "running") {
+    if (dist === "marathon") return "very_high";
+    if (dist === "half") return "high";
+    if (dist === "10k") return "moderate";
+    return "moderate";
+  }
+  if (d === "cycling") {
+    if (dist === "granfondo" || dist === "century") return "high";
+    return "moderate";
+  }
+  if (d === "hyrox") {
+    if (dist === "pro" || dist === "doublespro") return "high";
+    return "moderate";
+  }
+  return "moderate";
+}
+
+function minimumMainGoalGapDays(prevEvent, nextEvent) {
+  // Heuristic spacing derived from recovery/periodization evidence:
+  // - post-marathon / ultra-endurance recovery spans multiple weeks,
+  // - Ironman-grade events often require longer return-to-quality windows,
+  // - practical season planning typically limits true A-peaks.
+  const loadGap = {
+    moderate: 35,   // 5 weeks
+    high: 56,       // 8 weeks
+    very_high: 84,  // 12 weeks
+  };
+  const prevClass = eventLoadClass(prevEvent?.discipline, prevEvent?.distance);
+  const nextClass = eventLoadClass(nextEvent?.discipline, nextEvent?.distance);
+  let base = Math.max(loadGap[prevClass] || 35, loadGap[nextClass] || 35);
+
+  const pair = `${String(prevEvent?.discipline || "")}->${String(nextEvent?.discipline || "")}`;
+  if (pair.includes("triathlon") && (String(prevEvent?.distance || "") === "ironman" || String(nextEvent?.distance || "") === "ironman")) {
+    base = Math.max(base, 98); // ~14 weeks around Ironman-level A races
+  }
+  if ((String(prevEvent?.discipline || "") === "running" && String(prevEvent?.distance || "") === "marathon")
+    || (String(nextEvent?.discipline || "") === "running" && String(nextEvent?.distance || "") === "marathon")) {
+    base = Math.max(base, 70); // ~10 weeks around marathon-level A races
+  }
+  if ((String(prevEvent?.discipline || "") === "hyrox" || String(nextEvent?.discipline || "") === "hyrox")
+    && prevClass !== "very_high"
+    && nextClass !== "very_high") {
+    base = Math.max(base, 42); // ~6 weeks for HYROX-centered A goals
+  }
+  return base;
+}
+
+function resolveMainGoalEvents({ roadmapItems, profile, today, planningEndDate }) {
+  const normalized = (Array.isArray(roadmapItems) ? roadmapItems : [])
+    .map((event) => normalizeRaceEvent(event))
+    .filter(Boolean)
+    .filter((event) => event.itemKind === "event")
+    .filter((event) => {
+      const d = startOfDay(event.date);
+      return d >= today && d <= planningEndDate;
+    })
+    .sort((a, b) => a.date - b.date);
+
+  const explicitMain = normalized.filter((event) => String(event.priority || "").toUpperCase() === "A");
+  const selectedMain = [];
+  const conflicts = [];
+  const source = explicitMain.length ? explicitMain : normalized.slice(0, 1);
+  for (const event of source) {
+    if (!selectedMain.length) {
+      selectedMain.push(event);
+      continue;
+    }
+    const prev = selectedMain[selectedMain.length - 1];
+    const gapDays = Math.round((startOfDay(event.date) - startOfDay(prev.date)) / 86400000);
+    const minGapDays = minimumMainGoalGapDays(prev, event);
+    if (gapDays >= minGapDays) {
+      selectedMain.push(event);
+    } else {
+      conflicts.push({
+        previousId: prev.id,
+        rejectedId: event.id,
+        gapDays,
+        minGapDays,
+        previous: prev,
+        rejected: event,
+      });
+    }
+  }
+
+  const mainEventIds = new Set(selectedMain.map((event) => event.id));
+  const normalizedWithResolvedPriority = normalized.map((event) => ({
+    ...event,
+    priority: mainEventIds.has(event.id) ? "A" : (String(event.priority || "B").toUpperCase() === "C" ? "C" : "B"),
+  }));
+
+  if (!selectedMain.length) {
+    const fallbackDate = profile?.raceDate ? startOfDay(profile.raceDate) : addDays(today, 70);
+    const fallbackDisciplineRaw = String(profile?.discipline || "running");
+    const fallbackDiscipline = fallbackDisciplineRaw === "shape" ? "running" : fallbackDisciplineRaw;
+    const fallbackDistance = String(profile?.goalDistance || raceEventDistanceOptions(fallbackDiscipline)[0]?.value || "10k");
+    const fallback = normalizeRaceEvent({
+      itemKind: "event",
+      date: fallbackDate,
+      discipline: fallbackDiscipline,
+      distance: fallbackDistance,
+      goalTime: String(profile?.goalTime || "").trim() || null,
+      priority: "A",
+      title: null,
+    });
+    if (fallback) {
+      selectedMain.push(fallback);
+      normalizedWithResolvedPriority.push(fallback);
+    }
+  }
+
+  return {
+    events: normalizedWithResolvedPriority.sort((a, b) => a.date - b.date),
+    mainEvents: selectedMain.sort((a, b) => a.date - b.date),
+    conflicts,
+  };
+}
+
+function getPrimaryRaceEvent(events) {
+  const list = (Array.isArray(events) ? events : [])
+    .map((event) => normalizeRaceEvent(event))
+    .filter((event) => Boolean(event) && String(event.itemKind || "event") === "event");
+  if (!list.length) return null;
+  const aRaces = list.filter((event) => String(event.priority || "").toUpperCase() === "A");
+  if (aRaces.length) {
+    return [...aRaces].sort((a, b) => b.date - a.date)[0];
+  }
+  return [...list].sort((a, b) => b.date - a.date)[0];
+}
+
+function persistInlineRaceEvents() {
+  if (Array.isArray(draftRaceEvents)) {
+    draftRaceEvents = [...draftRaceEvents].sort((a, b) => new Date(a.date) - new Date(b.date));
+  }
+  if (raceEventsJsonInputEl) raceEventsJsonInputEl.value = JSON.stringify(serializeRaceEvents(draftRaceEvents));
+}
+
+function initInlineRaceEvents() {
+  draftRaceEvents = parseRaceEventsJson(raceEventsJsonInputEl?.value);
+  if (!draftRaceEvents.length) addInlineRaceEvent({ asMainEvent: true });
+  persistInlineRaceEvents();
+}
+
+function addInlineRaceEvent({ asMainEvent = false } = {}) {
+  const selectedDiscipline = String(disciplineSelect?.value || "running");
+  const discipline = selectedDiscipline === "shape" ? "running" : selectedDiscipline;
+  const dateRaw = String(form?.elements?.raceDate?.value || "").trim();
+  const date = dateRaw ? new Date(`${dateRaw}T09:00:00`) : addDays(startOfDay(new Date()), 14);
+  const distance = String(goalDistanceSelect?.value || raceEventDistanceOptions(discipline)[0]?.value || "");
+  const defaultGoal = String(goalTimeInputEl?.value || "").trim() || defaultGoalTimeFor(discipline, distance);
+  const event = normalizeRaceEvent({
+    itemKind: "event",
+    date,
+    discipline,
+    distance,
+    priority: asMainEvent ? "A" : "B",
+    goalTime: defaultGoal,
+  });
+  if (!event) return;
+  draftRaceEvents.push(event);
+  draftRaceEvents.sort((a, b) => a.date - b.date);
+  persistInlineRaceEvents();
+  syncMainGoalFromPrimaryRaceEvent();
+  renderInlineRaceList();
+}
+
+function addInlineTrainingBlock() {
+  const dateRaw = String(form?.elements?.raceDate?.value || "").trim();
+  const start = dateRaw ? new Date(`${dateRaw}T09:00:00`) : addDays(startOfDay(new Date()), 7);
+  const end = addDays(startOfDay(start), 6);
+  const block = normalizeRaceEvent({
+    itemKind: "block",
+    date: start,
+    endDate: end,
+    blockType: "camp",
+    intensity: "moderate",
+    title: null,
+    goalTime: null,
+    priority: "B",
+  });
+  if (!block) return;
+  draftRaceEvents.push(block);
+  draftRaceEvents.sort((a, b) => new Date(a.date) - new Date(b.date));
+  persistInlineRaceEvents();
+  renderInlineRaceList();
+}
+
+function syncInlineRaceDistanceOptions(discipline = disciplineSelect?.value) {
+  if (!Array.isArray(draftRaceEvents)) return;
+  const fallbackDiscipline = String(discipline || "running");
+  draftRaceEvents = draftRaceEvents.map((event) => {
+    const raceDiscipline = RACE_EVENT_DISCIPLINES.includes(String(event.discipline || ""))
+      ? String(event.discipline)
+      : (RACE_EVENT_DISCIPLINES.includes(fallbackDiscipline) ? fallbackDiscipline : "running");
+    const options = raceEventDistanceOptions(raceDiscipline);
+    const distance = options.some((opt) => opt.value === event.distance) ? event.distance : (options[0]?.value || event.distance);
+    return {
+      ...event,
+      discipline: raceDiscipline,
+      distance,
+    };
+  });
+  persistInlineRaceEvents();
+  syncMainGoalFromPrimaryRaceEvent();
+  renderInlineRaceList();
+}
+
+function syncMainGoalFromPrimaryRaceEvent() {
+  if (!draftRaceEvents.length) return;
+  const primary = getPrimaryRaceEvent(draftRaceEvents);
+  if (!primary) return;
+  const discipline = String(disciplineSelect?.value || primary.discipline || "running");
+  if (goalDistanceSelect) {
+    const options = raceEventDistanceOptions(discipline);
+    const resolved = options.some((opt) => opt.value === primary.distance) ? primary.distance : (options[0]?.value || primary.distance);
+    goalDistanceSelect.value = resolved;
+  }
+  if (goalTimeInputEl && primary.goalTime) goalTimeInputEl.value = primary.goalTime;
+  if (form?.elements?.raceDate && primary.date) form.elements.raceDate.value = formatDateInput(primary.date);
+  if (quickGoalDistanceSelect && goalDistanceSelect?.value) quickGoalDistanceSelect.value = goalDistanceSelect.value;
+  if (quickGoalTimeInput && primary.goalTime) quickGoalTimeInput.value = primary.goalTime;
+  if (quickRaceDateInput && primary.date) quickRaceDateInput.value = formatDateInput(primary.date);
+}
+
+function renderInlineRaceList() {
+  if (!raceInlineListEl) return;
+  if (!draftRaceEvents.length) {
+    raceInlineListEl.innerHTML = `<div class="empty-copy">${escapeHtml(currentLang === "de" ? "Noch keine Ziele." : currentLang === "ja" ? "目標はまだありません。" : "No goals yet.")}</div>`;
+    return;
+  }
+  raceInlineListEl.innerHTML = draftRaceEvents
+    .map((event) => {
+      const itemKind = String(event.itemKind || "event");
+      const selectedDiscipline = RACE_EVENT_DISCIPLINES.includes(String(event.discipline || "")) ? String(event.discipline) : "running";
+      const options = raceEventDistanceOptions(selectedDiscipline);
+      const selectedDistance = options.some((opt) => opt.value === event.distance) ? event.distance : options[0]?.value || event.distance;
+      const blockOptions = trainingBlockTypeOptions();
+      const selectedBlockType = blockOptions.some((opt) => opt.value === event.blockType) ? event.blockType : "camp";
+      const intensity = String(event.intensity || "moderate");
+      return `
+        <div class="race-inline-row" data-race-inline-row="${escapeHtml(event.id)}">
+          <div class="race-inline-cell">
+            <input type="text" value="${escapeHtml(itemKind === "block" ? (currentLang === "de" ? "Block" : currentLang === "ja" ? "ブロック" : "Block") : (currentLang === "de" ? "Event" : currentLang === "ja" ? "イベント" : "Event"))}" aria-label="${escapeHtml(currentLang === "de" ? "Typ" : currentLang === "ja" ? "タイプ" : "Type")}" readonly />
+          </div>
+          <div class="race-inline-cell">
+            <select data-race-inline-key="discipline" aria-label="${escapeHtml(currentLang === "de" ? "Disziplin" : currentLang === "ja" ? "種目" : "Discipline")}">
+              <option value="running" ${selectedDiscipline === "running" ? "selected" : ""}>${escapeHtml(currentLang === "de" ? "Laufen" : currentLang === "ja" ? "ラン" : "Run")}</option>
+              <option value="triathlon" ${selectedDiscipline === "triathlon" ? "selected" : ""}>Triathlon</option>
+              <option value="cycling" ${selectedDiscipline === "cycling" ? "selected" : ""}>${escapeHtml(currentLang === "de" ? "Rad" : currentLang === "ja" ? "バイク" : "Bike")}</option>
+              <option value="hyrox" ${selectedDiscipline === "hyrox" ? "selected" : ""}>Hyrox</option>
+            </select>
+          </div>
+          <div class="race-inline-cell">
+            ${itemKind === "block"
+              ? `<select data-race-inline-key="blockType" aria-label="${escapeHtml(currentLang === "de" ? "Blocktyp" : currentLang === "ja" ? "ブロック種別" : "Block type")}">
+                  ${blockOptions.map((opt) => `<option value="${escapeHtml(opt.value)}" ${opt.value === selectedBlockType ? "selected" : ""}>${escapeHtml(opt.label)}</option>`).join("")}
+                </select>`
+              : `<select data-race-inline-key="distance" aria-label="${escapeHtml(currentLang === "de" ? "Wettkampfsort" : currentLang === "ja" ? "レース形式" : "Race format")}">
+                  ${options
+                    .map((opt) => `<option value="${escapeHtml(opt.value)}" ${opt.value === selectedDistance ? "selected" : ""}>${escapeHtml(opt.label)}</option>`)
+                    .join("")}
+                </select>`
+            }
+          </div>
+          <div class="race-inline-cell">
+            <input type="text" data-race-inline-key="goalTime" value="${escapeHtml(String(event.goalTime || ""))}" placeholder="${escapeHtml(itemKind === "block" ? (currentLang === "de" ? "Fokus / Notiz" : currentLang === "ja" ? "フォーカス / メモ" : "Focus / note") : "hh:mm:ss")}" aria-label="${escapeHtml(currentLang === "de" ? "Zielzeit / Notiz" : currentLang === "ja" ? "目標 / メモ" : "Goal time / note")}" />
+          </div>
+          <div class="race-inline-cell">
+            <input type="date" data-race-inline-key="date" value="${escapeHtml(formatDateInput(event.date))}" aria-label="${escapeHtml(currentLang === "de" ? "Datum" : currentLang === "ja" ? "日付" : "Date")}" />
+          </div>
+          <div class="race-inline-cell">
+            ${itemKind === "block"
+              ? `<input type="date" data-race-inline-key="endDate" value="${escapeHtml(formatDateInput(event.endDate || event.date))}" aria-label="${escapeHtml(currentLang === "de" ? "Enddatum" : currentLang === "ja" ? "終了日" : "End date")}" />`
+              : `<input type="text" value="-" aria-label="no end date" readonly />`
+            }
+          </div>
+          <div class="race-inline-cell">
+            ${itemKind === "block"
+              ? `<select data-race-inline-key="intensity" aria-label="${escapeHtml(currentLang === "de" ? "Intensität" : currentLang === "ja" ? "強度" : "Intensity")}">
+                  <option value="low" ${intensity === "low" ? "selected" : ""}>${escapeHtml(currentLang === "de" ? "Leicht" : currentLang === "ja" ? "低" : "Low")}</option>
+                  <option value="moderate" ${intensity === "moderate" ? "selected" : ""}>${escapeHtml(currentLang === "de" ? "Moderat" : currentLang === "ja" ? "中" : "Moderate")}</option>
+                  <option value="high" ${intensity === "high" ? "selected" : ""}>${escapeHtml(currentLang === "de" ? "Hart" : currentLang === "ja" ? "高" : "High")}</option>
+                </select>`
+              : `<select data-race-inline-key="priority" aria-label="${escapeHtml(currentLang === "de" ? "Priorität" : currentLang === "ja" ? "優先度" : "Priority")}">
+                  <option value="A" ${event.priority === "A" ? "selected" : ""}>${escapeHtml(racePriorityLabel("A"))}</option>
+                  <option value="B" ${event.priority === "B" ? "selected" : ""}>${escapeHtml(racePriorityLabel("B"))}</option>
+                  <option value="C" ${event.priority === "C" ? "selected" : ""}>${escapeHtml(racePriorityLabel("C"))}</option>
+                </select>`
+            }
+          </div>
+          <button type="button" class="ghost race-inline-remove-btn" data-race-inline-remove="${escapeHtml(event.id)}">
+            ${escapeHtml(currentLang === "de" ? "Entfernen" : currentLang === "ja" ? "削除" : "Remove")}
+          </button>
+        </div>
+      `;
+    })
+    .join("");
+}
+
+function renderRaceCalendarList() {
+  if (!raceCalListEl) return;
+  if (!draftRaceEvents.length) {
+    raceCalListEl.innerHTML = `<div class="empty-copy">${escapeHtml(currentLang === "de" ? "Noch keine Roadmap-Einträge." : currentLang === "ja" ? "ロードマップ項目はまだありません。" : "No roadmap items yet.")}</div>`;
+    return;
+  }
+  const intensityLabel = (value) => {
+    const key = String(value || "moderate");
+    if (currentLang === "de") return key === "low" ? "Leicht" : key === "high" ? "Hart" : "Moderat";
+    if (currentLang === "ja") return key === "low" ? "低" : key === "high" ? "高" : "中";
+    return key === "low" ? "Low" : key === "high" ? "High" : "Moderate";
+  };
+  raceCalListEl.innerHTML = draftRaceEvents
+    .map((event) => `
+      <div class="saved-plan-item">
+        <div>
+          <strong>${escapeHtml(event.title || (event.itemKind === "block" ? blockTypeLabel(event.blockType) : (currentLang === "de" ? "Rennen" : currentLang === "ja" ? "レース" : "Race")))}</strong>
+          <small>${escapeHtml(formatDateShort(event.date))}${event.itemKind === "block" && event.endDate ? `-${escapeHtml(formatDateShort(event.endDate))}` : ""} • ${escapeHtml(event.itemKind === "block" ? blockTypeLabel(event.blockType) : disciplineLabel(event.discipline))} • ${escapeHtml(event.itemKind === "block" ? intensityLabel(event.intensity) : raceEventDistanceLabel(event.discipline, event.distance))} • ${escapeHtml(event.itemKind === "block" ? (currentLang === "de" ? "Intensität" : currentLang === "ja" ? "強度" : "Intensity") : (currentLang === "de" ? "Priorität" : currentLang === "ja" ? "優先度" : "Priority"))} ${escapeHtml(event.itemKind === "block" ? intensityLabel(event.intensity) : String(event.priority || "B"))}</small>
+        </div>
+        <button type="button" class="ghost" data-race-cal-remove="${escapeHtml(event.id)}">${escapeHtml(currentLang === "de" ? "Entfernen" : currentLang === "ja" ? "削除" : "Remove")}</button>
+      </div>
+    `)
+    .join("");
+}
+
+function setLegalSection(section) {
+  activeLegalSection = LEGAL_CONTENT[section] ? section : "imprint";
+  legalNavEl?.querySelectorAll("[data-legal-section]").forEach((btn) => {
+    btn.classList.toggle("is-active", btn.getAttribute("data-legal-section") === activeLegalSection);
+  });
+  if (legalContentBodyEl) legalContentBodyEl.textContent = LEGAL_CONTENT[activeLegalSection] || LEGAL_CONTENT.imprint;
+}
+
+function openLegalModal(section = "imprint") {
+  setLegalSection(section);
+  if (legalModalEl) legalModalEl.hidden = false;
+}
+
+function closeLegalModal() {
+  if (legalModalEl) legalModalEl.hidden = true;
+}
+
+function openGoalRealismModal({ message, suggestionText = "", applySuggestion = null, forceProfile = null }) {
+  if (goalRealismMessageEl) goalRealismMessageEl.textContent = message;
+  if (goalRealismSuggestionEl && goalRealismSuggestionTextEl) {
+    const hasSuggestion = Boolean(suggestionText);
+    goalRealismSuggestionEl.hidden = !hasSuggestion;
+    goalRealismSuggestionTextEl.textContent = hasSuggestion ? suggestionText : "";
+  }
+  pendingGoalRealismSuggestion = typeof applySuggestion === "function" ? applySuggestion : null;
+  pendingGoalRealismProfile = forceProfile || null;
+  if (goalRealismApplyBtnEl) goalRealismApplyBtnEl.hidden = !pendingGoalRealismSuggestion;
+  if (goalRealismForceBtnEl) goalRealismForceBtnEl.hidden = !pendingGoalRealismProfile;
+  if (goalRealismModalEl) goalRealismModalEl.hidden = false;
+}
+
+function glossaryCategoryLabel(category) {
+  const labels = {
+    run: currentLang === "de" ? "Laufen" : currentLang === "ja" ? "ラン" : "Run",
+    bike: currentLang === "de" ? "Rad" : currentLang === "ja" ? "バイク" : "Bike",
+    swim: currentLang === "de" ? "Schwimmen" : currentLang === "ja" ? "スイム" : "Swim",
+    triathlon: "Triathlon",
+    hyrox: "HYROX",
+    strength: "Strength",
+    recovery: currentLang === "de" ? "Recovery" : currentLang === "ja" ? "リカバリー" : "Recovery",
+  };
+  return labels[category] || String(category || "").toUpperCase();
+}
+
+function renderExerciseVisual(item) {
+  const visual = String(item?.visual || "generic");
+  const sequences = {
+    burpee: [
+      { x: 18, y: 36, bend: 6, arms: "down", legs: "wide" },
+      { x: 50, y: 46, bend: 14, arms: "floor", legs: "back" },
+      { x: 82, y: 34, bend: 2, arms: "up", legs: "narrow" },
+    ],
+    lunge: [
+      { x: 18, y: 36, bend: 2, arms: "down", legs: "narrow" },
+      { x: 50, y: 38, bend: 6, arms: "down", legs: "split" },
+      { x: 82, y: 38, bend: 6, arms: "down", legs: "split2" },
+    ],
+    carry: [
+      { x: 18, y: 34, bend: 1, arms: "carry", legs: "narrow" },
+      { x: 50, y: 35, bend: 1, arms: "carry", legs: "walk1" },
+      { x: 82, y: 35, bend: 1, arms: "carry", legs: "walk2" },
+    ],
+    stride: [
+      { x: 18, y: 38, bend: 1, arms: "run1", legs: "run1" },
+      { x: 50, y: 36, bend: 0, arms: "run2", legs: "run2" },
+      { x: 82, y: 37, bend: 0, arms: "run1", legs: "run3" },
+    ],
+    run: [
+      { x: 18, y: 38, bend: 1, arms: "run1", legs: "run1" },
+      { x: 50, y: 37, bend: 1, arms: "run2", legs: "run2" },
+      { x: 82, y: 38, bend: 1, arms: "run1", legs: "run3" },
+    ],
+    bike: [
+      { x: 18, y: 42, bend: 7, arms: "bar", legs: "bike1" },
+      { x: 50, y: 42, bend: 7, arms: "bar", legs: "bike2" },
+      { x: 82, y: 42, bend: 7, arms: "bar", legs: "bike1" },
+    ],
+    swim: [
+      { x: 18, y: 42, bend: 4, arms: "swim1", legs: "stream" },
+      { x: 50, y: 42, bend: 4, arms: "swim2", legs: "stream" },
+      { x: 82, y: 42, bend: 4, arms: "swim3", legs: "stream" },
+    ],
+    push: [
+      { x: 18, y: 44, bend: 8, arms: "floor", legs: "back" },
+      { x: 50, y: 42, bend: 6, arms: "push", legs: "back" },
+      { x: 82, y: 44, bend: 8, arms: "floor", legs: "back" },
+    ],
+    squat: [
+      { x: 18, y: 36, bend: 2, arms: "front", legs: "narrow" },
+      { x: 50, y: 41, bend: 10, arms: "front", legs: "wide" },
+      { x: 82, y: 35, bend: 1, arms: "up", legs: "narrow" },
+    ],
+    core: [
+      { x: 18, y: 42, bend: 4, arms: "deadbug1", legs: "deadbug1" },
+      { x: 50, y: 42, bend: 4, arms: "deadbug2", legs: "deadbug2" },
+      { x: 82, y: 42, bend: 4, arms: "deadbug1", legs: "deadbug1" },
+    ],
+    brick: [
+      { x: 18, y: 42, bend: 7, arms: "bar", legs: "bike1" },
+      { x: 50, y: 42, bend: 7, arms: "bar", legs: "bike2" },
+      { x: 82, y: 37, bend: 1, arms: "run1", legs: "run2" },
+    ],
+    hyrox: [
+      { x: 18, y: 38, bend: 1, arms: "run1", legs: "run1" },
+      { x: 50, y: 35, bend: 2, arms: "carry", legs: "walk1" },
+      { x: 82, y: 41, bend: 10, arms: "front", legs: "wide" },
+    ],
+    mobility: [
+      { x: 18, y: 39, bend: 6, arms: "reach", legs: "split" },
+      { x: 50, y: 38, bend: 4, arms: "rotate", legs: "narrow" },
+      { x: 82, y: 39, bend: 7, arms: "reach2", legs: "split2" },
+    ],
+    recovery: [
+      { x: 18, y: 38, bend: 0, arms: "down", legs: "narrow" },
+      { x: 50, y: 38, bend: 0, arms: "down", legs: "narrow" },
+      { x: 82, y: 38, bend: 0, arms: "down", legs: "narrow" },
+    ],
+    generic: [
+      { x: 18, y: 38, bend: 1, arms: "down", legs: "narrow" },
+      { x: 50, y: 38, bend: 4, arms: "front", legs: "wide" },
+      { x: 82, y: 38, bend: 1, arms: "down", legs: "narrow" },
+    ],
+  };
+  const frames = sequences[visual] || sequences.generic;
+  return `
+    <svg class="guide-strip" viewBox="0 0 100 52" aria-hidden="true">
+      <defs>
+        <linearGradient id="guideFade" x1="0" x2="1">
+          <stop offset="0%" stop-color="rgba(255,255,255,0.03)"/>
+          <stop offset="50%" stop-color="rgba(255,255,255,0.08)"/>
+          <stop offset="100%" stop-color="rgba(255,255,255,0.03)"/>
+        </linearGradient>
+      </defs>
+      <rect x="1" y="1" width="98" height="50" rx="8" fill="url(#guideFade)" stroke="rgba(255,255,255,0.08)"/>
+      ${frames.map((frame) => drawStickFrame(frame)).join("")}
+    </svg>`;
+}
+
+function drawStickFrame(frame) {
+  const { x, y } = frame;
+  const head = `<circle cx="${x}" cy="${y - 12}" r="2.8" fill="rgba(255,255,255,0.82)"/>`;
+  const torsoY2 = y + (frame.bend || 0) * 0.6;
+  const torso = `<line x1="${x}" y1="${y - 9}" x2="${x}" y2="${torsoY2}" stroke="rgba(255,255,255,0.82)" stroke-width="1.4" stroke-linecap="round"/>`;
+  const arms = {
+    down: [[x, y - 6, x - 5, y + 2], [x, y - 6, x + 5, y + 2]],
+    up: [[x, y - 7, x - 6, y - 13], [x, y - 7, x + 6, y - 13]],
+    floor: [[x, y - 5, x - 7, y + 8], [x, y - 5, x + 7, y + 8]],
+    push: [[x, y - 6, x - 8, y + 4], [x, y - 6, x + 8, y + 4]],
+    front: [[x, y - 6, x - 5, y - 1], [x, y - 6, x + 5, y - 1]],
+    carry: [[x, y - 6, x - 4, y + 4], [x, y - 6, x + 4, y + 4]],
+    run1: [[x, y - 6, x - 6, y - 2], [x, y - 6, x + 5, y + 1]],
+    run2: [[x, y - 6, x - 4, y + 1], [x, y - 6, x + 6, y - 2]],
+    bar: [[x, y - 7, x - 6, y - 4], [x, y - 7, x + 6, y - 4]],
+    swim1: [[x, y - 7, x - 6, y - 10], [x, y - 7, x + 7, y - 6]],
+    swim2: [[x, y - 7, x - 2, y - 12], [x, y - 7, x + 8, y - 2]],
+    swim3: [[x, y - 7, x - 8, y - 3], [x, y - 7, x + 4, y - 11]],
+    deadbug1: [[x, y - 6, x - 7, y - 9], [x, y - 6, x + 5, y - 2]],
+    deadbug2: [[x, y - 6, x - 5, y - 2], [x, y - 6, x + 7, y - 9]],
+    reach: [[x, y - 6, x - 7, y - 12], [x, y - 6, x + 4, y - 1]],
+    reach2: [[x, y - 6, x + 7, y - 12], [x, y - 6, x - 4, y - 1]],
+    rotate: [[x, y - 6, x - 6, y - 4], [x, y - 6, x + 6, y - 8]],
+  }[frame.arms || "down"];
+  const legs = {
+    narrow: [[x, torsoY2, x - 4, y + 11], [x, torsoY2, x + 4, y + 11]],
+    wide: [[x, torsoY2, x - 7, y + 10], [x, torsoY2, x + 7, y + 10]],
+    split: [[x, torsoY2, x - 7, y + 11], [x, torsoY2, x + 4, y + 8]],
+    split2: [[x, torsoY2, x - 4, y + 8], [x, torsoY2, x + 7, y + 11]],
+    back: [[x, torsoY2, x - 8, y + 8], [x, torsoY2, x + 8, y + 8]],
+    run1: [[x, torsoY2, x - 6, y + 10], [x, torsoY2, x + 7, y + 6]],
+    run2: [[x, torsoY2, x - 4, y + 6], [x, torsoY2, x + 8, y + 10]],
+    run3: [[x, torsoY2, x - 8, y + 8], [x, torsoY2, x + 5, y + 7]],
+    walk1: [[x, torsoY2, x - 5, y + 10], [x, torsoY2, x + 6, y + 8]],
+    walk2: [[x, torsoY2, x - 6, y + 8], [x, torsoY2, x + 5, y + 10]],
+    bike1: [[x, torsoY2, x - 6, y + 7], [x, torsoY2, x + 5, y + 10]],
+    bike2: [[x, torsoY2, x - 4, y + 10], [x, torsoY2, x + 7, y + 7]],
+    stream: [[x, torsoY2, x - 7, y + 2], [x, torsoY2, x + 7, y + 2]],
+    deadbug1: [[x, torsoY2, x - 6, y + 10], [x, torsoY2, x + 6, y + 4]],
+    deadbug2: [[x, torsoY2, x - 6, y + 4], [x, torsoY2, x + 6, y + 10]],
+  }[frame.legs || "narrow"];
+
+  const lines = [...arms, ...legs]
+    .map(([x1, y1, x2, y2]) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="rgba(255,255,255,0.82)" stroke-width="1.2" stroke-linecap="round"/>`)
+    .join("");
+  const extraCarry = frame.arms === "carry"
+    ? `<rect x="${x - 7.8}" y="${y + 3.4}" width="2.8" height="2.8" rx="0.7" fill="rgba(255,255,255,0.55)"/><rect x="${x + 5}" y="${y + 3.4}" width="2.8" height="2.8" rx="0.7" fill="rgba(255,255,255,0.55)"/>`
+    : "";
+  const extraBike = frame.arms === "bar"
+    ? `<circle cx="${x - 8}" cy="${y + 10}" r="3.8" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1"/><circle cx="${x + 9}" cy="${y + 10}" r="3.8" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1"/>`
+    : "";
+  const ground = `<line x1="${x - 11}" y1="${y + 12.5}" x2="${x + 11}" y2="${y + 12.5}" stroke="rgba(255,255,255,0.12)" stroke-width="0.8"/>`;
+  return `<g>${ground}${head}${torso}${lines}${extraCarry}${extraBike}</g>`;
+}
+
+function renderGlossary() {
+  if (!glossaryListEl) return;
+  const q = String(glossarySearchEl?.value || "").trim().toLowerCase();
+  const cat = String(glossaryCategoryEl?.value || "all");
+  const rows = TRAINING_GLOSSARY
+    .filter((item) => cat === "all" || item.category === cat)
+    .filter((item) => !q || [item.term, item.text, item.detail, ...(item.cues || []), ...(item.steps || [])].join(" ").toLowerCase().includes(q))
+    .sort((a, b) => a.term.localeCompare(b.term));
+
+  if (!rows.length) {
+    glossaryListEl.innerHTML = `<div class="empty-copy">Keine Treffer in der Trainingsbibliothek.</div>`;
+    return;
+  }
+
+  const grouped = rows.reduce((acc, item) => {
+    if (!acc[item.category]) acc[item.category] = [];
+    acc[item.category].push(item);
+    return acc;
+  }, {});
+  const categories = Object.keys(grouped).sort((a, b) => glossaryCategoryLabel(a).localeCompare(glossaryCategoryLabel(b)));
+  if (q) categories.forEach((category) => glossaryOpenCategories.add(category));
+
+  glossaryListEl.innerHTML = categories.map((category) => {
+    const categoryId = `cat_${category}`;
+    const categoryOpen = glossaryOpenCategories.has(category);
+    const itemsHtml = grouped[category].map((item) => {
+      const itemKey = `${category}::${item.term}`;
+      const itemOpen = glossaryOpenTerms.has(itemKey);
+      const cues = (item.cues || []).map((cue) => `<li>${escapeHtml(cue)}</li>`).join("");
+      const steps = (item.steps || []).map((step) => `<li>${escapeHtml(step)}</li>`).join("");
+      return `
+        <article class="glossary-item ${itemOpen ? "is-open" : ""}">
+          <button type="button" class="glossary-item-toggle" data-glossary-item="${escapeHtml(itemKey)}" aria-expanded="${itemOpen}">
+            <div class="glossary-item-head">
+              <strong>${escapeHtml(item.term)}</strong>
+              <span class="glossary-chevron">${itemOpen ? "−" : "+"}</span>
+            </div>
+            <p>${escapeHtml(item.text)}</p>
+          </button>
+          <div class="glossary-item-detail" ${itemOpen ? "" : "hidden"}>
+            ${renderExerciseVisual(item)}
+            <div class="glossary-item-detail-grid">
+              <div class="glossary-detail-block">
+                <span>${currentLang === "de" ? "So setzt du es ein" : currentLang === "ja" ? "使い方" : "How to use it"}</span>
+                <strong>${escapeHtml(item.detail || item.text)}</strong>
+              </div>
+              ${steps ? `<div class="glossary-detail-block"><span>${currentLang === "de" ? "Ablauf" : currentLang === "ja" ? "流れ" : "Flow"}</span><ul>${steps}</ul></div>` : ""}
+              ${cues ? `<div class="glossary-detail-block"><span>${currentLang === "de" ? "Wichtige Cues" : currentLang === "ja" ? "キュー" : "Key cues"}</span><ul>${cues}</ul></div>` : ""}
+            </div>
+          </div>
+        </article>`;
+    }).join("");
+
+    return `
+      <section class="glossary-category ${categoryOpen ? "is-open" : ""}">
+        <button type="button" class="glossary-category-toggle" data-glossary-category="${escapeHtml(category)}" aria-expanded="${categoryOpen}">
+          <strong>${escapeHtml(glossaryCategoryLabel(category))}</strong>
+          <span>${grouped[category].length}</span>
+        </button>
+        <div class="glossary-category-body" ${categoryOpen ? "" : "hidden"}>
+          ${itemsHtml}
+        </div>
+      </section>`;
+  }).join("");
+}
+
+function loadStore() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return { accounts: [], currentAccountId: null };
+    const parsed = JSON.parse(raw);
+    return {
+      accounts: Array.isArray(parsed.accounts) ? parsed.accounts : [],
+      currentAccountId: parsed.currentAccountId || null,
+    };
+  } catch {
+    return { accounts: [], currentAccountId: null };
+  }
+}
+
+function persistStore() {
+  if (!appStore) return;
+  appStore.currentAccountId = currentAccountId;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(appStore));
+}
+
+function getCurrentAccount() {
+  if (!appStore || !currentAccountId) return null;
+  const account = appStore.accounts.find((a) => a.id === currentAccountId) || null;
+  if (account) {
+    ensureAccountSettingsShape(account);
+    ensureAccountIntegrationsShape(account);
+  }
+  return account;
+}
+
+function ensureAccountSettingsShape(account) {
+  if (!account) return;
+  const defaults = defaultAccountSettings();
+  account.settings = account.settings || {};
+  account.settings.account = { ...defaults.account, ...(account.settings.account || {}) };
+  account.settings.privacy = { ...defaults.privacy, ...(account.settings.privacy || {}) };
+  account.settings.safety = { ...defaults.safety, ...(account.settings.safety || {}) };
+}
+
+function ensureAccountIntegrationsShape(account) {
+  if (!account) return;
+  account.integrations = account.integrations || {};
+  account.integrations.strava = {
+    connected: false,
+    lastStatusAt: null,
+    lastImportAt: null,
+    userId: null,
+    athlete: null,
+    expires_at: null,
+    scope: null,
+    error: null,
+    importSummary: null,
+    ...(account.integrations.strava || {}),
+  };
+}
+
+function setAuthMode(mode) {
+  authMode = mode === "register" ? "register" : "login";
+  accountTabButtons.forEach((btn) => btn.classList.toggle("is-active", btn.dataset.authMode === authMode));
+  if (accountSubmitBtn) accountSubmitBtn.textContent = authMode === "register" ? "create" : "login";
+  if (accountFormStatusEl) accountFormStatusEl.textContent = "";
+}
+
+function openAccountModal(mode = authMode) {
+  if (!accountModalEl) return;
+  setAuthMode(mode);
+  accountModalEl.hidden = false;
+}
+
+function closeAccountModal() {
+  if (!accountModalEl) return;
+  accountModalEl.hidden = true;
+}
+
+function registerAccount(email, password) {
+  if (!email || !email.includes("@")) return { ok: false, message: "Bitte gültige E-Mail eingeben." };
+  if (!password || password.length < 6) return { ok: false, message: "Passwort muss mindestens 6 Zeichen haben." };
+  if (appStore.accounts.some((a) => a.email === email)) return { ok: false, message: "E-Mail existiert bereits." };
+
+  const account = {
+    id: `acc_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    email,
+    password, // Local MVP only (replace with backend auth + hashing)
+    createdAt: new Date().toISOString(),
+    plans: [],
+    friends: [],
+    connectedSources: [],
+    settings: defaultAccountSettings(),
+  };
+  appStore.accounts.push(account);
+  currentAccountId = account.id;
+  persistStore();
+  hydrateConnectedSourcesFromAccount();
+  document.body.classList.add("is-authenticated");
+  return { ok: true, message: "Account erstellt." };
+}
+
+function loginAccount(email, password) {
+  const account = appStore.accounts.find((a) => a.email === email);
+  if (!account) return { ok: false, message: "Account nicht gefunden." };
+  if (account.password !== password) return { ok: false, message: "Passwort falsch." };
+  currentAccountId = account.id;
+  persistStore();
+  hydrateConnectedSourcesFromAccount();
+  document.body.classList.add("is-authenticated");
+  return { ok: true, message: "Eingeloggt." };
+}
+
+function requestPasswordReset(email) {
+  const normalized = String(email || "").trim().toLowerCase();
+  if (!normalized || !normalized.includes("@")) {
+    return { ok: false, message: "Bitte zuerst eine gültige E-Mail eingeben." };
+  }
+  const account = appStore?.accounts?.find((a) => a.email === normalized);
+  if (!account) {
+    return { ok: true, message: "Wenn ein Account existiert, wurde ein Reset-Hinweis gesendet. (MVP lokal: keine Mail-Infrastruktur verbunden)" };
+  }
+  const tempPassword = `aim${Math.random().toString(36).slice(2, 8)}!`;
+  account.password = tempPassword;
+  persistStore();
+  return { ok: true, message: `MVP Reset: Temporäres Passwort lokal gesetzt: ${tempPassword}` };
+}
+
+function changeCurrentAccountPassword(currentPassword, newPassword) {
+  const account = getCurrentAccount();
+  if (!account) return { ok: false, message: "Bitte zuerst einloggen." };
+  if (!currentPassword || account.password !== currentPassword) return { ok: false, message: "Aktuelles Passwort ist falsch." };
+  if (!newPassword || newPassword.length < 6) return { ok: false, message: "Neues Passwort muss mindestens 6 Zeichen haben." };
+  account.password = newPassword;
+  persistStore();
+  return { ok: true, message: "Passwort aktualisiert." };
+}
+
+function exportCurrentAccountData() {
+  const account = getCurrentAccount();
+  if (!account) return { ok: false, message: "Bitte zuerst einloggen." };
+  const safeAccount = JSON.parse(JSON.stringify(account));
+  delete safeAccount.password;
+  downloadTextFile({
+    content: JSON.stringify(
+      {
+        exportedAt: new Date().toISOString(),
+        schema: "aimrunna-local-mvp-account-export-v1",
+        account: safeAccount,
+      },
+      null,
+      2
+    ),
+    filename: `aimrunna-account-export-${slugify(account.email.split("@")[0] || "user")}.json`,
+    mimeType: "application/json;charset=utf-8",
+  });
+  return { ok: true, message: "Export erstellt." };
+}
+
+function deleteCurrentAccountLocalMvp() {
+  const account = getCurrentAccount();
+  if (!account) return { ok: false, message: "Bitte zuerst einloggen." };
+  const confirmed = window.confirm(`Account ${account.email} lokal löschen? Diese Aktion betrifft nur diesen Browser (MVP).`);
+  if (!confirmed) return { ok: false, message: "Abgebrochen." };
+  appStore.accounts = (appStore.accounts || []).filter((a) => a.id !== account.id);
+  currentAccountId = null;
+  connectedSources.clear();
+  persistStore();
+  syncConnectorButtons();
+  renderAccountUi();
+  return { ok: true, message: "Account lokal gelöscht." };
+}
+
+function logoutCurrentAccount() {
+  currentAccountId = null;
+  connectedSources.clear();
+  connectorButtons.forEach((b) => b.classList.remove("active"));
+  persistStore();
+  document.body.classList.remove("is-authenticated");
+  renderAccountUi();
+  stravaStatusFetchedForUserId = null;
+  setText(connectionState, t("no_sources"));
+}
+
+function hydrateConnectedSourcesFromAccount() {
+  connectedSources.clear();
+  const account = getCurrentAccount();
+  (account?.connectedSources || []).forEach((src) => connectedSources.add(src));
+}
+
+function persistConnectedSourcesForCurrentUser() {
+  const account = getCurrentAccount();
+  if (!account) return;
+  account.connectedSources = [...connectedSources];
+  persistStore();
+}
+
+function syncConnectorButtons() {
+  connectorButtons.forEach((button) => {
+    const source = button.dataset.source;
+    button.classList.toggle("active", connectedSources.has(source));
+  });
+}
+
+function savePlanToLibrary(account, profile, plan) {
+  account.plans = Array.isArray(account.plans) ? account.plans : [];
+  const item = {
+    id: `plan_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+    createdAt: new Date().toISOString(),
+    title: `${disciplineLabel(profile.discipline)} • ${labelDistance(profile.goalDistance)} • ${profile.goalTime}`,
+    summary: `${plan.weeks.length} Wochen • ${Math.round(plan.meta.weeklyKmBase)} Base`,
+    profile: serializeProfile(profile),
+    plan: serializePlan(plan),
+  };
+  account.plans.unshift(item);
+  account.plans = account.plans.slice(0, 20);
+}
+
+function serializeProfile(profile) {
+  return {
+    ...profile,
+    raceDate: profile?.raceDate instanceof Date ? profile.raceDate.toISOString() : profile?.raceDate,
+  };
+}
+
+function serializePlan(plan) {
+  return {
+    ...plan,
+    weeks: (plan.weeks || []).map((week) => ({
+      ...week,
+      weekStart: week.weekStart instanceof Date ? week.weekStart.toISOString() : week.weekStart,
+      days: (week.days || []).map((day) => ({
+        ...day,
+        date: day.date instanceof Date ? day.date.toISOString() : day.date,
+      })),
+    })),
+    sessions: (plan.sessions || []).map((session) => ({
+      ...session,
+      date: session.date instanceof Date ? session.date.toISOString() : session.date,
+    })),
+  };
+}
+
+function hydrateStoredProfile(profile) {
+  return {
+    ...profile,
+    raceDate: profile?.raceDate ? new Date(profile.raceDate) : null,
+    raceEvents: parseRaceEventsJson(JSON.stringify(Array.isArray(profile?.raceEvents) ? profile.raceEvents : [])),
+  };
+}
+
+function hydrateStoredPlan(plan) {
+  return {
+    ...plan,
+    weeks: (plan.weeks || []).map((week) => ({
+      ...week,
+      weekStart: week.weekStart ? new Date(week.weekStart) : null,
+      days: (week.days || []).map((day) => ({
+        ...day,
+        date: day.date ? new Date(day.date) : null,
+      })),
+    })),
+    sessions: (plan.sessions || []).map((session, index) => ({
+      ...session,
+      _id: session._id || `session-${index}`,
+      date: session.date ? new Date(session.date) : null,
+    })),
+  };
+}
+
+function loadSavedPlanById(planId) {
+  const account = getCurrentAccount();
+  if (!account) return;
+  const item = (account.plans || []).find((p) => p.id === planId);
+  if (!item) return;
+  latestProfile = hydrateStoredProfile(item.profile);
+  latestPlan = hydrateStoredPlan(item.plan);
+  generatedSessions = latestPlan.sessions || [];
+  renderAnalysis(latestProfile, latestPlan);
+  renderPlan(latestPlan);
+  renderPerformanceInsights(latestProfile, latestPlan);
+  exportIcalBtn.disabled = generatedSessions.length === 0;
+  document.body.classList.add("has-output");
+  syncUiState();
+}
+
+function addFriendByEmail(account, email) {
+  if (!email || !email.includes("@")) return { ok: false, message: t("invalid_email") };
+  if (email === account.email) return { ok: false, message: t("own_email_not_allowed") };
+  const exists = appStore.accounts.find((a) => a.email === email);
+  if (!exists) return { ok: false, message: t("account_not_found_local") };
+  account.friends = Array.isArray(account.friends) ? account.friends : [];
+  if (!account.friends.includes(email)) account.friends.push(email);
+  persistStore();
+  return { ok: true, message: t("connected") };
+}
+
+function renderAccountUi() {
+  const account = getCurrentAccount();
+  const isAuth = Boolean(account);
+  document.body.classList.toggle("is-authenticated", isAuth);
+  if (accountPillEl) accountPillEl.hidden = !isAuth;
+
+  if (accountLabelEl) accountLabelEl.textContent = isAuth ? account.email.split("@")[0] : t("account_guest");
+  if (accountStatusTagEl) accountStatusTagEl.textContent = isAuth ? t("account_signed_in") : t("account_guest");
+  if (accountStatusCopyEl) {
+    accountStatusCopyEl.textContent = isAuth
+      ? t("account_status_signed_in")
+      : t("account_status_guest");
+  }
+  const topAuthActionsVisible = !isAuth && activeAppView === "home";
+  if (accountLoginBtn) accountLoginBtn.hidden = !topAuthActionsVisible;
+  if (accountRegisterBtn) accountRegisterBtn.hidden = !topAuthActionsVisible;
+  if (accountLogoutBtn) accountLogoutBtn.hidden = !isAuth;
+  if (accountOpenLoginBtn) accountOpenLoginBtn.hidden = true;
+  if (accountOpenRegisterBtn) accountOpenRegisterBtn.hidden = true;
+  if (savePlanBtn) savePlanBtn.disabled = !isAuth || !latestPlan || !latestProfile;
+  renderProfileAvatar(account);
+  populateSettingsForms(account);
+
+  renderSavedPlansList(account);
+  renderFriendsList(account);
+  renderAccountSearchResults(lastAccountSearchQuery);
+  renderProfileStats(account);
+  renderProfileFeed(account);
+  renderCrewFeed(account);
+  renderCrewRanking(account);
+  setActiveAccountSection(activeAccountSection);
+  syncProfileComposerVisibility();
+  renderStravaProfileStatus(account);
+  updateConnectionStateCopy();
+  maybeFetchStravaStatus(account);
+}
+
+function populateSettingsForms(account) {
+  if (!account) {
+    [accountSettingsFormEl, privacySettingsFormEl, safetySettingsFormEl].forEach((formEl) => formEl?.reset());
+    return;
+  }
+  ensureAccountSettingsShape(account);
+  const settings = account.settings;
+  setFormValue(accountSettingsFormEl, "language", settings.account.language);
+  setFormValue(accountSettingsFormEl, "units", settings.account.units);
+  setFormValue(accountSettingsFormEl, "timezone", settings.account.timezone);
+  setFormValue(accountSettingsFormEl, "emailNotifications", settings.account.emailNotifications);
+  setFormValue(privacySettingsFormEl, "profileVisibility", settings.privacy.profileVisibility);
+  setFormValue(privacySettingsFormEl, "activityVisibility", settings.privacy.activityVisibility);
+  setFormValue(privacySettingsFormEl, "searchDiscoverability", settings.privacy.searchDiscoverability);
+  setFormValue(privacySettingsFormEl, "messagingPermission", settings.privacy.messagingPermission);
+  setFormValue(privacySettingsFormEl, "mapPrivacy", settings.privacy.mapPrivacy);
+  setFormValue(privacySettingsFormEl, "mentionsPermission", settings.privacy.mentionsPermission);
+  setFormValue(safetySettingsFormEl, "commentFilter", settings.safety.commentFilter);
+  setFormValue(safetySettingsFormEl, "imageModeration", settings.safety.imageModeration);
+  setFormValue(safetySettingsFormEl, "riskWarnings", settings.safety.riskWarnings);
+  setFormValue(safetySettingsFormEl, "communityGuidelinesAccepted", settings.safety.communityGuidelinesAccepted);
+}
+
+function setFormValue(formEl, name, value) {
+  const field = formEl?.elements?.[name];
+  if (field) field.value = value ?? "";
+}
+
+function renderSavedPlansList(account) {
+  const plans = account?.plans || [];
+  if (savedPlanCountEl) savedPlanCountEl.textContent = String(plans.length);
+  if (!savedPlansListEl) return;
+  if (!plans.length) {
+    savedPlansListEl.innerHTML = `<div class="empty-copy">${escapeHtml(t("empty_saved_plans"))}</div>`;
+    return;
+  }
+  savedPlansListEl.innerHTML = plans
+    .map(
+      (plan) => `
+      <div class="saved-plan-item">
+        <strong>${escapeHtml(plan.title)}</strong>
+        <small>${escapeHtml(plan.summary)} • ${escapeHtml(formatDateShort(new Date(plan.createdAt)))}</small>
+        <button type="button" class="ghost" data-load-plan-id="${escapeHtml(plan.id)}">${escapeHtml(currentLang === "ja" ? "プランを開く" : currentLang === "en" ? "Load plan" : "Plan laden")}</button>
+      </div>`
+    )
+    .join("");
+
+  savedPlansListEl.querySelectorAll("[data-load-plan-id]").forEach((btn) => {
+    btn.addEventListener("click", () => loadSavedPlanById(btn.getAttribute("data-load-plan-id")));
+  });
+}
+
+function renderFriendsList(account) {
+  const friends = account?.friends || [];
+  if (!friendsListEl) return;
+  if (!friends.length) {
+    friendsListEl.innerHTML = `<div class="empty-copy">${escapeHtml(t("empty_connections"))}</div>`;
+    return;
+  }
+  friendsListEl.innerHTML = friends
+    .map((email) => {
+      const friend = (appStore.accounts || []).find((a) => a.email === email);
+      const stats = computeAccountStats(friend);
+      const latest = (friend?.activities || [])[0];
+      const latestText = latest
+        ? `${latest.kind === "race" ? "race." : t("label_training")} • ${formatSocialSportLabel(latest.sportType)}${latest.distanceKm ? ` • ${Number(latest.distanceKm).toFixed(1)} km` : ""}`
+        : t("label_no_activity");
+      return `
+      <div class="friend-item">
+        <strong>${escapeHtml(email)}</strong>
+        <small>${stats.points} ${escapeHtml(t("unit_points"))} • ${stats.races} ${escapeHtml(t("unit_races"))} • ${escapeHtml(latestText)}</small>
+      </div>`
+    })
+    .join("");
+}
+
+function renderAccountSearchResults(query = "") {
+  if (!accountSearchResultsEl) return;
+  const q = String(query || "").trim().toLowerCase();
+  const account = getCurrentAccount();
+  const ownEmail = account?.email || "";
+  const all = appStore?.accounts || [];
+
+  if (!q) {
+    if (crewResultCountEl) crewResultCountEl.textContent = "0";
+    accountSearchResultsEl.innerHTML = `<div class="empty-copy">${escapeHtml(t("empty_search_prompt"))}</div>`;
+    return;
+  }
+
+  const results = all
+    .filter((a) => a.email !== ownEmail)
+    .filter((a) => a.email.toLowerCase().includes(q) || a.email.split("@")[0].toLowerCase().includes(q))
+    .slice(0, 12);
+
+  if (crewResultCountEl) crewResultCountEl.textContent = String(results.length);
+
+  if (!results.length) {
+    accountSearchResultsEl.innerHTML = `<div class="empty-copy">${escapeHtml(t("empty_search_none"))}</div>`;
+    return;
+  }
+
+  accountSearchResultsEl.innerHTML = results
+    .map((a) => {
+      const isConnected = Boolean(account?.friends?.includes(a.email));
+      return `
+      <div class="account-search-item">
+        <div class="account-search-row">
+          <div>
+            <strong>${escapeHtml(a.email.split("@")[0])}</strong>
+            <small>${escapeHtml(a.email)} • ${Array.isArray(a.plans) ? a.plans.length : 0} ${escapeHtml(t("label_plans"))}</small>
+          </div>
+          <div class="account-search-actions">
+            <button type="button" class="ghost" data-connect-account-email="${escapeHtml(a.email)}" ${isConnected ? "disabled" : ""}>
+              ${isConnected ? escapeHtml(t("connected")) : escapeHtml(t("connect"))}
+            </button>
+          </div>
+        </div>
+      </div>`;
+    })
+    .join("");
+
+  accountSearchResultsEl.querySelectorAll("[data-connect-account-email]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const current = getCurrentAccount();
+      if (!current) {
+        openAccountModal("login");
+        setText(accountFormStatusEl, t("login_first"));
+        return;
+      }
+      const email = btn.getAttribute("data-connect-account-email");
+      const result = addFriendByEmail(current, email);
+      if (result.ok) persistStore();
+      renderAccountUi();
+    });
+  });
+}
+
+function setActiveAccountSection(section) {
+  activeAccountSection = section === "crew" ? "crew" : "profile";
+  accountSectionTabButtons.forEach((btn) =>
+    btn.classList.toggle("is-active", btn.dataset.accountSection === activeAccountSection)
+  );
+  if (accountPaneProfileEl) accountPaneProfileEl.classList.toggle("is-active", activeAccountSection === "profile");
+  if (accountPaneCrewEl) accountPaneCrewEl.classList.toggle("is-active", activeAccountSection === "crew");
+}
+
+function setActiveProfileView(view) {
+  activeProfileView = ["overview", "activities", "health", "settings"].includes(view) ? view : "overview";
+  document.body.classList.remove("profile-view-overview", "profile-view-activities", "profile-view-health", "profile-view-settings");
+  document.body.classList.add(`profile-view-${activeProfileView}`);
+  profileViewTabButtons.forEach((btn) => btn.classList.toggle("is-active", btn.dataset.profileView === activeProfileView));
+  if (activeProfileView === "settings") {
+    setActiveProfileSettingsView(activeProfileSettingsView || "account");
+  }
+  if (activeProfileView === "overview") maybeFetchStravaStatus(getCurrentAccount());
+  if (activeAppView === "profile") {
+    if (activeProfileView === "health") {
+      scrollToSectionStart(sectionDataEl || sectionAccountEl, { mobileOffset: 150, desktopOffset: 114, duration: 360 });
+    } else {
+      scrollToSectionStart(sectionAccountEl, { mobileOffset: 150, desktopOffset: 114, duration: 360 });
+    }
+  }
+}
+
+function setActiveProfileSettingsView(view) {
+  activeProfileSettingsView = ["account", "privacy"].includes(view) ? view : "account";
+  profileSettingsNavButtons.forEach((btn) =>
+    btn.classList.toggle("is-active", btn.dataset.profileSettingsView === activeProfileSettingsView)
+  );
+  profileSettingsPanels.forEach((panel) =>
+    panel.classList.toggle("is-active", panel.dataset.profileSettingsPanel === activeProfileSettingsView)
+  );
+}
+
+function setAppView(view) {
+  activeAppView = ["home", "profile", "crew"].includes(view) ? view : "home";
+  document.body.classList.remove("app-view-home", "app-view-profile", "app-view-crew");
+  document.body.classList.add(`app-view-${activeAppView}`);
+
+  accountHomeBtn?.classList.toggle("is-active", activeAppView === "home");
+  accountProfileBtn?.classList.toggle("is-active", activeAppView === "profile");
+  accountCrewBtn?.classList.toggle("is-active", activeAppView === "crew");
+
+  if (activeAppView === "profile") {
+    setActiveProfileView(activeProfileView);
+    sectionAccountEl?.classList.add("is-visible");
+    sectionDataEl?.classList.add("is-visible");
+  } else if (activeAppView === "crew") {
+    sectionAccountEl?.classList.add("is-visible");
+    scrollToSectionStart(sectionAccountEl, { mobileOffset: 150, desktopOffset: 114, duration: 520 });
+  } else {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  renderAccountUi();
+}
+
+function renderProfileAvatar(account) {
+  if (!profileAvatarPreviewEl) return;
+  const label = (account?.email?.[0] || "A").toUpperCase();
+  profileAvatarPreviewEl.textContent = label;
+  if (account?.profileImage) {
+    profileAvatarPreviewEl.style.backgroundImage = `url('${account.profileImage}')`;
+    profileAvatarPreviewEl.classList.add("has-image");
+  } else {
+    profileAvatarPreviewEl.style.backgroundImage = "";
+    profileAvatarPreviewEl.classList.remove("has-image");
+  }
+}
+
+function postActivity(account, { title, note, kind, sportType, distanceKm, imageDataUrl }) {
+  account.activities = Array.isArray(account.activities) ? account.activities : [];
+  account.activities.unshift({
+    id: `act_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+    createdAt: new Date().toISOString(),
+    title,
+    note,
+    kind,
+    sportType: ["run", "bike", "swim", "hyrox", "other"].includes(sportType) ? sportType : "other",
+    distanceKm: clamp(Number(distanceKm) || 0, 0, 1000),
+    imageDataUrl: imageDataUrl || null,
+    propsBy: [],
+  });
+  account.activities = account.activities.slice(0, 60);
+}
+
+function renderProfileStats(account) {
+  const statsToday = computeAccountStats(account, { range: "today" });
+  const statsYear = computeAccountStats(account, { range: "12m" });
+  const statsAll = computeAccountStats(account, { range: "all" });
+  if (profilePointsBadgeEl) profilePointsBadgeEl.textContent = `${statsAll.points} ${t("unit_points")}`;
+  applyProfileStatsToBindings(profileStatBindings.today, statsToday);
+  applyProfileStatsToBindings(profileStatBindings.year, statsYear);
+  applyProfileStatsToBindings(profileStatBindings.all, statsAll);
+}
+
+function renderProfileFeed(account) {
+  const activities = account?.activities || [];
+  if (profileFeedCountEl) profileFeedCountEl.textContent = String(activities.length);
+  if (!profileFeedListEl) return;
+  if (!activities.length) {
+    profileFeedListEl.innerHTML = `<div class="empty-copy">${escapeHtml(t("empty_profile_feed"))}</div>`;
+    return;
+  }
+  profileFeedListEl.innerHTML = activities.map((item) => buildActivityCardHtml({
+    item,
+    actorEmail: account.email,
+    actorAvatar: account.profileImage || null,
+    actorPoints: activityPoints(item),
+    viewerEmail: account.email,
+    showPropsAction: false,
+  })).join("");
+}
+
+function renderCrewFeed(account) {
+  if (!crewFeedListEl) return;
+  if (!account) {
+    if (crewFeedCountEl) crewFeedCountEl.textContent = "0";
+    crewFeedListEl.innerHTML = `<div class="empty-copy">${escapeHtml(t("empty_login_crew"))}</div>`;
+    return;
+  }
+  const friendEmails = account.friends || [];
+  const items = (appStore.accounts || [])
+    .filter((a) => friendEmails.includes(a.email))
+    .flatMap((a) => (a.activities || []).map((item) => ({ item, actorEmail: a.email, actorAvatar: a.profileImage || null })))
+    .sort((a, b) => new Date(b.item.createdAt) - new Date(a.item.createdAt))
+    .slice(0, 40);
+
+  if (crewFeedCountEl) crewFeedCountEl.textContent = String(items.length);
+  if (!items.length) {
+    crewFeedListEl.innerHTML = `<div class="empty-copy">${escapeHtml(t("empty_crew_feed"))}</div>`;
+    return;
+  }
+  crewFeedListEl.innerHTML = items
+    .map((entry) =>
+      buildActivityCardHtml({
+        ...entry,
+        actorPoints: activityPoints(entry.item),
+        viewerEmail: account.email,
+        showPropsAction: true,
+      })
+    )
+    .join("");
+
+  crewFeedListEl.querySelectorAll("[data-props-activity]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const ownerEmail = btn.getAttribute("data-props-owner");
+      const activityId = btn.getAttribute("data-props-activity");
+      const viewer = getCurrentAccount();
+      if (!viewer || !ownerEmail || !activityId) return;
+      togglePropsOnActivity(ownerEmail, activityId, viewer.email);
+      persistStore();
+      renderAccountUi();
+    });
+  });
+}
+
+function renderCrewRanking(account) {
+  if (!crewRankingListEl) return;
+  if (!account) {
+    if (crewRankingCountEl) crewRankingCountEl.textContent = "0";
+    crewRankingListEl.innerHTML = `<div class="empty-copy">${escapeHtml(t("empty_login_ranking"))}</div>`;
+    return;
+  }
+  const emails = [account.email, ...(account.friends || [])];
+  const rows = (appStore.accounts || [])
+    .filter((a) => emails.includes(a.email))
+    .map((a) => ({ account: a, stats: computeAccountStats(a) }))
+    .sort((a, b) => b.stats.points - a.stats.points)
+    .slice(0, 10);
+
+  if (crewRankingCountEl) crewRankingCountEl.textContent = String(rows.length);
+  if (!rows.length) {
+    crewRankingListEl.innerHTML = `<div class="empty-copy">${escapeHtml(t("empty_crew_data"))}</div>`;
+    return;
+  }
+  crewRankingListEl.innerHTML = rows
+    .map(
+      ({ account: rowAcc, stats }, index) => `
+      <div class="friend-item">
+        <strong>#${index + 1} ${escapeHtml(rowAcc.email.split("@")[0])}</strong>
+        <small>${stats.points} ${escapeHtml(t("unit_points"))} • ${stats.runKm.toFixed(0)}k RUN • ${stats.bikeKm.toFixed(0)}k BIKE • ${stats.races} ${escapeHtml(t("unit_races"))}</small>
+      </div>`
+    )
+    .join("");
+}
+
+function buildActivityCardHtml({ item, actorEmail, actorAvatar, actorPoints = 0, viewerEmail = "", showPropsAction = false }) {
+  const actorName = String(actorEmail || "Athlete").split("@")[0];
+  const initials = (actorName[0] || "A").toUpperCase();
+  const created = formatRelativeTime(item.createdAt);
+  const isRace = item.kind === "race";
+  const propsCount = Array.isArray(item.propsBy) ? item.propsBy.length : 0;
+  const hasPropd = viewerEmail && Array.isArray(item.propsBy) && item.propsBy.includes(viewerEmail);
+  const distanceMeta = item.distanceKm ? ` • ${Number(item.distanceKm).toFixed(1)} km` : "";
+  const sportMeta = item.sportType ? ` • ${formatSocialSportLabel(item.sportType)}` : "";
+  return `
+    <article class="activity-card">
+      <div class="activity-card-head">
+        <div class="activity-card-user">
+          <div class="activity-avatar ${actorAvatar ? "has-image" : ""}" style="${actorAvatar ? `background-image:url('${actorAvatar}')` : ""}">${escapeHtml(initials)}</div>
+          <div>
+            <strong>${escapeHtml(actorName)}</strong>
+            <small>${escapeHtml(created)}</small>
+          </div>
+        </div>
+        <span class="activity-kind-badge ${isRace ? "race" : ""}">${isRace ? "race." : escapeHtml(t("label_training"))}</span>
+      </div>
+      <div class="activity-card-body">
+        <div class="activity-card-title">${escapeHtml(item.title)}</div>
+        <div class="activity-points">${actorPoints} ${escapeHtml(t("unit_points"))}${sportMeta}${distanceMeta}</div>
+        ${item.note ? `<div class="activity-card-note">${escapeHtml(item.note)}</div>` : ""}
+        ${item.imageDataUrl ? `<img class="activity-card-image" src="${item.imageDataUrl}" alt="Activity image" loading="lazy" />` : ""}
+        <div class="activity-card-foot">
+          <div class="activity-points">${propsCount} ${escapeHtml(t("label_props").toLowerCase())}</div>
+          ${showPropsAction && viewerEmail && viewerEmail !== actorEmail ? `<button type="button" class="props-btn ${hasPropd ? "is-active" : ""}" data-props-owner="${escapeHtml(actorEmail)}" data-props-activity="${escapeHtml(item.id)}">${escapeHtml(t("label_props"))}</button>` : ""}
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+function togglePropsOnActivity(ownerEmail, activityId, viewerEmail) {
+  const owner = (appStore.accounts || []).find((a) => a.email === ownerEmail);
+  if (!owner) return;
+  owner.activities = Array.isArray(owner.activities) ? owner.activities : [];
+  const activity = owner.activities.find((a) => a.id === activityId);
+  if (!activity) return;
+  activity.propsBy = Array.isArray(activity.propsBy) ? activity.propsBy : [];
+  if (activity.propsBy.includes(viewerEmail)) {
+    activity.propsBy = activity.propsBy.filter((e) => e !== viewerEmail);
+  } else {
+    activity.propsBy.push(viewerEmail);
+  }
+}
+
+function computeAccountStats(account, { range = "all" } = {}) {
+  const now = Date.now();
+  const activities = (account?.activities || []).filter((a) => {
+    if (range === "all") return true;
+    const ts = new Date(a.createdAt || 0).getTime();
+    if (!Number.isFinite(ts) || !ts) return false;
+    if (range === "today") {
+      const d = new Date(ts);
+      const n = new Date(now);
+      return d.getFullYear() === n.getFullYear() && d.getMonth() === n.getMonth() && d.getDate() === n.getDate();
+    }
+    if (range === "12m") {
+      const twelveMonthsAgo = new Date();
+      twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
+      return ts >= twelveMonthsAgo.getTime();
+    }
+    return true;
+  });
+  const runKm = sumBy(activities.filter((a) => a.sportType === "run"), (a) => Number(a.distanceKm) || 0);
+  const bikeKm = sumBy(activities.filter((a) => a.sportType === "bike"), (a) => Number(a.distanceKm) || 0);
+  const swimKm = sumBy(activities.filter((a) => a.sportType === "swim"), (a) => Number(a.distanceKm) || 0);
+  const races = activities.filter((a) => a.kind === "race").length;
+  const propsReceived = sumBy(activities, (a) => (Array.isArray(a.propsBy) ? a.propsBy.length : 0));
+  const points = Math.round(sumBy(activities, activityPoints) + propsReceived * 3);
+  return { runKm, bikeKm, swimKm, races, propsReceived, points };
+}
+
+function applyProfileStatsToBindings(bindings, stats) {
+  if (!bindings || !stats) return;
+  if (bindings.badge) bindings.badge.textContent = `${stats.points} ${t("unit_points")}`;
+  if (bindings.run) bindings.run.textContent = `${stats.runKm.toFixed(1)} km`;
+  if (bindings.bike) bindings.bike.textContent = `${stats.bikeKm.toFixed(1)} km`;
+  if (bindings.swim) bindings.swim.textContent = `${stats.swimKm.toFixed(1)} km`;
+  if (bindings.races) bindings.races.textContent = String(stats.races);
+  if (bindings.props) bindings.props.textContent = String(stats.propsReceived);
+  if (bindings.points) bindings.points.textContent = String(stats.points);
+}
+
+function syncProfileComposerVisibility() {
+  const shouldShow = activeAppView === "profile" && activeProfileView === "activities" && profileComposerExpanded;
+  if (activityComposeModalEl) activityComposeModalEl.hidden = !shouldShow;
+  if (profilePostCardEl) profilePostCardEl.hidden = !shouldShow;
+  if (profileQuickAddBtnEl) {
+    profileQuickAddBtnEl.classList.toggle("is-active", shouldShow);
+    profileQuickAddBtnEl.setAttribute("aria-label", shouldShow ? "Manuelle Aktivität verbergen" : "Manuelle Aktivität hinzufügen");
+  }
+}
+
+function closeActivityComposeModal() {
+  profileComposerExpanded = false;
+  syncProfileComposerVisibility();
+}
+
+function activityPoints(item) {
+  const km = Number(item?.distanceKm) || 0;
+  const sportFactor = { run: 5, bike: 2, swim: 10, hyrox: 6, other: 1 }[item?.sportType] || 1;
+  const base = Math.round(km * sportFactor);
+  const raceBonus = item?.kind === "race" ? 60 + Math.round(km * 2) : 8;
+  return base + raceBonus;
+}
+
+function sumBy(list, fn) {
+  return (list || []).reduce((sum, item) => sum + (Number(fn(item)) || 0), 0);
+}
+
+function formatRelativeTime(iso) {
+  const d = new Date(iso);
+  const mins = Math.round((Date.now() - d.getTime()) / 60000);
+  if (mins < 1) return "Gerade eben";
+  if (mins < 60) return `vor ${mins} min`;
+  const h = Math.round(mins / 60);
+  if (h < 24) return `vor ${h} h`;
+  const days = Math.round(h / 24);
+  return `vor ${days} d`;
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(new Error("file_read_failed"));
+    reader.readAsDataURL(file);
+  });
+}
+
+function setDefaultRaceDate() {
+  const raceDateInput = form.elements.raceDate;
+  const target = new Date();
+  target.setDate(target.getDate() + 112);
+  const dateValue = formatDateInput(target);
+  raceDateInput.value = dateValue;
+  if (quickRaceDateInput) quickRaceDateInput.value = dateValue;
+}
+
+function initDynamicGoalOptions() {
+  if (!disciplineSelect || !goalDistanceSelect) return;
+
+  const sync = ({ resetTime = false } = {}) => {
+    const discipline = disciplineSelect.value;
+    const options = GOAL_OPTIONS_BY_DISCIPLINE[discipline] || GOAL_OPTIONS_BY_DISCIPLINE.running;
+    const previous = goalDistanceSelect.value;
+    const validPrev = options.some((opt) => opt.value === previous);
+
+    goalDistanceSelect.innerHTML = options
+      .map((opt) => `<option value="${opt.value}">${opt.label}</option>`)
+      .join("");
+
+    goalDistanceSelect.value = validPrev ? previous : options[Math.min(1, options.length - 1)].value;
+    syncQuickGoalOptions(discipline);
+
+    if (resetTime) {
+      const suggested = defaultGoalTimeFor(discipline, goalDistanceSelect.value);
+      if (form?.elements?.goalTime && suggested) {
+        form.elements.goalTime.value = suggested;
+      }
+      if (quickGoalTimeInput && suggested) quickGoalTimeInput.value = suggested;
+    }
+
+    applyHeroImagesForDiscipline(discipline);
+    syncDisciplineSpecificFields(discipline);
+  };
+
+  disciplineSelect.addEventListener("change", () => sync({ resetTime: true }));
+  goalDistanceSelect.addEventListener("change", () => {
+    const suggested = defaultGoalTimeFor(disciplineSelect.value, goalDistanceSelect.value);
+    if (disciplineSelect.value === "shape" && suggested && form?.elements?.goalTime) {
+      form.elements.goalTime.value = suggested;
+    } else if (suggested && form?.elements?.goalTime) {
+      form.elements.goalTime.value = suggested;
+    }
+    syncShapeTargetWeightOptions();
+    syncDisciplineSpecificFields(disciplineSelect.value);
+  });
+  quickGoalDistanceSelect?.addEventListener("change", () => {
+    const suggested = defaultGoalTimeFor(disciplineSelect.value, quickGoalDistanceSelect.value);
+    if (suggested && quickGoalTimeInput) quickGoalTimeInput.value = suggested;
+  });
+  planModeSelect?.addEventListener("change", syncPlanModeUI);
+
+  sexSelect?.addEventListener("change", syncCycleBasedTrainingAvailability);
+  cycleTrainingCheckbox?.addEventListener("change", () => {
+    syncCycleBasedTrainingAvailability();
+  });
+  shapeGymShareInputEl?.addEventListener("input", syncShapeGymShareLabel);
+  bikeOutdoorDaySelectEl?.addEventListener("change", () => syncDisciplineShareControl(disciplineSelect?.value));
+  longRunDaySelectEl?.addEventListener("change", () => syncDisciplineSpecificFields(disciplineSelect?.value));
+  shapeTargetFocusSelectEl?.addEventListener("change", syncShapeGoalConsistency);
+  pb1DisciplineSelectEl?.addEventListener("change", () => syncPbDistanceOptions(1));
+  pb2DisciplineSelectEl?.addEventListener("change", () => syncPbDistanceOptions(2));
+  form?.elements?.weightKg?.addEventListener?.("input", () => {
+    syncShapeTargetWeightOptions();
+    syncShapeGoalConsistency();
+  });
+  form?.elements?.targetWeightKg?.addEventListener?.("change", syncShapeGoalConsistency);
+  form?.elements?.raceDate?.addEventListener?.("change", syncShapeGoalConsistency);
+  sync({ resetTime: true });
+  syncPbDisciplineOptions(disciplineSelect?.value || "running");
+  syncPbDistanceOptions(1);
+  syncPbDistanceOptions(2);
+  syncPlanModeUI();
+  syncShapeGymShareLabel();
+  syncCycleBasedTrainingAvailability();
+  normalizeFieldLabels();
+}
+
+function syncQuickGoalOptions(discipline = disciplineSelect?.value) {
+  if (!quickGoalDistanceSelect) return;
+  const options = raceEventDistanceOptions(discipline);
+  const prev = String(quickGoalDistanceSelect.value || "");
+  quickGoalDistanceSelect.innerHTML = options
+    .map((opt) => `<option value="${escapeHtml(opt.value)}">${escapeHtml(opt.label)}</option>`)
+    .join("");
+  quickGoalDistanceSelect.value = options.some((opt) => opt.value === prev) ? prev : (options[0]?.value || "");
+}
+
+function syncPlanModeUI() {
+  const mode = String(planModeSelect?.value || "quick");
+  const isQuick = mode === "quick";
+  if (quickPlanFieldsEl) quickPlanFieldsEl.hidden = !isQuick;
+  if (advancedSettingsEl) {
+    advancedSettingsEl.classList.toggle("is-quick-hidden", isQuick);
+    advancedSettingsEl.hidden = isQuick;
+  }
+  if (tuningToggleRowEl) tuningToggleRowEl.hidden = isQuick;
+  if (tuningPanelHostEl && isQuick) tuningPanelHostEl.hidden = true;
+
+  if (quickGoalDistanceSelect) quickGoalDistanceSelect.disabled = !isQuick;
+  if (quickGoalTimeInput) quickGoalTimeInput.disabled = !isQuick;
+  if (quickRaceDateInput) quickRaceDateInput.disabled = !isQuick;
+
+  if (quickGoalDistanceSelect) quickGoalDistanceSelect.required = isQuick;
+  if (quickGoalTimeInput) quickGoalTimeInput.required = isQuick;
+  if (quickRaceDateInput) quickRaceDateInput.required = isQuick;
+  normalizeFieldLabels();
+}
+
+function applyQuickModeToPrimaryGoalFields() {
+  const isQuick = String(planModeSelect?.value || "quick") === "quick";
+  if (!isQuick) return;
+  const selectedDiscipline = String(disciplineSelect?.value || "running");
+  const primaryDiscipline = selectedDiscipline === "shape" ? "running" : selectedDiscipline;
+  if (quickGoalDistanceSelect?.value && goalDistanceSelect) {
+    goalDistanceSelect.value = quickGoalDistanceSelect.value;
+  }
+  if (quickGoalTimeInput?.value && goalTimeInputEl) {
+    goalTimeInputEl.value = quickGoalTimeInput.value;
+  }
+  if (quickRaceDateInput?.value && form?.elements?.raceDate) {
+    form.elements.raceDate.value = quickRaceDateInput.value;
+  }
+  if (Array.isArray(draftRaceEvents) && draftRaceEvents.length) {
+    const options = raceEventDistanceOptions(primaryDiscipline);
+    const distance = options.some((opt) => opt.value === goalDistanceSelect?.value)
+      ? String(goalDistanceSelect?.value)
+      : (options[0]?.value || String(goalDistanceSelect?.value || ""));
+    const date = quickRaceDateInput?.value ? new Date(`${quickRaceDateInput.value}T09:00:00`) : new Date();
+    const primary = getPrimaryRaceEvent(draftRaceEvents) || draftRaceEvents[0];
+    const primaryIndex = Math.max(0, draftRaceEvents.findIndex((item) => item.id === primary.id));
+    draftRaceEvents[primaryIndex] = normalizeRaceEvent({
+      ...draftRaceEvents[primaryIndex],
+      itemKind: "event",
+      discipline: primaryDiscipline,
+      distance,
+      goalTime: String(quickGoalTimeInput?.value || goalTimeInputEl?.value || "").trim() || null,
+      date,
+      priority: "A",
+    }) || draftRaceEvents[primaryIndex];
+    persistInlineRaceEvents();
+  }
+}
+
+function syncDisciplineSpecificFields(discipline = disciplineSelect?.value) {
+  const isShape = discipline === "shape";
+  const isBikeBased = discipline === "triathlon" || discipline === "cycling";
+  const isHyrox = discipline === "hyrox";
+  const isRunning = discipline === "running";
+  const showBikeThresholds = discipline === "triathlon" || discipline === "cycling";
+  const showRunThresholds = discipline === "triathlon" || discipline === "running" || discipline === "hyrox";
+  const showSharedSlider = isShape || isBikeBased || isHyrox;
+  const showTargetFocus = isShape || isRunning || discipline === "triathlon" || isHyrox;
+  const showLongRunDay = isRunning || discipline === "triathlon";
+  const showRecentPbs = discipline !== "shape";
+  const showRaceEvents = discipline !== "shape";
+  const showPrimaryGoalFields = isShape;
+
+  if (shapeTargetWeightFieldEl) shapeTargetWeightFieldEl.hidden = !isShape;
+  if (shapeTargetFocusFieldEl) shapeTargetFocusFieldEl.hidden = !showTargetFocus;
+  if (shapeGymShareFieldEl) shapeGymShareFieldEl.hidden = !showSharedSlider;
+  if (bikeOutdoorDayFieldEl) bikeOutdoorDayFieldEl.hidden = !isBikeBased;
+  if (longRunDayFieldEl) longRunDayFieldEl.hidden = !showLongRunDay;
+  if (bikeFtpFieldEl) bikeFtpFieldEl.hidden = !showBikeThresholds;
+  if (bikeThresholdHrFieldEl) bikeThresholdHrFieldEl.hidden = !showBikeThresholds;
+  if (bikeLactateFieldEl) bikeLactateFieldEl.hidden = !showBikeThresholds;
+  if (runThresholdPaceFieldEl) runThresholdPaceFieldEl.hidden = !showRunThresholds;
+  if (runThresholdHrFieldEl) runThresholdHrFieldEl.hidden = !showRunThresholds;
+  if (runLactateFieldEl) runLactateFieldEl.hidden = !showRunThresholds;
+  if (recentPbsFieldEl) recentPbsFieldEl.hidden = !showRecentPbs;
+  if (raceCalendarFieldEl) raceCalendarFieldEl.hidden = !showRaceEvents;
+  if (goalDistanceFieldEl) goalDistanceFieldEl.hidden = !showPrimaryGoalFields;
+  if (goalTimeFieldEl) goalTimeFieldEl.hidden = !showPrimaryGoalFields;
+  if (raceDateFieldEl) raceDateFieldEl.hidden = !showPrimaryGoalFields;
+  if (shapeGoalGuidanceEl) shapeGoalGuidanceEl.hidden = true;
+  setFieldEnabled(shapeTargetWeightFieldEl, isShape);
+  setFieldEnabled(shapeTargetFocusFieldEl, showTargetFocus);
+  setFieldEnabled(shapeGymShareFieldEl, showSharedSlider);
+  setFieldEnabled(bikeOutdoorDayFieldEl, isBikeBased);
+  setFieldEnabled(longRunDayFieldEl, showLongRunDay);
+  setFieldEnabled(bikeFtpFieldEl, showBikeThresholds);
+  setFieldEnabled(bikeThresholdHrFieldEl, showBikeThresholds);
+  setFieldEnabled(bikeLactateFieldEl, showBikeThresholds);
+  setFieldEnabled(runThresholdPaceFieldEl, showRunThresholds);
+  setFieldEnabled(runThresholdHrFieldEl, showRunThresholds);
+  setFieldEnabled(runLactateFieldEl, showRunThresholds);
+  setFieldEnabled(recentPbsFieldEl, showRecentPbs);
+  setFieldEnabled(raceCalendarFieldEl, showRaceEvents);
+  setFieldEnabled(goalDistanceFieldEl, true);
+  setFieldEnabled(goalTimeFieldEl, true);
+  setFieldEnabled(raceDateFieldEl, true);
+  syncShapeTargetWeightOptions();
+  syncPbDisciplineOptions(discipline);
+  syncPerformanceFieldLayout(discipline);
+  syncShapeTargetFocusOptions(discipline, goalDistanceSelect?.value);
+  syncDisciplineShareControl(discipline);
+  syncDisciplineSpecificPlaceholders(discipline);
+  syncLongRunDayLabel(discipline);
+  syncInlineRaceDistanceOptions(discipline);
+
+  if (goalTimeLabelEl) {
+    goalTimeLabelEl.textContent = isShape
+      ? currentLang === "ja"
+        ? "目標値"
+        : currentLang === "en"
+          ? "Target marker"
+          : "Zielwert"
+      : t("field_goal_time");
+  }
+  if (goalTimeInputEl) {
+    goalTimeInputEl.placeholder = isShape
+      ? currentLang === "ja"
+        ? "例: -6 kg / 78 kg"
+        : currentLang === "en"
+          ? "e.g. -6 kg / 78 kg"
+          : "z. B. -6 kg / 78 kg"
+      : "2:59:00";
+  }
+  if (raceDateLabelEl) {
+    raceDateLabelEl.textContent = isShape
+      ? currentLang === "ja"
+        ? "Target Date"
+        : currentLang === "en"
+          ? "Target Date"
+          : "Zieldatum"
+      : currentLang === "ja"
+        ? "Race Date"
+        : currentLang === "en"
+          ? "Race Date"
+          : "Race Date";
+  }
+  if (plannerSubmitBtnEl) {
+    const ctaByDiscipline = {
+      running: "run.",
+      triathlon: "race.",
+      cycling: "bike.",
+      hyrox: "race.",
+      shape: "shape.",
+    };
+    plannerSubmitBtnEl.textContent = ctaByDiscipline[discipline] || "race.";
+  }
+  if (isShape && goalTimeInputEl && /^(\d{1,2}:)?\d{1,2}:\d{2}$/.test(String(goalTimeInputEl.value || "").trim())) {
+    goalTimeInputEl.value = currentLang === "en" ? "-4 kg" : "-4 kg";
+  }
+  if (thresholdModalEl && !thresholdModalEl.hidden) {
+    renderThresholdModalFields(discipline);
+  }
+  syncShapeGoalConsistency();
+  normalizeFieldLabels();
+}
+
+function getShapeTargetWeightPlaceholder() {
+  if (currentLang === "ja") return "選択してください";
+  if (currentLang === "en") return "Select target";
+  return "Bitte wählen";
+}
+
+function syncShapeTargetWeightOptions() {
+  if (!shapeTargetWeightSelectEl) return;
+  const isShape = String(disciplineSelect?.value || "") === "shape";
+  if (!isShape) return;
+  const goal = String(goalDistanceSelect?.value || "fatloss");
+  const currentWeight = Number(form?.elements?.weightKg?.value) || null;
+  const previous = String(shapeTargetWeightSelectEl.value || "").trim();
+
+  const values = [];
+  const addValue = (v) => {
+    const rounded = round1(v);
+    if (!Number.isFinite(rounded) || rounded < 35 || rounded > 180) return;
+    if (!values.includes(rounded)) values.push(rounded);
+  };
+
+  if (currentWeight) {
+    if (goal === "fatloss") {
+      for (let delta = 1; delta <= 40; delta += 1) {
+        addValue(currentWeight - delta);
+      }
+      values.sort((a, b) => b - a);
+    } else if (goal === "build") {
+      for (let delta = 1; delta <= 20; delta += 1) {
+        addValue(currentWeight + delta);
+      }
+      values.sort((a, b) => a - b);
+    } else {
+      for (let delta = -8; delta <= 8; delta += 1) {
+        if (!delta) continue;
+        addValue(currentWeight + delta);
+      }
+      values.sort((a, b) => a - b);
+    }
+  } else {
+    const start = goal === "build" ? 45 : 40;
+    const end = goal === "build" ? 140 : 130;
+    for (let w = start; w <= end; w += 1) addValue(w);
+  }
+
+  const currentAsNum = previous ? Number(previous) : null;
+  if (Number.isFinite(currentAsNum) && !values.includes(round1(currentAsNum))) addValue(currentAsNum);
+
+  shapeTargetWeightSelectEl.innerHTML = [
+    `<option value="">${escapeHtml(getShapeTargetWeightPlaceholder())}</option>`,
+    ...values.map((v) => `<option value="${v.toFixed(1)}">${v.toFixed(1)} kg</option>`),
+  ].join("");
+
+  if (previous && [...shapeTargetWeightSelectEl.options].some((opt) => opt.value === previous)) {
+    shapeTargetWeightSelectEl.value = previous;
+  } else {
+    shapeTargetWeightSelectEl.value = "";
+  }
+}
+
+function setShapeTargetWeightValue(value) {
+  if (!shapeTargetWeightSelectEl || !Number.isFinite(Number(value))) return;
+  const normalized = round1(Number(value)).toFixed(1);
+  syncShapeTargetWeightOptions();
+  if (![...shapeTargetWeightSelectEl.options].some((opt) => opt.value === normalized)) {
+    shapeTargetWeightSelectEl.insertAdjacentHTML("beforeend", `<option value="${normalized}">${normalized} kg</option>`);
+  }
+  shapeTargetWeightSelectEl.value = normalized;
+}
+
+function syncPerformanceFieldLayout(discipline = disciplineSelect?.value) {
+  const fields = [
+    bikeFtpFieldEl,
+    bikeThresholdHrFieldEl,
+    bikeLactateFieldEl,
+    runThresholdPaceFieldEl,
+    runThresholdHrFieldEl,
+    runLactateFieldEl,
+    recentPbsFieldEl,
+  ];
+  fields.forEach((field) => {
+    if (!field) return;
+    field.style.gridColumn = "";
+  });
+
+  if (discipline === "triathlon") {
+    if (bikeFtpFieldEl) bikeFtpFieldEl.style.gridColumn = "1";
+    if (bikeThresholdHrFieldEl) bikeThresholdHrFieldEl.style.gridColumn = "2";
+    if (bikeLactateFieldEl) bikeLactateFieldEl.style.gridColumn = "3";
+    if (runThresholdPaceFieldEl) runThresholdPaceFieldEl.style.gridColumn = "1";
+    if (runThresholdHrFieldEl) runThresholdHrFieldEl.style.gridColumn = "2";
+    if (runLactateFieldEl) runLactateFieldEl.style.gridColumn = "3";
+  } else if (discipline === "cycling") {
+    if (bikeFtpFieldEl) bikeFtpFieldEl.style.gridColumn = "1";
+    if (bikeThresholdHrFieldEl) bikeThresholdHrFieldEl.style.gridColumn = "2";
+    if (bikeLactateFieldEl) bikeLactateFieldEl.style.gridColumn = "3";
+  } else if (discipline === "running" || discipline === "hyrox") {
+    if (runThresholdPaceFieldEl) runThresholdPaceFieldEl.style.gridColumn = "1";
+    if (runThresholdHrFieldEl) runThresholdHrFieldEl.style.gridColumn = "2";
+    if (runLactateFieldEl) runLactateFieldEl.style.gridColumn = "3";
+  }
+
+  if (recentPbsFieldEl && !recentPbsFieldEl.hidden) recentPbsFieldEl.style.gridColumn = "1 / -1";
+}
+
+function syncLongRunDayLabel(discipline = disciplineSelect?.value) {
+  if (!longRunDayLabelEl) return;
+  longRunDayLabelEl.textContent = currentLang === "de" ? "Long Run Day (optional)" : currentLang === "ja" ? "ロングラン日（任意）" : "Long run day (optional)";
+  if (longRunDaySelectEl) {
+    const selected = longRunDaySelectEl.value || "sunday";
+    const opts = [
+      ["none", currentLang === "de" ? "Kein fixer Tag" : currentLang === "ja" ? "固定なし" : "No fixed day"],
+      ["saturday", currentLang === "de" ? "Samstag" : currentLang === "ja" ? "土曜" : "Saturday"],
+      ["sunday", currentLang === "de" ? "Sonntag" : currentLang === "ja" ? "日曜" : "Sunday"],
+      ["wednesday", currentLang === "de" ? "Mittwoch" : currentLang === "ja" ? "水曜" : "Wednesday"],
+      ["friday", currentLang === "de" ? "Freitag" : currentLang === "ja" ? "金曜" : "Friday"],
+    ];
+    longRunDaySelectEl.innerHTML = opts.map(([v, l]) => `<option value="${v}">${l}</option>`).join("");
+    longRunDaySelectEl.value = opts.some(([v]) => v === selected) ? selected : "sunday";
+  }
+}
+
+function setFieldEnabled(fieldEl, enabled) {
+  if (!fieldEl) return;
+  [...fieldEl.querySelectorAll("input, select, textarea")].forEach((node) => {
+    node.disabled = !enabled;
+  });
+}
+
+function normalizeFieldLabels(scope = document) {
+  const labelNodes = [
+    ...scope.querySelectorAll(".field > span"),
+    ...scope.querySelectorAll(".field-checkbox > span"),
+  ];
+  labelNodes.forEach((node) => {
+    const fieldEl = node.closest(".field, .field-checkbox");
+    if (!fieldEl) return;
+    let text = String(node.textContent || "");
+    text = text.replace(/\s*\(\s*optional\s*\)\s*/gi, " ");
+    text = text.replace(/\boptional\b/gi, " ");
+    text = text.replace(/\s+\*/g, " ");
+    text = text.replace(/\s{2,}/g, " ").trim();
+    node.textContent = text;
+  });
+}
+
+function syncDisciplineSpecificPlaceholders(discipline = disciplineSelect?.value) {
+  if (!constraintsInputEl) return;
+  const placeholderByDiscipline = {
+    running: currentLang === "de" ? "z. B. Long Run nur Sonntag" : currentLang === "ja" ? "例: ロング走は日曜のみ" : "e.g. long run Sunday only",
+    triathlon: currentLang === "de" ? "z. B. Swim nur Di/Do, Long Ride Sa" : currentLang === "ja" ? "例: スイムは火木のみ、ロングライド土曜" : "e.g. swim Tue/Thu only, long ride Sat",
+    cycling: currentLang === "de" ? "z. B. lange Ausfahrt nur Sonntag" : currentLang === "ja" ? "例: ロングライドは日曜のみ" : "e.g. long ride Sunday only",
+    hyrox: currentLang === "de" ? "z. B. keine Box, nur Home/Gym" : currentLang === "ja" ? "例: ボックスなし、自宅/ジムのみ" : "e.g. no box, home/gym only",
+    shape: currentLang === "de" ? "z. B. Knie sensibel, nur 30 min werktags" : currentLang === "ja" ? "例: 膝に配慮、平日は30分まで" : "e.g. sensitive knees, 30 min on weekdays",
+  };
+  constraintsInputEl.placeholder = placeholderByDiscipline[discipline] || placeholderByDiscipline.running;
+}
+
+function syncShapeTargetFocusOptions(discipline, goalFormat) {
+  if (!shapeTargetFocusSelectEl) return;
+  if (disciplineTargetFocusLabelEl) {
+    disciplineTargetFocusLabelEl.textContent =
+      currentLang === "de"
+        ? "Plan-Fokus"
+        : currentLang === "ja"
+          ? "プランフォーカス"
+          : "Plan focus";
+  }
+
+  if (discipline === "running") {
+    const opts = [
+      { value: "pb", label: currentLang === "de" ? "PB / schneller werden" : currentLang === "ja" ? "PB・スピード" : "PB / get faster" },
+      { value: "consistent", label: currentLang === "de" ? "Konstanz / fitter werden" : currentLang === "ja" ? "継続・体力アップ" : "Consistency / get fitter" },
+      { value: "maintain", label: currentLang === "de" ? "Maintain / Form halten" : currentLang === "ja" ? "維持" : "Maintain / hold form" },
+    ];
+    const prev = shapeTargetFocusSelectEl.value;
+    shapeTargetFocusSelectEl.innerHTML = opts.map((o) => `<option value="${o.value}">${o.label}</option>`).join("");
+    shapeTargetFocusSelectEl.value = opts.some((o) => o.value === prev) ? prev : "pb";
+    return;
+  }
+
+  if (discipline === "triathlon") {
+    const opts = [
+      { value: "balanced", label: currentLang === "de" ? "Ausgeglichen" : currentLang === "ja" ? "バランス" : "Balanced" },
+      { value: "swim", label: currentLang === "de" ? "Swim-Fokus" : currentLang === "ja" ? "スイム重視" : "Swim focus" },
+      { value: "bike", label: currentLang === "de" ? "Bike-Fokus" : currentLang === "ja" ? "バイク重視" : "Bike focus" },
+      { value: "run", label: currentLang === "de" ? "Run-Fokus" : currentLang === "ja" ? "ラン重視" : "Run focus" },
+    ];
+    const prev = shapeTargetFocusSelectEl.value;
+    shapeTargetFocusSelectEl.innerHTML = opts.map((o) => `<option value="${o.value}">${o.label}</option>`).join("");
+    shapeTargetFocusSelectEl.value = opts.some((o) => o.value === prev) ? prev : "balanced";
+    return;
+  }
+
+  if (discipline === "hyrox") {
+    const opts = [
+      { value: "finish", label: currentLang === "de" ? "Finish / sauber durchkommen" : currentLang === "ja" ? "完走重視" : "Finish / complete well" },
+      { value: "competitive", label: currentLang === "de" ? "Competitive / Pace pushen" : currentLang === "ja" ? "競技志向" : "Competitive / push pace" },
+      { value: "engine", label: currentLang === "de" ? "Engine + Work Capacity" : currentLang === "ja" ? "持久力・作業能力" : "Engine + work capacity" },
+    ];
+    const prev = shapeTargetFocusSelectEl.value;
+    shapeTargetFocusSelectEl.innerHTML = opts.map((o) => `<option value="${o.value}">${o.label}</option>`).join("");
+    shapeTargetFocusSelectEl.value = opts.some((o) => o.value === prev) ? prev : "finish";
+    return;
+  }
+
+  if (discipline !== "shape") return;
+  const optionsByGoal = {
+    fatloss: [
+      { value: "weight", label: currentLang === "de" ? "Gewicht reduzieren" : currentLang === "ja" ? "減量" : "Weight loss" },
+      { value: "fit", label: currentLang === "de" ? "Fitter / alltagstauglicher" : currentLang === "ja" ? "体力・日常動作" : "Get fitter / daily energy" },
+      { value: "health", label: currentLang === "de" ? "Gesünder + konstant" : currentLang === "ja" ? "健康・継続" : "Health + consistency" },
+    ],
+    recomp: [
+      { value: "bodycomp", label: currentLang === "de" ? "Fett runter / Muskeln halten" : currentLang === "ja" ? "脂肪減・筋維持" : "Fat down / hold muscle" },
+      { value: "strength", label: currentLang === "de" ? "Kräftiger + fitter werden" : currentLang === "ja" ? "筋力+体力" : "Stronger + fitter" },
+      { value: "routine", label: currentLang === "de" ? "Routine aufbauen" : currentLang === "ja" ? "習慣化" : "Build routine" },
+    ],
+    build: [
+      { value: "strength", label: currentLang === "de" ? "Kraft-/Muskelaufbau" : currentLang === "ja" ? "筋力・筋量アップ" : "Strength / muscle gain" },
+      { value: "performance", label: currentLang === "de" ? "Leistung im Gym steigern" : currentLang === "ja" ? "ジムパフォーマンス向上" : "Gym performance" },
+      { value: "weight", label: currentLang === "de" ? "Gewicht kontrolliert erhöhen" : currentLang === "ja" ? "体重を計画的に増やす" : "Controlled weight gain" },
+    ],
+    fitness: [
+      { value: "fitness", label: currentLang === "de" ? "Allgemein fitter werden" : currentLang === "ja" ? "全体的にフィット" : "General fitness" },
+      { value: "conditioning", label: currentLang === "de" ? "Ausdauer / Kondition" : currentLang === "ja" ? "持久力・コンディショニング" : "Conditioning / stamina" },
+      { value: "routine", label: currentLang === "de" ? "Routine & Konstanz" : currentLang === "ja" ? "継続・習慣化" : "Routine & consistency" },
+    ],
+  };
+  const opts = optionsByGoal[goalFormat] || optionsByGoal.fitness;
+  const prev = shapeTargetFocusSelectEl.value;
+  shapeTargetFocusSelectEl.innerHTML = opts.map((o) => `<option value="${o.value}">${o.label}</option>`).join("");
+  shapeTargetFocusSelectEl.value = opts.some((o) => o.value === prev) ? prev : opts[0].value;
+}
+
+function estimateShapeGoalWindow(profileLike) {
+  const weight = Number(profileLike?.weightKg) || null;
+  const targetWeight = Number(profileLike?.targetWeightKg) || null;
+  const raceDateValue = profileLike?.raceDate instanceof Date ? profileLike.raceDate : profileLike?.raceDate ? new Date(profileLike.raceDate) : null;
+  if (!weight || !targetWeight || !raceDateValue || Number.isNaN(raceDateValue.getTime())) return null;
+  const today = startOfDay(new Date());
+  const targetDate = startOfDay(raceDateValue);
+  const weeks = Math.max(1, Math.ceil((targetDate - today) / 86400000 / 7));
+  const delta = targetWeight - weight;
+  const kgPerWeek = delta / weeks;
+  const maxCutPerWeek = 0.9; // ambitious but usually still in a realistic range
+  const preferredCutPerWeek = 0.5;
+  const maxGainPerWeek = 0.35;
+  const preferredGainPerWeek = 0.2;
+
+  let status = "ok";
+  let message = "";
+  let suggestedDate = null;
+  let reachableWeight = null;
+
+  if (delta < 0) {
+    const needAbs = Math.abs(kgPerWeek);
+    if (needAbs > maxCutPerWeek) {
+      status = "error";
+      const requiredWeeks = Math.ceil(Math.abs(delta) / preferredCutPerWeek);
+      suggestedDate = addDays(today, requiredWeeks * 7);
+      reachableWeight = round1(weight - preferredCutPerWeek * weeks);
+      message = `Zu aggressiv: ${Math.abs(delta).toFixed(1)} kg in ${weeks} Wochen (~${needAbs.toFixed(2)} kg/Woche). Realistischer: ~${preferredCutPerWeek.toFixed(1)} kg/Woche.`;
+    } else if (needAbs > preferredCutPerWeek) {
+      status = "warning";
+      reachableWeight = round1(weight - preferredCutPerWeek * weeks);
+      message = `Ambitioniert: ~${needAbs.toFixed(2)} kg/Woche. Solider Bereich liegt oft bei ~0.25-0.75 kg/Woche.`;
+    } else {
+      message = `Plausibel: ~${needAbs.toFixed(2)} kg/Woche.`;
+    }
+  } else if (delta > 0) {
+    const needGain = kgPerWeek;
+    if (needGain > maxGainPerWeek) {
+      status = "warning";
+      const requiredWeeks = Math.ceil(Math.abs(delta) / preferredGainPerWeek);
+      suggestedDate = addDays(today, requiredWeeks * 7);
+      reachableWeight = round1(weight + preferredGainPerWeek * weeks);
+      message = `Schneller Aufbau: ~${needGain.toFixed(2)} kg/Woche. Nachhaltiger ist oft langsamer (ca. ${preferredGainPerWeek.toFixed(1)} kg/Woche).`;
+    } else {
+      message = `Plausibel: ~${needGain.toFixed(2)} kg/Woche Aufbau.`;
+    }
+  } else {
+    message = "Start- und Zielgewicht sind identisch. Fokus auf Recomp/Fitness/Leistung sinnvoll.";
+  }
+
+  return { weeks, delta, kgPerWeek, status, message, suggestedDate, reachableWeight, weight, targetWeight };
+}
+
+function syncShapeGoalConsistency() {
+  const isShape = disciplineSelect?.value === "shape";
+  if (!isShape) {
+    if (form?.elements?.targetWeightKg) form.elements.targetWeightKg.setCustomValidity("");
+    if (shapeGoalGuidanceEl) {
+      shapeGoalGuidanceEl.textContent = currentLang === "de" ? "Gib Startgewicht, Zielgewicht und Zieldatum an." : "Add start weight, target weight and target date.";
+      shapeGoalGuidanceEl.classList.remove("is-warning", "is-error");
+    }
+    return;
+  }
+
+  syncShapeTargetWeightOptions();
+  const weight = Number(form?.elements?.weightKg?.value) || null;
+  const targetWeight = Number(form?.elements?.targetWeightKg?.value) || null;
+  const raceDateRaw = String(form?.elements?.raceDate?.value || "").trim();
+  const shapeGoal = String(goalDistanceSelect?.value || "");
+  const focus = String(shapeTargetFocusSelectEl?.value || "");
+
+  if (goalTimeInputEl) {
+    if (focus === "weight" && weight && targetWeight) {
+      const delta = targetWeight - weight;
+      goalTimeInputEl.value = `${delta > 0 ? "+" : ""}${round1(delta)} kg`;
+    } else if (shapeGoal === "fatloss" && (!goalTimeInputEl.value || /kg$|Recomp|Stronger/.test(goalTimeInputEl.value))) {
+      goalTimeInputEl.value = "-4 kg";
+    } else if (shapeGoal === "build" && (!goalTimeInputEl.value || /kg$|Recomp|Stronger/.test(goalTimeInputEl.value))) {
+      goalTimeInputEl.value = "+2 kg";
+    } else if (shapeGoal === "recomp" && (!goalTimeInputEl.value || /kg$|Stronger/.test(goalTimeInputEl.value))) {
+      goalTimeInputEl.value = "Body comp";
+    } else if (shapeGoal === "fitness" && (!goalTimeInputEl.value || /kg$|Recomp|Body comp/.test(goalTimeInputEl.value))) {
+      goalTimeInputEl.value = "conditioning";
+    }
+  }
+
+  if (!shapeGoalGuidanceEl) return;
+  shapeGoalGuidanceEl.classList.remove("is-warning", "is-error");
+  if (!weight || !targetWeight || !raceDateRaw) {
+    shapeGoalGuidanceEl.textContent = currentLang === "de"
+      ? "Für konsistente Shape-Ziele: Startgewicht, Zielgewicht und Zieldatum angeben."
+      : "For consistent shape goals, add start weight, target weight and target date.";
+    return;
+  }
+
+  const check = estimateShapeGoalWindow({ weightKg: weight, targetWeightKg: targetWeight, raceDate: new Date(`${raceDateRaw}T09:00:00`) });
+  if (!check) return;
+
+  let line = check.message;
+  if (check.suggestedDate) {
+    line += currentLang === "de"
+      ? ` Vorschlag Zieldatum: ${formatDateShort(check.suggestedDate)}.`
+      : ` Suggested target date: ${formatDateShort(check.suggestedDate)}.`;
+  } else if (check.reachableWeight != null && check.status !== "ok") {
+    line += currentLang === "de"
+      ? ` Bis dahin realistischer eher ~${check.reachableWeight.toFixed(1)} kg.`
+      : ` By then, a more realistic target is ~${check.reachableWeight.toFixed(1)} kg.`;
+  }
+  shapeGoalGuidanceEl.textContent = line;
+  if (check.status === "warning" || check.status === "error") shapeGoalGuidanceEl.classList.add("is-warning");
+
+  if (form?.elements?.targetWeightKg) {
+    form.elements.targetWeightKg.setCustomValidity("");
+  }
+}
+
+function checkGoalRealismBeforePlan(profile) {
+  if (profile.discipline === "shape") {
+    const shapeWindow = estimateShapeGoalWindow(profile);
+    if (shapeWindow?.status === "error") {
+      const suggestionText = [
+        shapeWindow.suggestedDate ? `Zieldatum: ${formatDateShort(shapeWindow.suggestedDate)}` : null,
+        shapeWindow.reachableWeight != null ? `oder Zielgewicht bis dahin ~${shapeWindow.reachableWeight.toFixed(1)} kg` : null,
+      ].filter(Boolean).join(" • ");
+      return {
+        block: true,
+        message: shapeWindow.message,
+        suggestionText,
+        applySuggestion: () => {
+          if (shapeWindow.suggestedDate && form?.elements?.raceDate) {
+            form.elements.raceDate.value = formatDateInput(shapeWindow.suggestedDate);
+          }
+          if (shapeWindow.reachableWeight != null && form?.elements?.targetWeightKg) {
+            setShapeTargetWeightValue(shapeWindow.reachableWeight);
+          }
+          syncShapeGoalConsistency();
+        },
+      };
+    }
+    return { block: false };
+  }
+
+  const feasibility = assessGoalFeasibility(profile);
+  if (feasibility.level !== "unrealistic") return { block: false };
+
+  const suggestedWeeksByDiscipline =
+    profile.discipline === "triathlon"
+      ? (profile.goalDistance === "ironman" ? 24 : profile.goalDistance === "703" ? 14 : 10)
+      : profile.discipline === "running"
+        ? (profile.goalDistance === "marathon" ? 16 : 10)
+        : profile.discipline === "hyrox"
+          ? 8
+          : profile.discipline === "cycling"
+            ? 10
+            : 12;
+  const today = startOfDay(new Date());
+  const suggestedDate = addDays(today, suggestedWeeksByDiscipline * 7);
+  return {
+    block: true,
+    message: feasibility.message,
+    suggestionText: `Vorschlag Zieldatum: ${formatDateShort(suggestedDate)} (mehr Aufbauzeit).`,
+    applySuggestion: () => {
+      if (form?.elements?.raceDate) form.elements.raceDate.value = formatDateInput(suggestedDate);
+    },
+  };
+}
+
+function syncShapeGymShareLabel() {
+  if (!shapeGymShareInputEl || !shapeGymShareValueEl) return;
+  syncDisciplineShareControl(disciplineSelect?.value);
+  shapeGymShareValueEl.classList.add("is-visible");
+  if (shareHintHideTimer) window.clearTimeout(shareHintHideTimer);
+  shareHintHideTimer = window.setTimeout(() => {
+    shapeGymShareValueEl?.classList.remove("is-visible");
+  }, 1400);
+}
+
+function syncDisciplineShareControl(discipline = disciplineSelect?.value) {
+  if (!shapeGymShareInputEl || !shapeGymShareValueEl || !disciplineShareLabelEl) return;
+  const value = clamp(Number(shapeGymShareInputEl.value) || 0, 0, 100);
+  const complement = 100 - value;
+
+  if (discipline === "shape") {
+    disciplineShareLabelEl.textContent = currentLang === "de" ? "Gym-Anteil" : currentLang === "ja" ? "ジム比率" : "Gym share";
+    shapeGymShareValueEl.textContent =
+      currentLang === "de"
+        ? `${value}% Gym / ${complement}% Outdoor-Home`
+        : currentLang === "ja"
+          ? `${value}% Gym / ${complement}% Outdoor-Home`
+          : `${value}% Gym / ${complement}% Outdoor-Home`;
+    return;
+  }
+
+  if (discipline === "triathlon" || discipline === "cycling") {
+    const outdoorDay = String(bikeOutdoorDaySelectEl?.value || "none");
+    disciplineShareLabelEl.textContent = currentLang === "de" ? "Rolle-Anteil Bike" : currentLang === "ja" ? "バイク室内比率" : "Bike trainer share";
+    const suffix =
+      outdoorDay === "never"
+        ? (currentLang === "de" ? " • nur Rolle" : currentLang === "ja" ? " • 室内のみ" : " • trainer only")
+        : outdoorDay === "none"
+          ? ""
+          : currentLang === "de"
+            ? ` • Outdoor bevorzugt: ${bikeOutdoorDayLabel(outdoorDay)}`
+            : currentLang === "ja"
+              ? ` • 屋外優先: ${bikeOutdoorDayLabel(outdoorDay)}`
+              : ` • outdoor preferred: ${bikeOutdoorDayLabel(outdoorDay)}`;
+    shapeGymShareValueEl.textContent =
+      currentLang === "de"
+        ? `${value}% Rolle / ${complement}% draußen${suffix}`
+        : currentLang === "ja"
+          ? `${value}% 室内 / ${complement}% 屋外${suffix}`
+          : `${value}% trainer / ${complement}% outdoor${suffix}`;
+    if (bikeOutdoorDayLabelEl) {
+      bikeOutdoorDayLabelEl.textContent = currentLang === "de" ? "Outdoor-Tag (optional)" : currentLang === "ja" ? "屋外ライド日（任意）" : "Outdoor ride day (optional)";
+    }
+    return;
+  }
+
+  if (discipline === "hyrox") {
+    disciplineShareLabelEl.textContent = currentLang === "de" ? "Box-/Gym-Anteil" : currentLang === "ja" ? "ボックス/ジム比率" : "Box / gym share";
+    shapeGymShareValueEl.textContent =
+      currentLang === "de"
+        ? `${value}% Box/Gym / ${complement}% No-Box (Home/Outdoor)`
+        : currentLang === "ja"
+          ? `${value}% ボックス/ジム / ${complement}% ノーボックス（自宅/屋外）`
+          : `${value}% box/gym / ${complement}% no-box (home/outdoor)`;
+    return;
+  }
+
+  disciplineShareLabelEl.textContent = currentLang === "de" ? "Anteil" : currentLang === "ja" ? "比率" : "Share";
+  shapeGymShareValueEl.textContent = `${value}% / ${complement}%`;
+}
+
+function bikeOutdoorDayLabel(value) {
+  const labels = {
+    none: currentLang === "de" ? "kein fixer Tag" : currentLang === "ja" ? "固定なし" : "no fixed day",
+    never: currentLang === "de" ? "nie" : currentLang === "ja" ? "なし" : "never",
+    saturday: currentLang === "de" ? "Samstag" : currentLang === "ja" ? "土曜" : "Saturday",
+    sunday: currentLang === "de" ? "Sonntag" : currentLang === "ja" ? "日曜" : "Sunday",
+    wednesday: currentLang === "de" ? "Mittwoch" : currentLang === "ja" ? "水曜" : "Wednesday",
+    friday: currentLang === "de" ? "Freitag" : currentLang === "ja" ? "金曜" : "Friday",
+  };
+  return labels[value] || value;
+}
+
+function applyHeroImagesForDiscipline(discipline) {
+  if (!heroPhotoCards.length) return;
+  const set = HERO_IMAGE_SETS[discipline] || HERO_IMAGE_SETS.triathlon;
+  heroPhotoCards.forEach((card, index) => {
+    const conf = set[index % set.length];
+    if (!conf) return;
+    card.style.setProperty("--photo", `url('${conf.url}')`);
+    if (conf.pos) card.style.setProperty("--photo-pos", conf.pos);
+    if (conf.size) card.style.setProperty("--photo-size", conf.size);
+  });
+}
+
+function initAdvancedSettingsToggle() {
+  if (!advancedSettingsEl || !tuningToggleButtons.length || !tuningPanels.length || !tuningPanelHostEl) return;
+  const setActiveTuningPanel = (key = null) => {
+    activeTuningPanel = key;
+    tuningPanels.forEach((panel) => {
+      panel.hidden = panel.getAttribute("data-tuning-panel") !== key;
+    });
+    tuningToggleButtons.forEach((btn) => {
+      const isActive = btn.getAttribute("data-tuning-toggle") === key;
+      btn.setAttribute("aria-expanded", String(isActive));
+      btn.classList.toggle("is-active", isActive);
+    });
+    tuningPanelHostEl.hidden = !key;
+  };
+
+  setActiveTuningPanel(null);
+  tuningToggleButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const key = String(btn.getAttribute("data-tuning-toggle") || "");
+      if (!key) return;
+      setActiveTuningPanel(activeTuningPanel === key ? null : key);
+    });
+  });
+}
+
+function syncCycleBasedTrainingAvailability() {
+  if (!cycleTrainingField || !form?.elements?.cycleBasedTraining) return;
+  const isFemale = sexSelect?.value === "female";
+  const checkbox = form.elements.cycleBasedTraining;
+  const cycleInputs = cycleDetailsGroup ? [...cycleDetailsGroup.querySelectorAll("input")] : [];
+
+  cycleTrainingField.classList.toggle("is-disabled", !isFemale);
+  cycleDetailsGroup?.classList.toggle("is-disabled", !isFemale || !checkbox.checked);
+  checkbox.disabled = !isFemale;
+  if (!isFemale) checkbox.checked = false;
+  const cycleDetailsEnabled = isFemale && checkbox.checked;
+  cycleInputs.forEach((input) => {
+    input.disabled = !cycleDetailsEnabled;
+    if (!cycleDetailsEnabled) input.value = "";
+  });
+}
+
+function initLanguageSwitcher() {
+  if (!langButtons.length) return;
+  langButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const lang = btn.dataset.lang;
+      if (!lang || lang === currentLang) return;
+      currentLang = lang;
+      langButtons.forEach((item) => item.classList.toggle("is-active", item === btn));
+      applyTranslations();
+      if (latestProfile && latestPlan) {
+        renderAnalysis(latestProfile, latestPlan);
+        renderPlan(latestPlan);
+        renderPerformanceInsights(latestProfile, latestPlan);
+        if (expandedSessionId) {
+          const session = generatedSessions.find((s) => s._id === expandedSessionId);
+          if (session) openSessionOverlay(session);
+        }
+      } else {
+        updateConnectionStateCopy();
+      }
+    });
+  });
+}
+
+function getStravaLocalUserId(account = getCurrentAccount()) {
+  if (!account) return "";
+  return String(account.id || account.email || "").trim();
+}
+
+function buildStravaOAuthUrl(userId) {
+  const base = `${STRAVA_OAUTH_DEV_BASE}/api/oauth/strava/start`;
+  const url = new URL(base);
+  url.searchParams.set("user_id", userId || "local-user");
+  return url.toString();
+}
+
+function startStravaOAuthFlow() {
+  const account = getCurrentAccount();
+  if (!account) {
+    openAccountModal("register");
+    setText(accountFormStatusEl, "Bitte zuerst Account anlegen oder einloggen. Danach kannst du Strava verbinden.");
+    return;
+  }
+  const userId = getStravaLocalUserId(account);
+  setText(stravaProfileFetchStatusEl, "Öffne Strava OAuth …");
+  window.location.href = buildStravaOAuthUrl(userId);
+}
+
+function updateConnectionStateCopy() {
+  if (!connectionState) return;
+  const account = getCurrentAccount();
+  const stravaConnected = Boolean(account?.integrations?.strava?.connected);
+  const activeSources = [...connectedSources];
+  if (stravaConnected && !activeSources.includes("Strava")) activeSources.unshift("Strava");
+  if (!activeSources.length) {
+    connectionState.textContent = t("no_sources");
+    return;
+  }
+  const suffix = stravaConnected ? " • Strava OAuth (dev)" : "";
+  connectionState.textContent = `${t("connected_mock")}: ${activeSources.join(", ")}${suffix}`;
+}
+
+function maybeFetchStravaStatus(account = getCurrentAccount()) {
+  if (!account) return;
+  if (!activeProfileView || activeProfileView !== "overview") return;
+  const userId = getStravaLocalUserId(account);
+  const hasKnownConnection = Boolean(account?.integrations?.strava?.connected || connectedSources.has("Strava"));
+  if (!hasKnownConnection) return;
+  if (stravaFetchInFlight) return;
+  fetchStravaStatusAndAthlete();
+}
+
+async function fetchStravaStatusAndAthlete({ force = false } = {}) {
+  const account = getCurrentAccount();
+  if (!account) {
+    renderStravaProfileStatus(null);
+    return;
+  }
+  ensureAccountIntegrationsShape(account);
+  const userId = getStravaLocalUserId(account);
+  if (!userId) return;
+  if (stravaFetchInFlight) return;
+  if (!force && stravaStatusFetchedForUserId === userId && account.integrations?.strava?.lastStatusAt) {
+    renderStravaProfileStatus(account);
+    return;
+  }
+
+  stravaFetchInFlight = true;
+  setText(stravaProfileFetchStatusEl, "Strava Status wird geladen …");
+  try {
+    const statusRes = await fetch(`${STRAVA_OAUTH_DEV_BASE}/api/oauth/strava/status?user_id=${encodeURIComponent(userId)}`, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+    });
+    const statusJson = await statusRes.json().catch(() => ({}));
+
+    if (!statusRes.ok || !statusJson?.connected) {
+      account.integrations.strava = {
+        ...account.integrations.strava,
+        connected: false,
+        userId,
+        athlete: null,
+        expires_at: null,
+        scope: null,
+        error: statusJson?.error || "Nicht verbunden",
+        lastStatusAt: new Date().toISOString(),
+      };
+      connectedSources.delete("Strava");
+      persistConnectedSourcesForCurrentUser();
+      persistStore();
+      stravaStatusFetchedForUserId = userId;
+      renderStravaProfileStatus(account);
+      updateConnectionStateCopy();
+      setText(stravaProfileFetchStatusEl, "Keine Strava-Verbindung gefunden.");
+      return;
+    }
+
+    let athlete = statusJson.athlete || null;
+    if (!athlete) {
+      const athleteRes = await fetch(`${STRAVA_OAUTH_DEV_BASE}/api/oauth/strava/athlete?user_id=${encodeURIComponent(userId)}`, {
+        method: "GET",
+        headers: { Accept: "application/json" },
+        cache: "no-store",
+      });
+      const athleteJson = await athleteRes.json().catch(() => ({}));
+      if (athleteRes.ok && athleteJson?.athlete) athlete = athleteJson.athlete;
+    }
+
+    account.integrations.strava = {
+      ...account.integrations.strava,
+      connected: true,
+      userId,
+      athlete,
+      expires_at: statusJson.expires_at || null,
+      scope: statusJson.scope || null,
+      error: null,
+      lastStatusAt: new Date().toISOString(),
+    };
+    const importSummary = await fetchStravaImportSummary(userId);
+    if (importSummary) {
+      account.integrations.strava.importSummary = importSummary;
+      account.integrations.strava.lastImportAt = importSummary.importedAt || account.integrations.strava.lastImportAt || null;
+    }
+    connectedSources.add("Strava");
+    persistConnectedSourcesForCurrentUser();
+    persistStore();
+    stravaStatusFetchedForUserId = userId;
+    renderStravaProfileStatus(account);
+    syncConnectorButtons();
+    updateConnectionStateCopy();
+    setText(stravaProfileFetchStatusEl, "Strava verbunden.");
+  } catch (error) {
+    setText(stravaProfileFetchStatusEl, `Strava-Backend nicht erreichbar (${STRAVA_OAUTH_DEV_BASE}).`);
+    account.integrations.strava = {
+      ...account.integrations.strava,
+      error: String(error?.message || error),
+      lastStatusAt: new Date().toISOString(),
+    };
+    persistStore();
+    renderStravaProfileStatus(account);
+  } finally {
+    stravaFetchInFlight = false;
+  }
+}
+
+async function importStravaHistory() {
+  const account = getCurrentAccount();
+  if (!account) {
+    openAccountModal("register");
+    setText(accountFormStatusEl, "Bitte zuerst Account anlegen oder einloggen. Danach kannst du Strava importieren.");
+    return;
+  }
+  ensureAccountIntegrationsShape(account);
+  if (!account.integrations?.strava?.connected) {
+    setText(stravaProfileFetchStatusEl, "Bitte zuerst Strava verbinden.");
+    return;
+  }
+  const userId = getStravaLocalUserId(account);
+  if (!userId || stravaImportInFlight) return;
+
+  stravaImportInFlight = true;
+  renderStravaProfileStatus(account);
+  setText(stravaProfileFetchStatusEl, "Import läuft …");
+
+  try {
+    const importUrl = `${STRAVA_OAUTH_DEV_BASE}/api/oauth/strava/import-history?user_id=${encodeURIComponent(userId)}&per_page=200&max_pages=250`;
+    const importRes = await fetch(importUrl, {
+      method: "POST",
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+    });
+    const importJson = await importRes.json().catch(() => ({}));
+    if (!importRes.ok || !importJson?.ok) {
+      throw new Error(importJson?.error || "Import fehlgeschlagen");
+    }
+
+    const activitiesRes = await fetch(`${STRAVA_OAUTH_DEV_BASE}/api/oauth/strava/activities?user_id=${encodeURIComponent(userId)}&page=1&per_page=200`, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+    });
+    const activitiesJson = await activitiesRes.json().catch(() => ({}));
+    if (activitiesRes.ok && Array.isArray(activitiesJson?.activities)) {
+      mergeStravaActivitiesIntoLocalAccount(account, activitiesJson.activities);
+    }
+
+    account.integrations.strava = {
+      ...account.integrations.strava,
+      importSummary: {
+        imported: Number(importJson.imported) || 0,
+        updated: Number(importJson.updated) || 0,
+        fetched: Number(importJson.fetched) || 0,
+        totalStored: Number(importJson.totalStored) || 0,
+        pagesScanned: Number(importJson.pagesScanned) || 0,
+        importedAt: importJson.importedAt || new Date().toISOString(),
+      },
+      lastImportAt: importJson.importedAt || new Date().toISOString(),
+    };
+    persistStore();
+    renderAccountUi();
+    renderStravaProfileStatus(account);
+    setText(
+      stravaProfileFetchStatusEl,
+      `Import fertig: +${Number(importJson.imported) || 0} neu, ${Number(importJson.totalStored) || 0} gesamt.`
+    );
+  } catch (error) {
+    setText(stravaProfileFetchStatusEl, `Import fehlgeschlagen: ${String(error?.message || error)}`);
+  } finally {
+    stravaImportInFlight = false;
+    renderStravaProfileStatus(getCurrentAccount());
+  }
+}
+
+function mergeStravaActivitiesIntoLocalAccount(account, activities) {
+  if (!account || !Array.isArray(activities) || !activities.length) return;
+  account.activities = Array.isArray(account.activities) ? account.activities : [];
+  const known = new Set(account.activities.map((item) => String(item?.sourceExternalId || "")));
+
+  const mapped = activities
+    .map(mapStravaActivityToLocalFeed)
+    .filter((item) => item && item.sourceExternalId && !known.has(String(item.sourceExternalId)));
+
+  if (!mapped.length) return;
+  account.activities = [...mapped, ...account.activities]
+    .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+    .slice(0, 300);
+  persistStore();
+}
+
+function mapStravaActivityToLocalFeed(activity) {
+  if (!activity || typeof activity !== "object") return null;
+  const activityId = Number(activity.id) || activity.id;
+  if (!activityId) return null;
+  const sportTypeRaw = String(activity.sport_type || activity.type || "").toLowerCase();
+  const sportType = sportTypeRaw.includes("run")
+    ? "run"
+    : (sportTypeRaw.includes("ride") || sportTypeRaw.includes("bike") ? "bike" : (sportTypeRaw.includes("swim") ? "swim" : "other"));
+  const distanceKm = Math.max(0, (Number(activity.distance) || 0) / 1000);
+  const movingMin = Math.max(0, Math.round((Number(activity.moving_time) || 0) / 60));
+  const dateIso = activity.start_date || activity.start_date_local || new Date().toISOString();
+  const noteMeta = [];
+  if (movingMin > 0) noteMeta.push(`${movingMin} min`);
+  if (Number.isFinite(Number(activity.total_elevation_gain)) && Number(activity.total_elevation_gain) > 0) {
+    noteMeta.push(`${Math.round(Number(activity.total_elevation_gain))} hm`);
+  }
+  const title = String(activity.name || `${sportType === "run" ? "Run" : sportType === "bike" ? "Ride" : sportType === "swim" ? "Swim" : "Workout"}`).trim();
+  return {
+    id: `strava_${activityId}`,
+    source: "strava",
+    sourceExternalId: String(activityId),
+    createdAt: dateIso,
+    title,
+    note: noteMeta.length ? `Strava • ${noteMeta.join(" • ")}` : "Strava",
+    kind: "training",
+    sportType,
+    distanceKm: Number(distanceKm.toFixed(2)),
+    imageDataUrl: null,
+    propsBy: [],
+  };
+}
+
+function renderStravaProfileStatus(account) {
+  if (!stravaProfileCardEl) return;
+  const isAuth = Boolean(account);
+  stravaProfileCardEl.classList.toggle("is-disabled", !isAuth);
+  if (stravaProfileConnectBtn) stravaProfileConnectBtn.disabled = !isAuth;
+  if (stravaProfileRefreshBtn) stravaProfileRefreshBtn.disabled = !isAuth || stravaFetchInFlight;
+  if (stravaProfileImportBtn) {
+    const connected = Boolean(account?.integrations?.strava?.connected);
+    stravaProfileImportBtn.disabled = !isAuth || !connected || stravaFetchInFlight || stravaImportInFlight;
+  }
+  if (!isAuth) {
+    setText(stravaProfileStatusBadgeEl, "Login first");
+    setText(stravaProfileStatusCopyEl, "Erst Account anlegen oder einloggen. Danach kannst du Strava verbinden und importieren.");
+    if (stravaProfileAthleteMetaEl) {
+      stravaProfileAthleteMetaEl.innerHTML = `<div class="empty-copy">Kein Account aktiv.</div>`;
+    }
+    if (stravaProfileImportSummaryEl) {
+      stravaProfileImportSummaryEl.textContent = "";
+    }
+    return;
+  }
+  ensureAccountIntegrationsShape(account);
+  const data = account.integrations.strava || {};
+  const connected = Boolean(data.connected);
+  setText(stravaProfileStatusBadgeEl, connected ? "Connected" : "Disconnected");
+  setText(
+    stravaProfileStatusCopyEl,
+    connected
+      ? `Strava ist mit diesem Profil verbunden${data.expires_at ? ` • Token läuft ${formatRelativeExpiry(data.expires_at)}` : ""}.`
+      : (data.error ? `Nicht verbunden • ${data.error}` : "Noch keine Strava-Verbindung erkannt.")
+  );
+  if (stravaProfileAthleteMetaEl) {
+    if (!connected || !data.athlete) {
+      stravaProfileAthleteMetaEl.innerHTML = `<div class="empty-copy">Nach erfolgreichem OAuth erscheinen hier Athlete-Infos.</div>`;
+    } else {
+      const athlete = data.athlete || {};
+      const name = [athlete.firstname, athlete.lastname].filter(Boolean).join(" ").trim() || athlete.username || "Strava Athlete";
+      const city = [athlete.city, athlete.state, athlete.country].filter(Boolean).join(", ");
+      stravaProfileAthleteMetaEl.innerHTML = `
+        <div class="connector-athlete-row">
+          ${athlete.profile_medium || athlete.profile ? `<img src="${escapeHtml(String(athlete.profile_medium || athlete.profile))}" alt="" class="connector-athlete-avatar" />` : `<div class="connector-athlete-avatar fallback">${escapeHtml(name.slice(0,1).toUpperCase())}</div>`}
+          <div class="connector-athlete-copy">
+            <strong>${escapeHtml(name)}</strong>
+            <small>${escapeHtml(city || athlete.username || "Strava")}</small>
+            <small>${escapeHtml(data.scope || "scope n/a")}</small>
+          </div>
+        </div>`;
+    }
+  }
+  if (stravaProfileImportSummaryEl) {
+    const summary = data.importSummary || null;
+    if (!summary) {
+      stravaProfileImportSummaryEl.textContent = connected
+        ? "Noch kein Vollimport ausgeführt. Klicke auf Historie importieren."
+        : "";
+    } else {
+      stravaProfileImportSummaryEl.textContent =
+        `Letzter Import: ${summary.totalStored || 0} gespeichert • +${summary.imported || 0} neu • ${summary.pagesScanned || 0} Seiten`;
+    }
+  }
+}
+
+async function fetchStravaImportSummary(userId) {
+  if (!userId) return null;
+  try {
+    const summaryRes = await fetch(`${STRAVA_OAUTH_DEV_BASE}/api/oauth/strava/import-summary?user_id=${encodeURIComponent(userId)}`, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+    });
+    const summaryJson = await summaryRes.json().catch(() => ({}));
+    if (!summaryRes.ok || !summaryJson?.ok || !summaryJson.summary) return null;
+    return {
+      imported: Number(summaryJson.summary.imported) || 0,
+      updated: Number(summaryJson.summary.updated) || 0,
+      fetched: Number(summaryJson.summary.fetched) || 0,
+      totalStored: Number(summaryJson.summary.totalStored) || 0,
+      pagesScanned: Number(summaryJson.summary.pagesScanned) || 0,
+      importedAt: summaryJson.summary.importedAt || null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function formatRelativeExpiry(expiresAtUnix) {
+  const sec = Number(expiresAtUnix || 0);
+  if (!Number.isFinite(sec) || sec <= 0) return "bald ab";
+  const diff = sec - Math.floor(Date.now() / 1000);
+  if (diff <= 0) return "abgelaufen";
+  const hours = Math.round(diff / 3600);
+  if (hours < 24) return `in ${hours}h ab`;
+  const days = Math.round(hours / 24);
+  return `in ${days}d ab`;
+}
+
+function handleOAuthReturnParams() {
+  try {
+    const url = new URL(window.location.href);
+    const oauth = url.searchParams.get("oauth");
+    const status = url.searchParams.get("status");
+    if (oauth !== "strava" || !status) return;
+    if (status === "connected") {
+      connectedSources.add("Strava");
+      persistConnectedSourcesForCurrentUser();
+      updateConnectionStateCopy();
+      setText(stravaProfileFetchStatusEl, "Strava OAuth abgeschlossen. Lade Athlete-Daten …");
+      fetchStravaStatusAndAthlete({ force: true });
+    }
+    url.searchParams.delete("oauth");
+    url.searchParams.delete("status");
+    url.searchParams.delete("user_id");
+    window.history.replaceState({}, document.title, url.toString());
+  } catch {
+    // noop
+  }
+}
+
+function applyTranslations() {
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    const key = el.dataset.i18n;
+    el.textContent = t(key);
+  });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+    const key = el.dataset.i18nPlaceholder;
+    el.setAttribute("placeholder", t(key));
+  });
+  setText(sessionLabelPurposeEl, t("purpose"));
+  setText(sessionLabelAdaptationEl, t("adaptation"));
+  setText(sessionLabelPhysiologyEl, t("physiology"));
+  setText(sessionLabelWhyEl, t("why"));
+  setText(sessionLabelExecutionEl, t("execution"));
+  setText(sessionLabelWorkoutEl, t("workout_plan"));
+  setText(
+    sessionLabelNutritionFocusEl,
+    currentLang === "de" ? "Ernährungsfokus" : currentLang === "ja" ? "栄養フォーカス" : "Nutrition focus"
+  );
+  setText(sessionLabelKcalEl, currentLang === "de" ? "Tageskalorien" : currentLang === "ja" ? "推奨カロリー" : "Daily calories");
+  const cycleLabel = currentLang === "de" ? "Zyklus-Hinweis" : currentLang === "ja" ? "周期メモ" : "Cycle note";
+  const cycleLabelEl = document.getElementById("session-label-cycle");
+  if (cycleLabelEl) cycleLabelEl.textContent = cycleLabel;
+  if (accountLogoutBtn) accountLogoutBtn.textContent = currentLang === "ja" ? "ログアウト" : currentLang === "en" ? "Logout" : "Logout";
+  syncDisciplineSpecificFields(disciplineSelect?.value);
+  syncShapeGymShareLabel();
+}
+
+function t(key) {
+  return I18N[currentLang]?.[key] || I18N.de[key] || key;
+}
+
+function formatSocialSportLabel(sportType) {
+  const value = String(sportType || "other").toLowerCase();
+  const labels = {
+    run: currentLang === "ja" ? "RUN" : "RUN",
+    bike: currentLang === "ja" ? "BIKE" : "BIKE",
+    swim: currentLang === "ja" ? "SWIM" : "SWIM",
+    hyrox: "HYROX",
+    other: currentLang === "ja" ? "OTHER" : "OTHER",
+  };
+  return labels[value] || String(sportType || "OTHER").toUpperCase();
+}
+
+function defaultGoalTimeFor(discipline, goalDistance) {
+  const map = {
+    running: {
+      "5k": "00:24:00",
+      "10k": "00:52:00",
+      half: "01:55:00",
+      marathon: "03:45:00",
+    },
+    triathlon: {
+      sprint: "01:25:00",
+      olympic: "02:45:00",
+      "703": "05:35:00",
+      ironman: "11:30:00",
+    },
+    cycling: {
+      crit: "01:05:00",
+      tt40: "01:03:00",
+      granfondo: "05:45:00",
+      century: "05:55:00",
+    },
+    hyrox: {
+      open: "01:25:00",
+      pro: "01:18:00",
+      doubles: "01:05:00",
+      doublespro: "00:59:00",
+      relay: "00:58:00",
+    },
+    shape: {
+      fatloss: "-4 kg",
+      recomp: "Recomp",
+      build: "+2 kg",
+      fitness: "Stronger / fitter",
+    },
+  };
+  return map[discipline]?.[goalDistance] || "02:59:00";
+}
+
+function buildSessionInsight(session, profile) {
+  const title = String(session.title || "").toLowerCase();
+  const discipline = profile?.discipline || latestProfile?.discipline || "running";
+  const txt = (de, en, ja) => (currentLang === "de" ? de : currentLang === "ja" ? ja : en);
+  const weeks = Math.max(6, Number(latestPlan?.meta?.weeks) || 12);
+  const phase = resolveTrainingPhase({
+    weekIndex: Math.max(0, Number(session?.weekIndex) || 0),
+    weeks,
+    discipline,
+    goalDistance: profile?.goalDistance,
+    profile,
+  });
+  const phaseWhy = phase === "onboarding"
+    ? txt(
+      "Jetzt wird der Körper vorbereitet: Technik, Verträglichkeit und Rhythmus vor harten Reizen.",
+      "This phase prepares the body first: technique, tolerance, and rhythm before harder stress.",
+      "この時期は高強度の前に、技術・耐性・リズムを整える段階です。"
+    )
+    : phase === "base"
+    ? txt(
+      "Jetzt liegt der Fokus auf robuster Basis: sauberer Reiz, geringe Nebenkosten, hohe Wiederholbarkeit.",
+      "This phase builds repeatable base with good stimulus and controlled fatigue cost.",
+      "この時期は再現性の高い土台作りが優先です。"
+    )
+    : isSpecificPhase(phase)
+      ? txt(
+        "Jetzt wird es wettkampfnäher: Pacing, Ökonomie und Belastungsverträglichkeit unter zielnahen Reizen.",
+        "Now it turns race-specific: pacing, economy, and durability under event-like stress.",
+        "この時期はレース特異性を高める段階です。"
+      )
+      : phase === "taper"
+        ? txt(
+          "Jetzt zählt Frische: Reiz erhalten, Ermüdung senken, Leistung freilegen.",
+          "Now freshness matters: keep sharpness, drop fatigue, reveal performance.",
+          "この時期は疲労を抜いてパフォーマンスを引き出す段階です。"
+        )
+        : txt(
+          "Jetzt wird Belastung progressiv aufgebaut, damit Fitness steigt ohne Qualität zu verlieren.",
+          "This block builds progressive load so fitness rises without losing session quality.",
+          "この時期は質を保ちながら段階的に負荷を積み上げます。"
+        );
+
+  if (session.type === "rest") {
+    return {
+      purpose: txt("Erholung aktiv sichern", "Secure recovery", "回復を確保する"),
+      adaptation: txt("Ermüdung abbauen und positive Anpassung sichtbar machen", "Reduce fatigue so positive adaptation can express", "疲労を下げて適応を表面化させる"),
+      physiology: txt("Parasympathische Aktivierung, HRV-Stabilisierung, Glycogen-Repletion, Gewebereparatur", "Parasympathetic recovery, HRV stabilization, glycogen repletion, tissue repair", "副交感神経優位・HRV安定・グリコーゲン再補充・組織回復"),
+      why: txt(`Fitness entsteht als Nettoeffekt aus Reiz minus Ermüdung. ${phaseWhy}`, `Fitness is a net effect of stimulus minus fatigue. ${phaseWhy}`, `フィットネスは刺激と疲労の差で決まります。${phaseWhy}`),
+    };
+  }
+
+  if (title.includes("threshold")) {
+    return {
+      purpose: txt("Renntempo länger stabil halten", "Hold race pace longer", "レースペースを長く維持する"),
+      adaptation: txt("Schwellenleistung, Tempohärte, Pacing-Stabilität unter kontrollierter Last", "Threshold durability and pacing stability under controlled strain", "閾値持久力とペース安定性"),
+      physiology: txt("vLT2-Anhebung, Laktat-Clearance, aerobe Enzymaktivität, Ökonomie", "Higher LT2, lactate clearance, aerobic enzyme activity, economy", "LT2向上・乳酸処理・有酸素酵素活性・効率"),
+      why: txt(`Mehr Tempo bei geringerem metabolischen Preis. ${phaseWhy}`, `More speed at lower metabolic cost. ${phaseWhy}`, `代謝コストを抑えて速さを出しやすくします。${phaseWhy}`),
+    };
+  }
+
+  if (title.includes("vo2")) {
+    return {
+      purpose: txt("Leistungsspitze und Reserve erhöhen", "Increase top-end power and reserve", "最高出力の余力を作る"),
+      adaptation: txt("Top-End-Leistung, Sauerstofftransport und hohe Intensitäten besser tolerieren", "Improve top-end output, oxygen transport, and high-intensity tolerance", "高強度耐性と酸素運搬能力を高める"),
+      physiology: txt("VO2max, Herzzeitvolumen, periphere O2-Nutzung, neuromuskuläre Rekrutierung", "VO2max, cardiac output, peripheral O2 use, neuromuscular recruitment", "VO2max・心拍出量・末梢酸素利用・神経筋動員"),
+      why: txt(`Schafft Reserve über Wettkampfpace hinaus. ${phaseWhy}`, `Builds reserve above race pace. ${phaseWhy}`, `レースペース以上の余力を作ります。${phaseWhy}`),
+    };
+  }
+
+  if (title.includes("long")) {
+    return {
+      purpose: txt("Robustheit für lange Renndauer aufbauen", "Build durability for long race duration", "長時間レースの耐久性を作る"),
+      adaptation: txt(
+        discipline === "triathlon" ? "Fueling-Strategie, muskuläre Ausdauer, Brick-/Long-Session-Verträglichkeit" : "Metabolische Robustheit, Durability, Pacing-Stabilität über Zeit",
+        discipline === "triathlon" ? "Fueling strategy, muscular endurance, brick/long-session durability" : "Metabolic robustness, durability, pacing stability over time",
+        "補給戦略・筋持久力・長時間耐久性"
+      ),
+      physiology: txt("Mitochondriale Dichte, Fettstoffwechsel, Glycogen-Management, Bindegewebs-/Muskeltoleranz", "Mitochondrial density, fat oxidation, glycogen management, tissue tolerance", "ミトコンドリア・脂質代謝・グリコーゲン管理・組織耐性"),
+      why: txt(`Long Sessions erhöhen die Stabilität spät im Rennen. ${phaseWhy}`, `Long sessions improve late-race stability. ${phaseWhy}`, `ロングセッションは終盤の安定性を高めます。${phaseWhy}`),
+    };
+  }
+
+  if (title.includes("swim")) {
+    return {
+      purpose: txt("Wasserlage und Technik stabilisieren", "Stabilize swim mechanics", "泳ぎの姿勢と技術を安定させる"),
+      adaptation: txt("Effizienz, Rhythmus, Zugqualität", "Efficiency, rhythm, stroke quality", "効率・リズム・ストローク品質"),
+      physiology: txt("Bewegungsökonomie, Atemrhythmus, spezifische Ausdauer", "Movement economy, breathing rhythm, specific endurance", "動作効率・呼吸リズム・種目特異的持久力"),
+      why: txt(`Spart Energie für Bike/Run und hält den metabolischen Preis niedrig. ${phaseWhy}`, `Saves energy for bike/run and lowers metabolic cost. ${phaseWhy}`, `バイク/ランへ体力を残し、代謝コストを下げます。${phaseWhy}`),
+    };
+  }
+
+  return {
+    purpose: txt("Form und Kontinuität sichern", "Build form and consistency", "継続してベースを積む"),
+    adaptation: txt("Saubere Grundlage, Ökonomie und belastbare Progression", "Base quality, economy, and durable progression", "基礎品質・効率・持続可能な積み上げ"),
+    physiology: txt("Aerobe Kapazität, neuromuskuläre Koordination, Ermüdungsresistenz", "Aerobic capacity, neuromuscular coordination, fatigue resistance", "有酸素能力・神経筋協調・疲労耐性"),
+    why: txt(`Diese Einheiten verbinden den Plan zu reproduzierbarem Fortschritt. ${phaseWhy}`, `These sessions connect the plan into repeatable progress. ${phaseWhy}`, `これらの練習が再現性のある成長を作ります。${phaseWhy}`),
+  };
+}
+
+function formatPacePerKm(seconds) {
+  if (!Number.isFinite(seconds) || seconds <= 0) return "-";
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.round(seconds % 60);
+  return `${mins}:${String(secs).padStart(2, "0")}/km`;
+}
+
+function weightedBlend(candidates, { mode = "value", clampMin = -Infinity, clampMax = Infinity } = {}) {
+  const valid = (Array.isArray(candidates) ? candidates : [])
+    .filter((c) => c && Number.isFinite(Number(c.value)) && Number.isFinite(Number(c.weight)) && Number(c.weight) > 0)
+    .map((c) => ({
+      ...c,
+      value: Number(c.value),
+      weight: Number(c.weight),
+      confidence: Number.isFinite(Number(c.confidence)) ? clamp(Number(c.confidence), 0, 1) : 0.5,
+    }));
+  if (!valid.length) return null;
+  const weightSum = valid.reduce((s, c) => s + c.weight, 0);
+  const blended = valid.reduce((s, c) => s + c.value * c.weight, 0) / Math.max(1e-9, weightSum);
+  const meanAbsDev = valid.reduce((s, c) => s + Math.abs(c.value - blended) * c.weight, 0) / Math.max(1e-9, weightSum);
+  const spreadScale = mode === "pace" ? 45 : mode === "power" ? 32 : 1;
+  const consistency = clamp(1 - meanAbsDev / Math.max(1, spreadScale), 0.1, 1);
+  const confidence = clamp(
+    (valid.reduce((s, c) => s + c.confidence * c.weight, 0) / Math.max(1e-9, weightSum)) * 0.72 + consistency * 0.28,
+    0.1,
+    1
+  );
+  const source = valid.map((c) => c.source).filter(Boolean).join(" + ");
+  return {
+    value: clamp(blended, clampMin, clampMax),
+    confidence,
+    consistency,
+    source,
+    candidates: valid,
+  };
+}
+
+function buildPerformanceAnchors(profile) {
+  const runDirect = Number(profile?.runThresholdPace);
+  const runPb = estimateRunThresholdFromPbs(profile);
+  const runHr = estimateRunThresholdFromHr(profile);
+  const runFallbackBase = ({ starter: 345, intermediate: 305, advanced: 268 }[profile?.fitnessLevel] || 312);
+  const runAgeAdj = profile?.age ? clamp((Number(profile.age) - 36) * 1.2, -12, 24) : 0;
+  const runWeightAdj = profile?.weightKg ? clamp((Number(profile.weightKg) - 72) * 0.8, -18, 28) : 0;
+  let runFallback = clamp(runFallbackBase + runAgeAdj + runWeightAdj, 220, 450);
+  const runLactate = Number(profile?.runThresholdLactate) || null;
+  if (runLactate) {
+    if (runLactate < 3.2) runFallback += 10;
+    if (runLactate > 4.6) runFallback -= 6;
+    runFallback = clamp(runFallback, 220, 450);
+  }
+  const runCandidates = [
+    Number.isFinite(runDirect) && runDirect > 0 ? { source: "run_threshold_direct", value: runDirect, weight: 1.0, confidence: 0.96 } : null,
+    Number.isFinite(runPb) && runPb > 0 ? { source: "run_pb_model", value: runPb, weight: 0.86, confidence: 0.82 } : null,
+    Number.isFinite(runHr) && runHr > 0 ? { source: "run_hr_model", value: runHr, weight: 0.58, confidence: 0.6 } : null,
+    { source: "run_demographic_fallback", value: runFallback, weight: 0.44, confidence: 0.45 },
+  ].filter(Boolean);
+  const runAnchor = weightedBlend(runCandidates, { mode: "pace", clampMin: 205, clampMax: 500 });
+
+  const bikeDirect = Number(profile?.bikeFtp);
+  const bikePb = estimateBikeFtpFromPbs(profile);
+  const bikeHr = estimateBikeFtpFromThresholdHr(profile);
+  const weight = Number(profile?.weightKg) || (profile?.sex === "female" ? 62 : 74);
+  const levelWkg = { starter: 2.2, intermediate: 2.8, advanced: 3.4 }[profile?.fitnessLevel] || 2.6;
+  const disciplineBonus = profile?.discipline === "cycling" ? 0.2 : profile?.discipline === "triathlon" ? 0.1 : 0;
+  let bikeFallback = (levelWkg + disciplineBonus) * weight;
+  const bikeLactate = Number(profile?.bikeThresholdLactate) || null;
+  if (bikeLactate) {
+    if (bikeLactate < 3.2) bikeFallback *= 0.95;
+    if (bikeLactate > 4.6) bikeFallback *= 1.03;
+  }
+  bikeFallback = Math.round(clamp(bikeFallback, 90, 650));
+  const bikeCandidates = [
+    Number.isFinite(bikeDirect) && bikeDirect > 0 ? { source: "bike_ftp_direct", value: bikeDirect, weight: 1.0, confidence: 0.96 } : null,
+    Number.isFinite(bikePb) && bikePb > 0 ? { source: "bike_pb_model", value: bikePb, weight: 0.82, confidence: 0.78 } : null,
+    Number.isFinite(bikeHr) && bikeHr > 0 ? { source: "bike_hr_model", value: bikeHr, weight: 0.56, confidence: 0.58 } : null,
+    { source: "bike_demographic_fallback", value: bikeFallback, weight: 0.42, confidence: 0.44 },
+  ].filter(Boolean);
+  const bikeAnchor = weightedBlend(bikeCandidates, { mode: "power", clampMin: 90, clampMax: 700 });
+
+  const blendConfidence = clamp(((runAnchor?.confidence || 0.5) + (bikeAnchor?.confidence || 0.5)) / 2, 0.2, 1);
+  return {
+    run: runAnchor,
+    bike: bikeAnchor,
+    confidence: blendConfidence,
+    sources: {
+      run: runAnchor?.source || "n/a",
+      bike: bikeAnchor?.source || "n/a",
+    },
+  };
+}
+
+function estimateRunningGoalPaceSec(profile) {
+  const goalSeconds = parseGoalTimeToSeconds(profile?.goalTime);
+  if (!goalSeconds) return null;
+  const discipline = String(profile?.discipline || "");
+  if (discipline === "running") {
+    const dist = distanceKmFromGoal(profile?.goalDistance);
+    return dist > 0 ? goalSeconds / dist : null;
+  }
+  return null;
+}
+
+function estimateThresholdHr(profile, mode = "run") {
+  if (mode === "bike" && Number.isFinite(Number(profile?.bikeThresholdHr)) && Number(profile?.bikeThresholdHr) > 0) {
+    return Math.round(Number(profile.bikeThresholdHr));
+  }
+  if (mode === "run" && Number.isFinite(Number(profile?.runThresholdHr)) && Number(profile?.runThresholdHr) > 0) {
+    return Math.round(Number(profile.runThresholdHr));
+  }
+  const age = Number(profile?.age) || 0;
+  const hrMax = age > 0 ? clamp(208 - 0.7 * age, 165, 205) : ({ starter: 186, intermediate: 182, advanced: 178 }[profile?.fitnessLevel] || 182);
+  const ratio = mode === "bike" ? 0.84 : 0.88;
+  return Math.round(hrMax * ratio);
+}
+
+function estimateBikeFtp(profile) {
+  const anchors = profile?.performanceAnchors || buildPerformanceAnchors(profile);
+  const v = Number(anchors?.bike?.value);
+  if (Number.isFinite(v) && v > 0) return Math.round(v);
+  return 0;
+}
+
+function estimateCurrentRunThresholdPaceSec(profile) {
+  const anchors = profile?.performanceAnchors || buildPerformanceAnchors(profile);
+  const v = Number(anchors?.run?.value);
+  if (Number.isFinite(v) && v > 0) return v;
+  return null;
+}
+
+function estimateRunThresholdFromPbs(profile) {
+  const rows = Array.isArray(profile?.recentPbRows) ? profile.recentPbRows : [];
+  if (!rows.length) return null;
+
+  const candidates = rows
+    .map((row) => {
+      const discipline = String(row?.discipline || "").toLowerCase();
+      if (discipline !== "running") return null;
+      const distKm = distanceKmFromGoal(row?.distance);
+      if (!Number.isFinite(distKm) || distKm <= 0) return null;
+      const seconds = parseFlexibleDurationToSeconds(row?.time);
+      if (!Number.isFinite(seconds) || seconds <= 0) return null;
+      const racePace = seconds / distKm;
+      const factorByDistance = {
+        "5k": 1.06,
+        "10k": 1.03,
+        half: 0.985,
+        marathon: 0.94,
+      };
+      const distanceKey = String(row?.distance || "").toLowerCase();
+      const factor = factorByDistance[distanceKey] ?? 1.02;
+      const threshold = racePace * factor;
+      const specificity = Math.abs(Math.log((distKm || 10) / 10));
+      return {
+        threshold: clamp(threshold, 205, 500),
+        specificity,
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.specificity - b.specificity);
+
+  return candidates[0]?.threshold ?? null;
+}
+
+function estimateBikeFtpFromPbs(profile) {
+  const rows = Array.isArray(profile?.recentPbRows) ? profile.recentPbRows : [];
+  const tt40 = rows.find((row) => {
+    const discipline = String(row?.discipline || "").toLowerCase();
+    const distance = String(row?.distance || "").toLowerCase();
+    return discipline === "cycling" && distance === "tt40";
+  });
+  if (!tt40) return null;
+  const seconds = parseFlexibleDurationToSeconds(tt40.time);
+  if (!Number.isFinite(seconds) || seconds <= 0) return null;
+  const hours = seconds / 3600;
+  const speedMs = (40 / hours) / 3.6;
+  const weight = Number(profile?.weightKg) || (profile?.sex === "female" ? 62 : 74);
+  const crr = 0.0045;
+  const rho = 1.226;
+  const cda = clamp(
+    (profile?.fitnessLevel === "advanced" ? 0.245 : profile?.fitnessLevel === "starter" ? 0.285 : 0.265)
+      + (profile?.sex === "female" ? -0.008 : 0),
+    0.22,
+    0.31
+  );
+  const systemMass = weight + 8;
+  const rolling = crr * systemMass * 9.81 * speedMs;
+  const aero = 0.5 * rho * cda * speedMs * speedMs * speedMs;
+  const losses = 12;
+  const racePower = rolling + aero + losses;
+  return Math.round(racePower / 0.93);
+}
+
+function estimateRunThresholdFromHr(profile) {
+  const runThrHr = Number(profile?.runThresholdHr);
+  if (!Number.isFinite(runThrHr) || runThrHr < 110) return null;
+  const age = Number(profile?.age) || null;
+  const hrMax = age ? clamp(208 - 0.7 * age, 165, 205) : 182;
+  const ratio = clamp(runThrHr / Math.max(1, hrMax), 0.72, 0.98);
+  const base = { starter: 350, intermediate: 305, advanced: 270 }[profile?.fitnessLevel] || 312;
+  const hrAdj = clamp((0.88 - ratio) * 220, -22, 32);
+  return clamp(base + hrAdj, 225, 455);
+}
+
+function estimateBikeFtpFromThresholdHr(profile) {
+  const bikeThrHr = Number(profile?.bikeThresholdHr);
+  if (!Number.isFinite(bikeThrHr) || bikeThrHr < 105) return null;
+  const age = Number(profile?.age) || null;
+  const hrMax = age ? clamp(208 - 0.7 * age, 165, 205) : 182;
+  const ratio = clamp(bikeThrHr / Math.max(1, hrMax), 0.7, 0.95);
+  const weight = Number(profile?.weightKg) || (profile?.sex === "female" ? 62 : 74);
+  const baseWkg = { starter: 2.15, intermediate: 2.75, advanced: 3.35 }[profile?.fitnessLevel] || 2.6;
+  const ratioAdj = clamp((ratio - 0.84) * 2.0, -0.25, 0.25);
+  const disciplineAdj = profile?.discipline === "cycling" ? 0.12 : profile?.discipline === "triathlon" ? 0.06 : 0;
+  return Math.round((baseWkg + ratioAdj + disciplineAdj) * weight);
+}
+
+function buildSessionExecutionCue(session, profile) {
+  const txt = (de, en, ja) => (currentLang === "de" ? de : currentLang === "ja" ? ja : en);
+  if (!session || !profile) return "";
+  const title = String(session.title || "").toLowerCase();
+  const details = String(session.details || "").toLowerCase();
+  if (session.type === "rest") {
+    return txt("Sehr locker halten, HR < 75% LTHR, Fokus Schlaf + Flüssigkeit.", "Keep it very easy, HR < 75% LTHR, focus sleep + hydration.", "非常に軽く。心拍はLT心拍の75%未満、睡眠と補水を優先。");
+  }
+
+  const looksBike = /bike|ride|trainer|ftp|sweet spot|cadence|brick/.test(title) || /bike|trainer|ftp|sweet spot|cadence/.test(details);
+  if (looksBike) {
+    let pctLow = 70;
+    let pctHigh = 80;
+    if (/vo2/.test(title) || /vo2/.test(details)) {
+      pctLow = 108;
+      pctHigh = 120;
+    } else if (/threshold|sweet spot/.test(title) || /threshold|ftp|sweet spot/.test(details)) {
+      pctLow = /race-pace|70\.3|im-nah/.test(details) ? 80 : 88;
+      pctHigh = /race-pace|70\.3|im-nah/.test(details) ? 90 : 95;
+    } else if (/long/.test(title)) {
+      pctLow = 65;
+      pctHigh = 78;
+    } else if (/recovery/.test(title)) {
+      pctLow = 50;
+      pctHigh = 60;
+    }
+    const ftp = estimateBikeFtp(profile);
+    const wattLow = Math.round((ftp * pctLow) / 100);
+    const wattHigh = Math.round((ftp * pctHigh) / 100);
+    const lthr = estimateThresholdHr(profile, "bike");
+    const hrLow = Math.round(lthr * (pctLow >= 100 ? 0.97 : pctLow >= 88 ? 0.9 : 0.8));
+    const hrHigh = Math.round(lthr * (pctHigh >= 100 ? 1.03 : pctHigh >= 88 ? 0.98 : 0.9));
+    return txt(
+      `Zielbereich: ${pctLow}-${pctHigh}% FTP (~${wattLow}-${wattHigh}W, FTP Schätzung ${ftp}W). HR grob ${hrLow}-${hrHigh} bpm.`,
+      `Target: ${pctLow}-${pctHigh}% FTP (~${wattLow}-${wattHigh}W, estimated FTP ${ftp}W). HR roughly ${hrLow}-${hrHigh} bpm.`,
+      `目安: FTPの${pctLow}-${pctHigh}%（約${wattLow}-${wattHigh}W、推定FTP ${ftp}W）。心拍目安 ${hrLow}-${hrHigh} bpm。`
+    );
+  }
+
+  const looksRun = /run|strides|long run|threshold/.test(title) || (profile?.discipline === "running");
+  if (looksRun) {
+    const lthr = estimateThresholdHr(profile, "run");
+    const thresholdPace = estimateCurrentRunThresholdPaceSec(profile);
+    let offLow = 20;
+    let offHigh = 45;
+    let hrLow = Math.round(lthr * 0.88);
+    let hrHigh = Math.round(lthr * 0.94);
+    if (/threshold/.test(title) || /threshold/.test(details)) {
+      offLow = -12;
+      offHigh = 6;
+      hrLow = Math.round(lthr * 0.95);
+      hrHigh = Math.round(lthr * 1.01);
+    } else if (/vo2|quality|interval/.test(title) || /vo2/.test(details)) {
+      offLow = -32;
+      offHigh = -18;
+      hrLow = Math.round(lthr * 1.02);
+      hrHigh = Math.round(lthr * 1.08);
+    } else if (/long/.test(title)) {
+      offLow = 35;
+      offHigh = 75;
+      hrLow = Math.round(lthr * 0.82);
+      hrHigh = Math.round(lthr * 0.9);
+    } else if (/recovery|easy/.test(title)) {
+      offLow = 55;
+      offHigh = 95;
+      hrLow = Math.round(lthr * 0.76);
+      hrHigh = Math.round(lthr * 0.85);
+    }
+    if (Number.isFinite(thresholdPace)) {
+      const paceLo = formatPacePerKm(thresholdPace + offLow);
+      const paceHi = formatPacePerKm(thresholdPace + offHigh);
+      return txt(
+        `Pace-Ziel: ${paceLo}-${paceHi}. HR grob ${hrLow}-${hrHigh} bpm.`,
+        `Pace target: ${paceLo}-${paceHi}. HR roughly ${hrLow}-${hrHigh} bpm.`,
+        `ペース目安: ${paceLo}-${paceHi}。心拍目安 ${hrLow}-${hrHigh} bpm。`
+      );
+    }
+    return txt(
+      `HR-Ziel: ${hrLow}-${hrHigh} bpm, sauber und kontrolliert.`,
+      `HR target: ${hrLow}-${hrHigh} bpm, controlled and repeatable.`,
+      `心拍目安: ${hrLow}-${hrHigh} bpm。再現性重視でコントロール。`
+    );
+  }
+
+  return txt(
+    "Steuerung: moderat starten, saubere Technik priorisieren, letzte 10-15 min nur bei guter Readiness steigern.",
+    "Execution: start controlled, prioritize clean mechanics, only lift the final 10-15 min if readiness is good.",
+    "実行: 序盤は抑えてフォーム重視。Readinessが良ければ最後10-15分だけ上げる。"
+  );
+}
+
+function syncExpandedDayCards() {
+  document.querySelectorAll(".day-card[data-session-id]").forEach((card) => {
+    const isOpen = card.getAttribute("data-session-id") === expandedSessionId;
+    card.classList.toggle("is-expanded", isOpen);
+    card.setAttribute("aria-expanded", String(isOpen));
+  });
+}
+
+function openSessionOverlay(session) {
+  if (!sessionOverlayEl) return;
+  const insight = buildSessionInsight(session, latestProfile);
+  const executionCue = buildSessionExecutionCue(session, latestProfile);
+  const workoutCue = buildStructuredSessionPlan(session, latestProfile);
+  const nutrition = estimateSessionNutrition(session, latestProfile);
+  const cycleBlock = document.getElementById("session-cycle-block");
+  const cycleValue = document.getElementById("session-modal-cycle");
+  const cycleActive = latestProfile?.sex === "female" && latestProfile?.cycleBasedTraining;
+  setText(sessionModalMetaEl, `${sessionTypeLabel(session.type)} • ${dayName(session.date)} ${session.date.getDate()}.${session.date.getMonth() + 1}.`);
+  setText(sessionModalTitleEl, session.title);
+  setText(sessionModalSubEl, session.details);
+  setText(sessionModalPurposeEl, insight.purpose);
+  setText(sessionModalAdaptationEl, insight.adaptation);
+  setText(sessionModalPhysiologyEl, insight.physiology);
+  setText(sessionModalWhyEl, insight.why);
+  if (sessionExecutionBlockEl) sessionExecutionBlockEl.hidden = !executionCue;
+  setText(sessionModalExecutionEl, executionCue);
+  if (sessionWorkoutBlockEl) sessionWorkoutBlockEl.hidden = !workoutCue;
+  setText(sessionModalWorkoutEl, workoutCue);
+  setText(sessionModalNutritionFocusEl, buildSessionNutritionGuidance(session, latestProfile, nutrition));
+  setText(sessionModalKcalEl, `${nutrition.kcal} kcal`);
+  setText(sessionModalCarbEl, `${nutrition.carbsG}g`);
+  setText(sessionModalProteinEl, `${nutrition.proteinG}g`);
+  setText(sessionModalFatEl, `${nutrition.fatG}g`);
+  if (cycleBlock && cycleValue) {
+    cycleBlock.hidden = !cycleActive;
+    if (cycleActive) {
+      const cycleHint = buildCycleGuidance(latestProfile, session);
+      setText(
+        cycleValue,
+        cycleHint
+      );
+    }
+  }
+  sessionOverlayEl.hidden = false;
+}
+
+function buildStructuredSessionPlan(session, profile) {
+  if (!session || !profile || (profile.discipline !== "hyrox" && profile.discipline !== "shape")) return "";
+  const title = String(session.title || "").toLowerCase();
+  const level = String(profile.fitnessLevel || "intermediate");
+  const lowImpact = Boolean(profile?.constraintHints?.noHighImpact);
+  const gymShare = clamp(Number(profile?.gymShare) || 0, 0, 100);
+  const mostlyHome = gymShare <= 30;
+  const gymHeavy = gymShare >= 60;
+  const txt = (de, en, ja) => (currentLang === "de" ? de : currentLang === "ja" ? ja : en);
+
+  if (/easy run|aerobic run|recovery/.test(title)) {
+    return txt(
+      `1) Warm-up: 8-10 min locker + Mobility\n2) Main: 30-45 min locker (Zone 2)\n3) Finisher: 4 x 20s Strides (optional)\n4) Cool-down: 5-8 min gehen + Mobility`,
+      `1) Warm-up: 8-10 min easy + mobility\n2) Main: 30-45 min easy (Zone 2)\n3) Finisher: 4 x 20s strides (optional)\n4) Cool-down: 5-8 min walk + mobility`,
+      `1) ウォームアップ: 8-10分 イージー + モビリティ\n2) メイン: 30-45分 ゾーン2\n3) 仕上げ: 20秒ストライド x 4（任意）\n4) クールダウン: 5-8分 歩行 + モビリティ`
+    );
+  }
+
+  if (/run threshold/.test(title)) {
+    const reps = level === "advanced" ? "6 x 1 km" : level === "starter" ? "4 x 800 m" : "5 x 1 km";
+    const rest = level === "advanced" ? "90s jog" : "2 min jog";
+    return txt(
+      `1) Warm-up: 12-15 min locker + Lauf-ABC\n2) Main: ${reps} @ Schwelle (${rest} locker)\n3) Technik: 4 x 80 m Strides\n4) Cool-down: 10 min locker`,
+      `1) Warm-up: 12-15 min easy + drills\n2) Main: ${reps} @ threshold (${rest} easy)\n3) Technique: 4 x 80 m strides\n4) Cool-down: 10 min easy`,
+      `1) ウォームアップ: 12-15分 イージー + ドリル\n2) メイン: ${reps} 閾値走（つなぎ ${rest}）\n3) 技術: 80m ストライド x 4\n4) クールダウン: 10分`
+    );
+  }
+
+  if (/strength-endurance|functional|circuit/.test(title)) {
+    const rounds = level === "advanced" ? "5-7" : level === "starter" ? "3-4" : "4-6";
+    const stationA = lowImpact ? "12-16 Step-ups je Seite" : "10-14 Burpee Broad Jumps";
+    const stationB = mostlyHome ? "Run/Jump-Rope + Band Pulls (Ski/Row Ersatz)" : "SkiErg/Row optional oder Run + Band Pulls";
+    return txt(
+      `1) Warm-up: 10 min + Mobility\n2) Circuit (${rounds} Runden):\n   - ${stationA}\n   - 20 Walking Lunges je Seite\n   - 200-300 m Farmers Carry\n   - 15 Thrusters / Wall-Ball-Alternative\n   - 60-90s Pause\n3) Core: 3 x 45s Plank`,
+      `1) Warm-up: 10 min + mobility\n2) Circuit (${rounds} rounds):\n   - ${stationA}\n   - 20 walking lunges each side\n   - 200-300 m farmers carry\n   - 15 thrusters / wall-ball alternative\n   - 60-90s rest\n3) Core: 3 x 45s plank`,
+      `1) ウォームアップ: 10分 + モビリティ\n2) サーキット（${rounds}ラウンド）:\n   - ${stationA}\n   - ウォーキングランジ 片側20回\n   - ファーマーズキャリー 200-300m\n   - スラスター/ウォールボール代替 15回\n   - 休憩 60-90秒\n3) 体幹: プランク 45秒 x 3`
+    ) + txt(`\n4) Ersatzoption: ${stationB}`, `\n4) Sub option: ${stationB}`, `\n4) 代替オプション: ${stationB}`);
+  }
+
+  if (/compromised/.test(title)) {
+    const rounds = level === "advanced" ? "6" : level === "starter" ? "4" : "5";
+    return txt(
+      `1) Warm-up: 12 min locker + Aktivierung\n2) Main (${rounds} Runden):\n   - 800 m Run @ kontrolliert zügig\n   - 1 Station im Wechsel (Sled-Alternative/Carries/Lunges)\n   - 90s easy\n3) Finish: 6-8 min locker`,
+      `1) Warm-up: 12 min easy + activation\n2) Main (${rounds} rounds):\n   - 800 m run @ controlled hard\n   - 1 alternating station (sled alternative/carries/lunges)\n   - 90s easy\n3) Finish: 6-8 min easy`,
+      `1) ウォームアップ: 12分 イージー + 活性化\n2) メイン（${rounds}ラウンド）:\n   - 800m ラン（コントロール強度）\n   - 交互に1ステーション（スレッド代替/キャリー/ランジ）\n   - 90秒 イージー\n3) 仕上げ: 6-8分 イージー`
+    );
+  }
+
+  if (/long run|durability|long cardio/.test(title)) {
+    return txt(
+      `1) Warm-up: 10 min locker\n2) Main: 60-100 min steady Zone 2\n3) Optional: 4 x 20s Strides\n4) Cool-down: 8-10 min gehen + Mobility`,
+      `1) Warm-up: 10 min easy\n2) Main: 60-100 min steady Zone 2\n3) Optional: 4 x 20s strides\n4) Cool-down: 8-10 min walk + mobility`,
+      `1) ウォームアップ: 10分 イージー\n2) メイン: 60-100分 ゾーン2で一定\n3) 任意: 20秒ストライド x 4\n4) クールダウン: 8-10分 歩行 + モビリティ`
+    );
+  }
+
+  if (profile.discipline === "shape" && /strength foundation|heavy strength|hypertrophy/.test(title)) {
+    const mainRep = level === "advanced" ? "4-8" : "6-12";
+    const loadHint = gymHeavy
+      ? txt("Gym-Tag: Langhantel/DB erlaubt", "Gym day: barbell/DB allowed", "ジム日: バーベル/DB可")
+      : mostlyHome
+        ? txt("Home-Tag: nur Bodyweight/Band/DB-light", "Home day: bodyweight/band/light DB only", "自宅日: 自重/バンド/軽DBのみ")
+        : txt("Mixed: Gym- oder Home-Variante", "Mixed: gym or home option", "ミックス: ジム/自宅どちらも可");
+    return txt(
+      `1) Warm-up: 8-10 min + Mobility\n2) Main Lift Block: 4 Übungen x 3-5 Sätze x ${mainRep} Wdh\n3) Accessory Block: 2-3 Übungen x 2-4 Sätze x 10-15 Wdh\n4) Core/Carry: 2-3 Sätze x 30-60s\n5) Pausen: 60-150s`,
+      `1) Warm-up: 8-10 min + mobility\n2) Main lift block: 4 exercises x 3-5 sets x ${mainRep} reps\n3) Accessory block: 2-3 exercises x 2-4 sets x 10-15 reps\n4) Core/carry: 2-3 sets x 30-60s\n5) Rest: 60-150s`,
+      `1) ウォームアップ: 8-10分 + モビリティ\n2) メイン: 4種目 x 3-5セット x ${mainRep}回\n3) 補助: 2-3種目 x 2-4セット x 10-15回\n4) 体幹/キャリー: 2-3セット x 30-60秒\n5) 休憩: 60-150秒`
+    ) + `\n${loadHint}`;
+  }
+
+  if (profile.discipline === "shape" && /cardio intervals|long cardio|movement|easy cardio/.test(title)) {
+    return txt(
+      "1) Warm-up: 8-10 min easy\n2) Main: 4-8 Intervalle oder 45-90 min steady (je nach Session)\n3) Intensity: kontrolliert, sauberer Pulsverlauf\n4) Cool-down: 5-10 min + Mobility",
+      "1) Warm-up: 8-10 min easy\n2) Main: 4-8 intervals or 45-90 min steady (session dependent)\n3) Intensity: controlled, stable HR profile\n4) Cool-down: 5-10 min + mobility",
+      "1) ウォームアップ: 8-10分 イージー\n2) メイン: 4-8本のインターバル または 45-90分一定走（セッション次第）\n3) 強度: コントロール重視\n4) クールダウン: 5-10分 + モビリティ"
+    );
+  }
+
+  return "";
+}
+
+function closeSessionOverlay() {
+  if (!sessionOverlayEl) return;
+  sessionOverlayEl.hidden = true;
+}
+
+function extractProfile(data) {
+  const raceDate = new Date(`${data.get("raceDate")}T09:00:00`);
+  const sex = String(data.get("sex") || "");
+  const ageRaw = String(data.get("age") || "").trim();
+  const weightRaw = String(data.get("weightKg") || "").trim();
+  const heightRaw = String(data.get("heightCm") || "").trim();
+  const targetWeightRaw = String(data.get("targetWeightKg") || "").trim();
+  const cycleDayRaw = String(data.get("cycleDay") || "").trim();
+  const cycleLengthRaw = String(data.get("cycleLengthDays") || "").trim();
+  const bikeFtpRaw = String(data.get("bikeFtp") || "").trim();
+  const bikeThresholdHrRaw = String(data.get("bikeThresholdHr") || "").trim();
+  const bikeThresholdLactateRaw = String(data.get("bikeThresholdLactate") || "").trim();
+  const runThresholdPaceRaw = String(data.get("runThresholdPace") || "").trim();
+  const runThresholdHrRaw = String(data.get("runThresholdHr") || "").trim();
+  const runThresholdLactateRaw = String(data.get("runThresholdLactate") || "").trim();
+  const pbRows = [
+    {
+      discipline: String(data.get("pb1Discipline") || "").trim(),
+      distance: String(data.get("pb1Distance") || "").trim(),
+      time: String(data.get("pb1Time") || "").trim(),
+    },
+    {
+      discipline: String(data.get("pb2Discipline") || "").trim(),
+      distance: String(data.get("pb2Distance") || "").trim(),
+      time: String(data.get("pb2Time") || "").trim(),
+    },
+  ].filter((row) => row.distance && row.time);
+  const recentPbsRaw = pbRows
+    .map((row) => `${disciplineLabel(row.discipline)} ${labelDistance(row.distance)} ${row.time}`)
+    .join(", ");
+  const raceEventsRaw = String(data.get("raceEventsJson") || "[]").trim();
+  const weeklyHoursRequested = Number(data.get("weeklyHours"));
+  return {
+    discipline: data.get("discipline"),
+    fitnessLevel: data.get("fitnessLevel"),
+    experience: data.get("experience"),
+    weeklyHours: weeklyHoursRequested,
+    weeklyHoursRequested,
+    goalDistance: data.get("goalDistance"),
+    goalTime: String(data.get("goalTime") || "").trim(),
+    raceDate,
+    constraints: String(data.get("constraints") || "").trim(),
+    sex: sex || null,
+    age: ageRaw ? Number(ageRaw) : null,
+    weightKg: weightRaw ? Number(weightRaw) : null,
+    heightCm: heightRaw ? Number(heightRaw) : null,
+    targetWeightKg: targetWeightRaw ? Number(targetWeightRaw) : null,
+    planFocus: String(data.get("shapeTargetFocus") || "").trim() || null,
+    shapeTargetFocus: String(data.get("shapeTargetFocus") || "").trim() || null,
+    ltadMode: String(data.get("ltadMode") || "off").trim() || "off",
+    gymShare: clamp(Number(data.get("gymShare")) || 0, 0, 100),
+    bikeIndoorShare: clamp(Number(data.get("gymShare")) || 0, 0, 100),
+    bikeOutdoorDay: String(data.get("bikeOutdoorDay") || "").trim() || "none",
+    longRunDay: String(data.get("longRunDay") || "").trim() || "none",
+    cycleBasedTraining: data.get("cycleBasedTraining") === "on",
+    cycleDay: cycleDayRaw ? Number(cycleDayRaw) : null,
+    cycleLengthDays: cycleLengthRaw ? Number(cycleLengthRaw) : null,
+    bikeFtp: bikeFtpRaw ? Number(bikeFtpRaw) : null,
+    bikeThresholdHr: bikeThresholdHrRaw ? Number(bikeThresholdHrRaw) : null,
+    bikeThresholdLactate: bikeThresholdLactateRaw ? Number(String(bikeThresholdLactateRaw).replace(",", ".")) : null,
+    runThresholdPace: parsePacePerKmToSeconds(runThresholdPaceRaw),
+    runThresholdHr: runThresholdHrRaw ? Number(runThresholdHrRaw) : null,
+    runThresholdLactate: runThresholdLactateRaw ? Number(String(runThresholdLactateRaw).replace(",", ".")) : null,
+    recentPbRows: pbRows,
+    recentPbs: recentPbsRaw || null,
+    raceEvents: parseRaceEventsJson(raceEventsRaw),
+    constraintHints: parseConstraintHints(String(data.get("constraints") || "").trim()),
+    connectedSources: [...connectedSources],
+  };
+}
+
+function resolvePlanFocus(profile, fallback = "") {
+  return String(profile?.planFocus || profile?.shapeTargetFocus || fallback || "").trim().toLowerCase();
+}
+
+function parseConstraintHints(rawText = "") {
+  const text = String(rawText || "").toLowerCase();
+  const hints = {
+    longSessionDay: null,
+    bikeOutdoorDay: null,
+    noHighImpact: false,
+  };
+  if (!text.trim()) return hints;
+
+  const dayMap = {
+    montag: "monday",
+    dienstag: "tuesday",
+    mittwoch: "wednesday",
+    donnerstag: "thursday",
+    freitag: "friday",
+    samstag: "saturday",
+    sonntag: "sunday",
+    monday: "monday",
+    tuesday: "tuesday",
+    wednesday: "wednesday",
+    thursday: "thursday",
+    friday: "friday",
+    saturday: "saturday",
+    sunday: "sunday",
+  };
+  const dayRegex = /(montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag|monday|tuesday|wednesday|thursday|friday|saturday|sunday)/i;
+  const longSessionMatch = text.match(/(?:long\s*(?:run|ride|session)|longrun|lange?\s*(?:ausfahrt|einheit)).{0,24}?(montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag|monday|tuesday|wednesday|thursday|friday|saturday|sunday)/i);
+  if (longSessionMatch?.[1]) {
+    hints.longSessionDay = dayMap[longSessionMatch[1].toLowerCase()] || null;
+  } else {
+    const onlyDayMatch = text.match(/(?:nur|only)\s*(montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag|monday|tuesday|wednesday|thursday|friday|saturday|sunday)/i);
+    if (onlyDayMatch?.[1]) hints.longSessionDay = dayMap[onlyDayMatch[1].toLowerCase()] || null;
+    else {
+      const anyDay = text.match(dayRegex);
+      if (/(long|lange|ausfahrt|session)/i.test(text) && anyDay?.[1]) {
+        hints.longSessionDay = dayMap[anyDay[1].toLowerCase()] || null;
+      }
+    }
+  }
+
+  const bikeOutdoorMatch = text.match(/(outdoor|drau[sß]en|au[sß]en|rolle)\s*(ride|bike|fahren)?[^a-z0-9]*(montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag|monday|tuesday|wednesday|thursday|friday|saturday|sunday|nie|never)?/i);
+  if (bikeOutdoorMatch?.[3]) {
+    const token = bikeOutdoorMatch[3].toLowerCase();
+    hints.bikeOutdoorDay = token === "nie" || token === "never" ? "never" : (dayMap[token] || null);
+  }
+
+  hints.noHighImpact = /(knie|knee|achilles|shin|plantar|sprunggelenk|ankle|schmerz|pain|low impact)/i.test(text);
+  return hints;
+}
+
+function buildCycleGuidance(profile, session) {
+  const cycleDay = Number(profile?.cycleDay) || null;
+  const cycleLength = Number(profile?.cycleLengthDays) || 28;
+  const txt = (de, en, ja) => (currentLang === "de" ? de : currentLang === "ja" ? ja : en);
+
+  if (!cycleDay) {
+    return txt(
+      "Zyklusmodus aktiv: Für präzisere Intensitätssteuerung optional den aktuellen Zyklustag (und idealerweise die Ø Zykluslänge) im Feintuning eintragen.",
+      "Cycle mode active: Add current cycle day (and ideally avg cycle length) in Fine tune for more precise intensity guidance.",
+      "周期モード有効：より正確な強度調整のため、詳細設定で現在の周期日（可能なら平均周期日数）を入力してください。"
+    );
+  }
+
+  const normalizedDay = clamp(Math.round(cycleDay), 1, Math.max(21, cycleLength));
+  const ovulationWindowStart = Math.max(10, Math.round(cycleLength * 0.4));
+  const ovulationWindowEnd = Math.min(cycleLength, ovulationWindowStart + 4);
+  let phase = "follicular";
+  if (normalizedDay <= 5) phase = "menstrual";
+  else if (normalizedDay >= ovulationWindowStart && normalizedDay <= ovulationWindowEnd) phase = "ovulation";
+  else if (normalizedDay > ovulationWindowEnd) phase = "luteal";
+
+  const isHighIntensity = /threshold|vo2|quality/i.test(String(session?.title || ""));
+  const guidanceByPhase = {
+    menstrual: txt(
+      `Zyklustag ${normalizedDay}/${cycleLength} (frühe Phase): Readiness eng beobachten. Bei Krämpfen/low energy Einheit auf locker/Technik skalieren.`,
+      `Cycle day ${normalizedDay}/${cycleLength} (early phase): watch readiness closely. Scale to easy/technique if cramps or low energy show up.`,
+      `周期 ${normalizedDay}/${cycleLength}（初期）：Readinessを慎重に確認。痛みや低エネルギー時は軽め/技術中心に調整。`
+    ),
+    follicular: txt(
+      `Zyklustag ${normalizedDay}/${cycleLength} (Aufbauphase): Häufig gute Verträglichkeit für Qualität. Heute ${isHighIntensity ? "intensive Reize gut möglich, solange Readiness passt." : "saubere Progression und Technikfokus nutzen."}`,
+      `Cycle day ${normalizedDay}/${cycleLength} (build phase): often a good window for quality. Today ${isHighIntensity ? "harder work can fit well if readiness supports it." : "use clean progression and technique focus."}`,
+      `周期 ${normalizedDay}/${cycleLength}（構築期）：高品質練習がはまりやすい時期。今日は${isHighIntensity ? "Readinessが良ければ強度を入れやすい。" : "丁寧な積み上げと技術重視が有効。"}`
+    ),
+    ovulation: txt(
+      `Zyklustag ${normalizedDay}/${cycleLength} (Ovulationsfenster): Gute Top-End-Tage sind möglich. Warm-up sauber verlängern, Stabilität/Koordination bewusst halten.`,
+      `Cycle day ${normalizedDay}/${cycleLength} (ovulation window): top-end days can be great. Extend warm-up and stay intentional with stability/coordination.`,
+      `周期 ${normalizedDay}/${cycleLength}（排卵期付近）：高い出力が出やすい場合あり。ウォームアップを長めにして安定性を意識。`
+    ),
+    luteal: txt(
+      `Zyklustag ${normalizedDay}/${cycleLength} (Lutealphase): Temperatur/Belastungsgefühl kann höher sein. Fueling + Hydration früher setzen, Qualität bei Bedarf leicht entschärfen.`,
+      `Cycle day ${normalizedDay}/${cycleLength} (luteal phase): heat and RPE may feel higher. Fuel/hydrate earlier and soften quality slightly if needed.`,
+      `周期 ${normalizedDay}/${cycleLength}（黄体期）：体温や主観的強度が上がりやすい。補給/水分を早めに入れ、必要なら強度を少し調整。`
+    ),
+  };
+
+  return guidanceByPhase[phase];
+}
+
+function resolveCyclePhaseForDate(profile, dateValue) {
+  if (!profile || profile.sex !== "female" || !profile.cycleBasedTraining) return { active: false, phase: "na", day: null, length: null };
+  const cycleDay = Number(profile?.cycleDay) || null;
+  const cycleLength = Math.max(21, Number(profile?.cycleLengthDays) || 28);
+  if (!cycleDay) return { active: true, phase: "unknown", day: null, length: cycleLength };
+
+  const anchor = startOfDay(new Date());
+  const atDate = startOfDay(dateValue || new Date());
+  const deltaDays = Math.round((atDate - anchor) / 86400000);
+  const dayRaw = ((Math.round(cycleDay) - 1 + deltaDays) % cycleLength + cycleLength) % cycleLength;
+  const normalizedDay = dayRaw + 1;
+  const ovulationWindowStart = Math.max(10, Math.round(cycleLength * 0.4));
+  const ovulationWindowEnd = Math.min(cycleLength, ovulationWindowStart + 4);
+  let phase = "follicular";
+  if (normalizedDay <= 5) phase = "menstrual";
+  else if (normalizedDay >= ovulationWindowStart && normalizedDay <= ovulationWindowEnd) phase = "ovulation";
+  else if (normalizedDay > ovulationWindowEnd) phase = "luteal";
+  return { active: true, phase, day: normalizedDay, length: cycleLength };
+}
+
+function cycleLoadAdjustment(profile, session) {
+  const cycle = resolveCyclePhaseForDate(profile, session?.date);
+  if (!cycle.active || cycle.phase === "unknown") return { adaptation: 1, fatigue: 1, intensity: 1 };
+  const title = String(session?.title || "").toLowerCase();
+  const details = String(session?.details || "").toLowerCase();
+  const isHighIntensity = /threshold|vo2|quality|race|sharpener/.test(title) || /threshold|vo2|race/.test(details);
+  const isEndurance = String(session?.type || "") === "longrun";
+
+  if (cycle.phase === "menstrual" && isHighIntensity) return { adaptation: 0.94, fatigue: 0.9, intensity: 0.93 };
+  if (cycle.phase === "follicular" && isHighIntensity) return { adaptation: 1.04, fatigue: 1.02, intensity: 1.03 };
+  if (cycle.phase === "ovulation" && isHighIntensity) return { adaptation: 1.02, fatigue: 1.05, intensity: 1.01 };
+  if (cycle.phase === "luteal" && (isHighIntensity || isEndurance)) return { adaptation: 0.97, fatigue: 1.07, intensity: 0.98 };
+  return { adaptation: 1, fatigue: 1, intensity: 1 };
+}
+
+function disciplineAggressionConfig(discipline) {
+  const byDiscipline = {
+    running: {
+      gain: 1.04,
+      peakThreshold: 0.24,
+      baseReductionStart: 0.1,
+      baseReductionScale: 0.6,
+      baseReductionCap: 0.56,
+    },
+    triathlon: {
+      gain: 0.92,
+      peakThreshold: 0.29,
+      baseReductionStart: 0.16,
+      baseReductionScale: 0.48,
+      baseReductionCap: 0.46,
+    },
+    cycling: {
+      gain: 0.97,
+      peakThreshold: 0.27,
+      baseReductionStart: 0.14,
+      baseReductionScale: 0.52,
+      baseReductionCap: 0.5,
+    },
+    hyrox: {
+      gain: 1.07,
+      peakThreshold: 0.22,
+      baseReductionStart: 0.08,
+      baseReductionScale: 0.64,
+      baseReductionCap: 0.58,
+    },
+    shape: {
+      gain: 0.9,
+      peakThreshold: 0.2,
+      baseReductionStart: 0.1,
+      baseReductionScale: 0.45,
+      baseReductionCap: 0.4,
+    },
+  };
+  return byDiscipline[String(discipline || "").toLowerCase()] || byDiscipline.running;
+}
+
+function buildProgressionModel(profile) {
+  const maturity = athleteMaturityScore(profile);
+  const ambition = goalAmbitionScore(profile);
+  const anchors = profile?.performanceAnchors || buildPerformanceAnchors(profile);
+  const anchorConfidence = clamp(Number(anchors?.confidence) || 0.5, 0.1, 1);
+  const usableAmbition = ambition * clamp(0.35 + maturity * 0.9, 0.3, 1);
+  const mismatchPenalty = ambition * (1 - maturity);
+  const weeksToRace = Number(profile?.planningWeeks) > 0
+    ? Number(profile.planningWeeks)
+    : profile?.raceDate
+      ? Math.max(1, Math.ceil((startOfDay(profile.raceDate) - startOfDay(new Date())) / 86400000 / 7))
+      : 12;
+  const urgency = clamp((16 - weeksToRace) / 12, 0, 1);
+  const aggressionCfg = disciplineAggressionConfig(profile?.discipline);
+  const safeAggression = usableAmbition
+    * clamp(maturity * 1.22 - 0.24, 0, 1)
+    * clamp(0.7 + urgency * 0.5, 0.65, 1.15)
+    * aggressionCfg.gain
+    * clamp(0.78 + anchorConfidence * 0.3, 0.75, 1.08);
+  const conservativeBias = profile.capacity?.tier === "low" ? 0.12 : 0;
+  const disciplineBias =
+    profile.discipline === "triathlon" || profile.discipline === "cycling"
+      ? 0.04
+      : profile.discipline === "shape"
+        ? -0.05
+        : 0;
+  const cautionPenalty = mismatchPenalty * (1 + urgency * 0.24);
+
+  const baseStart = clamp(
+    0.82 + maturity * 0.14 + disciplineBias - conservativeBias - cautionPenalty * 0.08 + safeAggression * 0.035,
+    0.7,
+    0.98
+  );
+  const blockGrowth = clamp(0.03 + maturity * 0.023 + usableAmbition * 0.012 + safeAggression * 0.018 - cautionPenalty * 0.008, 0.016, 0.074);
+  const waveAmplitude = clamp(0.06 + maturity * 0.033 + usableAmbition * 0.018 + safeAggression * 0.021 - cautionPenalty * 0.008, 0.045, 0.145);
+  const deloadDrop = clamp(0.2 - maturity * 0.05 + cautionPenalty * 0.04 - safeAggression * 0.032, 0.12, 0.28);
+  const taper1 = clamp(0.67 + maturity * 0.05 - usableAmbition * 0.04 - mismatchPenalty * 0.03, 0.54, 0.74);
+  const taper2 = clamp(0.46 + maturity * 0.04 - usableAmbition * 0.03 - mismatchPenalty * 0.02, 0.36, 0.58);
+  const floorMultiplier = clamp(0.36 + (profile.capacity?.tier === "low" ? 0.06 : 0), 0.34, 0.5);
+  const ceilingMultiplier = clamp(1.26 + maturity * 0.42 + usableAmbition * 0.11 + safeAggression * 0.14 + disciplineBias - cautionPenalty * 0.08, 1.22, 1.9);
+
+  return {
+    maturity,
+    ambition,
+    usableAmbition,
+    mismatchPenalty,
+    urgency,
+    safeAggression,
+    baseStart,
+    blockGrowth,
+    waveAmplitude,
+    deloadDrop,
+    taper1,
+    taper2,
+    floorMultiplier,
+    ceilingMultiplier,
+    anchorConfidence,
+  };
+}
+
+function weekLoadFactor({ weekIndex, weeks, isDeload, isTaper, progressionModel }) {
+  if (isTaper) return weekIndex === weeks - 1 ? progressionModel.taper2 : progressionModel.taper1;
+  const blockIndex = Math.floor(weekIndex / 4);
+  const inBlock = weekIndex % 4;
+  const blockBase = progressionModel.baseStart + blockIndex * progressionModel.blockGrowth;
+  if (isDeload) return clamp(blockBase * (1 - progressionModel.deloadDrop), 0.62, 1.12);
+  const wave = inBlock === 0 ? -0.4 : inBlock === 1 ? 0.05 : inBlock === 2 ? 0.8 : 0.35;
+  return clamp(blockBase * (1 + wave * progressionModel.waveAmplitude), 0.74, 1.75);
+}
+
+function buildAdaptivePhaseLayout({ weeks, discipline, goalDistance, profile }) {
+  // Keep layout aligned with the real planning horizon (incl. LTAD), otherwise
+  // week indices beyond the layout collapse into permanent taper behavior.
+  const totalWeeks = clamp(Number(weeks) || 12, 6, 104);
+  const capacityTier = String(profile?.capacity?.tier || "");
+  const introWanted = clamp(Number(profile?.capacity?.introWeeks) || 0, 0, 3);
+  const maturity = profile ? athleteMaturityScore(profile) : 0.45;
+  const ambition = profile ? goalAmbitionScore(profile) : 0.35;
+  const urgency = clamp((16 - totalWeeks) / 12, 0, 1);
+  const aggressionCfg = disciplineAggressionConfig(discipline);
+  const safeAggression = ambition
+    * clamp(maturity * 1.2 - 0.22, 0, 1)
+    * clamp(0.7 + urgency * 0.5, 0.65, 1.15)
+    * aggressionCfg.gain;
+  const advanced = maturity >= 0.72 || profile?.fitnessLevel === "advanced";
+  const lowCapacity = capacityTier === "low" || profile?.fitnessLevel === "starter" || profile?.experience === "lt1";
+
+  const longEvent = (discipline === "running" && (goalDistance === "half" || goalDistance === "marathon"))
+    || (discipline === "triathlon" && (goalDistance === "703" || goalDistance === "ironman"))
+    || (discipline === "cycling" && (goalDistance === "granfondo" || goalDistance === "century"));
+
+  let taperWeeks = longEvent ? 2 : 1;
+  if (longEvent && totalWeeks >= 14) taperWeeks = 3;
+  taperWeeks = clamp(taperWeeks, 1, Math.max(1, totalWeeks - 3));
+
+  const maxIntro = Math.max(0, totalWeeks - taperWeeks - 3);
+  const onboardingWeeks = clamp(introWanted, 0, maxIntro);
+
+  let remaining = totalWeeks - onboardingWeeks - taperWeeks;
+  if (remaining < 2) {
+    return {
+      onboardingWeeks,
+      baseWeeks: 0,
+      buildWeeks: Math.max(1, remaining),
+      peakWeeks: 0,
+      taperWeeks,
+      totalWeeks,
+    };
+  }
+
+  let peakWeeks = remaining >= 6 ? 2 : 1;
+  if (advanced && remaining >= 5) peakWeeks += 1;
+  if (safeAggression >= aggressionCfg.peakThreshold && remaining >= 5) peakWeeks += 1;
+  if (totalWeeks >= 36) peakWeeks += 1;
+  if (remaining <= 3) peakWeeks = 0;
+  peakWeeks = clamp(peakWeeks, 0, Math.max(0, remaining - 1));
+  remaining -= peakWeeks;
+
+  let baseWeeks = lowCapacity
+    ? Math.ceil(remaining * 0.45)
+    : advanced
+      ? Math.ceil(remaining * 0.22)
+      : Math.ceil(remaining * 0.32);
+
+  // For long plans we deliberately preserve a larger base block to avoid
+  // early peak/taper drift and maintain progressive development.
+  if (totalWeeks >= 36) {
+    const longPlanBaseFloor = Math.ceil(remaining * (lowCapacity ? 0.46 : advanced ? 0.26 : 0.34));
+    baseWeeks = Math.max(baseWeeks, longPlanBaseFloor);
+  }
+
+  if (!lowCapacity && safeAggression > aggressionCfg.baseReductionStart) {
+    baseWeeks = Math.max(
+      0,
+      Math.round(
+        baseWeeks
+        * (1 - clamp(safeAggression * aggressionCfg.baseReductionScale, 0, aggressionCfg.baseReductionCap))
+      )
+    );
+  }
+  if (remaining <= 4 && advanced) baseWeeks = 0;
+  baseWeeks = clamp(baseWeeks, 0, Math.max(0, remaining - 1));
+  const buildWeeks = Math.max(1, remaining - baseWeeks);
+
+  return {
+    onboardingWeeks,
+    baseWeeks,
+    buildWeeks,
+    peakWeeks,
+    taperWeeks,
+    totalWeeks,
+  };
+}
+
+function phaseFromLayout(weekIndex, phaseLayout) {
+  if (!phaseLayout) return "build";
+  const idx = clamp(Number(weekIndex) || 0, 0, Math.max(0, (phaseLayout.totalWeeks || 1) - 1));
+  const onboardingEnd = phaseLayout.onboardingWeeks;
+  const baseEnd = onboardingEnd + phaseLayout.baseWeeks;
+  const buildEnd = baseEnd + phaseLayout.buildWeeks;
+  const peakEnd = buildEnd + phaseLayout.peakWeeks;
+
+  if (idx < onboardingEnd) return "onboarding";
+  if (idx < baseEnd) return "base";
+  if (idx < buildEnd) return "build";
+  if (idx < peakEnd) return "peak";
+  return "taper";
+}
+
+function phaseWeekInfo(weekIndex, phaseLayout) {
+  const phase = phaseFromLayout(weekIndex, phaseLayout);
+  let start = 0;
+  let length = 0;
+  if (phase === "onboarding") {
+    start = 0;
+    length = phaseLayout.onboardingWeeks;
+  } else if (phase === "base") {
+    start = phaseLayout.onboardingWeeks;
+    length = phaseLayout.baseWeeks;
+  } else if (phase === "build") {
+    start = phaseLayout.onboardingWeeks + phaseLayout.baseWeeks;
+    length = phaseLayout.buildWeeks;
+  } else if (phase === "peak") {
+    start = phaseLayout.onboardingWeeks + phaseLayout.baseWeeks + phaseLayout.buildWeeks;
+    length = phaseLayout.peakWeeks;
+  } else {
+    start = phaseLayout.onboardingWeeks + phaseLayout.baseWeeks + phaseLayout.buildWeeks + phaseLayout.peakWeeks;
+    length = phaseLayout.taperWeeks;
+  }
+  return {
+    phase,
+    weekInPhase: Math.max(0, weekIndex - start),
+    phaseLength: Math.max(1, length),
+  };
+}
+
+function resolveTrainingPhase({ weekIndex, weeks, discipline, goalDistance, profile, phaseLayout }) {
+  const layout = phaseLayout || buildAdaptivePhaseLayout({ weeks, discipline, goalDistance, profile });
+  return phaseFromLayout(weekIndex, layout);
+}
+
+function isSpecificPhase(phase) {
+  return phase === "peak" || phase === "specific";
+}
+
+function athleteMaturityScore(profile) {
+  const levelScore = { starter: 0.15, intermediate: 0.52, advanced: 0.86 }[profile?.fitnessLevel] ?? 0.35;
+  const expScore = { lt1: 0.08, "1to3": 0.38, "3to5": 0.66, "5plus": 0.9 }[profile?.experience] ?? 0.28;
+  const hours = Number(profile?.planningWeeklyHours ?? profile?.weeklyHours) || 4;
+  const hoursScore = clamp((hours - 3) / 10, 0, 1);
+  const age = Number(profile?.age) || null;
+  const ageAdj = age ? clamp((44 - age) / 40, -0.24, 0.18) : 0;
+  return clamp(levelScore * 0.45 + expScore * 0.35 + hoursScore * 0.2 + ageAdj, 0.05, 1);
+}
+
+function goalAmbitionScore(profile) {
+  const weeksToRace = Number(profile?.planningWeeks) > 0
+    ? Number(profile.planningWeeks)
+    : Math.max(1, Math.ceil((startOfDay(profile.raceDate) - startOfDay(new Date())) / 86400000 / 7));
+  const weeklyHours = Number(profile?.planningWeeklyHours ?? profile?.weeklyHours) || 0;
+  const goalSeconds = parseGoalTimeToSeconds(profile?.goalTime);
+  const discipline = String(profile?.discipline || "");
+
+  if (discipline === "running" && goalSeconds) {
+    const targetPaceMinKm = goalSeconds / (distanceKmFromGoal(profile.goalDistance) * 60);
+    const pacePressure = clamp((5.9 - targetPaceMinKm) / 1.8, 0, 1);
+    const timePressure = clamp((16 - weeksToRace) / 12, 0, 1);
+    return clamp(pacePressure * 0.65 + timePressure * 0.35 + (weeklyHours < 4 ? 0.08 : 0), 0, 1);
+  }
+
+  if (discipline === "triathlon" && goalSeconds) {
+    const byDist = {
+      sprint: 1.35,
+      olympic: 2.6,
+      "703": 5.2,
+      ironman: 11.2,
+    };
+    const aggressiveRef = byDist[profile.goalDistance] || 2.8;
+    const targetH = goalSeconds / 3600;
+    const pacePressure = clamp((aggressiveRef - targetH) / Math.max(0.8, aggressiveRef * 0.45), 0, 1);
+    const timePressure = clamp((20 - weeksToRace) / 16, 0, 1);
+    return clamp(pacePressure * 0.6 + timePressure * 0.4 + (weeklyHours < 6 ? 0.1 : 0), 0, 1);
+  }
+
+  if (discipline === "cycling" && goalSeconds) {
+    const byDistHours = {
+      crit: 1.05,
+      tt40: 1.0,
+      granfondo: 5.3,
+      century: 5.7,
+    };
+    const targetH = goalSeconds / 3600;
+    const aggressiveRef = byDistHours[profile.goalDistance] || 2.7;
+    const pacePressure = clamp((aggressiveRef - targetH) / Math.max(0.45, aggressiveRef * 0.4), 0, 1);
+    const timePressure = clamp((14 - weeksToRace) / 10, 0, 1);
+    return clamp(pacePressure * 0.62 + timePressure * 0.38 + (weeklyHours < 5 ? 0.08 : 0), 0, 1);
+  }
+
+  if (discipline === "hyrox" && goalSeconds) {
+    const byDistHours = {
+      open: 1.35,
+      pro: 1.22,
+      doubles: 1.08,
+      doublespro: 1.0,
+      relay: 0.95,
+    };
+    const targetH = goalSeconds / 3600;
+    const aggressiveRef = byDistHours[profile.goalDistance] || 1.25;
+    const pacePressure = clamp((aggressiveRef - targetH) / Math.max(0.3, aggressiveRef * 0.35), 0, 1);
+    const timePressure = clamp((10 - weeksToRace) / 8, 0, 1);
+    const levelPush = profile.goalDistance === "pro" || profile.goalDistance === "doublespro" ? 0.2 : 0;
+    return clamp(pacePressure * 0.55 + timePressure * 0.45 + levelPush, 0, 1);
+  }
+
+  if (discipline === "shape") {
+    const window = estimateShapeGoalWindow(profile);
+    if (!window) return 0.28;
+    if (window.status === "unrealistic") return 1;
+    if (window.status === "aggressive") return 0.72;
+    return 0.3;
+  }
+
+  return 0.35;
+}
+
+function distanceKmFromGoal(goal) {
+  return {
+    "5k": 5,
+    "10k": 10,
+    half: 21.1,
+    marathon: 42.2,
+  }[String(goal || "").toLowerCase()] || 10;
+}
+
+function detailsContainKm(details) {
+  return /\b\d+(?:[.,]\d+)?\s*km\b/i.test(String(details || ""));
+}
+
+function detailsContainDuration(details) {
+  return /\b\d+(?::\d{2})?\s*(?:h|min)\b/i.test(String(details || ""));
+}
+
+function isRunSessionLike(session) {
+  const title = String(session?.title || "").toLowerCase();
+  const details = String(session?.details || "").toLowerCase();
+  const raceDisc = String(session?.raceDiscipline || "").toLowerCase();
+  if (session?.scheduledRace && raceDisc && raceDisc !== "running" && raceDisc !== "hyrox") return false;
+  if (/swim|bike|ride|trainer|row|ski/.test(title)) return false;
+  return /\brun\b|long run|strides|threshold|vo2|race day|walk-run/.test(title) || /\b(run|walk-run)\b/.test(details);
+}
+
+function estimateRunKmFromSession(session, profile) {
+  const mins = estimateSessionMinutes(session, profile);
+  if (!mins || mins <= 0) return 5;
+  const paceMinPerKm = ({ starter: 7.2, intermediate: 5.8, advanced: 4.8 }[profile?.fitnessLevel] || 6.2);
+  const km = mins / paceMinPerKm;
+  return Math.max(3, Math.round(km));
+}
+
+function isBikeSessionLike(session) {
+  const title = String(session?.title || "").toLowerCase();
+  const details = String(session?.details || "").toLowerCase();
+  if (/swim/.test(title)) return false;
+  return /bike|ride|trainer|cadence|ftp|sweet spot|long bike|long ride/.test(title) || /\bftp\b|trainer|cadence/.test(details);
+}
+
+function isSwimSessionLike(session) {
+  const title = String(session?.title || "").toLowerCase();
+  const details = String(session?.details || "").toLowerCase();
+  return /swim|css/.test(title) || /\bcss\b|pull|drills/.test(details);
+}
+
+function estimateBikeKmFromSession(session, profile) {
+  const mins = estimateSessionMinutes(session, profile);
+  if (!mins || mins <= 0) return 25;
+  const kmh = ({ starter: 24, intermediate: 28, advanced: 31 }[profile?.fitnessLevel] || 27);
+  return Math.max(12, Math.round((mins / 60) * kmh));
+}
+
+function estimateSwimKmFromSession(session, profile) {
+  const mins = estimateSessionMinutes(session, profile);
+  if (!mins || mins <= 0) return 1.8;
+  const kmh = ({ starter: 1.8, intermediate: 2.2, advanced: 2.7 }[profile?.fitnessLevel] || 2.1);
+  const km = round1((mins / 60) * kmh * 0.75);
+  return Math.max(1.0, km);
+}
+
+function runSessionTemplateCheck(days, profile) {
+  if (!Array.isArray(days)) return { days, fixes: 0 };
+  let fixes = 0;
+  const normalized = days.map((day) => {
+    if (!day || day.type === "rest") return day;
+    if (day.scheduledRace) return day;
+    const suffix = String(day.details || "").trim();
+
+    if (isRunSessionLike(day) && !detailsContainKm(day.details)) {
+      const runKm = estimateRunKmFromSession(day, profile);
+      fixes += 1;
+      return { ...day, details: suffix ? `${runKm} km gesamt: ${suffix}` : `${runKm} km gesamt` };
+    }
+
+    if (isBikeSessionLike(day) && !detailsContainKm(day.details) && !detailsContainDuration(day.details)) {
+      const bikeKm = estimateBikeKmFromSession(day, profile);
+      fixes += 1;
+      return { ...day, details: suffix ? `${bikeKm} km: ${suffix}` : `${bikeKm} km` };
+    }
+
+    if (isSwimSessionLike(day) && !detailsContainKm(day.details)) {
+      const swimKm = estimateSwimKmFromSession(day, profile);
+      fixes += 1;
+      return { ...day, details: suffix ? `${swimKm} km: ${suffix}` : `${swimKm} km` };
+    }
+
+    return day;
+  });
+  return { days: normalized, fixes };
+}
+
+function buildPlan(profile) {
+  profile.weeklyHoursRecommended = recommendWeeklyHoursBand(profile);
+  profile.planningWeeklyHours = effectivePlanningHours(profile);
+  profile.capacity = computeAthleteCapacity(profile);
+  profile.performanceAnchors = buildPerformanceAnchors(profile);
+  profile.constraintHints = parseConstraintHints(profile.constraints || "");
+  if ((!profile.longRunDay || profile.longRunDay === "none") && profile.constraintHints?.longSessionDay) {
+    profile.longRunDay = profile.constraintHints.longSessionDay;
+  }
+  if ((!profile.bikeOutdoorDay || profile.bikeOutdoorDay === "none") && profile.constraintHints?.bikeOutdoorDay) {
+    profile.bikeOutdoorDay = profile.constraintHints.bikeOutdoorDay;
+  }
+  const today = startOfDay(new Date());
+  const raceDateInput = startOfDay(profile.raceDate);
+  const roadmapItemsRaw = (Array.isArray(profile.raceEvents) ? profile.raceEvents : [])
+    .map((event) => normalizeRaceEvent(event))
+    .filter(Boolean);
+  const explicitMainDates = roadmapItemsRaw
+    .filter((event) => event.itemKind === "event" && String(event.priority || "").toUpperCase() === "A")
+    .map((event) => startOfDay(event.date))
+    .sort((a, b) => a - b);
+  const ltadMode = String(profile?.ltadMode || "off");
+  const ltadHorizonDays = ltadMode === "two_year" ? 730 : ltadMode === "one_year" ? 365 : 0;
+  const explicitMainLast = explicitMainDates.length ? explicitMainDates[explicitMainDates.length - 1] : null;
+  const referenceEndDate = explicitMainLast && explicitMainLast > raceDateInput ? explicitMainLast : raceDateInput;
+  const planningEndDate = addDays(today, Math.max(Math.ceil((referenceEndDate - today) / 86400000), ltadHorizonDays));
+  const daysToRace = Math.max(14, Math.ceil((planningEndDate - today) / 86400000));
+  const weekCap = ltadMode === "two_year" ? 78 : ltadMode === "one_year" ? 52 : 24;
+  const weeks = clamp(Math.ceil(daysToRace / 7), 6, weekCap);
+  profile.planningWeeks = weeks;
+  const progressionModel = buildProgressionModel(profile);
+  profile.thresholdGapSignal = computeThresholdGapSignal(profile);
+  const phaseLayout = buildAdaptivePhaseLayout({
+    weeks,
+    discipline: profile.discipline,
+    goalDistance: profile.goalDistance,
+    profile,
+  });
+
+  const weeklyKmBase = estimateBaseKm(profile);
+  const sessions = [];
+  const weekModels = [];
+  const mainGoals = resolveMainGoalEvents({
+    roadmapItems: roadmapItemsRaw,
+    profile,
+    today,
+    planningEndDate,
+  });
+  const roadmapItems = mainGoals.events;
+  const mainGoalEvents = mainGoals.mainEvents;
+  const raceDate = mainGoalEvents.length ? startOfDay(mainGoalEvents[mainGoalEvents.length - 1].date) : referenceEndDate;
+  const supplementalRaceEvents = roadmapItems
+    .filter((event) => event.itemKind === "event")
+    .filter((event) => {
+      const d = startOfDay(event.date);
+      return d >= today && d <= planningEndDate && d.getTime() !== raceDate.getTime();
+    });
+  const trainingBlocks = roadmapItems
+    .filter((event) => event.itemKind === "block")
+    .map((block) => ({
+      ...block,
+      endDate: startOfDay(block.endDate || block.date),
+    }));
+
+  let currentWeekStart = startOfWeek(today);
+  let prevWeekLoad = 0;
+  let carryRecoveryDays = 0;
+  let templateFixCount = 0;
+
+  for (let weekIndex = 0; weekIndex < weeks; weekIndex += 1) {
+    const phaseInfo = phaseWeekInfo(weekIndex, phaseLayout);
+    const phase = phaseInfo.phase;
+    const isTaper = phase === "taper";
+    const deloadablePhase = phase === "base" || phase === "build";
+    const deloadCadence = profile.fitnessLevel === "starter" ? 3 : 4;
+    const isDeload = deloadablePhase && phaseInfo.weekInPhase > 0 && (phaseInfo.weekInPhase + 1) % deloadCadence === 0;
+    const baseLoadFactor = weekLoadFactor({
+      weekIndex,
+      weeks,
+      isDeload,
+      isTaper,
+      progressionModel,
+    });
+    const introWeeks = phaseLayout.onboardingWeeks || 0;
+    const introScale = weekIndex < introWeeks ? (weekIndex === 0 ? 0.72 : 0.86) : 1;
+    const lowCapScale = !isTaper && profile.capacity?.tier === "low" ? 0.9 : 1;
+    const loadFactor = baseLoadFactor * introScale * lowCapScale;
+    const weekKm = Math.round(weeklyKmBase * loadFactor);
+    const qualityLabel = profile.fitnessLevel === "starter" ? "Controlled Threshold" : "Threshold Session";
+    const weekFocus = phase === "onboarding"
+      ? "Onboarding / Technik & Belastungsverträglichkeit"
+      : isDeload
+        ? "Deload / Absorption"
+        : phase === "base"
+          ? "Base / Aerobic Foundation"
+          : phase === "peak"
+            ? "Specific / Race-Nähe & Ziel-Pacing"
+            : phase === "taper"
+              ? weekIndex === weeks - 1
+                ? "Race Week / Frische"
+                : "Taper / Spezifische Schärfe"
+              : "Build / Controlled Progression";
+
+    const dayTemplates = createWeekSessions({
+      profile,
+      weekIndex,
+      weekKm,
+      qualityLabel,
+      isDeload,
+      isTaper,
+      currentWeekStart,
+      raceDate,
+      phase,
+    });
+    applyLevelMicrocyclePattern(dayTemplates, profile);
+    const templateCheck = runSessionTemplateCheck(dayTemplates, profile);
+    const normalizedTemplates = templateCheck.days;
+    templateFixCount += Number(templateCheck.fixes) || 0;
+
+    const weekDays = normalizedTemplates.map((session, dayOffset) => {
+      const date = addDays(currentWeekStart, dayOffset);
+      const nominalMinutes = estimateSessionMinutes(session, profile);
+      const nominalHours = nominalMinutes > 0 ? nominalMinutes / 60 : 0;
+      const impact = session.type === "rest"
+        ? { stress: 0, adaptation: 0, fatigue: 0 }
+        : estimateSessionProjectionImpact(session, profile, nominalHours || 0.75);
+      const enriched = {
+        ...session,
+        date,
+        weekIndex,
+        nominalHours: round1(nominalHours),
+        loadScore: Math.round(impact.stress),
+        adaptationScore: Math.round(impact.adaptation),
+        fatigueScore: Math.round(impact.fatigue),
+      };
+      return enriched;
+    });
+    carryRecoveryDays = applyRecoveryCarryoverToWeek(weekDays, carryRecoveryDays, profile);
+    applySupplementalRaceEventsToWeek(weekDays, supplementalRaceEvents, currentWeekStart);
+    applySupplementalRaceSpecificityWindow(weekDays, supplementalRaceEvents, currentWeekStart, profile);
+    const bridgeState = applyMainGoalBridgeToWeek(weekDays, mainGoalEvents, currentWeekStart, profile);
+    const blockRampException = applyTrainingBlocksToWeek(weekDays, trainingBlocks, currentWeekStart, profile);
+    carryRecoveryDays += computeRaceRecoveryCarryover(weekDays, profile);
+    applyLoadGuardrailsToWeek({
+      weekDays,
+      profile,
+      prevWeekLoad,
+      isDeload,
+      isTaper,
+      rampException: blockRampException,
+    });
+    weekDays.forEach((day) => {
+      if (day.type === "rest" || day.date > planningEndDate) return;
+      if (
+        day.scheduledRace ||
+        /pre-race|post-race/i.test(String(day.title || "")) ||
+        !Number.isFinite(day.loadScore) ||
+        !Number.isFinite(day.adaptationScore) ||
+        !Number.isFinite(day.fatigueScore)
+      ) {
+        const nominalHours = Math.max(0.25, Number(day.nominalHours) || 0.75);
+        const impact = estimateSessionProjectionImpact(day, profile, nominalHours);
+        day.loadScore = Math.round(impact.stress);
+        day.adaptationScore = Math.round(impact.adaptation);
+        day.fatigueScore = Math.round(impact.fatigue);
+      }
+      sessions.push(day);
+    });
+    prevWeekLoad = weekDays.reduce((sum, day) => sum + Math.max(0, Number(day.loadScore) || 0), 0);
+
+    const baselineHours = Number(profile.planningWeeklyHours || estimateHoursFromKm(profile, weeklyKmBase) || 0);
+    const periodizedWeekHours = round1(
+      clamp(
+        baselineHours * loadFactor,
+        Math.max(1.5, baselineHours * progressionModel.floorMultiplier),
+        Math.max(2.2, baselineHours * progressionModel.ceilingMultiplier)
+      )
+    );
+
+    weekModels.push({
+      weekNumber: weekIndex + 1,
+      start: currentWeekStart,
+      end: addDays(currentWeekStart, 6),
+      focus: bridgeState
+        ? `${weekFocus} • Bridge ${bridgeState.stage === "recover" ? "Recover" : bridgeState.stage === "specific" ? "Specific" : "Rebuild"} -> ${disciplineLabel(bridgeState.next?.discipline)} ${raceEventDistanceLabel(bridgeState.next?.discipline, bridgeState.next?.distance)}`
+        : weekFocus,
+      loadKm: weekKm,
+        loadHours: periodizedWeekHours,
+      days: weekDays,
+      phase,
+    });
+
+    currentWeekStart = addDays(currentWeekStart, 7);
+  }
+
+  return {
+    weeks: weekModels,
+    sessions,
+    meta: {
+      daysToRace,
+      weeks,
+      ltadMode,
+      weeklyKmBase,
+      phaseLayout,
+      strategy: {
+        ambition: progressionModel.ambition,
+        safeAggression: progressionModel.safeAggression,
+        urgency: progressionModel.urgency,
+        mismatchPenalty: progressionModel.mismatchPenalty,
+      },
+      mainGoals: {
+        count: mainGoalEvents.length,
+        conflicts: mainGoals.conflicts,
+      },
+      sessionTemplateFixes: templateFixCount,
+    },
+  };
+}
+
+function computeGoalPressure(profile) {
+  const ambition = goalAmbitionScore(profile);
+  const weeksToRace = profile?.raceDate
+    ? Math.max(1, Math.ceil((startOfDay(profile.raceDate) - startOfDay(new Date())) / 86400000 / 7))
+    : 12;
+  const urgency = clamp((16 - weeksToRace) / 12, 0, 1);
+  const maturity = athleteMaturityScore(profile);
+  const safeAggression = ambition
+    * clamp(maturity * 1.2 - 0.22, 0, 1)
+    * clamp(0.7 + urgency * 0.5, 0.65, 1.15)
+    * disciplineAggressionConfig(profile?.discipline).gain;
+  return { ambition, urgency, maturity, safeAggression, weeksToRace };
+}
+
+function computeThresholdGapSignal(profile) {
+  const anchors = profile?.performanceAnchors || buildPerformanceAnchors(profile);
+  const runCurrent = Number(anchors?.run?.value);
+  const runRequired = requiredRunningThresholdPaceSec(profile) || requiredHyroxThresholdPaceSec(profile);
+  const bikeCurrent = Number(anchors?.bike?.value);
+  const bikeRequired = requiredBikeFtpWatts(profile);
+  const runGapSec = Number.isFinite(runCurrent) && Number.isFinite(runRequired) ? (runCurrent - runRequired) : null;
+  const bikeGapW = Number.isFinite(bikeCurrent) && Number.isFinite(bikeRequired) ? (bikeCurrent - bikeRequired) : null;
+  const needRunPush = Number.isFinite(runGapSec) && runGapSec > 8;
+  const needBikePush = Number.isFinite(bikeGapW) && bikeGapW < -12;
+  const pushScale = clamp(
+    (needRunPush ? clamp(runGapSec / 45, 0, 1) : 0) * 0.55 +
+      (needBikePush ? clamp(Math.abs(bikeGapW) / 90, 0, 1) : 0) * 0.55,
+    0,
+    1
+  );
+  return {
+    runGapSec,
+    bikeGapW,
+    needRunPush,
+    needBikePush,
+    pushScale,
+    confidence: clamp(Number(anchors?.confidence) || 0.5, 0.1, 1),
+    sources: anchors?.sources || {},
+  };
+}
+
+function triathlonDisciplineHourShare(profile) {
+  const byGoal = {
+    sprint: { swim: 0.22, bike: 0.43, run: 0.35, key: "bike" },
+    olympic: { swim: 0.26, bike: 0.4, run: 0.34, key: "swim" },
+    "703": { swim: 0.15, bike: 0.53, run: 0.32, key: "bike" },
+    ironman: { swim: 0.12, bike: 0.46, run: 0.42, key: "runbike" },
+  };
+  const base = { ...(byGoal[profile?.goalDistance] || { swim: 0.18, bike: 0.48, run: 0.34, key: "bike" }) };
+  const focus = resolvePlanFocus(profile, "balanced");
+  if (focus === "swim") base.key = "swim";
+  if (focus === "bike") base.key = "bike";
+  if (focus === "run") base.key = "runbike";
+  const pressure = computeGoalPressure(profile);
+  const lowCapacity = profile?.capacity?.tier === "low" || profile?.fitnessLevel === "starter";
+  const focusBoost = focus === "swim" || focus === "bike" || focus === "run" ? 0.018 : 0;
+  const push = lowCapacity ? 0 : clamp((pressure.safeAggression - 0.12) * 0.24 + pressure.urgency * 0.04 + focusBoost, 0, 0.09);
+
+  if (push > 0) {
+    if (base.key === "bike") {
+      base.bike += push;
+      base.run -= push * 0.65;
+      base.swim -= push * 0.35;
+    } else if (base.key === "swim") {
+      base.swim += push;
+      base.bike -= push * 0.55;
+      base.run -= push * 0.45;
+    } else {
+      base.run += push * 0.55;
+      base.bike += push * 0.45;
+      base.swim -= push;
+    }
+  }
+
+  const swimFloor = profile?.goalDistance === "ironman" ? 0.11 : profile?.goalDistance === "703" ? 0.13 : 0.16;
+  if (base.swim < swimFloor) {
+    const deficit = swimFloor - base.swim;
+    base.swim = swimFloor;
+    base.bike = Math.max(0.3, base.bike - deficit * 0.65);
+    base.run = Math.max(0.24, base.run - deficit * 0.35);
+  }
+  const sum = Math.max(0.0001, base.swim + base.bike + base.run);
+  return {
+    swim: base.swim / sum,
+    bike: base.bike / sum,
+    run: base.run / sum,
+  };
+}
+
+function runningFocusModel(profile) {
+  const pressure = computeGoalPressure(profile);
+  const focus = resolvePlanFocus(profile, "pb");
+  const lowCapacity = profile?.capacity?.tier === "low" || profile?.fitnessLevel === "starter" || profile?.experience === "lt1";
+  const baseByGoal = {
+    "5k": { longShare: 0.22, thresholdShare: 0.42, speedShare: 0.36 },
+    "10k": { longShare: 0.25, thresholdShare: 0.44, speedShare: 0.31 },
+    half: { longShare: 0.32, thresholdShare: 0.46, speedShare: 0.22 },
+    marathon: { longShare: 0.4, thresholdShare: 0.42, speedShare: 0.18 },
+  };
+  const model = { ...(baseByGoal[profile?.goalDistance] || baseByGoal.half) };
+  const push = lowCapacity ? 0 : clamp((pressure.safeAggression - 0.16) * 0.24 + pressure.urgency * 0.03, 0, 0.08);
+  if (push > 0) {
+    if (profile?.goalDistance === "marathon" || profile?.goalDistance === "half") {
+      model.thresholdShare += push * 0.6;
+      model.longShare += push * 0.25;
+      model.speedShare -= push * 0.85;
+    } else {
+      model.thresholdShare += push * 0.55;
+      model.speedShare += push * 0.35;
+      model.longShare -= push * 0.9;
+    }
+  }
+  if (focus === "maintain") {
+    model.longShare += 0.03;
+    model.thresholdShare -= 0.02;
+    model.speedShare -= 0.01;
+  } else if (focus === "consistent") {
+    model.longShare += 0.015;
+    model.speedShare -= 0.015;
+  } else if (focus === "pb") {
+    model.thresholdShare += 0.02;
+    model.speedShare += 0.01;
+    model.longShare -= 0.03;
+  }
+  model.longShare = clamp(model.longShare, 0.2, 0.48);
+  model.thresholdShare = clamp(model.thresholdShare, 0.34, 0.55);
+  model.speedShare = clamp(1 - model.longShare - model.thresholdShare, 0.14, 0.42);
+  return model;
+}
+
+function hyroxFocusModel(profile) {
+  const pressure = computeGoalPressure(profile);
+  const focus = resolvePlanFocus(profile, "finish");
+  const lowCapacity = profile?.capacity?.tier === "low" || profile?.fitnessLevel === "starter";
+  const goal = String(profile?.goalDistance || "open");
+  const baseRunShare = goal === "relay"
+    ? 0.62
+    : goal === "pro" || goal === "doublespro"
+      ? 0.74
+      : goal === "doubles"
+        ? 0.68
+        : 0.7;
+  const push = lowCapacity ? 0 : clamp((pressure.safeAggression - 0.14) * 0.26 + pressure.urgency * 0.04, 0, 0.08);
+  const focusAdj = focus === "competitive" ? 0.03 : focus === "engine" ? 0.015 : -0.01;
+  const runShare = clamp(baseRunShare + push + (lowCapacity ? Math.min(0, focusAdj) : focusAdj), lowCapacity ? 0.6 : 0.64, 0.79);
+  const stationShare = clamp(1 - runShare - 0.06, 0.17, 0.34);
+  const transitionShare = clamp(1 - runShare - stationShare, 0.04, 0.12);
+  const transitionPriority = focus === "competitive" || pressure.urgency >= 0.45 || pressure.ambition >= 0.62;
+  return { runShare, stationShare, transitionShare, transitionPriority };
+}
+
+function cyclingFocusModel(profile) {
+  const pressure = computeGoalPressure(profile);
+  const goal = String(profile?.goalDistance || "tt40");
+  const byGoal = {
+    crit: { thresholdShare: 0.44, vo2Share: 0.34, enduranceShare: 0.22 },
+    tt40: { thresholdShare: 0.5, vo2Share: 0.26, enduranceShare: 0.24 },
+    granfondo: { thresholdShare: 0.35, vo2Share: 0.16, enduranceShare: 0.49 },
+    century: { thresholdShare: 0.32, vo2Share: 0.14, enduranceShare: 0.54 },
+  };
+  const lowCapacity = profile?.capacity?.tier === "low" || profile?.fitnessLevel === "starter";
+  const model = { ...(byGoal[goal] || byGoal.tt40) };
+  const push = lowCapacity ? 0 : clamp((pressure.safeAggression - 0.14) * 0.24 + pressure.urgency * 0.04, 0, 0.08);
+  if (goal === "crit" || goal === "tt40") {
+    model.thresholdShare += push * 0.6;
+    model.vo2Share += push * 0.4;
+    model.enduranceShare -= push;
+  } else {
+    model.thresholdShare += push * 0.45;
+    model.enduranceShare += push * 0.35;
+    model.vo2Share -= push * 0.8;
+  }
+  model.thresholdShare = clamp(model.thresholdShare, 0.28, 0.6);
+  model.vo2Share = clamp(model.vo2Share, 0.1, 0.36);
+  model.enduranceShare = clamp(1 - model.thresholdShare - model.vo2Share, 0.2, 0.62);
+  return model;
+}
+
+function createWeekSessions({
+  profile,
+  weekIndex,
+  weekKm,
+  qualityLabel,
+  isDeload,
+  isTaper,
+  currentWeekStart,
+  raceDate,
+  phase = "build",
+}) {
+  if (profile.discipline === "triathlon") {
+    return createTriathlonWeekSessions({
+      profile,
+      weekIndex,
+      weekKm,
+      isDeload,
+      isTaper,
+      currentWeekStart,
+      raceDate,
+      phase,
+    });
+  }
+
+  if (profile.discipline === "cycling") {
+    return createCyclingWeekSessions({
+      profile,
+      weekIndex,
+      weekKm,
+      isDeload,
+      isTaper,
+      currentWeekStart,
+      raceDate,
+      phase,
+    });
+  }
+
+  if (profile.discipline === "hyrox") {
+    return createHyroxWeekSessions({
+      profile,
+      weekIndex,
+      weekKm,
+      isDeload,
+      isTaper,
+      currentWeekStart,
+      raceDate,
+      phase,
+    });
+  }
+
+  if (profile.discipline === "shape") {
+    return createShapeWeekSessions({
+      profile,
+      weekIndex,
+      weekKm,
+      isDeload,
+      isTaper,
+      currentWeekStart,
+      raceDate,
+      phase,
+    });
+  }
+
+  const longRunKm = Math.max(12, Math.round(weekKm * (isTaper ? 0.22 : 0.3)));
+  const easyKm = Math.max(6, Math.round(weekKm * 0.14));
+  const recoveryKm = Math.max(5, Math.round(weekKm * 0.1));
+  const qualityKm = Math.max(8, Math.round(weekKm * 0.17));
+  const runFocus = runningFocusModel(profile);
+  const pressure = computeGoalPressure(profile);
+  const gapSignal = computeThresholdGapSignal(profile);
+  const doubleThreshold = profile.fitnessLevel === "advanced" && (profile.planningWeeklyHours || profile.weeklyHours) >= 10 && !isTaper;
+  const raceWeek = sameWeek(currentWeekStart, raceDate);
+  const isIntro = weekIndex < (profile.capacity?.introWeeks || 0);
+  const beginner = profile.fitnessLevel === "starter" || profile.experience === "lt1" || profile.capacity?.tier === "low";
+  const runGoalCaps = {
+    "5k": 12,
+    "10k": 16,
+    half: 22,
+    marathon: 30,
+  };
+  const longRunCap = beginner
+    ? (runGoalCaps[profile.goalDistance] || 16)
+    : (runGoalCaps[profile.goalDistance] ? runGoalCaps[profile.goalDistance] + 4 : 22);
+  const introLongRunCap = beginner ? Math.max(8, longRunCap - 4) : longRunCap;
+  const longRunLoadBias = clamp((runFocus.longShare - 0.3) * 0.8, -0.08, 0.12);
+  const longRunKmAdj = clamp(Math.round(longRunKm * (1 + longRunLoadBias)), beginner ? 8 : 10, isIntro ? introLongRunCap : longRunCap);
+  const recoveryKmAdj = clamp(recoveryKm, beginner ? 3 : 4, beginner ? 8 : 10);
+  const easyKmAdj = clamp(easyKm, beginner ? 4 : 5, beginner ? 10 : 14);
+  const intensityScale = clamp(1 + pressure.safeAggression * 0.1 + gapSignal.pushScale * 0.08, 0.92, beginner ? 1.02 : 1.18);
+  const thresholdTotalKm = clamp(Math.round(qualityKm * 1.05 * intensityScale), beginner ? 6 : 8, beginner ? 14 : 22);
+  const speedTotalKm = clamp(Math.round(qualityKm * 0.95 * intensityScale), beginner ? 5 : 7, beginner ? 12 : 20);
+
+  const days = [
+    { type: "recovery", title: "Recovery Run", details: `${recoveryKmAdj} km locker + Mobility`, duration: `${40 + Math.round(recoveryKmAdj * 4)} min` },
+    {
+      type: "threshold",
+      title: qualityLabel,
+      details: isIntro
+        ? `${Math.max(6, Math.round(thresholdTotalKm * 0.85))} km gesamt: 2 km einlaufen + 3-4x5' kontrolliert zügig (2-3' locker) + auslaufen`
+        : phase === "base"
+          ? `${thresholdTotalKm} km gesamt: 2 km einlaufen + Cruise-Intervalle 4-5x6' steady @ Schwelle-1 (2' locker) + auslaufen`
+          : isSpecificPhase(phase)
+            ? (doubleThreshold
+                ? `${thresholdTotalKm} km gesamt: AM 5x6' / PM ${gapSignal.needRunPush ? "9x1 km" : "8x1 km"} race-nah (kontrolliert)`
+                : `${thresholdTotalKm} km gesamt: ${gapSignal.needRunPush ? "6-7x1 km" : "5-6x1 km"} @ wettkampfnaher Schwelle (lockere Pausen)`)
+            : (doubleThreshold ? `${thresholdTotalKm} km gesamt: AM 5x6' / PM 10x1 km (kontrolliert)` : `${thresholdTotalKm} km gesamt: 6x1 km @ Schwelle (lockere Pausen)`),
+      duration: doubleThreshold ? "2x 55 min" : runFocus.thresholdShare >= 0.47 ? "75 min" : "65-70 min",
+    },
+    { type: "rest", title: "Regeneration", details: "Optional Walk / Mobility / Schlaf-Fokus", duration: "20-30 min optional" },
+    {
+      type: "quality",
+      title: "VO2 / Speed Support",
+      details: isIntro
+        ? `${Math.max(5, Math.round(speedTotalKm * 0.8))} km gesamt: Lauftechnik + 6-8 kurze Steigerungen / Walk-Run optional`
+        : phase === "base"
+          ? `${speedTotalKm} km gesamt: Strides + kurze Hills (neuromuskulär), kein volles VO2-Set`
+          : (isDeload ? `${Math.max(6, Math.round(speedTotalKm * 0.85))} km gesamt: kurze Bergläufe + Technik` : (runFocus.speedShare >= 0.3 ? `${speedTotalKm} km gesamt: ${gapSignal.needRunPush ? "14-16x400m" : "14x400m"} kontrolliert schnell (nicht all-out)` : `${speedTotalKm} km gesamt: ${gapSignal.needRunPush ? "12x400m" : "10-12x400m"} kontrolliert schnell (nicht all-out)`)),
+      duration: isIntro ? "40-50 min" : isDeload ? "50 min" : runFocus.speedShare >= 0.3 ? "65-70 min" : "55-65 min",
+    },
+    { type: "recovery", title: "Easy Aerobic", details: `${easyKmAdj} km locker, nasal / low HR`, duration: `${40 + easyKmAdj * 4} min` },
+    {
+      type: "longrun",
+      title: "Long Run",
+      details: isIntro
+        ? `${Math.max(6, Math.round(longRunKmAdj * 0.7))} km locker (gleichmäßig, ruhig)`
+        : isSpecificPhase(phase)
+          ? `${longRunKmAdj} km progressiv (race-pace-naher Schlussblock kontrolliert)`
+          : `${longRunKmAdj} km ${beginner ? "locker-stetig" : "progressiv (letztes Drittel steady)"}`,
+      duration: isIntro ? "45-70 min" : `${70 + longRunKmAdj * 4} min`,
+    },
+    {
+      type: "recovery",
+      title: "Easy + Strides",
+      details: raceWeek ? "25-40 min locker, 4-6 Strides" : "50 min locker + 6 Strides",
+      duration: raceWeek ? "30-40 min" : "50 min",
+    },
+  ];
+
+  if (raceWeek) {
+    const raceDayIndex = dayIndexFromDate(raceDate);
+    days[raceDayIndex] = {
+      type: "quality",
+      title: "Race Day",
+      details: `${labelDistance(profile.goalDistance)} - Ziel: ${profile.goalTime}`,
+      duration: "Event",
+      scheduledRace: true,
+      racePriority: "A",
+      raceDistance: profile.goalDistance,
+      raceDiscipline: profile.discipline,
+    };
+  } else if (isTaper && weekIndex % 2 === 0) {
+    days[3] = {
+      type: "threshold",
+      title: "Sharpener",
+      details: `${Math.max(6, Math.round(speedTotalKm * 0.8))} km gesamt: 3x8' @ Schwelle + 4x200m flott`,
+      duration: "55 min",
+    };
+  }
+
+  placePreferredLongSessionDay(days, profile.longRunDay, "running");
+
+  return days;
+}
+
+function applyLevelMicrocyclePattern(days, profile) {
+  if (!Array.isArray(days) || !days.length) return;
+  const level = String(profile?.fitnessLevel || "starter");
+  const hardTypes = new Set(["quality", "threshold", "longrun"]);
+  const easingTemplate = (base) => ({
+    ...base,
+    type: "recovery",
+    title: /rest/i.test(String(base?.title || "")) ? "Active Recovery" : `${base?.title || "Session"} • Controlled`,
+    details: `${base?.details || ""} • Microcycle-Steuerung: locker/technikbetont.`,
+    duration: base?.duration || "35-55 min",
+  });
+
+  if (level === "starter") {
+    // 2 Belastungstage + 1 Entlastungstag Rhythmus.
+    const forceEasyIdx = [2, 4, 6];
+    forceEasyIdx.forEach((idx) => {
+      const day = days[idx];
+      if (!day || day.scheduledRace || !hardTypes.has(String(day.type || ""))) return;
+      days[idx] = easingTemplate(day);
+    });
+    return;
+  }
+
+  // 3-1-2-1 für Intermediate/Advanced: H H H | E | H H | E
+  const targetEasy = new Set([3, 6]);
+  const targetHard = new Set([0, 1, 2, 4, 5]);
+  days.forEach((day, idx) => {
+    if (!day || day.scheduledRace) return;
+    if (targetEasy.has(idx) && hardTypes.has(String(day.type || ""))) {
+      days[idx] = easingTemplate(day);
+    }
+    if (targetHard.has(idx) && (day.type === "rest" || day.type === "recovery")) {
+      if (idx === 0) {
+        days[idx] = {
+          ...day,
+          type: "quality",
+          title: "Activation Quality",
+          details: "Microcycle 3-1-2-1: kurze Aktivierung mit Technik + kontrolliertem Reiz",
+          duration: "40-55 min",
+        };
+      } else if (idx === 2) {
+        days[idx] = {
+          ...day,
+          type: "threshold",
+          title: "Controlled Threshold Support",
+          details: "Microcycle 3-1-2-1: moderater Qualitätstag, nicht all-out",
+          duration: "45-60 min",
+        };
+      }
+    }
+  });
+}
+
+function applySupplementalRaceEventsToWeek(days, raceEvents, weekStart) {
+  if (!Array.isArray(days) || !days.length || !Array.isArray(raceEvents) || !raceEvents.length) return;
+  const eventsThisWeek = raceEvents.filter((event) => sameWeek(weekStart, event.date));
+  if (!eventsThisWeek.length) return;
+
+  for (const event of eventsThisWeek) {
+    const idx = dayIndexFromDate(event.date);
+    if (idx < 0 || idx >= days.length) continue;
+    const baseDay = days[idx] || {};
+    const baseTitle = event.priority === "A" ? "A-Race" : event.priority === "B" ? "B-Race" : "Prep Race";
+    const distanceLabel = raceEventDistanceLabel(event.discipline, event.distance);
+    const label = event.title ? `${event.title}` : `${disciplineLabel(event.discipline)} Event`;
+    const target = String(event.goalTime || "").trim();
+    days[idx] = {
+      ...baseDay,
+      type: "quality",
+      title: baseTitle,
+      details: `${label} • ${distanceLabel}${target ? ` • Ziel ${target}` : ""} • Priorität ${event.priority}`,
+      duration: "Event",
+      scheduledRace: true,
+      racePriority: event.priority,
+      raceDistance: event.distance,
+      raceDiscipline: event.discipline,
+    };
+
+    if (idx > 0 && days[idx - 1]?.type !== "rest") {
+      const preDay = days[idx - 1] || {};
+      days[idx - 1] = {
+        ...preDay,
+        type: "recovery",
+        title: "Pre-Race Easy",
+        details: "30-45 min locker + Mobilität/Strides",
+        duration: "30-45 min",
+      };
+    }
+    if (event.priority === "A" && idx > 1 && days[idx - 2]?.type === "quality") {
+      const pre2Day = days[idx - 2] || {};
+      days[idx - 2] = {
+        ...pre2Day,
+        type: "recovery",
+        title: "Pre-Race Light Activation",
+        details: "20-35 min locker, kurze Aktivierung",
+        duration: "20-35 min",
+      };
+    }
+    if (idx < days.length - 1 && days[idx + 1]?.type !== "rest") {
+      const postDay = days[idx + 1] || {};
+      days[idx + 1] = {
+        ...postDay,
+        type: "recovery",
+        title: "Post-Race Recovery",
+        details: "Sehr locker + Mobility + Schlaf/Fueling Fokus",
+        duration: "30-50 min",
+      };
+    }
+  }
+}
+
+function applySupplementalRaceSpecificityWindow(days, raceEvents, weekStart, profile) {
+  if (!Array.isArray(days) || !days.length || !Array.isArray(raceEvents) || !raceEvents.length) return;
+  const weekEnd = addDays(weekStart, 6);
+  const upcoming = raceEvents
+    .filter((event) => {
+      const d = startOfDay(event.date);
+      const delta = Math.round((d - weekEnd) / 86400000);
+      return delta >= 1 && delta <= 14;
+    })
+    .sort((a, b) => a.date - b.date)[0];
+  if (!upcoming) return;
+
+  const targetDisc = String(upcoming.discipline || "").toLowerCase();
+  const candidateIdx = days.findIndex((day) => {
+    if (!day || day.scheduledRace) return false;
+    if (day.type !== "quality" && day.type !== "threshold") return false;
+    const t = String(day.title || "").toLowerCase();
+    if (targetDisc === "running") return /run|threshold|vo2|strides/.test(t);
+    if (targetDisc === "cycling") return /bike|ride|ftp|sweet spot|vo2/.test(t);
+    if (targetDisc === "triathlon") return /bike|run|brick|swim/.test(t);
+    if (targetDisc === "hyrox") return /hyrox|run|compromised|station/.test(t);
+    return true;
+  });
+  if (candidateIdx < 0) return;
+
+  const base = days[candidateIdx];
+  const distanceLabel = raceEventDistanceLabel(upcoming.discipline, upcoming.distance);
+  days[candidateIdx] = {
+    ...base,
+    title: `${base.title} • Prep Tune`,
+    details: `${base.details} • Vorwochen-Spezifik: ${disciplineLabel(upcoming.discipline)} ${distanceLabel} (${upcoming.priority}-Priorität)`,
+  };
+}
+
+function bridgeSpecificCue(fromDisc, toDisc) {
+  const pair = `${String(fromDisc || "").toLowerCase()}->${String(toDisc || "").toLowerCase()}`;
+  if (pair === "triathlon->running") {
+    return "Bridge-Fokus: hohe Grundfitness konservieren, Run-Ökonomie/Schwelle gezielt nachschärfen, Bike/Swim als Ermüdungsmanagement nutzen.";
+  }
+  if (pair === "triathlon->triathlon") {
+    return "Bridge-Fokus: kurze Entlastung nach Race, dann spezifischer Rebuild mit Bike-Qualität + Brick-Toleranz.";
+  }
+  if (pair === "running->triathlon") {
+    return "Bridge-Fokus: Run-Engine halten, Bike/Swim-Kapazität progressiv hochziehen, frühe Brick-Gewöhnung.";
+  }
+  if (pair === "hyrox->running") {
+    return "Bridge-Fokus: neuromuskuläre Qualität halten, Laufvolumen kontrolliert erhöhen, Impact-Management priorisieren.";
+  }
+  if (pair === "running->hyrox") {
+    return "Bridge-Fokus: Laufmotor halten, Stationsdichte + kompromittierte Arbeit schrittweise steigern.";
+  }
+  if (pair === "cycling->running") {
+    return "Bridge-Fokus: kardiorespiratorische Basis übertragen, Laufgewebe graduell belasten, Schwelle progressiv setzen.";
+  }
+  return "Bridge-Fokus: aktive Erholung, Rebuild und danach zielnahe Spezifität für das nächste Hauptevent.";
+}
+
+function getBridgeWindowForWeek(mainGoalEvents, weekStart) {
+  if (!Array.isArray(mainGoalEvents) || mainGoalEvents.length < 2) return null;
+  const sorted = [...mainGoalEvents].sort((a, b) => a.date - b.date);
+  const weekMid = addDays(startOfDay(weekStart), 3);
+  for (let i = 1; i < sorted.length; i += 1) {
+    const prev = sorted[i - 1];
+    const next = sorted[i];
+    const prevDate = startOfDay(prev.date);
+    const nextDate = startOfDay(next.date);
+    if (weekMid <= prevDate || weekMid >= nextDate) continue;
+    const totalDays = Math.max(1, Math.round((nextDate - prevDate) / 86400000));
+    const daysAfterPrev = Math.max(0, Math.round((weekMid - prevDate) / 86400000));
+    const daysToNext = Math.max(0, Math.round((nextDate - weekMid) / 86400000));
+    return { prev, next, totalDays, daysAfterPrev, daysToNext };
+  }
+  return null;
+}
+
+function applyMainGoalBridgeToWeek(days, mainGoalEvents, weekStart, profile) {
+  if (!Array.isArray(days) || !days.length) return null;
+  const bridge = getBridgeWindowForWeek(mainGoalEvents, weekStart);
+  if (!bridge) return null;
+
+  const earlyRecoverDays = Math.min(14, Math.round(bridge.totalDays * 0.18));
+  const preSpecificDays = Math.min(18, Math.round(bridge.totalDays * 0.24));
+  const inEarlyRecover = bridge.daysAfterPrev <= earlyRecoverDays;
+  const inPreSpecific = bridge.daysToNext <= preSpecificDays;
+  const cue = bridgeSpecificCue(bridge.prev.discipline, bridge.next.discipline);
+
+  if (inEarlyRecover) {
+    days.forEach((day, idx) => {
+      if (!day || day.scheduledRace || day.type === "rest") return;
+      if (day.type === "quality" || day.type === "threshold" || day.type === "longrun") {
+        days[idx] = {
+          ...day,
+          type: "recovery",
+          title: `${day.title} • Bridge Recovery`,
+          details: `${day.details} • ${cue}`,
+        };
+      } else {
+        days[idx] = { ...day, details: `${day.details} • ${cue}` };
+      }
+      const impact = estimateSessionProjectionImpact(days[idx], profile, Math.max(0.5, Number(days[idx].nominalHours) || 0.75));
+      days[idx].loadScore = Math.round(impact.stress * 0.88);
+      days[idx].adaptationScore = Math.round(impact.adaptation * 0.9);
+      days[idx].fatigueScore = Math.round(impact.fatigue * 0.84);
+    });
+    return { stage: "recover", cue, next: bridge.next };
+  }
+
+  if (inPreSpecific) {
+    days.forEach((day, idx) => {
+      if (!day || day.scheduledRace || day.type === "rest") return;
+      const t = String(day.title || "").toLowerCase();
+      const towardRun = String(bridge.next.discipline || "") === "running";
+      const towardTri = String(bridge.next.discipline || "") === "triathlon";
+      const towardHyrox = String(bridge.next.discipline || "") === "hyrox";
+      const prioritize =
+        (towardRun && (/run|threshold|long run|strides/.test(t))) ||
+        (towardTri && (/bike|brick|swim|run/.test(t))) ||
+        (towardHyrox && (/hyrox|compromised|run threshold|station|carry/.test(t)));
+      if (!prioritize && (day.type === "quality" || day.type === "threshold")) {
+        days[idx] = {
+          ...day,
+          type: "recovery",
+          title: `${day.title} • Bridge Easy`,
+          details: `${day.details} • ${cue}`,
+        };
+      } else {
+        days[idx] = { ...day, title: `${day.title} • Bridge Specific`, details: `${day.details} • ${cue}` };
+      }
+      const impact = estimateSessionProjectionImpact(days[idx], profile, Math.max(0.5, Number(days[idx].nominalHours) || 0.75));
+      const loadMul = prioritize ? 1.04 : 0.9;
+      days[idx].loadScore = Math.round(impact.stress * loadMul);
+      days[idx].adaptationScore = Math.round(impact.adaptation * (prioritize ? 1.06 : 0.9));
+      days[idx].fatigueScore = Math.round(impact.fatigue * (prioritize ? 1.0 : 0.86));
+    });
+    return { stage: "specific", cue, next: bridge.next };
+  }
+
+  days.forEach((day, idx) => {
+    if (!day || day.scheduledRace || day.type === "rest") return;
+    days[idx] = { ...day, details: `${day.details} • ${cue}` };
+    const impact = estimateSessionProjectionImpact(days[idx], profile, Math.max(0.5, Number(days[idx].nominalHours) || 0.75));
+    days[idx].loadScore = Math.round(impact.stress * 0.98);
+    days[idx].adaptationScore = Math.round(impact.adaptation * 1.01);
+    days[idx].fatigueScore = Math.round(impact.fatigue * 0.97);
+  });
+  return { stage: "rebuild", cue, next: bridge.next };
+}
+
+function applyTrainingBlocksToWeek(days, blocks, weekStart, profile) {
+  if (!Array.isArray(days) || !days.length || !Array.isArray(blocks) || !blocks.length) return false;
+  const weekEnd = addDays(weekStart, 6);
+  const overlapping = blocks.filter((block) => {
+    const start = startOfDay(block.date);
+    const end = startOfDay(block.endDate || block.date);
+    return start <= weekEnd && end >= weekStart;
+  });
+  if (!overlapping.length) return false;
+
+  let rampException = false;
+  for (const block of overlapping) {
+    const intensityFactor = block.intensity === "high" ? 1.12 : block.intensity === "low" ? 0.9 : 1.0;
+    const type = String(block.blockType || "camp");
+    if (type === "camp") rampException = true;
+
+    days.forEach((day, idx) => {
+      if (!day || day.scheduledRace || day.type === "rest") return;
+      const dayDate = startOfDay(day.date);
+      const inBlock = dayDate >= startOfDay(block.date) && dayDate <= startOfDay(block.endDate || block.date);
+      if (!inBlock) return;
+
+      if (type === "recovery_block" || type === "taper_block") {
+        if (day.type === "quality" || day.type === "threshold" || day.type === "longrun") {
+          days[idx] = {
+            ...day,
+            type: "recovery",
+            title: `${day.title} • Block Recovery`,
+            details: `${day.details} • Blocksteuerung: Intensität reduziert`,
+          };
+        }
+        return;
+      }
+
+      if (type === "run_block" && !/run|stride|threshold|long run|walk-run/i.test(String(day.title))) return;
+      if (type === "bike_block" && !/bike|ride|trainer|ftp|cadence|long bike|long ride/i.test(String(day.title))) return;
+      if (type === "swim_block" && !/swim|css|pull|drills/i.test(String(day.title))) return;
+
+      if (type === "build_block" || type === "camp" || type === "run_block" || type === "bike_block" || type === "swim_block") {
+        const impact = estimateSessionProjectionImpact(day, profile, Math.max(0.5, Number(day.nominalHours) || 0.75));
+        days[idx] = {
+          ...day,
+          title: `${day.title} • ${blockTypeLabel(type)}`,
+          details: `${day.details} • Block-Fokus aktiv`,
+          loadScore: Math.round((Number(day.loadScore) || impact.stress) * intensityFactor),
+          adaptationScore: Math.round((Number(day.adaptationScore) || impact.adaptation) * (intensityFactor + 0.03)),
+          fatigueScore: Math.round((Number(day.fatigueScore) || impact.fatigue) * intensityFactor),
+        };
+      }
+    });
+  }
+
+  return rampException;
+}
+
+function raceRecoveryDaysNeeded(session, profile) {
+  const discipline = String(session?.raceDiscipline || profile?.discipline || "running");
+  const distance = String(session?.raceDistance || profile?.goalDistance || "");
+  const priority = String(session?.racePriority || "B").toUpperCase();
+  const baseByPriority = priority === "A" ? 3 : priority === "B" ? 2 : 1;
+  let distanceBonus = 0;
+  if (discipline === "running") {
+    if (distance === "marathon") distanceBonus = 2;
+    else if (distance === "half") distanceBonus = 1;
+  } else if (discipline === "triathlon") {
+    if (distance === "ironman") distanceBonus = 3;
+    else if (distance === "703") distanceBonus = 2;
+    else if (distance === "olympic") distanceBonus = 1;
+  } else if (discipline === "cycling") {
+    if (distance === "century" || distance === "granfondo") distanceBonus = 1;
+  } else if (discipline === "hyrox") {
+    if (distance === "pro" || distance === "doublespro") distanceBonus = 1;
+  }
+  return clamp(baseByPriority + distanceBonus, 1, 6);
+}
+
+function applyRecoveryCarryoverToWeek(days, carryDays, profile) {
+  let remaining = Math.max(0, Number(carryDays) || 0);
+  if (!remaining || !Array.isArray(days)) return remaining;
+  for (let i = 0; i < days.length && remaining > 0; i += 1) {
+    const day = days[i];
+    if (!day || day.type === "rest" || day.scheduledRace) continue;
+    days[i] = {
+      ...day,
+      type: "recovery",
+      title: i === 0 ? "Post-Race Recovery (Carryover)" : "Recovery Carryover",
+      details: "Sehr locker + Mobility + Schlaf/Fueling Fokus",
+      duration: "30-45 min",
+    };
+    const impact = estimateSessionProjectionImpact(days[i], profile, Math.max(0.5, Number(days[i].nominalHours) || 0.75));
+    days[i].nominalHours = round1(Math.max(0.5, Number(days[i].nominalHours) || 0.75));
+    days[i].loadScore = Math.round(impact.stress);
+    days[i].adaptationScore = Math.round(impact.adaptation);
+    days[i].fatigueScore = Math.round(impact.fatigue);
+    remaining -= 1;
+  }
+  return remaining;
+}
+
+function computeRaceRecoveryCarryover(days, profile) {
+  if (!Array.isArray(days) || !days.length) return 0;
+  let carry = 0;
+  days.forEach((day, idx) => {
+    if (!day?.scheduledRace) return;
+    const needed = raceRecoveryDaysNeeded(day, profile);
+    const availableAfter = Math.max(0, days.length - 1 - idx);
+    const spill = Math.max(0, needed - availableAfter);
+    carry = Math.max(carry, spill);
+  });
+  return carry;
+}
+
+function weeklyLoadStats(weekDays) {
+  const loads = (Array.isArray(weekDays) ? weekDays : []).map((day) => Math.max(0, Number(day?.loadScore) || 0));
+  const weeklyLoad = loads.reduce((s, v) => s + v, 0);
+  const mean = weeklyLoad / Math.max(1, loads.length);
+  const variance = loads.reduce((s, v) => s + (v - mean) ** 2, 0) / Math.max(1, loads.length);
+  const sd = Math.sqrt(variance);
+  const monotony = mean / Math.max(1, sd);
+  const strain = weeklyLoad * monotony;
+  return { loads, weeklyLoad, monotony, strain };
+}
+
+function isKeyHighLoadDay(day) {
+  const type = String(day?.type || "");
+  const title = String(day?.title || "").toLowerCase();
+  return type === "quality" || type === "threshold" || type === "longrun" || /vo2|threshold|race/.test(title);
+}
+
+function applyLoadGuardrailsToWeek({ weekDays, profile, prevWeekLoad, isDeload, isTaper, rampException = false }) {
+  if (!Array.isArray(weekDays) || !weekDays.length) return;
+  const capByLevel = {
+    starter: { monotony: 2.1, strain: 3800, ramp: 0.1 },
+    intermediate: { monotony: 2.3, strain: 5200, ramp: 0.1 },
+    advanced: { monotony: 2.5, strain: 6800, ramp: 0.1 },
+  };
+  const level = String(profile?.fitnessLevel || "intermediate");
+  const cap = capByLevel[level] || capByLevel.intermediate;
+  if (isDeload || isTaper) return;
+
+  let pass = 0;
+  while (pass < 2) {
+    const stats = weeklyLoadStats(weekDays);
+    const ramp = prevWeekLoad > 0 ? (stats.weeklyLoad - prevWeekLoad) / Math.max(1, prevWeekLoad) : 0;
+    const rampCap = rampException ? Math.max(cap.ramp, 0.16) : cap.ramp;
+    const overloaded = stats.monotony > cap.monotony || stats.strain > cap.strain || ramp > rampCap;
+    if (!overloaded) break;
+
+    const idx = weekDays
+      .map((day, i) => ({ day, i }))
+      .filter(({ day }) => day && !day.scheduledRace && day.type !== "rest" && isKeyHighLoadDay(day))
+      .sort((a, b) => (Number(b.day.loadScore) || 0) - (Number(a.day.loadScore) || 0))[0]?.i;
+    if (idx == null) break;
+
+    const base = weekDays[idx];
+    weekDays[idx] = {
+      ...base,
+      type: "recovery",
+      title: "Guardrail Recovery",
+      details: "Load-Management: Einheit entschärft (locker + Technik/Mobility).",
+      duration: "35-50 min",
+    };
+    const impact = estimateSessionProjectionImpact(weekDays[idx], profile, 0.75);
+    weekDays[idx].nominalHours = 0.8;
+    weekDays[idx].loadScore = Math.round(impact.stress);
+    weekDays[idx].adaptationScore = Math.round(impact.adaptation);
+    weekDays[idx].fatigueScore = Math.round(impact.fatigue);
+    pass += 1;
+  }
+}
+
+function createShapeWeekSessions({ profile, weekIndex, weekKm, isDeload, isTaper, currentWeekStart, raceDate, phase = "build" }) {
+  const raceWeek = sameWeek(currentWeekStart, raceDate);
+  const cap = profile.capacity || computeAthleteCapacity(profile);
+  const isIntro = weekIndex < (cap.introWeeks || 0);
+  const lowCap = cap.tier === "low";
+  const gymShare = clamp(Number(profile.gymShare) || 0, 0, 100);
+  const gymHeavy = gymShare >= 60;
+  const noGym = gymShare <= 20;
+  const level = profile.fitnessLevel || "starter";
+  const runKm = Math.round(clamp(weekKm * 0.42, 6, 28));
+  const cardioMinutes = Math.round(clamp((Number(profile.planningWeeklyHours || profile.weeklyHours) || 5) * 60 * 0.35, 60, 240));
+  const strengthDensity = level === "advanced" ? "hoch" : level === "intermediate" ? "moderat" : "kontrolliert";
+  const goalType = profile.goalDistance;
+  const focus = String(profile.shapeTargetFocus || "");
+  const isCut = goalType === "fatloss";
+  const isRecomp = goalType === "recomp";
+  const isBuild = goalType === "build";
+  const isGeneral = goalType === "fitness";
+  const goalBias =
+    isCut
+      ? "mehr Zone-2 + zügige Zirkel"
+      : isBuild
+        ? "mehr Kraftblöcke + längere Satzpausen"
+        : isRecomp
+          ? "Kraft + Cardio balanciert"
+          : "allgemeine Fitness / Konstanz";
+  const focusBias = focus === "strength" || focus === "performance"
+    ? "mehr Lastqualität, klare Satzstruktur"
+    : focus === "weight" || focus === "bodycomp"
+      ? "höhere dichte Arbeit bei kontrollierter Ermüdung"
+      : focus === "conditioning"
+        ? "mehr Ausdauer-/Intervallanteile"
+        : "balancierter Mix";
+  const noHighImpact = Boolean(profile?.constraintHints?.noHighImpact);
+
+  const strengthMain = gymHeavy
+    ? "Gym-Tag: Langhantel/DB Squat, Hinge, Row, Press, Loaded Carries"
+    : noGym
+      ? (lowCap ? "Home-Tag: Chair Squats, Incline Push-ups, Glute Bridge, Band/Towel Rows, Core" : "Home-Tag: Push-ups, Split Squats, Glute Bridge, Band/Towel Rows, Core")
+      : "Mixed: Gym-Option (DB/KB + Carries) oder Home-Option (Bodyweight + Band)";
+  const metabolicTools = gymHeavy ? "Gym-Option: BikeErg/Rower/Treadmill" : "Home/Outdoor: Run, Step-ups, low-impact Cardio";
+
+  const longCardioMin = isCut ? [55, 95] : isGeneral ? [45, 80] : isRecomp ? [40, 75] : [35, 65];
+  const days = [
+    { type: "recovery", title: "Mobility + Easy Cardio", details: `${Math.max(20, Math.round(cardioMinutes * (isIntro || lowCap ? 0.2 : 0.25)))} min easy walk/jog/bike + Mobility`, duration: "35-55 min" },
+    {
+      type: "quality",
+      title: "Strength Foundation",
+      details: isIntro || lowCap
+        ? `${strengthMain} • 2-3 Sätze je Übung x 8-12 Wdh • Satzpause 60-90s • Technik vor Last • ${goalBias}`
+        : `${strengthMain} • 3-5 Sätze je Übung x ${isBuild ? "4-8" : "6-12"} Wdh • Satzpause ${isBuild ? "90-150s" : "60-120s"} • ${focusBias}`,
+      duration: isIntro ? "35-50 min" : isDeload ? "45-60 min" : "55-75 min",
+    },
+    {
+      type: "threshold",
+      title: "Cardio Intervals",
+      details: isIntro || lowCap
+        ? "Intervall-Einstieg: 6-10x1' zügiges Gehen / easy jog + 2' locker (low impact möglich)"
+        : isBuild
+          ? (isSpecificPhase(phase) ? "8-10x2' zügig / 2' locker (dicht, aber kontrolliert)" : "6-8x2' zügig / 2' locker (nicht maximal)")
+          : isCut
+            ? "4-8x3' zügig / 2' locker + zusätzlich 15-20 min Zone 2"
+            : "4-6x4' kontrolliert hart / 2' locker (Run oder Bike)",
+      duration: isIntro ? "30-45 min" : isTaper ? "35-45 min" : "45-60 min",
+    },
+    {
+      type: "quality",
+      title: isBuild ? "Strength Circuit / Hypertrophy Support" : "Functional Circuit (Home/Outdoor Friendly)",
+      details: isIntro || lowCap
+        ? `2-4 Runden (low impact) • 8-12 Wdh: Chair/Box Squats, Step-ups, Incline Push-ups, Glute Bridge, Carry/March, Plank 30-45s • ${metabolicTools}`
+        : isBuild
+          ? (gymHeavy
+              ? "3-5 Runden • 6-10 Wdh: Squat/Hinge/Press/Row/Carry (Gym-Equipment erlaubt), Satzpause 90-150s"
+              : "3-5 Runden • 8-12 Wdh: Squat/Hinge/Press/Row/Carry (Home-/Bodyweight-Variante), Satzpause 60-120s")
+          : isCut
+            ? (noHighImpact
+                ? "4-7 Runden • 10-16 Wdh: Step-ups, Reverse Lunges, Push-ups, Carry + 60-90s low-impact Cardio"
+                : "4-7 Runden • 10-16 Wdh: Step-ups/Burpees/Lunges/Push-ups/Carry + 60-90s Cardio (dichte Arbeit)")
+            : (noHighImpact
+                ? "3-6 Runden • 8-14 Wdh: Step-ups, Lunges, Push-ups, Carry/Plank + 60-90s Bike/Walk"
+                : "3-6 Runden • 8-14 Wdh: Burpees, Squat Jumps/Step-ups, Lunges, Push-ups, Carry/Plank + 60-90s Run"),
+      duration: isIntro ? "30-45 min" : isBuild ? "50-75 min" : isDeload ? "35-50 min" : "45-70 min",
+    },
+    { type: "rest", title: "Recovery / Walk", details: "Schlaf, Schritte, Mobility, optional 20-30 min easy", duration: "Optional" },
+    {
+      type: "longrun",
+      title: "Long Cardio / Outdoor Session",
+      details: isIntro || lowCap
+        ? `${Math.max(30, Math.round(cardioMinutes * 0.35))}-${Math.max(45, Math.round(cardioMinutes * 0.5))} min steady (Walk / Walk-Run / Bike) • low impact`
+        : `${Math.max(longCardioMin[0], Math.round(cardioMinutes * 0.45))}-${Math.max(longCardioMin[1], Math.round(cardioMinutes * 0.65))} min steady (${Math.max(4, Math.round(runKm * 0.55))}-${Math.max(6, Math.round(runKm * 0.8))} km Run oder Alternative)`,
+      duration: isIntro ? "40-70 min" : isCut ? "60-105 min" : isBuild ? "45-80 min" : "50-95 min",
+    },
+    {
+      type: "recovery",
+      title: "Movement + Core Reset",
+      details: "Core, Hips, Ankles, Trunk Stability + optional lockeres Cardio 20-30 min",
+      duration: "25-45 min",
+    },
+  ];
+
+  if (!isIntro && !lowCap && !isDeload && !isTaper && level === "advanced") {
+    days[4] = {
+      type: "quality",
+      title: isBuild ? "Heavy Strength + Power Touch" : "Power + Sprint Touch",
+      details: isBuild
+        ? (gymHeavy
+            ? "4-5 Sätze x 3-6 Wdh schwere Hauptlifts + 2-3 Power-Finisher x 3-5 Wdh (lange Pausen)"
+            : "4-5 Sätze x 5-8 Wdh schwere Home-Patterns + 2-3 Power-Finisher x 4-6 Wdh (kontrolliert)")
+        : "6-10 Kurzsprints/Hill Sprints + 3-4 Sätze explosive Bodyweight/DB-Patterns x 4-8 Wdh",
+      duration: isBuild ? "55-75 min" : "40-55 min",
+    };
+  }
+
+  if (raceWeek) {
+    const idx = dayIndexFromDate(raceDate);
+    days[idx] = {
+      type: "quality",
+      title: "Check-in / Progress Day",
+      details: `${labelDistance(profile.goalDistance)} • Zielwert: ${profile.goalTime || (profile.targetWeightKg ? `${profile.targetWeightKg} kg` : "n/a")}`,
+      duration: "Assessment",
+    };
+  }
+
+  return days;
+}
+
+function createHyroxWeekSessions({ profile, weekIndex, weekKm, isDeload, isTaper, currentWeekStart, raceDate, phase = "build" }) {
+  const raceWeek = sameWeek(currentWeekStart, raceDate);
+  const cap = profile.capacity || computeAthleteCapacity(profile);
+  const isIntro = weekIndex < (cap.introWeeks || 0);
+  const lowCap = cap.tier === "low";
+  const hyroxFocus = hyroxFocusModel(profile);
+  const gymShare = clamp(Number(profile.gymShare) || 0, 0, 100);
+  const gymHeavy = gymShare >= 60;
+  const mostlyHome = gymShare <= 30;
+  const runKm = Math.round(clamp(weekKm * hyroxFocus.runShare, 16, 74));
+  const noHighImpact = Boolean(profile?.constraintHints?.noHighImpact);
+  const easyKm = Math.round(clamp(runKm * 0.22, 5, 16));
+  const thresholdKm = Math.round(clamp(runKm * 0.18, 5, 12));
+  const longRunKm = Math.round(clamp(runKm * (isTaper ? 0.2 : 0.3), 8, 24));
+  const isProSpec = profile.goalDistance === "pro" || profile.goalDistance === "doublespro";
+  const isRelay = profile.goalDistance === "relay";
+  const stationVolume = lowCap ? "leicht / technisch" : isProSpec ? "hoch / schwerer" : isRelay ? "moderat / schneller" : "solide";
+  const simulationRounds = isIntro || lowCap ? "3-4" : isRelay ? "4-5" : isProSpec ? "6-8" : "5-7";
+  const thresholdReps = isIntro || lowCap
+    ? "6-10x1' zügig + 2' locker"
+    : isTaper
+      ? "4x800 m"
+      : isSpecificPhase(phase)
+        ? (isProSpec ? "5-6x1 km race-nah" : "4-5x1 km race-nah")
+        : (isProSpec ? "5-6x1 km" : "4-5x1 km");
+  const stationAlt = mostlyHome
+    ? "Home-Alternativen: Sled Push/Pull -> Uphill Push/Drag oder Step-ups + Band-Drags; Ski/Row -> Run/Jump-Rope + Band-Pulls; Wall Balls -> Thrusters/Air Squats"
+    : gymHeavy
+      ? "Gym/Box-Option: SkiErg/Rower/Sled/Wall-Ball voll nutzbar; alternativ Run + Carry/Thruster"
+      : "Mixed-Option: Sled/Ski/Row optional, sonst Run/Bike + Carries + Thrusters";
+
+  const days = [
+    { type: "recovery", title: "Easy Run + Mobility", details: `${easyKm} km locker + Mobility + Fuß/Ankle Prep`, duration: "45-65 min" },
+    {
+      type: "threshold",
+      title: "Run Threshold",
+      details: isIntro || lowCap
+        ? `${Math.max(4, Math.round(thresholdKm * 0.8))} km gesamt: ${thresholdReps} (low impact möglich) + Technikfokus`
+        : `${thresholdKm} km gesamt: ${thresholdReps} @ kontrollierter Schwelle (HYROX-Run-Pacing) + 4-6 kurze Strides`,
+      duration: isIntro ? "40-55 min" : isDeload ? "55 min" : "65-75 min",
+    },
+    {
+      type: "quality",
+      title: "HYROX Strength-Endurance (No-Box Friendly)",
+      details: lowCap || isIntro
+        ? `3-4 Sätze • 10-12 Step-ups je Seite • 12 Reverse Lunges je Seite • 150-200 m Carry • 10 Thruster • Core 30-45s. ${stationAlt}`
+        : `${isProSpec ? "6-8" : "5-7"} Sätze • ${noHighImpact ? "12-16 Step-ups je Seite" : "10-14 Burpee Broad Jumps"} • 20 Walking Lunges je Seite • 200-300 m Farmers Carry • 12-16 Squat/Thruster • Core 45-60s (${stationVolume})${hyroxFocus.transitionPriority ? " • +20-30s Transition-Drills pro Satz" : ""}. ${stationAlt}`,
+      duration: isIntro ? "35-55 min" : isDeload ? "45-60 min" : "60-80 min",
+    },
+    { type: "recovery", title: "Aerobic Run", details: `${Math.round(clamp(runKm * 0.2, 4, 14))} km low HR + optional Carries/Step-ups 10-15 min`, duration: "40-65 min" },
+    {
+      type: "quality",
+      title: "HYROX Compromised Intervals",
+      details: isIntro || lowCap
+        ? `${Math.max(4, Math.round(runKm * 0.25))} km Run-Anteil • 3-4 Sätze: 400-600 m Walk-Run + 1 Station (Step-ups/Carry/Lunges) • 90s easy`
+        : isTaper
+        ? `${Math.max(4, Math.round(runKm * 0.22))} km Run-Anteil • 3-4 Sätze: 800 m Run (race-pace-nah) + 1 leichte Station • 90s easy`
+        : `${Math.max(5, Math.round(runKm * 0.3))} km Run-Anteil • ${simulationRounds} Sätze: 800-1000 m Run + 1 Station im Wechsel (Race-Pacing, kontrolliert)${hyroxFocus.transitionPriority ? " • feste Transitionsplits pro Satz" : ""} • 90s easy. ${stationAlt}`,
+      duration: isIntro ? "35-55 min" : isTaper ? "45-60 min" : "70-95 min",
+    },
+    { type: "longrun", title: "Long Run / Aerobic Durability", details: lowCap || isIntro ? `${Math.max(6, Math.round(longRunKm * 0.7))} km ruhig / Walk-Run möglich` : `${longRunKm} km steady (ruhig, ökonomisch) + optional 6x20s Strides`, duration: isIntro ? "45-80 min" : "60-110 min" },
+    { type: "rest", title: "Recovery / Mobility / Tissue Work", details: "Walk, Mobility, Core, leichte Activation. Optional 20-30 min easy spin/jog.", duration: "Optional" },
+  ];
+
+  if (!isIntro && !lowCap && !isTaper && !isDeload && profile.fitnessLevel === "advanced") {
+    days[3] = {
+      type: "quality",
+      title: "Aerobic Run + Functional Density",
+      details: `${Math.round(clamp(runKm * 0.18, 5, 13))} km locker • danach 20-25 min EMOM (${noHighImpact ? "lunges/carries/step-ups/core" : "lunges/burpees/carries/jumps"}) • 40s on / 20s off`,
+      duration: "65-85 min",
+    };
+  }
+
+  if (raceWeek) {
+    const raceDayIndex = dayIndexFromDate(raceDate);
+    days[raceDayIndex] = {
+      type: "quality",
+      title: "Race Day",
+      details: `${labelDistance(profile.goalDistance)} - Ziel: ${profile.goalTime}`,
+      duration: "Event",
+      scheduledRace: true,
+      racePriority: "A",
+      raceDistance: profile.goalDistance,
+      raceDiscipline: profile.discipline,
+    };
+  }
+
+  return days;
+}
+
+function createTriathlonWeekSessions({ profile, weekIndex = 0, weekKm, isDeload, isTaper, currentWeekStart, raceDate, phase = "build" }) {
+  const raceWeek = sameWeek(currentWeekStart, raceDate);
+  const cap = profile.capacity || computeAthleteCapacity(profile);
+  const isIntro = weekIndex < (cap.introWeeks || 0);
+  const tri = deriveTriathlonWeekTargets(profile, weekKm, { isDeload, isTaper, raceWeek });
+  const bikeIndoorShare = clamp(Number(profile?.bikeIndoorShare ?? profile?.gymShare) || 0, 0, 100);
+  const bikeOutdoorDay = String(profile?.bikeOutdoorDay || "none");
+  const trainerOnly = bikeOutdoorDay === "never" || bikeIndoorShare >= 90;
+  const mostlyIndoor = bikeIndoorShare >= 60;
+  const mostlyOutdoor = bikeIndoorShare <= 30 && bikeOutdoorDay !== "never";
+
+  const cycleAware = profile.sex === "female" && profile.cycleBasedTraining;
+  const gapSignal = computeThresholdGapSignal(profile);
+  const runThresholdKm = Math.max(5, Math.round(tri.weeklyRunKm * 0.24));
+  const brickShortKm = Math.max(2, Math.round(tri.brickRunKm * 0.7));
+  const days = [
+    {
+      type: "recovery",
+      title: "Swim + Easy Run",
+      details: `${tri.swimEasyKm} km Technik + ${tri.runEasyKm} km locker${cap.tier === "low" ? " (sehr ruhig, Technikfokus)" : ""}`,
+      duration: cap.tier === "low" ? "45-70 min" : "60-80 min",
+    },
+    {
+      type: "threshold",
+      title: trainerOnly || mostlyIndoor ? "Bike Threshold (Trainer)" : "Bike Threshold",
+      details: cap.tier === "low" || isIntro
+        ? `${trainerOnly || mostlyIndoor ? "Trainer" : "Bike"} Aerobic Intervals: 4-6x4' steady (80-86% FTP) / 3' locker + ${brickShortKm} km Brick-Run locker`
+        : isDeload
+        ? `${trainerOnly || mostlyIndoor ? "Indoor " : ""}4x8' @ 88-92% FTP (Z4 kontrolliert) + ${brickShortKm} km Brick-Run`
+        : isSpecificPhase(phase)
+          ? `${trainerOnly || mostlyIndoor ? "Trainer " : ""}${gapSignal.needBikePush ? "3x18'" : "2x20'"} @ ${gapSignal.needBikePush ? "82-90" : "80-88"}% FTP (70.3/IM-nah) + ${brickShortKm} km Brick-Run`
+        : cycleAware
+          ? `${trainerOnly || mostlyIndoor ? "Trainer-" : ""}Schwellenblock adaptiv (88-95% FTP, zyklusorientiert) + ${brickShortKm} km Brick-Run`
+          : `${trainerOnly || mostlyIndoor ? "Trainer " : ""}3x12' @ 88-95% FTP + ${brickShortKm} km Brick-Run`,
+      duration: cap.tier === "low" || isIntro ? "60-75 min" : isDeload ? "75 min" : "95 min",
+    },
+    {
+      type: "quality",
+      title: "Swim Quality",
+      details: cap.tier === "low" || isIntro ? `${Math.max(1.2, tri.swimEasyKm)} km Technik/Drills + lockere Serien` : `${tri.swimQualityKm} km Main Set @ CSS + Pull / Technik`,
+      duration: cap.tier === "low" || isIntro ? "40-55 min" : tri.swimQualityKm >= 3.2 ? "60-75 min" : "50-65 min",
+    },
+    {
+      type: "recovery",
+      title: "Aerobic Run",
+      details: cap.tier === "low" || isIntro ? `${Math.max(4, Math.round(tri.runAerobicKm * 0.7))} km low HR / Walk-Run möglich` : `${tri.runAerobicKm} km low HR + Strides`,
+      duration: cap.tier === "low" || isIntro ? "40-60 min" : "50-75 min",
+    },
+    {
+      type: "threshold",
+      title: "Run Threshold",
+      details: cap.tier === "low" || isIntro
+        ? `${Math.max(4, Math.round(runThresholdKm * 0.8))} km gesamt: Run steady intervals / Technik statt harte Schwelle`
+        : isSpecificPhase(phase)
+        ? `${runThresholdKm} km gesamt: ${gapSignal.needRunPush ? "etwas dichterer" : "race-pace-naher"} Intervallblock (kontrolliert) + ökonomischer Schluss`
+        : cycleAware
+        ? `${runThresholdKm} km gesamt: Schwellenarbeit adaptiv nach Phase / Readiness`
+        : isTaper
+          ? `${Math.max(5, Math.round(runThresholdKm * 0.8))} km gesamt: 3x8' steady / controlled`
+          : `${runThresholdKm} km gesamt: 2x20' @ Schwelle (kontrolliert)`,
+      duration: cap.tier === "low" || isIntro ? "45-60 min" : isTaper ? "55 min" : "75 min",
+    },
+    {
+      type: "longrun",
+      title: trainerOnly ? "Long Bike (Trainer) + Brick" : mostlyOutdoor ? "Outdoor Long Bike + Brick" : "Long Bike + Brick",
+      details: cap.tier === "low" || isIntro
+        ? `${Math.round(tri.longBikeKm * 0.7)} km ${trainerOnly ? "Trainer" : "Bike"} @ 65-75% FTP + ${Math.max(2, Math.round(tri.brickRunKm * 0.6))} km Brick/Walk-Run${!trainerOnly && bikeOutdoorDay !== "none" ? ` (${bikeOutdoorDayLabel(bikeOutdoorDay)})` : ""}`
+        : `${tri.longBikeKm} km ${trainerOnly ? "Trainer" : "Bike"} @ 68-78% FTP${mostlyOutdoor ? " (ruhig draußen / fueling practice)" : ""} + ${tri.brickRunKm} km Brick Run${!trainerOnly && bikeOutdoorDay !== "none" ? ` (${bikeOutdoorDayLabel(bikeOutdoorDay)})` : ""}`,
+      duration: cap.tier === "low" || isIntro ? "1:45-3:15 h" : tri.longBikeDuration,
+    },
+    {
+      type: "rest",
+      title: "Recovery / Mobility",
+      details: "Optional Easy Swim, Mobility, Sleep, Fueling",
+      duration: "Optional",
+    },
+  ];
+
+  if (!trainerOnly && bikeOutdoorDay !== "none") {
+    placeLongRideOnPreferredDay(days, bikeOutdoorDay);
+  }
+  placePreferredLongSessionDay(days, profile.longRunDay, "triathlon");
+
+  if (raceWeek) {
+    const raceDayIndex = dayIndexFromDate(raceDate);
+    days[raceDayIndex] = {
+      type: "quality",
+      title: "Race Day",
+      details: `${labelDistance(profile.goalDistance)} - Ziel: ${profile.goalTime}`,
+      duration: "Event",
+      scheduledRace: true,
+      racePriority: "A",
+      raceDistance: profile.goalDistance,
+      raceDiscipline: profile.discipline,
+    };
+  }
+
+  return days;
+}
+
+function createCyclingWeekSessions({ profile, weekIndex = 0, weekKm, isDeload, isTaper, currentWeekStart, raceDate, phase = "build" }) {
+  const raceWeek = sameWeek(currentWeekStart, raceDate);
+  const cap = profile.capacity || computeAthleteCapacity(profile);
+  const isIntro = weekIndex < (cap.introWeeks || 0);
+  const cyclingFocus = cyclingFocusModel(profile);
+  const bikeKm = Math.max(120, Math.round(weekKm * 3.8));
+  const enduranceKm = Math.round(clamp(bikeKm * (0.16 + cyclingFocus.enduranceShare * 0.24), 35, 185));
+  const longKm = Math.round(clamp(
+    bikeKm * (isTaper ? (0.26 + cyclingFocus.enduranceShare * 0.08) : (0.32 + cyclingFocus.enduranceShare * 0.18)),
+    55,
+    255
+  ));
+  const bikeIndoorShare = clamp(Number(profile?.bikeIndoorShare ?? profile?.gymShare) || 0, 0, 100);
+  const bikeOutdoorDay = String(profile?.bikeOutdoorDay || "none");
+  const trainerOnly = bikeOutdoorDay === "never" || bikeIndoorShare >= 90;
+  const mostlyIndoor = bikeIndoorShare >= 60;
+  const mostlyOutdoor = bikeIndoorShare <= 30 && bikeOutdoorDay !== "never";
+  const gapSignal = computeThresholdGapSignal(profile);
+
+  const days = [
+    { type: "recovery", title: "Recovery Spin", details: cap.tier === "low" || isIntro ? "35-50 min locker, sehr ruhig" : "45-60 min locker, hohe Kadenz", duration: cap.tier === "low" || isIntro ? "35-50 min" : "45-60 min" },
+    {
+      type: "threshold",
+      title: mostlyIndoor || trainerOnly ? "Threshold Intervals (Trainer)" : "Threshold Intervals",
+      details: cap.tier === "low" || isIntro
+        ? "4-6x4' steady (80-86% FTP) / 3' locker (Tempo-Gewöhnung)"
+        : isDeload
+          ? `${mostlyIndoor || trainerOnly ? "Indoor " : ""}4x8' @ 88-92% FTP`
+          : isSpecificPhase(phase)
+            ? `${mostlyIndoor || trainerOnly ? "Trainer " : ""}${cyclingFocus.thresholdShare >= 0.46 ? (gapSignal.needBikePush ? "3x18'" : "2x22'") : (gapSignal.needBikePush ? "3x14'" : "2x18-20'")} @ ${gapSignal.needBikePush ? "91-98" : "90-96"}% FTP race-pace-nah + kontrollierte Cadence-Blocks`
+            : `${mostlyIndoor || trainerOnly ? "Trainer " : ""}${cyclingFocus.thresholdShare >= 0.46 ? "3x16'" : "3x12-15'"} @ 88-94% FTP (Sweet Spot / FTP)`,
+      duration: cap.tier === "low" || isIntro ? "55-70 min" : isDeload ? "75 min" : "95 min",
+    },
+    { type: "rest", title: "Rest / Mobility", details: "Optional Walk, Mobility, Schlaf", duration: "Optional" },
+    {
+      type: "quality",
+      title: mostlyIndoor || trainerOnly ? "VO2 Bike Session (Trainer)" : "VO2 Bike Session",
+      details: cap.tier === "low" || isIntro
+        ? "Cadence + kurze zügige Blöcke (95-102% FTP, kontrolliert)"
+        : isTaper
+          ? "6x2' sharpeners @ 105-112% FTP"
+          : `${mostlyIndoor || trainerOnly ? "Trainer " : ""}${cyclingFocus.vo2Share >= 0.28 ? "6x4'" : "4-5x4'"} @ 108-120% FTP (VO2) + locker rollen`,
+      duration: cap.tier === "low" || isIntro ? "45-60 min" : isTaper ? "55 min" : cyclingFocus.vo2Share >= 0.28 ? "70-75 min" : "60-70 min",
+    },
+    { type: "recovery", title: (mostlyOutdoor && !trainerOnly) ? "Endurance Ride (Outdoor-ready)" : "Endurance Ride", details: `${cap.tier === "low" || isIntro ? Math.round(enduranceKm * 0.7) : enduranceKm} km Z2 steady (65-75% FTP)${(!trainerOnly && bikeOutdoorDay !== "none" && mostlyOutdoor) ? " (ruhig draußen möglich)" : ""}`, duration: cap.tier === "low" || isIntro ? "60-90 min" : "75-120 min" },
+    { type: "longrun", title: trainerOnly ? "Long Ride (Trainer)" : mostlyOutdoor ? "Long Ride (Outdoor)" : "Long Ride", details: `${cap.tier === "low" || isIntro ? Math.round(longKm * 0.7) : longKm} km ${trainerOnly ? "steady trainer ride @ 65-75% FTP" : cap.tier === "low" || isIntro ? "steady / locker @ 65-75% FTP" : "ruhige längere Ausfahrt @ 68-78% FTP / fueling practice"}${!trainerOnly && bikeOutdoorDay !== "none" ? ` (${bikeOutdoorDayLabel(bikeOutdoorDay)})` : ""}`, duration: cap.tier === "low" || isIntro ? "1:45-3:00 h" : "2:30-4:30 h" },
+    { type: "recovery", title: "Easy Spin + Cadence", details: "50 min locker + 6x high cadence spin-ups", duration: "50 min" },
+  ];
+
+  if (!trainerOnly && bikeOutdoorDay !== "none") {
+    placeLongRideOnPreferredDay(days, bikeOutdoorDay);
+  }
+
+  if (raceWeek) {
+    const raceDayIndex = dayIndexFromDate(raceDate);
+    days[raceDayIndex] = {
+      type: "quality",
+      title: "Race Day",
+      details: `${labelDistance(profile.goalDistance)} - Ziel: ${profile.goalTime}`,
+      duration: "Event",
+      scheduledRace: true,
+      racePriority: "A",
+      raceDistance: profile.goalDistance,
+      raceDiscipline: profile.discipline,
+    };
+  }
+
+  return days;
+}
+
+function placeLongRideOnPreferredDay(days, preferredDay) {
+  const targetIndex = preferredDayToWeekIndex(preferredDay);
+  if (targetIndex == null || !Array.isArray(days) || targetIndex < 0 || targetIndex >= days.length) return;
+  const longIndex = days.findIndex((d) => d.type === "longrun" && /long bike|long ride/i.test(String(d.title || "")));
+  if (longIndex < 0 || longIndex === targetIndex) return;
+  if (days[targetIndex]?.scheduledRace) return;
+  const tmp = days[targetIndex];
+  days[targetIndex] = days[longIndex];
+  days[longIndex] = tmp;
+}
+
+function placePreferredLongSessionDay(days, preferredDay, disciplineKind = "running") {
+  const targetIndex = preferredDayToWeekIndex(preferredDay);
+  if (targetIndex == null || !Array.isArray(days) || targetIndex < 0 || targetIndex >= days.length) return;
+  const target = days[targetIndex];
+  if (!target || target?.scheduledRace) return;
+
+  let longIndex = -1;
+  if (disciplineKind === "triathlon") {
+    longIndex = days.findIndex((d) => /long bike|long session|brick/i.test(String(d.title || "")) || d.type === "longrun");
+  } else {
+    longIndex = days.findIndex((d) => /long run/i.test(String(d.title || "")) || d.type === "longrun");
+  }
+  if (longIndex < 0 || longIndex === targetIndex) return;
+  const tmp = days[targetIndex];
+  days[targetIndex] = days[longIndex];
+  days[longIndex] = tmp;
+}
+
+function preferredDayToWeekIndex(value) {
+  return {
+    monday: 0,
+    tuesday: 1,
+    wednesday: 2,
+    thursday: 3,
+    friday: 4,
+    saturday: 5,
+    sunday: 6,
+  }[String(value || "").toLowerCase()] ?? null;
+}
+
+function deriveTriathlonWeekTargets(profile, weekLoadIndex, { isDeload, isTaper, raceWeek }) {
+  const baseLoad = Math.max(1, estimateBaseKm(profile));
+  const progressionFactor = clamp(weekLoadIndex / baseLoad, 0.45, 1.35);
+  const availableHours = Math.max(3, Number(profile.weeklyHours) || 6);
+
+  const disciplineHourShare = triathlonDisciplineHourShare(profile);
+
+  // Keep some room for mobility/strength and transitions.
+  const trainableHours = availableHours * 0.9 * progressionFactor;
+  const levelSpeeds = {
+    starter: { swimKmh: 1.8, bikeKmh: 24, runKmh: 8.6 },
+    intermediate: { swimKmh: 2.2, bikeKmh: 28, runKmh: 10.2 },
+    advanced: { swimKmh: 2.7, bikeKmh: 31, runKmh: 11.8 },
+  }[profile.fitnessLevel] || { swimKmh: 2.1, bikeKmh: 27, runKmh: 9.8 };
+
+  const weeklySwimKmRaw = trainableHours * disciplineHourShare.swim * levelSpeeds.swimKmh;
+  const weeklyBikeKmRaw = trainableHours * disciplineHourShare.bike * levelSpeeds.bikeKmh;
+  const weeklyRunKmRaw = trainableHours * disciplineHourShare.run * levelSpeeds.runKmh;
+
+  const weeklyCaps = {
+    sprint: { swim: [2.5, 8], bike: [50, 180], run: [12, 40] },
+    olympic: { swim: [3, 10], bike: [70, 240], run: [16, 55] },
+    "703": { swim: [4, 14], bike: [110, 320], run: [22, 75] },
+    ironman: { swim: [5, 16], bike: [140, 420], run: [28, 95] },
+  }[profile.goalDistance] || { swim: [3, 10], bike: [80, 240], run: [16, 55] };
+
+  const weeklySwimKm = clamp(round1(weeklySwimKmRaw), weeklyCaps.swim[0], weeklyCaps.swim[1]);
+  const weeklyBikeKm = Math.round(clamp(weeklyBikeKmRaw, weeklyCaps.bike[0], weeklyCaps.bike[1]));
+  const weeklyRunKm = Math.round(clamp(weeklyRunKmRaw, weeklyCaps.run[0], weeklyCaps.run[1]));
+
+  const longBikeCapByGoal = {
+    sprint: 80,
+    olympic: 130,
+    "703": 200,
+    ironman: 260,
+  };
+  const longRunCapByGoal = {
+    sprint: 14,
+    olympic: 22,
+    "703": 28,
+    ironman: 34,
+  };
+
+  const longBikeKm = Math.round(
+    clamp(
+      weeklyBikeKm * (raceWeek ? 0.2 : isTaper ? 0.45 : isDeload ? 0.55 : 0.62),
+      raceWeek ? 20 : 45,
+      longBikeCapByGoal[profile.goalDistance] || 160
+    )
+  );
+  const brickRunKm = Math.round(
+    clamp(
+      weeklyRunKm * (raceWeek ? 0.08 : isTaper ? 0.12 : 0.16),
+      raceWeek ? 2 : 3,
+      profile.goalDistance === "ironman" ? 12 : profile.goalDistance === "703" ? 8 : 6
+    )
+  );
+
+  const swimEasyKm = round1(clamp(weeklySwimKm * 0.32, 1.2, profile.goalDistance === "ironman" ? 3.5 : 3));
+  const swimQualityKm = round1(clamp(weeklySwimKm * 0.4, 1.6, profile.goalDistance === "ironman" ? 4.2 : 3.6));
+  const runEasyKm = Math.round(clamp(weeklyRunKm * 0.24, 4, 18));
+  const runAerobicKm = Math.round(clamp(weeklyRunKm * 0.28, 5, longRunCapByGoal[profile.goalDistance] || 22));
+
+  const longBikeDurationHours = longBikeKm / levelSpeeds.bikeKmh;
+  const longBikeDuration = raceWeek
+    ? "Event"
+    : `${formatHourRange(Math.max(1.3, longBikeDurationHours * 0.9), Math.max(1.6, longBikeDurationHours * 1.08))} h`;
+
+  return {
+    weeklySwimKm,
+    weeklyBikeKm,
+    weeklyRunKm,
+    swimEasyKm,
+    swimQualityKm,
+    runEasyKm,
+    runAerobicKm,
+    longBikeKm,
+    brickRunKm,
+    longBikeDuration,
+  };
+}
+
+function buildPlanStyleSummary(profile, plan) {
+  const txt = (de, en, ja) => (currentLang === "de" ? de : currentLang === "ja" ? ja : en);
+  const strategy = plan?.meta?.strategy || {};
+  const phaseLayout = plan?.meta?.phaseLayout || {};
+  const ambition = clamp(Number(strategy.ambition) || 0, 0, 1);
+  const safeAggression = clamp(Number(strategy.safeAggression) || 0, 0, 1.4);
+  const urgency = clamp(Number(strategy.urgency) || 0, 0, 1);
+  const lowCapacity = profile?.capacity?.tier === "low" || profile?.fitnessLevel === "starter" || profile?.experience === "lt1";
+  const aggressiveMode = safeAggression >= 0.34;
+  const progressiveMode = safeAggression >= 0.18;
+  const caution = ambition >= 0.6 && safeAggression < 0.18;
+  const phaseBits = [
+    phaseLayout.onboardingWeeks ? `Onboard ${phaseLayout.onboardingWeeks}w` : null,
+    phaseLayout.baseWeeks ? `Base ${phaseLayout.baseWeeks}w` : null,
+    phaseLayout.buildWeeks ? `Build ${phaseLayout.buildWeeks}w` : null,
+    phaseLayout.peakWeeks ? `Peak ${phaseLayout.peakWeeks}w` : null,
+    phaseLayout.taperWeeks ? `Taper ${phaseLayout.taperWeeks}w` : null,
+  ].filter(Boolean).join(" · ");
+  const urgencyHint = urgency >= 0.6
+    ? txt(" Zeitfenster ist eng.", " Time window is tight.", " 期間はタイトです。")
+    : urgency <= 0.2
+      ? txt(" Zeitfenster ist komfortabel.", " Time window is comfortable.", " 期間に余裕があります。")
+      : "";
+
+  if (aggressiveMode && !lowCapacity) {
+    return txt(
+      `Performance-Push. Ziel + Zeitfenster erzeugen hohe Spezifität (mehr Peak/Build, weniger Base) bei kontrollierten Guardrails.${urgencyHint} (${phaseBits})`,
+      `Performance push. Goal + time window demand higher specificity (more peak/build, less base) with guardrails.${urgencyHint} (${phaseBits})`,
+      `パフォーマンス重視。目標と期間に合わせて特異性を上げます（Peak/Buildを増やしBaseを圧縮、ガードレールあり）。${urgencyHint} (${phaseBits})`
+    );
+  }
+  if (progressiveMode && !lowCapacity) {
+    return txt(
+      `Progressiv. Zielorientierter Aufbau mit ausgewogener Base/Build/Peak-Verteilung.${urgencyHint} (${phaseBits})`,
+      `Progressive. Goal-driven build with balanced base/build/peak distribution.${urgencyHint} (${phaseBits})`,
+      `プログレッシブ。目標に沿ってBase/Build/Peakをバランスよく配分します。${urgencyHint} (${phaseBits})`
+    );
+  }
+  if (caution || lowCapacity) {
+    return txt(
+      `Stabiler Aufbau. Schutzfaktoren sind aktiv (mehr Onboarding/Base, kontrollierte Progression), um Überlastung zu vermeiden. (${phaseBits})`,
+      `Stable build. Safety factors are active (more onboarding/base, controlled progression) to reduce overload risk. (${phaseBits})`,
+      `安定構築。安全係数を優先し（Onboarding/Base多め、進行は慎重）、過負荷リスクを抑えます。(${phaseBits})`
+    );
+  }
+  return txt(
+    `Ausgewogen. Ziel und Belastbarkeit sind im Gleichgewicht periodisiert. (${phaseBits})`,
+    `Balanced. Goal and capacity are periodized in balance. (${phaseBits})`,
+    `バランス型。目標と耐性のバランスで周期化しています。(${phaseBits})`
+  );
+}
+
+function buildPlanMissionBrief(profile, plan) {
+  const txt = (de, en, ja) => (currentLang === "de" ? de : currentLang === "ja" ? ja : en);
+  const phaseLayout = plan?.meta?.phaseLayout || {};
+  const strategy = plan?.meta?.strategy || {};
+  const safeAggression = clamp(Number(strategy.safeAggression) || 0, 0, 1.4);
+  const urgency = clamp(Number(strategy.urgency) || 0, 0, 1);
+  const goal = profile?.discipline === "shape"
+    ? `${labelDistance(profile.goalDistance)} ${profile.goalTime ? `(${profile.goalTime})` : ""}`.trim()
+    : `${labelDistance(profile.goalDistance)} in ${profile.goalTime || "n/a"}`;
+  const weeks = Number(plan?.meta?.weeks) || Number(plan?.weeks?.length) || 0;
+  const weeklyHoursTarget = Math.max(
+    1,
+    Math.round(
+      Number(profile?.planningWeeklyHours || profile?.weeklyHours || 0)
+      || Number(plan?.weeks?.[0]?.loadHours || 0)
+      || 6
+    )
+  );
+  const longRunDayMap = {
+    none: txt("flexibel", "flexible", "固定なし"),
+    monday: txt("Montag", "Monday", "月曜"),
+    tuesday: txt("Dienstag", "Tuesday", "火曜"),
+    wednesday: txt("Mittwoch", "Wednesday", "水曜"),
+    thursday: txt("Donnerstag", "Thursday", "木曜"),
+    friday: txt("Freitag", "Friday", "金曜"),
+    saturday: txt("Samstag", "Saturday", "土曜"),
+    sunday: txt("Sonntag", "Sunday", "日曜"),
+  };
+  const longRunDayLabel = longRunDayMap[String(profile?.longRunDay || "none").toLowerCase()] || longRunDayMap.none;
+  const keyTone = safeAggression >= 0.34
+    ? txt("klarer Push-Modus", "clear push mode", "明確なプッシュモード")
+    : safeAggression >= 0.18
+      ? txt("progressiver Aufbau", "progressive build", "段階的な積み上げ")
+      : txt("stabiler Aufbau", "stable build", "安定重視");
+  const focusHint =
+    profile?.discipline === "triathlon"
+      ? txt("Bike/Run-Rhythmus, ökonomische Schwellenarbeit und sauberes Fueling", "bike/run rhythm, economical threshold work, and clean fueling", "バイク/ランのリズム、閾値効率、補給の精度")
+      : profile?.discipline === "hyrox"
+        ? txt("Run-Pacing unter Vorermüdung, Stations-Effizienz und klare Transitions", "run pacing under fatigue, station efficiency, and clean transitions", "疲労下ランペース、ステーション効率、明確なトランジション")
+        : profile?.discipline === "cycling"
+          ? txt("Schwelle + VO2-Impulse mit smartem Long-Ride-Management", "threshold + VO2 touches with smart long-ride management", "閾値とVO2刺激、ロングライド管理")
+          : profile?.discipline === "shape"
+            ? txt("klare Progression, Recovery-Qualität und nachhaltige Wochenkonstanz", "clear progression, quality recovery, and sustainable weekly consistency", "明確な進行、回復品質、週次の継続性")
+            : txt("Schwellenqualität, Long-Run-Durability und frische Beine zur richtigen Zeit", "threshold quality, long-run durability, and fresh legs at the right time", "閾値の質、ロングラン耐性、仕上げ期のフレッシュさ");
+  const nonNegotiables =
+    profile?.discipline === "triathlon"
+      ? txt(
+          "Nicht verhandelbar: 1) Long Ride + Brick, 2) eine starke Bike-/Run-Qualitätseinheit, 3) sauberes Fueling in den Key Sessions.",
+          "Non-negotiable: 1) long ride + brick, 2) one strong bike/run quality session, 3) clean fueling in key sessions.",
+          "必須事項: 1) ロングライド+ブリック 2) バイク/ランの質セッション 3) キー練習での補給精度。"
+        )
+      : profile?.discipline === "cycling"
+        ? txt(
+            "Nicht verhandelbar: 1) FTP/Sweet-Spot-Block, 2) VO2-Impuls, 3) langer Ride mit kontrolliertem Pacing.",
+            "Non-negotiable: 1) FTP/sweet-spot block, 2) VO2 touch, 3) long ride with controlled pacing.",
+            "必須事項: 1) FTP/Sweet Spot 2) VO2刺激 3) ペーシング管理したロングライド。"
+          )
+        : profile?.discipline === "hyrox"
+          ? txt(
+              "Nicht verhandelbar: 1) Run-Qualität, 2) Stations-Dichte, 3) mindestens eine kompromittierte Session pro Woche.",
+              "Non-negotiable: 1) run quality, 2) station density, 3) at least one compromised session per week.",
+              "必須事項: 1) ランの質 2) ステーション密度 3) 週1回以上のコンプロマイズド練習。"
+            )
+          : profile?.discipline === "shape"
+            ? txt(
+                "Nicht verhandelbar: 1) Wochenkonsistenz bei Stunden, 2) progressive Kraftreize, 3) Recovery + Schlaf ernst nehmen.",
+                "Non-negotiable: 1) weekly consistency on hours, 2) progressive strength stimulus, 3) recovery + sleep taken seriously.",
+                "必須事項: 1) 週次の継続 2) 漸進的な筋力刺激 3) 回復と睡眠を最優先。"
+              )
+            : txt(
+                "Nicht verhandelbar: 1) Long Run, 2) Schwellen-/Qualitätseinheit, 3) Easy Days wirklich easy halten.",
+                "Non-negotiable: 1) long run, 2) threshold/quality session, 3) keep easy days truly easy.",
+                "必須事項: 1) ロングラン 2) 閾値/質セッション 3) イージーデイを本当にイージーに。"
+              );
+  const executionRule = txt(
+    "Coach-Ansage: Triff deine Wochenstunden, schütze die Key Sessions und skaliere Nebeneinheiten nur, wenn die Readiness niedrig ist.",
+    "Coach note: hit your weekly hours, protect key sessions, and scale secondary sessions only when readiness is low.",
+    "コーチ指示: 週の総時間を守り、キー練習を優先し、Readinessが低い時のみ補助練習を調整。"
+  );
+  const vibeLine = txt(
+    "Bleib ruhig, bleib präzise, dann kommt die Form.",
+    "Stay calm, stay precise, fitness will follow.",
+    "落ち着いて、正確に。そうすれば仕上がる。"
+  );
+  const phaseHint = txt(
+    `Onboard ${phaseLayout.onboardingWeeks || 0}w -> Base ${phaseLayout.baseWeeks || 0}w -> Build ${phaseLayout.buildWeeks || 0}w -> Peak ${phaseLayout.peakWeeks || 0}w -> Taper ${phaseLayout.taperWeeks || 0}w`,
+    `Onboard ${phaseLayout.onboardingWeeks || 0}w -> Base ${phaseLayout.baseWeeks || 0}w -> Build ${phaseLayout.buildWeeks || 0}w -> Peak ${phaseLayout.peakWeeks || 0}w -> Taper ${phaseLayout.taperWeeks || 0}w`,
+    `Onboard ${phaseLayout.onboardingWeeks || 0}w -> Base ${phaseLayout.baseWeeks || 0}w -> Build ${phaseLayout.buildWeeks || 0}w -> Peak ${phaseLayout.peakWeeks || 0}w -> Taper ${phaseLayout.taperWeeks || 0}w`
+  );
+  const urgencyHint = urgency >= 0.6
+    ? txt("Zeitfenster ist knapp, daher trainieren wir fokussiert und ohne Leerlauf.", "Time window is tight, so we train focused with no dead weeks.", "期間が短いので、無駄のない集中設計です。")
+    : txt("Wir haben genug Luft für saubere Progression statt hektischer Sprünge.", "We have enough room for clean progression instead of rushed jumps.", "急がず、段階的な進行が可能です。");
+  const keySessionHint =
+    profile?.discipline === "triathlon"
+      ? txt("Key Sessions: Bike-Threshold/VO2, langer Ride mit Brick, Run-Threshold, Swim-Qualität.", "Key sessions: bike threshold/VO2, long ride with brick, run threshold, swim quality.", "キー練習: バイク閾値/VO2、ロングライド+ブリック、ラン閾値、スイム品質。")
+      : profile?.discipline === "cycling"
+        ? txt("Key Sessions: Sweet Spot/FTP, VO2-Impulse, langer Ride mit Fueling-Probe.", "Key sessions: sweet spot/FTP, VO2 work, long ride with fueling practice.", "キー練習: Sweet Spot/FTP、VO2刺激、補給練習を含むロングライド。")
+        : profile?.discipline === "hyrox"
+          ? txt("Key Sessions: Run-Threshold, Stations-Density, kompromittierte Intervalle, Race-Simulation.", "Key sessions: run threshold, station density, compromised intervals, race simulation.", "キー練習: ラン閾値、ステーション密度、コンプロマイズド、レースシミュ。")
+          : profile?.discipline === "shape"
+            ? txt("Key Sessions: progressive Kraftblöcke, Cardio-Intervalle, Long Cardio, geplante Recovery.", "Key sessions: progressive strength blocks, cardio intervals, long cardio, planned recovery.", "キー練習: 漸進的筋力、カーディオインターバル、ロング有酸素、計画的回復。")
+            : txt("Key Sessions: Schwellenläufe, VO2-Reize, Long Run und ein klarer Deload-Rhythmus.", "Key sessions: threshold runs, VO2 touches, long run, and clear deload rhythm.", "キー練習: 閾値走、VO2刺激、ロングラン、明確なデロード。");
+  const mechanismHint = txt(
+    "Schwelle/VO2 heben den Motor, Long Sessions bauen metabolische Robustheit und Ermüdungsresistenz, Deload/Taper legen die Leistung frei.",
+    "Threshold/VO2 raise the engine, long sessions build metabolic durability and fatigue resistance, deload/taper unlock performance.",
+    "閾値/VO2でエンジンを上げ、ロングで代謝耐性と疲労耐性を作り、デロード/テーパーで性能を引き出します。"
+  );
+  const complianceRule = txt(
+    `Um dieses Ziel realistisch zu treffen, gilt: mindestens ${weeklyHoursTarget} h/Woche sauber durchziehen, den Long Run${profile?.discipline === "running" || profile?.discipline === "triathlon" ? ` (${longRunDayLabel})` : ""} nicht auslassen und jede Woche mindestens 2 Key Sessions priorisieren.`,
+    `To hit this target realistically: consistently complete at least ${weeklyHoursTarget} h/week, do not skip the long run${profile?.discipline === "running" || profile?.discipline === "triathlon" ? ` (${longRunDayLabel})` : ""}, and prioritize at least 2 key sessions each week.`,
+    `この目標を現実的に達成する条件: 週${weeklyHoursTarget}時間以上を継続し、ロング${profile?.discipline === "running" || profile?.discipline === "triathlon" ? `（${longRunDayLabel}）` : ""}を省略せず、毎週キーセッションを最低2回優先すること。`
+  );
+  const recoveryRule = txt(
+    "Wenn Readiness 2-3 Tage niedrig bleibt, zuerst Nebenumfang kürzen, Key Sessions halten, Schlaf und Fueling erhöhen.",
+    "If readiness stays low for 2-3 days, cut secondary volume first, keep key sessions, and raise sleep/fueling quality.",
+    "Readinessが2-3日低い場合は、まず補助ボリュームを削り、キーセッションを維持し、睡眠と補給の質を上げる。"
+  );
+
+  const title = txt("Mission Brief", "Mission Brief", "ミッション概要");
+  const short = txt(
+    `Mission ${goal}. ${weeks} Wochen, ${keyTone}. Priorität: ${focusHint}. ${complianceRule}`,
+    `Mission ${goal}. ${weeks} weeks, ${keyTone}. Priority: ${focusHint}. ${complianceRule}`,
+    `ミッション ${goal}。${weeks}週間、${keyTone}。優先: ${focusHint}。${complianceRule}`
+  );
+  const long = txt(
+    `Coach-Ansage: Wir spielen dieses Ziel nicht über Aktionismus, sondern über Präzision. In ${weeks} Wochen gehen wir von belastbar zu spezifisch: Onboarding/Base legt Technik und Verträglichkeit, Build/Peak macht dich zielnah schnell, Taper bringt die Frische auf den Punkt. ${complianceRule} ${nonNegotiables} ${keySessionHint} ${mechanismHint} ${recoveryRule} ${urgencyHint} Phasen: ${phaseHint}. ${vibeLine}`,
+    `Coach note: we don't chase this goal with chaos, we win it with precision. Over ${weeks} weeks we move from durable to specific: onboarding/base sets tolerance and technique, build/peak creates race-specific speed, taper delivers freshness at the right time. ${complianceRule} ${nonNegotiables} ${keySessionHint} ${mechanismHint} ${recoveryRule} ${urgencyHint} Phases: ${phaseHint}. ${vibeLine}`,
+    `コーチメモ: この目標は勢い任せではなく、精度で取りにいきます。${weeks}週間で「耐性」から「特異性」へ移行。Onboarding/Baseで土台、Build/Peakで競技特異性、Taperで仕上げます。${complianceRule} ${nonNegotiables} ${keySessionHint} ${mechanismHint} ${recoveryRule} ${urgencyHint} フェーズ: ${phaseHint}。${vibeLine}`
+  );
+  const toggleLabel = missionBriefExpanded
+    ? txt("weniger", "less", "閉じる")
+    : txt("mehr", "more", "詳細");
+  return { title, short, long, toggleLabel };
+}
+
+function renderPlanMissionBrief(profile, plan) {
+  if (!planMissionBriefEl) return;
+  const brief = buildPlanMissionBrief(profile, plan);
+  planMissionBriefEl.hidden = false;
+  planMissionBriefEl.innerHTML = `
+    <div class="plan-mission-head">
+      <strong class="plan-mission-title">${escapeHtml(brief.title)}</strong>
+      <button type="button" class="plan-mission-toggle" data-mission-toggle>${escapeHtml(brief.toggleLabel)}</button>
+    </div>
+    <p class="plan-mission-copy plan-mission-short">${escapeHtml(brief.short)}</p>
+    <p class="plan-mission-copy plan-mission-long ${missionBriefExpanded ? "is-open" : ""}">${escapeHtml(brief.long)}</p>
+  `;
+}
+
+function requiredRunningThresholdPaceSec(profile) {
+  const goalSeconds = parseGoalTimeToSeconds(profile?.goalTime);
+  if (!goalSeconds) return null;
+  const discipline = String(profile?.discipline || "");
+  if (discipline === "running") {
+    const distKm = distanceKmFromGoal(profile?.goalDistance);
+    if (!distKm) return null;
+    const racePace = goalSeconds / distKm;
+    const factor = {
+      "5k": 1.09,
+      "10k": 1.05,
+      half: 1.01,
+      marathon: 0.94,
+    }[String(profile?.goalDistance || "").toLowerCase()] || 1.04;
+    return racePace * factor;
+  }
+  if (discipline !== "triathlon") return null;
+  const key = String(profile?.goalDistance || "").toLowerCase();
+  const runKmByGoal = { sprint: 5, olympic: 10, "703": 21.1, ironman: 42.195 };
+  const runShareByGoal = { sprint: 0.27, olympic: 0.3, "703": 0.315, ironman: 0.355 };
+  const thrFactorByGoal = { sprint: 0.96, olympic: 0.93, "703": 0.89, ironman: 0.87 };
+  const runKm = runKmByGoal[key];
+  if (!runKm) return null;
+  const h = goalSeconds / 3600;
+  const runShareBase = runShareByGoal[key] || 0.33;
+  const fatigueShareAdj = key === "ironman"
+    ? clamp((h - 10.5) * 0.007, -0.018, 0.04)
+    : key === "703"
+      ? clamp((h - 5.2) * 0.012, -0.018, 0.04)
+      : clamp((h - 2.8) * 0.01, -0.015, 0.035);
+  const runSplitSec = goalSeconds * clamp(runShareBase + fatigueShareAdj, 0.22, 0.44);
+  const runRacePace = runSplitSec / runKm;
+  const thresholdFactor = thrFactorByGoal[key] || 0.92;
+  const required = runRacePace * thresholdFactor;
+  return clamp(required, 205, 430);
+}
+
+function requiredHyroxThresholdPaceSec(profile) {
+  if (String(profile?.discipline) !== "hyrox") return null;
+  const goalSeconds = parseGoalTimeToSeconds(profile?.goalTime);
+  if (!goalSeconds) return null;
+  const h = goalSeconds / 3600;
+  const baseByFormat = {
+    open: [255, 295],
+    pro: [240, 280],
+    doubles: [250, 290],
+    doublespro: [238, 275],
+    relay: [228, 265],
+  };
+  const [fast, easy] = baseByFormat[String(profile?.goalDistance || "").toLowerCase()] || [250, 292];
+  const target = h <= 1.05 ? fast : h >= 1.4 ? easy : fast + ((easy - fast) * ((h - 1.05) / 0.35));
+  return clamp(target, 225, 320);
+}
+
+function requiredBikeFtpWatts(profile) {
+  const discipline = String(profile?.discipline || "");
+  const goalSeconds = parseGoalTimeToSeconds(profile?.goalTime);
+  const weight = Number(profile?.weightKg) || (profile?.sex === "female" ? 62 : 74);
+  let reqWkg = null;
+
+  if (discipline === "cycling" && goalSeconds) {
+    const h = goalSeconds / 3600;
+    const byGoal = {
+      tt40: h <= 1 ? 3.9 : h <= 1.08 ? 3.6 : h <= 1.2 ? 3.3 : 3.0,
+      crit: h <= 1 ? 3.8 : h <= 1.15 ? 3.5 : 3.1,
+      granfondo: h <= 5 ? 3.5 : h <= 6 ? 3.1 : 2.8,
+      century: h <= 5 ? 3.4 : h <= 6 ? 3.0 : 2.7,
+    };
+    reqWkg = byGoal[String(profile?.goalDistance || "").toLowerCase()] || 3.0;
+  } else if (discipline === "triathlon" && goalSeconds) {
+    const h = goalSeconds / 3600;
+    const byGoal = {
+      sprint: h <= 1.2 ? 3.6 : h <= 1.5 ? 3.2 : 2.8,
+      olympic: h <= 2.35 ? 3.8 : h <= 2.8 ? 3.3 : 2.9,
+      "703": h <= 4.5 ? 4.2 : h <= 5 ? 3.9 : h <= 5.5 ? 3.5 : h <= 6 ? 3.2 : 2.9,
+      ironman: h <= 9.5 ? 4.3 : h <= 10.5 ? 3.9 : h <= 11.5 ? 3.4 : h <= 12.5 ? 3.0 : 2.7,
+    };
+    reqWkg = byGoal[String(profile?.goalDistance || "").toLowerCase()] || 3.0;
+    const bikeKmByGoal = { sprint: 20, olympic: 40, "703": 90, ironman: 180 };
+    const bikeShareByGoal = { sprint: 0.4, olympic: 0.44, "703": 0.47, ironman: 0.5 };
+    const ifByGoal = { sprint: 0.9, olympic: 0.85, "703": 0.8, ironman: 0.74 };
+    const key = String(profile?.goalDistance || "").toLowerCase();
+    const bikeKm = bikeKmByGoal[key];
+    if (bikeKm) {
+      const bikeShare = clamp(
+        (bikeShareByGoal[key] || 0.46) +
+          (key === "ironman" ? clamp((h - 10.5) * 0.01, -0.03, 0.05) : clamp((h - 5.2) * 0.012, -0.03, 0.05)),
+        0.35,
+        0.62
+      );
+      const bikeHours = Math.max(0.55, h * bikeShare);
+      const speedMs = (bikeKm / bikeHours) / 3.6;
+      const crr = 0.0045;
+      const rho = 1.226;
+      const cdaBase = profile?.fitnessLevel === "advanced" ? 0.245 : profile?.fitnessLevel === "starter" ? 0.285 : 0.265;
+      const cda = clamp(cdaBase + (profile?.sex === "female" ? -0.008 : 0), 0.22, 0.31);
+      const systemMass = weight + 8;
+      const rolling = crr * systemMass * 9.81 * speedMs;
+      const aero = 0.5 * rho * cda * speedMs * speedMs * speedMs;
+      const drivetrainAndTerrain = key === "ironman" ? 14 : key === "703" ? 12 : 10;
+      const racePower = rolling + aero + drivetrainAndTerrain;
+      const ifTarget = ifByGoal[key] || 0.8;
+      const physicsFtp = racePower / Math.max(0.66, ifTarget);
+      const wkgFloor = reqWkg * weight;
+      const absoluteFloor = key === "ironman" ? 15 : key === "703" ? 10 : 0;
+      return Math.round(Math.max(physicsFtp, wkgFloor + absoluteFloor));
+    }
+  }
+  if (!reqWkg) return null;
+  return Math.round(reqWkg * weight);
+}
+
+function renderThresholdTrackCard(profile, plan) {
+  if (!thresholdTrackCardEl || !thresholdTrackBodyEl || !thresholdTrackTitleEl || !profile || !plan) return;
+  if (profile.discipline === "shape") {
+    thresholdTrackCardEl.hidden = true;
+    thresholdTrackBodyEl.innerHTML = "";
+    return;
+  }
+  const txt = (de, en, ja) => (currentLang === "de" ? de : currentLang === "ja" ? ja : en);
+  thresholdTrackTitleEl.textContent = txt("On Track Check", "On Track Check", "オン・トラック判定");
+  const rows = [];
+
+  const currentRunThr = estimateCurrentRunThresholdPaceSec(profile);
+  const reqRunThr = requiredRunningThresholdPaceSec(profile) || requiredHyroxThresholdPaceSec(profile);
+  if (Number.isFinite(reqRunThr) && Number.isFinite(currentRunThr)) {
+    const deltaSec = Math.round(currentRunThr - reqRunThr);
+    const paceGap = Math.abs(deltaSec);
+    const status =
+      deltaSec <= 6 ? txt("im Korridor", "on track", "目標帯内") :
+      deltaSec <= 18 ? txt("nahe dran", "close", "もう少し") :
+      txt("noch klarer Gap", "clear gap", "差あり");
+    rows.push(
+      `<div class="threshold-track-row"><strong>${escapeHtml(txt("Run-Schwelle", "Run threshold", "ラン閾値"))}</strong><p>${escapeHtml(
+        `${txt("Aktuell", "Current", "現在")}: ${formatPacePerKm(currentRunThr)} • ${txt("Ziel", "Required", "必要")}: ${formatPacePerKm(reqRunThr)} • ${txt("Gap", "Gap", "差")}: ${deltaSec > 0 ? "+" : "-"}${formatPacePerKm(paceGap)} (${status})`
+      )}</p></div>`
+    );
+  }
+
+  const currentFtp = estimateBikeFtp(profile);
+  const reqFtp = requiredBikeFtpWatts(profile);
+  if (Number.isFinite(reqFtp) && Number.isFinite(currentFtp)) {
+    const delta = currentFtp - reqFtp;
+    const status =
+      delta >= 0 ? txt("im Korridor", "on track", "目標帯内") :
+      delta >= -15 ? txt("nahe dran", "close", "もう少し") :
+      txt("noch klarer Gap", "clear gap", "差あり");
+    rows.push(
+      `<div class="threshold-track-row"><strong>${escapeHtml(txt("Bike-FTP", "Bike FTP", "バイクFTP"))}</strong><p>${escapeHtml(
+        `${txt("Aktuell", "Current", "現在")}: ${currentFtp}W • ${txt("Ziel", "Required", "必要")}: ${reqFtp}W • ${txt("Gap", "Gap", "差")}: ${delta >= 0 ? "+" : ""}${delta}W (${status})`
+      )}</p></div>`
+    );
+  }
+
+  if (!rows.length) {
+    rows.push(`<div class="threshold-track-row"><p>${escapeHtml(txt("Für diesen Modus fehlt noch ein klarer Referenzwert. Trage optional Schwellenwerte im Fine-Tuning ein.", "Add optional threshold values in Fine Tune to improve the target check.", "このモードは参照値が不足しています。詳細設定で閾値を入力してください。"))}</p></div>`);
+  }
+
+  thresholdTrackBodyEl.innerHTML = rows.join("");
+  thresholdTrackCardEl.hidden = false;
+}
+
+function isKeySessionDay(day) {
+  if (!day || day.type === "rest") return false;
+  if (day.scheduledRace) return true;
+  if (day.type === "threshold" || day.type === "quality" || day.type === "longrun") return true;
+  const title = String(day.title || "").toLowerCase();
+  return /vo2|threshold|race|long run|long bike|brick|compromised|simulation|sharpener/.test(title);
+}
+
+function renderAnalysis(profile, plan) {
+  const goalLabel = `${labelDistance(profile.goalDistance)} in ${profile.goalTime}`;
+  const readiness = calcReadiness(profile, plan.meta.weeklyKmBase);
+  const hoursBand = profile.weeklyHoursRecommended || recommendWeeklyHoursBand(profile);
+  const requestedHours = Number(profile.weeklyHoursRequested ?? profile.weeklyHours) || 0;
+  const planningHours = Number(profile.planningWeeklyHours ?? profile.weeklyHours) || 0;
+  const hoursWarning =
+    requestedHours > hoursBand.cap
+      ? `\n• Coaching-Hinweis: ${requestedHours} h/Woche ist für dein Profil eher hoch. Plan wurde auf ~${planningHours} h/Woche skaliert (Empfehlung: ${hoursBand.rec[0]}-${hoursBand.rec[1]} h).`
+      : requestedHours > hoursBand.rec[1]
+        ? `\n• Coaching-Hinweis: ${requestedHours} h/Woche ist ambitioniert. Achte auf Recovery/Schlaf und reduziere bei Übermüdung (Empfehlung: ${hoursBand.rec[0]}-${hoursBand.rec[1]} h).`
+        : "";
+  const connected = profile.connectedSources.length ? profile.connectedSources.join(", ") : "keine";
+  const notes = profile.constraints ? `\nEinschränkung berücksichtigt (manuell): ${profile.constraints}` : "";
+  const shapeWindow = profile.discipline === "shape" ? estimateShapeGoalWindow(profile) : null;
+  const shapeGoalLine = shapeWindow
+    ? `\n• Shape-Zielcheck: ${shapeWindow.message}${shapeWindow.suggestedDate ? ` Vorschlag Zieldatum ${formatDateShort(shapeWindow.suggestedDate)}.` : ""}`
+    : "";
+  const extraRacesCount = Array.isArray(profile.raceEvents) ? profile.raceEvents.length : 0;
+  const raceCalendarLine = extraRacesCount
+    ? `\n• Zusatz-Wettkämpfe berücksichtigt: ${extraRacesCount}`
+    : "";
+  const mainGoalsMeta = plan?.meta?.mainGoals || {};
+  const mainGoalsLine = Number(mainGoalsMeta.count) > 1
+    ? `\n• Mehrere Hauptevents aktiv: ${mainGoalsMeta.count}`
+    : "";
+  const mainGoalConflictLine = Array.isArray(mainGoalsMeta.conflicts) && mainGoalsMeta.conflicts.length
+    ? `\n• Hauptevent-Abstände angepasst: ${mainGoalsMeta.conflicts.length} Ziel(e) auf Prep/Trainingsrace reduziert (zu geringer Abstand).`
+    : "";
+  const templateCheckLine = Number(plan?.meta?.sessionTemplateFixes || 0) > 0
+    ? `\n• Session-Template-Check: ${Number(plan.meta.sessionTemplateFixes)} Inkonsistenzen auto-korrigiert.`
+    : `\n• Session-Template-Check: keine Inkonsistenzen erkannt.`;
+  const projectionCheck = evaluateProjectionSanity(profile, plan);
+  const projectionCheckLine = projectionCheck.message ? `\n• PlanFlow-Check: ${projectionCheck.message}` : "";
+  const suite = runBuiltInScenarioAudit(profile);
+  const suiteSummary = suite?.results?.length
+    ? `\n• Gegencheck-Suite: ${suite.results.map((r) => `${r.label}=${r.level === "ok" ? "ok" : "warn"}${r.mainGoals > 1 ? ` (${r.mainGoals} Main)` : ""}`).join(" | ")}`
+    : "";
+  const optionalProfileNotes = [
+    profile.age ? `Alter ${profile.age}` : null,
+    profile.weightKg ? `${profile.weightKg} kg` : null,
+    profile.heightCm ? `${profile.heightCm} cm` : null,
+    profile.capacity?.bmi ? `BMI ${profile.capacity.bmi.toFixed(1)}` : null,
+    profile.capacity?.complexity ? `Komplexität ${profile.capacity.complexity}` : null,
+    profile.discipline === "shape" && profile.shapeTargetFocus ? `Shape-Fokus ${profile.shapeTargetFocus}` : null,
+    profile.sex ? `Geschlecht ${sexLabel(profile.sex)}` : null,
+    profile.bikeFtp ? `FTP ${Math.round(profile.bikeFtp)}W` : null,
+    profile.bikeThresholdLactate ? `Bike Laktat ${profile.bikeThresholdLactate.toFixed(1)} mmol/L` : null,
+    profile.runThresholdPace ? `Run-Schwelle ${formatPacePerKm(profile.runThresholdPace)}` : null,
+    profile.runThresholdLactate ? `Run Laktat ${profile.runThresholdLactate.toFixed(1)} mmol/L` : null,
+    profile.sex === "female" && profile.cycleBasedTraining ? "zyklusbasiert aktiv" : null,
+  ]
+    .filter(Boolean)
+    .join(" / ");
+  const loadUnit = profile.discipline === "triathlon" || profile.discipline === "hyrox" || profile.discipline === "shape" ? "Load-Index/Woche" : "km/Woche";
+  const planLogicText =
+    profile.discipline === "triathlon"
+      ? "Triathlon-Struktur mit Bike/Run/Swim-Schwerpunkten, Brick-Sessions, Deload/Taper"
+      : profile.discipline === "hyrox"
+        ? "HYROX-Struktur mit Run-Threshold, Stations-Technik, Simulation-Intervallen, Deload/Taper"
+        : profile.discipline === "shape"
+          ? "Shape-Struktur mit Kraft, Bodyweight, Cardio-Intervallen, Long Cardio, Deload/Taper und Gym/No-Gym-Mix"
+        : profile.discipline === "cycling"
+        ? "Bike-zentrierte Struktur mit FTP/Sweet Spot, VO2, Long Ride, Deload/Taper"
+      : "Schwellenorientierte Struktur mit 1-2 Qualitätstagen, Long Run, Deload/Taper";
+  const planStyleLine = buildPlanStyleSummary(profile, plan);
+
+  statusEl.textContent =
+    `Status-quo (MVP Heuristik)\n` +
+    `• Profil: ${fitnessText(profile.fitnessLevel)} / Erfahrung ${experienceText(profile.experience)}\n` +
+    (optionalProfileNotes ? `• Optionales Profil: ${optionalProfileNotes}\n` : "") +
+    `• Geschätzte Basisbelastung: ${plan.meta.weeklyKmBase} ${loadUnit} (~${planningHours} h geplant, ${requestedHours || planningHours} h angegeben)\n` +
+    `• Ziel: ${goalLabel}\n` +
+    `• Datenquellen: ${connected}\n` +
+    `• Einschätzung: ${readiness}\n` +
+    `• Planmodus: ${planStyleLine}\n` +
+    `• Ziele & Plan: ${planLogicText}${hoursWarning}${shapeGoalLine}${raceCalendarLine}${mainGoalsLine}${mainGoalConflictLine}${templateCheckLine}${projectionCheckLine}${suiteSummary}${notes}\n\n` +
+    `Hinweis: Für echte NTM-Qualität brauchen wir als Nächstes reale Daten (Pace/HR/HRV/Recovery), Belastungsmetriken und individualisierte Schwellenwerte.`;
+}
+
+function evaluateProjectionSanity(profile, plan) {
+  try {
+    const timeline = buildPlanOverviewTimeline(profile, plan);
+    const series = buildPerformanceSeries(profile, plan, connectedSources.size);
+    if (!timeline.length || !series.length) return { level: "ok", message: "" };
+
+    const startFit = Number(series[0]?.fitness) || 0;
+    const endFit = Number(series[series.length - 1]?.fitness) || 0;
+    const peakFit = Math.max(...series.map((p) => Number(p?.fitness) || 0));
+    const endGapToPeak = peakFit - endFit;
+    const fitGain = endFit - startFit;
+
+    const hours = timeline.map((d) => Number(d.total) || 0);
+    const n = hours.length;
+    const midStart = Math.floor(n * 0.2);
+    const midEnd = Math.max(midStart + 1, Math.floor(n * 0.7));
+    const lateStart = Math.max(midEnd, Math.floor(n * 0.75));
+    const midAvg = hours.slice(midStart, midEnd).reduce((s, v) => s + v, 0) / Math.max(1, midEnd - midStart);
+    const lateAvg = hours.slice(lateStart).reduce((s, v) => s + v, 0) / Math.max(1, n - lateStart);
+    const lateVsMid = midAvg > 0 ? (lateAvg - midAvg) / midAvg : 0;
+
+    const phaseLayout = plan?.meta?.phaseLayout || {};
+    const taperWeeks = Number(phaseLayout.taperWeeks) || 0;
+    const taperFraction = taperWeeks / Math.max(1, Number(plan?.meta?.weeks) || n / 7);
+
+    const warnings = [];
+    if (fitGain < 1.5) warnings.push(currentLang === "de" ? "Fitnessgewinn niedrig" : currentLang === "ja" ? "フィットネス上昇が小さい" : "low fitness gain");
+    if (endGapToPeak > 8 && taperFraction <= 0.2) warnings.push(currentLang === "de" ? "zu starker Endabfall in Fitness" : currentLang === "ja" ? "終盤のフィットネス低下が大きい" : "fitness drops too much late");
+    if (lateVsMid < -0.28 && taperFraction <= 0.2) warnings.push(currentLang === "de" ? "Volumen fällt zu früh/zu stark" : currentLang === "ja" ? "ボリューム低下が早すぎる" : "volume drops too early");
+
+    if (!warnings.length) {
+      return {
+        level: "ok",
+        message: currentLang === "de"
+          ? `ok (Fitness ${Math.round(startFit)}→${Math.round(endFit)}, Peak ${Math.round(peakFit)}, Volumen stabil)`
+          : currentLang === "ja"
+            ? `ok（Fitness ${Math.round(startFit)}→${Math.round(endFit)}、Peak ${Math.round(peakFit)}、ボリューム安定）`
+            : `ok (fitness ${Math.round(startFit)}→${Math.round(endFit)}, peak ${Math.round(peakFit)}, stable volume)`,
+      };
+    }
+    return { level: "warn", message: warnings.join(" · ") };
+  } catch {
+    return { level: "warn", message: currentLang === "de" ? "PlanFlow-Check nicht verfügbar." : currentLang === "ja" ? "PlanFlowチェック不可。" : "PlanFlow check unavailable." };
+  }
+}
+
+function createAuditProfile(baseProfile, overrides = {}) {
+  const now = startOfDay(new Date());
+  const next = addDays(now, 150);
+  return {
+    discipline: "running",
+    goalDistance: "10k",
+    goalTime: "00:50:00",
+    raceDate: next,
+    raceEvents: [],
+    fitnessLevel: "intermediate",
+    experience: "1to3",
+    weeklyHours: 7,
+    weeklyHoursRequested: 7,
+    planningWeeklyHours: 7,
+    longRunDay: "sunday",
+    bikeOutdoorDay: "sunday",
+    sex: "male",
+    age: 34,
+    weightKg: 72,
+    heightCm: 178,
+    targetWeightKg: null,
+    constraints: "",
+    connectedSources: [],
+    capacity: computeAthleteCapacity({
+      sex: "male",
+      age: 34,
+      weightKg: 72,
+      heightCm: 178,
+      fitnessLevel: "intermediate",
+      experience: "1to3",
+      weeklyHours: 7,
+    }),
+    ...baseProfile,
+    ...overrides,
+  };
+}
+
+function runBuiltInScenarioAudit(baseProfile) {
+  try {
+    const now = startOfDay(new Date());
+    const scenarios = [
+      {
+        id: "run_marathon",
+        label: currentLang === "de" ? "Run Marathon" : currentLang === "ja" ? "ラン マラソン" : "Run Marathon",
+        profile: createAuditProfile(baseProfile, {
+          discipline: "running",
+          goalDistance: "marathon",
+          goalTime: "03:35:00",
+          raceDate: addDays(now, 210),
+          raceEvents: [],
+          weeklyHours: 8,
+          planningWeeklyHours: 8,
+          weeklyHoursRequested: 8,
+        }),
+      },
+      {
+        id: "tri_dual_main",
+        label: currentLang === "de" ? "Tri 2x Main" : currentLang === "ja" ? "トライアスロン 2メイン" : "Tri 2x Main",
+        profile: createAuditProfile(baseProfile, {
+          discipline: "triathlon",
+          goalDistance: "ironman",
+          goalTime: "10:45:00",
+          raceDate: addDays(now, 280),
+          weeklyHours: 10,
+          planningWeeklyHours: 10,
+          weeklyHoursRequested: 10,
+          raceEvents: [
+            {
+              itemKind: "event",
+              date: addDays(now, 120).toISOString(),
+              discipline: "triathlon",
+              distance: "703",
+              goalTime: "05:05:00",
+              priority: "A",
+            },
+            {
+              itemKind: "event",
+              date: addDays(now, 280).toISOString(),
+              discipline: "triathlon",
+              distance: "ironman",
+              goalTime: "10:45:00",
+              priority: "A",
+            },
+          ],
+        }),
+      },
+      {
+        id: "hyrox_open",
+        label: currentLang === "de" ? "HYROX Open" : currentLang === "ja" ? "HYROX Open" : "HYROX Open",
+        profile: createAuditProfile(baseProfile, {
+          discipline: "hyrox",
+          goalDistance: "open",
+          goalTime: "01:23:00",
+          raceDate: addDays(now, 140),
+          weeklyHours: 7,
+          planningWeeklyHours: 7,
+          weeklyHoursRequested: 7,
+        }),
+      },
+    ];
+
+    const results = scenarios.map((scenario) => {
+      const plan = buildPlan({ ...scenario.profile });
+      const check = evaluateProjectionSanity(scenario.profile, plan);
+      const level = check.level || "warn";
+      const mainGoals = Number(plan?.meta?.mainGoals?.count || 0);
+      return {
+        id: scenario.id,
+        label: scenario.label,
+        level,
+        mainGoals,
+        message: check.message || "",
+      };
+    });
+    const worst = results.find((r) => r.level !== "ok");
+    return { ok: !worst, results };
+  } catch (err) {
+    return { ok: false, results: [{ id: "audit_error", label: "audit", level: "warn", mainGoals: 0, message: String(err?.message || err) }] };
+  }
+}
+
+function renderPlan(plan) {
+  const firstWeek = plan.weeks[0];
+  const lastWeek = plan.weeks[plan.weeks.length - 1];
+  const useLoadIndex = latestProfile?.discipline === "triathlon" || latestProfile?.discipline === "hyrox" || latestProfile?.discipline === "shape";
+  planMetaEl.textContent = `${plan.weeks.length} Wochen bis Ziel • Zeitraum ${formatDateShort(firstWeek.start)}-${formatDateShort(lastWeek.end)} • Basis ${plan.meta.weeklyKmBase} ${useLoadIndex ? "Load-Index/Woche" : "km/Woche"}`;
+  if (planMissionBriefEl) {
+    if (latestProfile && plan) {
+      renderPlanMissionBrief(latestProfile, plan);
+      renderThresholdTrackCard(latestProfile, plan);
+    } else {
+      planMissionBriefEl.hidden = true;
+      planMissionBriefEl.textContent = "";
+      if (thresholdTrackCardEl) {
+        thresholdTrackCardEl.hidden = true;
+        if (thresholdTrackBodyEl) thresholdTrackBodyEl.innerHTML = "";
+      }
+    }
+  }
+  renderPlanOverviewChart(latestProfile, plan);
+
+  calendarEl.innerHTML = "";
+
+  for (const week of plan.weeks) {
+    const node = weekTemplate.content.firstElementChild.cloneNode(true);
+    node.querySelector(".week-label").textContent = `Woche ${week.weekNumber} • ${formatDateShort(week.start)}-${formatDateShort(week.end)}`;
+    node.querySelector(".week-focus").textContent = week.focus;
+    node.querySelector(".week-load").textContent = useLoadIndex ? `~${week.loadKm} Load • ~${week.loadHours} h` : `~${week.loadKm} km • ~${week.loadHours} h`;
+
+    const dayGrid = node.querySelector(".day-grid");
+    week.days.forEach((day) => {
+      const dayCard = document.createElement("div");
+      dayCard.className = `day-card ${day.type === "rest" ? "rest" : ""}`;
+      if (day.scheduledRace) {
+        const prio = String(day.racePriority || "B").toLowerCase();
+        dayCard.classList.add("scheduled-race", `race-${prio}`);
+      }
+      const keySession = isKeySessionDay(day);
+      if (keySession) dayCard.classList.add("is-key");
+      if (day._id) {
+        dayCard.setAttribute("data-session-id", day._id);
+        dayCard.setAttribute("role", "button");
+        dayCard.setAttribute("tabindex", "0");
+      }
+      const insight = buildSessionInsight(day, latestProfile);
+      const actionButtons = [];
+      if (isZwiftEligibleSession(day) && day._id) {
+        actionButtons.push(`<button type="button" class="day-zwift-btn" data-zwift-session="${escapeHtml(day._id)}">ZWO</button>`);
+      }
+      if (isGarminEligibleSession(day) && day._id) {
+        actionButtons.push(`<button type="button" class="day-garmin-btn" data-garmin-session="${escapeHtml(day._id)}">Garmin</button>`);
+      }
+      const actionRow = actionButtons.length ? `<div class="day-action-row">${actionButtons.join("")}</div>` : `<div></div>`;
+      const executionCue = buildSessionExecutionCue(day, latestProfile);
+      dayCard.innerHTML = `
+        <div class="day-top">
+          <span class="day-name">${dayName(day.date)}</span>
+          <span class="day-top-right">
+            ${keySession ? `<span class="day-key-flag" title="${escapeHtml(currentLang === "de" ? "Key Session" : currentLang === "ja" ? "キーセッション" : "Key session")}" aria-label="${escapeHtml(currentLang === "de" ? "Key Session" : currentLang === "ja" ? "キーセッション" : "Key session")}">🔥</span>` : ""}
+            <span class="day-date">${day.date.getDate()}.${day.date.getMonth() + 1}.</span>
+          </span>
+        </div>
+        <div class="day-type ${day.type} ${day.scheduledRace ? `race-pill race-${String(day.racePriority || "B").toLowerCase()}` : ""}">${sessionTypeLabel(day.type)}</div>
+        <div class="day-main">${escapeHtml(day.title)}</div>
+        <div class="day-sub">${escapeHtml(day.details)}</div>
+        ${day.type !== "rest" ? `<div class="day-load">Load ${Math.max(0, Math.round(day.loadScore || 0))}</div>` : ""}
+        ${actionRow}
+        <div class="day-detail" aria-hidden="true">
+          <div class="day-detail-row"><span>${t("purpose")}</span><strong>${escapeHtml(insight.purpose)}</strong></div>
+          <div class="day-detail-row"><span>${t("adaptation")}</span><strong>${escapeHtml(insight.adaptation)}</strong></div>
+          <div class="day-detail-row"><span>${t("why")}</span><strong>${escapeHtml(insight.why)}</strong></div>
+          ${executionCue ? `<div class="day-detail-row"><span>${t("execution")}</span><strong>${escapeHtml(executionCue)}</strong></div>` : ""}
+        </div>
+      `;
+      dayGrid.appendChild(dayCard);
+    });
+
+    calendarEl.appendChild(node);
+  }
+
+  syncExpandedDayCards();
+}
+
+function renderPlanOverviewChart(profile, plan) {
+  if (!planOverviewSvgEl || !planOverviewLegendEl || !planOverviewCardEl) return;
+  if (!profile || !plan || !Array.isArray(plan.weeks) || !plan.weeks.length) {
+    planOverviewCardEl.hidden = true;
+    if (planOverviewSvgEl) planOverviewSvgEl.innerHTML = "";
+    hidePlanOverviewHover();
+    return;
+  }
+  planOverviewCardEl.hidden = false;
+  const points = buildPlanOverviewTimeline(profile, plan);
+  const perfSeries = buildPerformanceSeries(profile, plan, connectedSources.size);
+  const perfAligned = alignPerformanceSeriesToTimeline(perfSeries, points.length);
+  const lineData = buildOverviewLineData(profile, points, perfAligned);
+  renderPlanOverviewLegend(profile);
+  if (planOverviewTitleEl) {
+    planOverviewTitleEl.textContent =
+      currentLang === "de"
+        ? "Flow: Volumen & Wirkung über Zeit"
+        : currentLang === "ja"
+          ? "Flow：期間ごとのボリュームと変化"
+          : "Flow: volume & response over time";
+  }
+  if (planOverviewLeftAxisEl) {
+    planOverviewLeftAxisEl.textContent = currentLang === "de" ? "Stunden / Tag" : currentLang === "ja" ? "時間 / 日" : "Hours / day";
+  }
+  if (planOverviewRightAxisEl) {
+    planOverviewRightAxisEl.textContent = profile.discipline === "shape" && planOverviewState.lines.weight
+      ? (currentLang === "de" ? "Fitness / Ermüdung / Gewicht" : currentLang === "ja" ? "フィットネス / 疲労 / 体重" : "Fitness / fatigue / weight")
+      : (currentLang === "de" ? "Fitness / Ermüdung / Freshness / Readiness" : currentLang === "ja" ? "フィットネス / 疲労 / フレッシュネス / Readiness" : "Fitness / fatigue / freshness / readiness");
+  }
+  planOverviewHoverIndex = -1;
+  hidePlanOverviewHover();
+  planOverviewRenderState = { points, lineData, profile };
+  planOverviewSvgEl.innerHTML = buildPlanOverviewSvg(points, lineData, profile);
+  bindPlanOverviewHover();
+}
+
+function bindPlanOverviewHover() {
+  if (!planOverviewSvgEl || !planOverviewHoverEl || !planOverviewPlotEl || planOverviewHoverBound) return;
+  planOverviewHoverBound = true;
+  const resolveIndex = (eventTarget) => {
+    const hit = eventTarget?.closest?.("[data-day-index]");
+    if (!hit) return -1;
+    const idx = Number(hit.getAttribute("data-day-index"));
+    return Number.isFinite(idx) ? idx : -1;
+  };
+
+  planOverviewSvgEl.addEventListener("pointermove", (event) => {
+    const idx = resolveIndex(event.target);
+    if (idx >= 0) {
+      setPlanOverviewHover(idx, event.clientX, event.clientY);
+    } else {
+      clearPlanOverviewHover();
+    }
+  });
+
+  planOverviewSvgEl.addEventListener("pointerleave", () => {
+    clearPlanOverviewHover();
+  });
+
+  planOverviewSvgEl.addEventListener("focusin", (event) => {
+    const idx = resolveIndex(event.target);
+    if (idx < 0) return;
+    const rect = planOverviewPlotEl.getBoundingClientRect();
+    const totalDays = Math.max(1, planOverviewRenderState.points?.length || 1);
+    const x = rect.left + ((idx + 0.5) / totalDays) * rect.width;
+    const y = rect.top + 48;
+    setPlanOverviewHover(idx, x, y);
+  });
+
+  planOverviewSvgEl.addEventListener("focusout", () => {
+    clearPlanOverviewHover();
+  });
+}
+
+function setPlanOverviewHover(dayIndex, clientX, clientY) {
+  if (!planOverviewHoverEl || !planOverviewPlotEl) return;
+  const point = planOverviewRenderState.points?.[dayIndex];
+  if (!point) return;
+  if (planOverviewHoverIndex !== dayIndex) {
+    planOverviewHoverIndex = dayIndex;
+    paintPlanOverviewHoverState(dayIndex);
+    planOverviewHoverEl.innerHTML = buildPlanOverviewHoverHtml(dayIndex);
+  }
+  const plotRect = planOverviewPlotEl.getBoundingClientRect();
+  const localX = clamp(clientX - plotRect.left + 12, 8, plotRect.width - 220);
+  const localY = clamp(clientY - plotRect.top - 14, 8, plotRect.height - 86);
+  planOverviewHoverEl.style.left = `${localX}px`;
+  planOverviewHoverEl.style.top = `${localY}px`;
+  planOverviewHoverEl.hidden = false;
+}
+
+function clearPlanOverviewHover() {
+  if (planOverviewHoverIndex < 0) return;
+  planOverviewHoverIndex = -1;
+  hidePlanOverviewHover();
+  paintPlanOverviewHoverState(-1);
+}
+
+function hidePlanOverviewHover() {
+  if (!planOverviewHoverEl) return;
+  planOverviewHoverEl.hidden = true;
+}
+
+function paintPlanOverviewHoverState(dayIndex) {
+  if (!planOverviewSvgEl) return;
+  const active = Number(dayIndex);
+  planOverviewSvgEl.querySelectorAll("[data-day-index]").forEach((node) => {
+    const idx = Number(node.getAttribute("data-day-index"));
+    node.classList.toggle("is-hover", idx === active);
+  });
+}
+
+function buildPlanOverviewHoverHtml(dayIndex) {
+  const point = planOverviewRenderState.points?.[dayIndex];
+  if (!point) return "";
+  const bars = [
+    { key: "run", label: "Run" },
+    { key: "bike", label: "Bike" },
+    { key: "swim", label: "Swim" },
+    { key: "strength", label: planOverviewRenderState.profile?.discipline === "hyrox" ? "Stations" : "Strength" },
+    { key: "other", label: currentLang === "de" ? "Sonstiges" : currentLang === "ja" ? "その他" : "Other" },
+  ];
+  const rows = bars
+    .filter((item) => planOverviewState.bars[item.key] && Number(point[item.key]) > 0.04)
+    .map((item) => `<div class="plan-overview-hover-row"><span>${escapeHtml(item.label)}</span><strong>${formatHoursShort(point[item.key])}</strong></div>`)
+    .join("");
+  const lines = planOverviewRenderState.lineData || {};
+  const lineRows = [
+    planOverviewState.lines.fitness && Number.isFinite(lines.fitness?.[dayIndex])
+      ? `<div class="plan-overview-hover-row is-line"><span>${currentLang === "de" ? "Fitness (proj.)" : currentLang === "ja" ? "フィットネス(予測)" : "Fitness (proj.)"}</span><strong>${Math.round(lines.fitness[dayIndex])}</strong></div>`
+      : "",
+    planOverviewState.lines.fatigue && Number.isFinite(lines.fatigue?.[dayIndex])
+      ? `<div class="plan-overview-hover-row is-line"><span>${currentLang === "de" ? "Ermüdung (proj.)" : currentLang === "ja" ? "疲労(予測)" : "Fatigue (proj.)"}</span><strong>${Math.round(lines.fatigue[dayIndex])}</strong></div>`
+      : "",
+    planOverviewState.lines.freshness && Number.isFinite(lines.freshness?.[dayIndex])
+      ? `<div class="plan-overview-hover-row is-line"><span>${currentLang === "de" ? "Freshness (proj.)" : currentLang === "ja" ? "フレッシュネス(予測)" : "Freshness (proj.)"}</span><strong>${Math.round(lines.freshness[dayIndex])}</strong></div>`
+      : "",
+  ].join("");
+  return `
+    <div class="plan-overview-hover-date">${escapeHtml(formatPlanOverviewHoverDate(point.date))}</div>
+    ${rows}
+    <div class="plan-overview-hover-row is-total"><span>${currentLang === "de" ? "Gesamt" : currentLang === "ja" ? "合計" : "Total"}</span><strong>${formatHoursShort(point.total)}</strong></div>
+    ${lineRows}
+  `;
+}
+
+function formatHoursShort(hours) {
+  const v = Number(hours) || 0;
+  if (v < 0.1) return "0.0h";
+  return `${v.toFixed(v >= 2 ? 1 : 2)}h`;
+}
+
+function formatPlanOverviewHoverDate(date) {
+  const locale = currentLang === "ja" ? "ja-JP" : currentLang === "en" ? "en-US" : "de-DE";
+  return new Date(date).toLocaleDateString(locale, { weekday: "short", day: "2-digit", month: "short" });
+}
+
+function renderPlanOverviewLegend(profile) {
+  if (!planOverviewLegendEl) return;
+  const barItems = [
+    { key: "run", label: "Run", color: "var(--accent-fit)" },
+    { key: "bike", label: "Bike", color: "#6ecbff" },
+    { key: "swim", label: "Swim", color: "#86f1e2" },
+    { key: "strength", label: profile?.discipline === "hyrox" ? "Stations" : "Strength", color: "#ffd27d" },
+    { key: "other", label: "Other", color: "#c8cdd7" },
+  ];
+  const lineItems = [
+    { key: "fitness", label: currentLang === "de" ? "Fitness" : "Fitness", color: "var(--accent-fit)" },
+    { key: "fatigue", label: currentLang === "de" ? "Ermüdung" : currentLang === "ja" ? "疲労" : "Fatigue", color: "var(--accent-fatigue)" },
+    { key: "freshness", label: "Freshness", color: "var(--accent-fresh)" },
+    { key: "readiness", label: "Readiness", color: "var(--accent-ready)" },
+    ...(profile?.discipline === "shape" && Number(profile?.weightKg) ? [{ key: "weight", label: currentLang === "de" ? "Gewicht" : currentLang === "ja" ? "体重" : "Weight", color: "#f4f6fb" }] : []),
+  ];
+  const block = (title, items, group) => `
+    <div class="plan-legend-group">
+      <span class="plan-legend-caption">${escapeHtml(title)}</span>
+      ${items.map((item) => `
+        <button type="button" class="plan-legend-btn ${planOverviewState[group]?.[item.key] ? "is-active" : ""}" data-plan-group="${group}" data-plan-toggle="${item.key}">
+          <span class="plan-legend-dot" style="--dot:${item.color}"></span>
+          <span>${escapeHtml(item.label)}</span>
+        </button>
+      `).join("")}
+    </div>`;
+  planOverviewLegendEl.innerHTML =
+    block(currentLang === "de" ? "Dauer (gestapelt)" : currentLang === "ja" ? "時間（積み上げ）" : "Duration (stacked)", barItems, "bars") +
+    block(currentLang === "de" ? "Linien" : currentLang === "ja" ? "ライン" : "Lines", lineItems, "lines");
+}
+
+function buildPlanOverviewTimeline(profile, plan) {
+  const byDate = new Map();
+  for (const week of plan.weeks) {
+    const dayWeights = week.days.map((day) => estimateDayLoadWeight(profile, day));
+    const totalWeight = Math.max(0.0001, dayWeights.reduce((sum, v) => sum + v, 0));
+    for (const day of week.days) {
+      const key = formatDateInput(day.date);
+      if (!byDate.has(key)) {
+        byDate.set(key, {
+          key,
+          date: day.date,
+          run: 0,
+          bike: 0,
+          swim: 0,
+          strength: 0,
+          other: 0,
+          total: 0,
+          stress: 0,
+          adaptationImpulse: 0,
+          fatigueImpulse: 0,
+        });
+      }
+      const row = byDate.get(key);
+      if (day.type === "rest") continue;
+      const dayIndex = week.days.indexOf(day);
+      const explicitHours = estimateSessionMinutes(day, profile) / 60;
+      const weightedHours = (Number(week.loadHours) || 0) * (dayWeights[dayIndex] / totalWeight);
+      const totalHours = clamp(
+        explicitHours > 0 ? weightedHours * 0.65 + explicitHours * 0.35 : weightedHours,
+        0,
+        Math.max(0.2, (Number(week.loadHours) || 0) * 0.65)
+      );
+      if (totalHours <= 0.01) continue;
+      const allocations = overviewBucketAllocations(profile, day, totalHours);
+      allocations.forEach(({ bucket, hours }) => {
+        row[bucket] += hours;
+        row.total += hours;
+      });
+      const impact = estimateSessionProjectionImpact(day, profile, totalHours);
+      const nominalHours = Math.max(0.2, Number(day.nominalHours) || 0.2);
+      const preScoredStress = Number(day.loadScore) || 0;
+      const scaleByHours = totalHours / nominalHours;
+      const stress = preScoredStress > 0 ? preScoredStress * scaleByHours : impact.stress;
+      const adaptation = Number(day.adaptationScore) > 0 ? Number(day.adaptationScore) * scaleByHours : impact.adaptation;
+      const fatigue = Number(day.fatigueScore) > 0 ? Number(day.fatigueScore) * scaleByHours : impact.fatigue;
+      row.stress += stress;
+      row.adaptationImpulse += adaptation;
+      row.fatigueImpulse += fatigue;
+    }
+  }
+  return [...byDate.values()].sort((a, b) => a.date - b.date);
+}
+
+function estimateSessionMinutes(session, profile = null) {
+  if (!session || session.type === "rest") return 0;
+  const raw = String(session.duration || "").toLowerCase().trim();
+  const details = String(session.details || "").toLowerCase();
+  const title = String(session.title || "").toLowerCase();
+  if (!raw || raw === "event" || raw.includes("optional")) {
+    if (raw === "event" || session?.scheduledRace || /race day|a-race|b-race|prep race/.test(title)) {
+      const raceMinutes = estimateRaceEventMinutes(session, profile);
+      if (raceMinutes > 0) return raceMinutes;
+    }
+    const fromDetails = estimateMinutesFromDetails(details, title, profile, session);
+    if (fromDetails > 0) return fromDetails;
+    if (session.type === "recovery") return 40;
+    if (session.type === "threshold") return 70;
+    if (session.type === "quality") return 60;
+    if (session.type === "longrun") return 120;
+    return 50;
+  }
+  const rangeMatch = raw.match(/(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)(?:\s*h|min)/);
+  if (rangeMatch) {
+    const a = Number(rangeMatch[1]);
+    const b = Number(rangeMatch[2]);
+    if (raw.includes("h")) return ((a + b) / 2) * 60;
+    return (a + b) / 2;
+  }
+  const hMinMatch = raw.match(/(\d+):(\d+)/);
+  if (hMinMatch) return Number(hMinMatch[1]) * 60 + Number(hMinMatch[2]);
+  const hourNum = raw.match(/(\d+(?:\.\d+)?)\s*h/);
+  if (hourNum) return Number(hourNum[1]) * 60;
+  const minNum = raw.match(/(\d+(?:\.\d+)?)\s*min/);
+  if (minNum) return Number(minNum[1]);
+  const fromDetails = estimateMinutesFromDetails(details, title, profile, session);
+  if (fromDetails > 0) return fromDetails;
+  return 50;
+}
+
+function estimateMinutesFromDetails(details, title, profile, session) {
+  const kmMatches = [...String(details || "").matchAll(/(\d+(?:[.,]\d+)?)\s*km/g)].map((m) => Number(String(m[1]).replace(",", "."))).filter((n) => Number.isFinite(n));
+  if (!kmMatches.length) return 0;
+
+  const sumByLikelyDiscipline = () => {
+    if (profile?.discipline === "triathlon") {
+      let mins = 0;
+      for (const km of kmMatches) {
+        if (title.includes("swim") || details.includes("technik") || details.includes("css")) {
+          mins += (km / 2.1) * 60;
+        } else if (title.includes("bike") || title.includes("ride") || title.includes("trainer")) {
+          mins += (km / 27) * 60;
+        } else {
+          mins += (km / 10.5) * 60;
+        }
+      }
+      return mins;
+    }
+    if (profile?.discipline === "cycling") return kmMatches.reduce((s, km) => s + (km / 28) * 60, 0);
+    if (profile?.discipline === "running") return kmMatches.reduce((s, km) => s + (km / 10.2) * 60, 0);
+    if (profile?.discipline === "hyrox") return kmMatches.reduce((s, km) => s + (km / 10.8) * 60, 0);
+    if (profile?.discipline === "shape") return kmMatches.reduce((s, km) => s + (km / 8.5) * 60, 0);
+    return kmMatches.reduce((s, km) => s + (km / 10) * 60, 0);
+  };
+
+  const mins = sumByLikelyDiscipline();
+  if (session?.type === "quality" || session?.type === "threshold") return mins + 10;
+  return mins;
+}
+
+function estimateRaceEventMinutes(session, profile) {
+  const discipline = String(session?.raceDiscipline || profile?.discipline || "running");
+  const distance = String(session?.raceDistance || profile?.goalDistance || "");
+
+  const byDiscipline = {
+    running: { "5k": 28, "10k": 58, half: 118, marathon: 245 },
+    triathlon: { sprint: 90, olympic: 170, "703": 340, ironman: 690 },
+    cycling: { crit: 70, tt40: 68, granfondo: 330, century: 360 },
+    hyrox: { open: 90, pro: 82, doubles: 72, doublespro: 66, relay: 62 },
+    shape: { fatloss: 75, recomp: 70, build: 65, fitness: 60 },
+  };
+  const byDistance = byDiscipline[discipline] || byDiscipline.running;
+  const fallback = discipline === "triathlon" ? 180 : discipline === "cycling" ? 150 : discipline === "hyrox" ? 85 : 75;
+  const base = Number(byDistance[distance]) || fallback;
+  const priorityFactor = session?.racePriority === "A" ? 1.08 : session?.racePriority === "B" ? 1.02 : 0.96;
+  return Math.round(base * priorityFactor);
+}
+
+function estimateDayLoadWeight(profile, day) {
+  if (!day || day.type === "rest") return 0;
+  const title = String(day.title || "").toLowerCase();
+  let w = 1;
+  if (day.type === "longrun") w += 1.8;
+  if (day.type === "threshold") w += 0.9;
+  if (day.type === "quality") w += 0.7;
+  if (day.type === "recovery") w += 0.15;
+  if (title.includes("long bike") || title.includes("long ride")) w += 1.2;
+  if (title.includes("brick")) w += 0.35;
+  if (day?.scheduledRace || /race day|a-race|b-race|prep race/.test(title)) w += 1.4;
+  if (title.includes("swim + easy run")) w += 0.35;
+  if (profile?.discipline === "shape" && (title.includes("strength") || title.includes("circuit"))) w += 0.45;
+  if (profile?.discipline === "hyrox" && title.includes("compromised")) w += 0.65;
+  return w;
+}
+
+function overviewDisciplineBucket(profile, session) {
+  const title = String(session?.title || "").toLowerCase();
+  if (profile?.discipline === "triathlon") {
+    if (title.includes("swim")) return "swim";
+    if (title.includes("bike") || title.includes("ride") || title.includes("trainer")) return "bike";
+    if (title.includes("run") || title.includes("brick")) return "run";
+  }
+  if (profile?.discipline === "cycling") {
+    return "bike";
+  }
+  if (profile?.discipline === "running") {
+    return "run";
+  }
+  if (profile?.discipline === "hyrox") {
+    if (title.includes("run")) return "run";
+    return "strength";
+  }
+  if (profile?.discipline === "shape") {
+    if (title.includes("run") || title.includes("cardio") || title.includes("walk")) return "run";
+    if (title.includes("strength") || title.includes("circuit") || title.includes("carry")) return "strength";
+    return "other";
+  }
+  return "other";
+}
+
+function overviewBucketAllocations(profile, session, totalHours) {
+  const title = String(session?.title || "").toLowerCase();
+  const details = String(session?.details || "").toLowerCase();
+  const isTri = profile?.discipline === "triathlon";
+
+  if (isTri) {
+    if (title.includes("swim") && title.includes("run")) {
+      return [
+        { bucket: "swim", hours: totalHours * 0.45 },
+        { bucket: "run", hours: totalHours * 0.55 },
+      ];
+    }
+    if (title.includes("bike") && (title.includes("brick") || details.includes("brick"))) {
+      return [
+        { bucket: "bike", hours: totalHours * 0.82 },
+        { bucket: "run", hours: totalHours * 0.18 },
+      ];
+    }
+  }
+
+  if (profile?.discipline === "hyrox") {
+    if (title.includes("run") && (title.includes("station") || title.includes("compromised") || details.includes("run +"))) {
+      return [
+        { bucket: "run", hours: totalHours * 0.45 },
+        { bucket: "strength", hours: totalHours * 0.55 },
+      ];
+    }
+  }
+
+  return [{ bucket: overviewDisciplineBucket(profile, session), hours: totalHours }];
+}
+
+function estimateSessionProjectionImpact(session, profile, totalHours) {
+  const title = String(session?.title || "").toLowerCase();
+  const details = String(session?.details || "").toLowerCase();
+  const type = String(session?.type || "other");
+  const inferredHours = Math.max(0, estimateSessionMinutes(session, profile) / 60);
+  const hours = Math.max(0.25, Number(totalHours) || inferredHours || 0.75);
+  const capacityTier = profile?.capacity?.tier || "mid";
+  const introWeeks = profile?.capacity?.introWeeks || 0;
+  const isIntro = Number(session?.weekIndex) < introWeeks;
+
+  let intensity = 1;
+  let adaptationBias = 1;
+  let fatigueBias = 1;
+  const gapSignal = profile?.thresholdGapSignal || computeThresholdGapSignal(profile);
+  const anchorConfidence = clamp(Number(gapSignal?.confidence) || 0.5, 0.1, 1);
+
+  if (type === "recovery") {
+    intensity = 0.52;
+    adaptationBias = 0.46;
+    fatigueBias = 0.42;
+  } else if (type === "longrun") {
+    intensity = 1.06;
+    adaptationBias = 1.22;
+    fatigueBias = 1.2;
+  } else if (type === "threshold") {
+    intensity = 1.28;
+    adaptationBias = 1.34;
+    fatigueBias = 1.36;
+  } else if (type === "quality") {
+    intensity = 1.38;
+    adaptationBias = 1.2;
+    fatigueBias = 1.5;
+  }
+
+  if (title.includes("vo2") || details.includes("vo2")) {
+    intensity += 0.1;
+    fatigueBias += 0.14;
+  }
+  if (title.includes("threshold") || details.includes("threshold")) {
+    adaptationBias += 0.08;
+    fatigueBias += 0.06;
+  }
+  if (title.includes("sweet spot") || details.includes("ftp")) {
+    adaptationBias += 0.08;
+    fatigueBias += 0.1;
+  }
+  if (title.includes("brick")) fatigueBias += 0.12;
+  if (profile?.discipline === "hyrox" && (title.includes("compromised") || details.includes("run +"))) {
+    adaptationBias += 0.08;
+    fatigueBias += 0.16;
+  }
+  if (profile?.discipline === "shape" && (title.includes("strength") || title.includes("circuit"))) {
+    adaptationBias += 0.06;
+  }
+
+  const runSpecificSession = /run|long run|strides|threshold|vo2|walk-run/.test(title) && !/bike|ride|trainer|swim/.test(title);
+  const bikeSpecificSession = /bike|ride|trainer|sweet spot|ftp|cadence/.test(title);
+  const confidenceScaler = 0.72 + anchorConfidence * 0.28;
+  if ((type === "threshold" || type === "quality") && Number(gapSignal?.pushScale) > 0) {
+    const push = Number(gapSignal.pushScale);
+    if (runSpecificSession && gapSignal?.needRunPush) {
+      intensity *= 1 + push * 0.06 * confidenceScaler;
+      adaptationBias *= 1 + push * 0.05 * confidenceScaler;
+      fatigueBias *= 1 + push * 0.1 * confidenceScaler;
+    }
+    if (bikeSpecificSession && gapSignal?.needBikePush) {
+      intensity *= 1 + push * 0.07 * confidenceScaler;
+      adaptationBias *= 1 + push * 0.055 * confidenceScaler;
+      fatigueBias *= 1 + push * 0.11 * confidenceScaler;
+    }
+  }
+
+  if (capacityTier === "low" || isIntro) {
+    intensity *= 0.86;
+    adaptationBias *= 0.9;
+    fatigueBias *= 0.84;
+  } else if (capacityTier === "high") {
+    intensity *= 1.04;
+    adaptationBias *= 1.06;
+  }
+
+  const weeksEstimate = Number(profile?.planningWeeks) > 0
+    ? clamp(Number(profile.planningWeeks), 6, 104)
+    : profile?.raceDate
+      ? clamp(Math.ceil((startOfDay(profile.raceDate) - startOfDay(new Date())) / 86400000 / 7), 6, 104)
+      : 12;
+  const phase = resolveTrainingPhase({
+    weekIndex: Math.max(0, Number(session?.weekIndex) || 0),
+    weeks: weeksEstimate,
+    discipline: profile?.discipline,
+    goalDistance: profile?.goalDistance,
+    profile,
+  });
+
+  if (type === "longrun") {
+    const longHours = clamp(hours, 0.75, 5.5);
+    const durabilityBonus = clamp((longHours - 1.0) * 0.12, 0, 0.34);
+    adaptationBias += durabilityBonus;
+    fatigueBias += clamp((longHours - 1.1) * 0.1, 0, 0.28);
+    if (isSpecificPhase(phase)) adaptationBias += 0.06;
+    if (phase === "taper") {
+      adaptationBias *= 0.92;
+      fatigueBias *= 0.78;
+    }
+  }
+
+  if (phase === "base" && (type === "threshold" || type === "quality")) {
+    intensity *= 0.94;
+    fatigueBias *= 0.92;
+  } else if (isSpecificPhase(phase) && (type === "threshold" || type === "quality")) {
+    adaptationBias *= 1.06;
+    fatigueBias *= 1.04;
+  } else if (phase === "taper") {
+    if (type === "recovery") {
+      fatigueBias *= 0.8;
+    } else {
+      intensity *= 0.92;
+      fatigueBias *= 0.74;
+      adaptationBias *= 0.88;
+    }
+  }
+
+  const cycleAdj = cycleLoadAdjustment(profile, session);
+  intensity *= cycleAdj.intensity;
+  adaptationBias *= cycleAdj.adaptation;
+  fatigueBias *= cycleAdj.fatigue;
+
+  const stress = hours * 100 * intensity;
+  return {
+    stress,
+    adaptation: stress * adaptationBias,
+    fatigue: stress * fatigueBias,
+  };
+}
+
+function alignPerformanceSeriesToTimeline(series, targetLength) {
+  if (!Array.isArray(series) || !series.length || !targetLength) return [];
+  if (series.length === targetLength) return series;
+  const result = [];
+  for (let i = 0; i < targetLength; i += 1) {
+    const idx = Math.round((i / Math.max(1, targetLength - 1)) * (series.length - 1));
+    result.push(series[idx]);
+  }
+  return result;
+}
+
+function buildOverviewLineData(profile, points, perfAligned) {
+  const weightStart = Number(profile?.weightKg) || null;
+  const weightTarget = Number(profile?.targetWeightKg) || null;
+  const weightValues = [];
+  for (let i = 0; i < points.length; i += 1) {
+    if (!weightStart) {
+      weightValues.push(null);
+      continue;
+    }
+    if (weightTarget != null) {
+      const p = i / Math.max(1, points.length - 1);
+      const eased = p < 0.75 ? p * 0.9 : 0.675 + (p - 0.75) * 1.3;
+      weightValues.push(weightStart + (weightTarget - weightStart) * clamp(eased, 0, 1));
+    } else {
+      weightValues.push(weightStart);
+    }
+  }
+  return {
+    fitness: perfAligned.map((p) => p?.fitness ?? null),
+    fatigue: perfAligned.map((p) => p?.fatigue ?? null),
+    freshness: perfAligned.map((p) => p?.freshness ?? null),
+    readiness: perfAligned.map((p) => p?.readiness ?? null),
+    weight: weightValues,
+  };
+}
+
+function buildPlanOverviewSvg(points, lineData, profile) {
+  const width = 980;
+  const height = 290;
+  const pad = { top: 18, right: 44, bottom: 42, left: 44 };
+  const innerW = width - pad.left - pad.right;
+  const innerH = height - pad.top - pad.bottom;
+  const keys = ["run", "bike", "swim", "strength", "other"];
+  const colors = {
+    run: "rgba(124, 212, 255, 0.92)",
+    bike: "rgba(108, 142, 255, 0.88)",
+    swim: "rgba(124, 255, 225, 0.88)",
+    strength: "rgba(255, 207, 123, 0.9)",
+    other: "rgba(210, 216, 228, 0.65)",
+  };
+  const lineColors = {
+    fitness: "var(--accent-fit)",
+    fatigue: "var(--accent-fatigue)",
+    freshness: "var(--accent-fresh)",
+    readiness: "var(--accent-ready)",
+    weight: "#f3f6fb",
+  };
+  const maxHours = Math.max(1, ...points.map((p) => p.total));
+  const leftMax = Math.ceil(maxHours * 1.15);
+  const lineEnabled = Object.entries(planOverviewState.lines).filter(([, on]) => on);
+  const rightScaleUsesWeight = lineEnabled.some(([k]) => k === "weight");
+  const weightValues = (lineData.weight || []).filter((v) => Number.isFinite(v));
+  const weightMin = weightValues.length ? Math.min(...weightValues) : 0;
+  const weightMax = weightValues.length ? Math.max(...weightValues) : 0;
+  const xFor = (i) => pad.left + (i / Math.max(1, points.length - 1)) * innerW;
+  const yLeft = (hours) => pad.top + innerH - (hours / leftMax) * innerH;
+  const yRight = (value, key) => {
+    if (key === "weight" && weightValues.length) {
+      const min = Math.floor(weightMin - 1);
+      const max = Math.ceil(weightMax + 1);
+      return pad.top + innerH - ((value - min) / Math.max(1, max - min)) * innerH;
+    }
+    return pad.top + innerH - (clamp(value, 0, 100) / 100) * innerH;
+  };
+  const barStep = innerW / Math.max(1, points.length);
+  const barW = Math.max(2, Math.min(12, barStep * 0.78));
+
+  const gridY = [0, 0.25, 0.5, 0.75, 1].map((r) => {
+    const y = pad.top + innerH - r * innerH;
+    const label = (leftMax * r).toFixed(r === 1 ? 0 : 1);
+    return `
+      <line x1="${pad.left}" x2="${pad.left + innerW}" y1="${y.toFixed(1)}" y2="${y.toFixed(1)}" stroke="rgba(255,255,255,0.05)" />
+      <text x="${pad.left - 8}" y="${(y + 4).toFixed(1)}" text-anchor="end" fill="rgba(255,255,255,0.38)" font-size="10">${label}</text>`;
+  }).join("");
+
+  const rightTicks = [0, 25, 50, 75, 100].map((v) => {
+    const y = yRight(v, "fitness");
+    return `<text x="${pad.left + innerW + 8}" y="${(y + 4).toFixed(1)}" fill="rgba(255,255,255,0.32)" font-size="10">${v}</text>`;
+  }).join("");
+
+  const monthTicks = points.map((p, i) => ({ p, i }))
+    .filter(({ p, i }) => i === 0 || p.date.getDate() <= 7 && points[i - 1].date.getMonth() !== p.date.getMonth())
+    .map(({ p, i }) => {
+      const x = xFor(i);
+      return `
+        <line x1="${x.toFixed(1)}" x2="${x.toFixed(1)}" y1="${pad.top}" y2="${(pad.top + innerH).toFixed(1)}" stroke="rgba(255,255,255,0.025)" />
+        <text x="${x.toFixed(1)}" y="${height - 12}" fill="rgba(255,255,255,0.48)" font-size="10">${formatMonthTick(p.date)}</text>`;
+    }).join("");
+
+  const bars = points.map((point, i) => {
+    const x = xFor(i) - barW / 2;
+    let stackBase = 0;
+    const rects = keys.map((key) => {
+      if (!planOverviewState.bars[key]) return "";
+      const val = Number(point[key]) || 0;
+      if (val <= 0.01) return "";
+      const y1 = yLeft(stackBase + val);
+      const y0 = yLeft(stackBase);
+      stackBase += val;
+      return `<rect class="plan-bar-segment plan-bar-${key}" data-day-index="${i}" x="${x.toFixed(1)}" y="${y1.toFixed(1)}" width="${barW.toFixed(1)}" height="${Math.max(1, y0 - y1).toFixed(1)}" rx="2" fill="${colors[key]}" opacity="0.9"></rect>`;
+    }).join("");
+    const hitX = xFor(i) - barStep * 0.48;
+    const hitW = Math.max(barW, barStep * 0.96);
+    return `
+      <g class="plan-day-stack" data-day-index="${i}">
+        ${rects}
+        <rect class="plan-day-hit" data-day-index="${i}" x="${hitX.toFixed(1)}" y="${pad.top}" width="${hitW.toFixed(1)}" height="${innerH.toFixed(1)}" tabindex="0" aria-label="${escapeHtml(formatPlanOverviewHoverDate(point.date))}"></rect>
+      </g>`;
+  }).join("");
+
+  const linePaths = Object.entries(lineData).map(([key, arr]) => {
+    if (!planOverviewState.lines[key] || !Array.isArray(arr) || !arr.length) return "";
+    const d = arr.map((v, i) => {
+      if (!Number.isFinite(v)) return "";
+      return `${i === 0 ? "M" : "L"} ${xFor(i).toFixed(1)} ${yRight(v, key).toFixed(1)}`;
+    }).filter(Boolean).join(" ");
+    if (!d) return "";
+    const dash = key === "readiness" ? "5 4" : key === "weight" ? "2 4" : "";
+    return `<path d="${d}" fill="none" stroke="${lineColors[key]}" stroke-width="${key === "fitness" ? 2.1 : 1.7}" ${dash ? `stroke-dasharray="${dash}"` : ""} opacity="${key === "weight" ? 0.9 : 0.92}"></path>`;
+  }).join("");
+
+  const topOutline = points.map((point, i) => `${i === 0 ? "M" : "L"} ${xFor(i).toFixed(1)} ${yLeft(point.total).toFixed(1)}`).join(" ");
+
+  return `
+    <defs>
+      <linearGradient id="planChartBg" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%" stop-color="rgba(255,255,255,0.02)"></stop>
+        <stop offset="100%" stop-color="rgba(255,255,255,0)"></stop>
+      </linearGradient>
+    </defs>
+    <rect x="0" y="0" width="${width}" height="${height}" fill="rgba(255,255,255,0.002)"></rect>
+    <rect x="${pad.left}" y="${pad.top}" width="${innerW}" height="${innerH}" rx="10" fill="url(#planChartBg)" stroke="rgba(255,255,255,0.04)"></rect>
+    ${gridY}
+    ${rightScaleUsesWeight && weightValues.length ? "" : rightTicks}
+    ${monthTicks}
+    ${bars}
+    ${topOutline ? `<path d="${topOutline}" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"></path>` : ""}
+    ${linePaths}
+  `;
+}
+
+function formatMonthTick(date) {
+  const d = new Date(date);
+  const month = d.toLocaleString(currentLang === "ja" ? "ja-JP" : currentLang === "en" ? "en-US" : "de-DE", { month: "short" });
+  return `${month} ${String(d.getFullYear()).slice(-2)}`;
+}
+
+function renderPerformanceInsights(profile = latestProfile, plan = latestPlan) {
+  if (!fitnessChartEl) return;
+
+  if (!profile || !plan) {
+    setMetricValues({
+      vo2: "-",
+      fitness: "-",
+      fatigue: "-",
+      freshness: "-",
+      readiness: "-",
+    });
+  setExtendedMetricsToEmpty();
+  fitnessChartEl.innerHTML = buildEmptyChartSvg();
+  renderMiniSparks();
+  return;
+  }
+
+  const series = getActualPerformanceSeries(profile, plan);
+  if (!series || !series.length) {
+    setMetricValues({
+      vo2: "-",
+      fitness: "-",
+      fatigue: "-",
+      freshness: "-",
+      readiness: "-",
+    });
+    setExtendedMetricsToEmpty();
+    fitnessChartEl.innerHTML = buildEmptyChartSvg();
+    renderMiniSparks(null, profile);
+    return;
+  }
+  const last = series[series.length - 1];
+  const readinessLabel = readinessBand(last.readiness);
+  const extended = buildExtendedMetrics(profile, plan, series, connectedSources.size);
+
+  setMetricValues({
+    vo2: `${last.vo2.toFixed(1)}`,
+    fitness: `${Math.round(last.fitness)}`,
+    fatigue: `${Math.round(last.fatigue)}`,
+    freshness: `${Math.round(last.freshness)}`,
+    readiness: `${Math.round(last.readiness)} · ${readinessLabel}`,
+  });
+  setExtendedMetricValues(extended);
+
+  fitnessChartEl.innerHTML = buildChartSvg(series);
+  renderMiniSparks(series, profile);
+}
+
+function getActualPerformanceSeries(profile, plan) {
+  void profile;
+  void plan;
+  // Live actuals come from Strava/Garmin/WHOOP connector ingestion.
+  // Do not reuse plan projections for this section.
+  const liveSeries = window.__AIMRUNNA_LIVE_SERIES__;
+  return Array.isArray(liveSeries) && liveSeries.length ? liveSeries : null;
+}
+
+function buildIcs(sessions) {
+  const lines = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//AImRUNNA//Training Plan Prototype//DE",
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
+  ];
+
+  sessions.forEach((session, index) => {
+    const start = new Date(session.date);
+    start.setHours(7, 0, 0, 0);
+    const end = new Date(start);
+    end.setHours(8, 0, 0, 0);
+    const stamp = toIcsDateTime(new Date());
+
+    lines.push("BEGIN:VEVENT");
+    lines.push(`UID:aimrunna-${index}-${toIcsDateTime(start)}@local`);
+    lines.push(`DTSTAMP:${stamp}`);
+    lines.push(`DTSTART:${toIcsDateTime(start)}`);
+    lines.push(`DTEND:${toIcsDateTime(end)}`);
+    lines.push(`SUMMARY:${escapeIcs(`${sessionTypeLabel(session.type)} | ${session.title}`)}`);
+    lines.push(`DESCRIPTION:${escapeIcs(session.details)}`);
+    lines.push("END:VEVENT");
+  });
+
+  lines.push("END:VCALENDAR");
+  return lines.join("\r\n");
+}
+
+function getZwiftEligibleSessions(sessions) {
+  return sessions.filter(isZwiftEligibleSession);
+}
+
+function isZwiftEligibleSession(session) {
+  const title = String(session.title || "").toLowerCase();
+  const details = String(session.details || "").toLowerCase();
+  const looksBike =
+    title.includes("bike") ||
+    title.includes("brick") ||
+    details.includes("bike") ||
+    details.includes("z4");
+  const structuredType = session.type === "threshold" || session.type === "quality" || session.type === "longrun";
+  return looksBike && structuredType;
+}
+
+function isGarminEligibleSession(session) {
+  if (!session || session.type === "rest") return false;
+  const title = String(session.title || "").toLowerCase();
+  const details = String(session.details || "").toLowerCase();
+  const isSwim = title.includes("swim") || details.includes("css") || details.includes("technik");
+  const isRun = title.includes("run") || title.includes("strides") || (details.includes("km") && !title.includes("bike"));
+  return isSwim || isRun;
+}
+
+function buildGarminWorkoutPlaceholder(session, profile) {
+  return {
+    format: "GARMIN_WORKOUT_PLACEHOLDER",
+    note: "Placeholder export for future FIT generation backend. Next step: map this payload to .fit via Garmin FIT SDK.",
+    discipline: profile?.discipline || "running",
+    athlete: {
+      sex: profile?.sex || null,
+      age: profile?.age || null,
+      weightKg: profile?.weightKg || null,
+    },
+    goal: {
+      format: profile?.goalDistance || null,
+      time: profile?.goalTime || null,
+    },
+    workout: {
+      title: session.title,
+      type: session.type,
+      details: session.details,
+      dateIso: session.date ? session.date.toISOString() : null,
+    },
+  };
+}
+
+function buildZwiftWorkoutFile(session, profile) {
+  const title = session.title || "Workout";
+  const workoutName = `${labelDistance(profile?.goalDistance || "olympic")} | ${title}`;
+  const description = `${session.details || ""} | Exported by AImRUNNA Prototype`;
+  const tags = zwiftBlocksForSession(session);
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<workout_file>
+  <author>AImRUNNA</author>
+  <name>${escapeXml(workoutName)}</name>
+  <description>${escapeXml(description)}</description>
+  <sportType>bike</sportType>
+  <tags>
+    <tag name="triathlon"/>
+    <tag name="aimrunna"/>
+  </tags>
+  <workout>
+${tags.map((line) => `    ${line}`).join("\n")}
+  </workout>
+</workout_file>`;
+}
+
+function zwiftBlocksForSession(session) {
+  const title = String(session.title || "").toLowerCase();
+  const details = String(session.details || "").toLowerCase();
+
+  if (title.includes("bike threshold")) {
+    return [
+      '<Warmup Duration="600" PowerLow="0.50" PowerHigh="0.75"/>',
+      '<IntervalsT Repeat="3" OnDuration="720" OffDuration="240" OnPower="0.95" OffPower="0.60"/>',
+      '<SteadyState Duration="300" Power="0.72"/>',
+      '<Cooldown Duration="480" PowerLow="0.70" PowerHigh="0.45"/>',
+    ];
+  }
+
+  if (title.includes("long bike")) {
+    return [
+      '<Warmup Duration="600" PowerLow="0.50" PowerHigh="0.70"/>',
+      '<SteadyState Duration="3600" Power="0.70"/>',
+      '<SteadyState Duration="2400" Power="0.74"/>',
+      '<SteadyState Duration="1800" Power="0.78"/>',
+      '<SteadyState Duration="900" Power="0.82"/>',
+      '<Cooldown Duration="600" PowerLow="0.70" PowerHigh="0.45"/>',
+    ];
+  }
+
+  if (title.includes("brick") || details.includes("z4")) {
+    return [
+      '<Warmup Duration="480" PowerLow="0.50" PowerHigh="0.72"/>',
+      '<IntervalsT Repeat="4" OnDuration="480" OffDuration="180" OnPower="0.90" OffPower="0.58"/>',
+      '<SteadyState Duration="600" Power="0.78"/>',
+      '<Cooldown Duration="420" PowerLow="0.68" PowerHigh="0.45"/>',
+    ];
+  }
+
+  return [
+    '<Warmup Duration="480" PowerLow="0.50" PowerHigh="0.70"/>',
+    '<SteadyState Duration="1800" Power="0.76"/>',
+    '<IntervalsT Repeat="3" OnDuration="300" OffDuration="180" OnPower="0.92" OffPower="0.58"/>',
+    '<Cooldown Duration="420" PowerLow="0.68" PowerHigh="0.45"/>',
+  ];
+}
+
+function buildPerformanceSeries(profile, plan, sourceCount) {
+  const dailyTimeline = buildPlanOverviewTimeline(profile, plan);
+  const points = Math.max(56, Math.min(365, dailyTimeline.length || 90));
+  const series = [];
+  const levelBase = { starter: 30, intermediate: 44, advanced: 56 }[profile.fitnessLevel];
+  const ageAdj = profile.age ? clamp((42 - profile.age) * 0.08, -2.8, 2.2) : 0;
+  const weightAdj = profile.weightKg ? clamp((72 - profile.weightKg) * 0.05, -3.4, 2.5) : 0;
+  const sexAdj = profile.sex === "female" ? -0.4 : profile.sex === "male" ? 0.2 : 0;
+  const sourceBoost = sourceCount * 0.6;
+  const progressionModel = buildProgressionModel(profile);
+  const maturity = progressionModel.maturity;
+  const ambition = progressionModel.usableAmbition;
+  const mismatchPenalty = progressionModel.mismatchPenalty;
+  const goalBoost = goalSpecificBoost(profile);
+  const baseFitness = levelBase + ageAdj + weightAdj + sexAdj + sourceBoost;
+
+  const stressRaw = dailyTimeline.length
+    ? dailyTimeline.map((d) => {
+        const tssLike = d.stress || (
+          d.run * 92 +
+          d.bike * 80 +
+          d.swim * 86 +
+          d.strength * 72 +
+          d.other * 58
+        );
+        const disciplineBias =
+          profile.discipline === "triathlon" ? 1.06 :
+          profile.discipline === "cycling" ? 1.04 :
+          profile.discipline === "hyrox" ? 1.02 :
+          profile.discipline === "shape" ? 0.92 : 1.0;
+        return clamp(tssLike * disciplineBias, 0, 320);
+      })
+    : new Array(points).fill(0).map((_, i) => 60 + Math.sin(i / 6) * 20);
+
+  const adaptRaw = dailyTimeline.length ? dailyTimeline.map((d) => d.adaptationImpulse || d.stress || 0) : stressRaw.slice();
+  const fatigueRaw = dailyTimeline.length ? dailyTimeline.map((d) => d.fatigueImpulse || d.stress || 0) : stressRaw.slice();
+
+  const stressLoads = stressRaw.length === points ? stressRaw : alignNumericSeries(stressRaw, points);
+  const adaptLoads = adaptRaw.length === points ? adaptRaw : alignNumericSeries(adaptRaw, points);
+  const fatigueLoads = fatigueRaw.length === points ? fatigueRaw : alignNumericSeries(fatigueRaw, points);
+
+  const avgStress = stressLoads.reduce((s, v) => s + v, 0) / Math.max(1, stressLoads.length);
+  const avgAdapt = adaptLoads.reduce((s, v) => s + v, 0) / Math.max(1, adaptLoads.length);
+  const avgFatigue = fatigueLoads.reduce((s, v) => s + v, 0) / Math.max(1, fatigueLoads.length);
+
+  // CTL/ATL-like model:
+  // - CTL (fitness capacity) responds slowly and should trend up in waves.
+  // - ATL (fatigue) responds quickly and oscillates stronger.
+  const seedFactor = { starter: 0.56, intermediate: 0.68, advanced: 0.8 }[profile.fitnessLevel] || 0.66;
+  const tauCtl = profile.discipline === "cycling" ? 44 : profile.discipline === "shape" ? 30 : profile.discipline === "hyrox" ? 34 : 40;
+  const tauAtl = profile.discipline === "shape" ? 5 : 7;
+  const tauBank = 18;
+
+  let ctl = Math.max(22, avgAdapt * seedFactor);
+  let atl = Math.max(24, avgFatigue * seedFactor * 1.05);
+  const ctlSeed = ctl;
+  const atlSeed = atl;
+  let adaptationBank = 0;
+
+  const ctlNorm = Math.max(22, avgAdapt * 0.68);
+  const atlNorm = Math.max(20, avgFatigue * 0.52);
+  const fitGain = 14 + maturity * 4.2 + ambition * 2.2;
+  const fatGain = 27 + ambition * 5.1;
+  const bankGain = 3.6 + maturity * 1.3;
+  const baseFatigue = clamp(40 + ambition * 3.5, 36, 52);
+
+  for (let i = 0; i < points; i += 1) {
+    const stress = stressLoads[i] || 0;
+    const adapt = adaptLoads[i] || stress;
+    const fatigueImpulse = fatigueLoads[i] || stress;
+    ctl += (adapt - ctl) / tauCtl;
+    atl += (fatigueImpulse - atl) / tauAtl;
+
+    const positiveImpulse = Math.max(0, adapt - atl * 0.9);
+    adaptationBank = adaptationBank * Math.exp(-1 / tauBank) + (positiveImpulse / Math.max(20, avgStress * 0.5)) * 0.42;
+
+    const ctlComponent = (ctl - ctlSeed) / ctlNorm;
+    const atlComponent = (atl - atlSeed) / atlNorm;
+    const loadQuality = (adapt - fatigueImpulse * 0.72) / Math.max(20, avgStress * 0.52);
+    const mismatchDrag = mismatchPenalty * 0.55;
+
+    const fitness = clamp(
+      baseFitness +
+      goalBoost * 0.16 +
+      ctlComponent * fitGain +
+      adaptationBank * bankGain +
+      loadQuality * (0.85 + maturity * 0.22) -
+      mismatchDrag,
+      14,
+      99
+    );
+
+    const fatigue = clamp(
+      baseFatigue +
+      atlComponent * fatGain +
+      Math.max(0, ctlComponent) * 1.7,
+      10,
+      98
+    );
+
+    const freshness = clamp(58 + (fitness - fatigue) * 0.95, 8, 98);
+    const readiness = clamp(freshness * 0.52 + fitness * 0.24 + (100 - fatigue) * 0.24, 10, 99);
+
+    const t = i / Math.max(1, points - 1);
+    const vo2Growth = profile.fitnessLevel === "starter" ? 1.6 : profile.fitnessLevel === "intermediate" ? 1.2 : 0.8;
+    const vo2 = clamp(levelBase + 0.6 + t * vo2Growth + (fitness - baseFitness) * 0.05, 30, 78);
+
+    series.push({ fitness, fatigue, freshness, readiness, vo2, load: stress });
+  }
+
+  return series;
+}
+
+function alignNumericSeries(values, targetLength) {
+  if (!Array.isArray(values) || !values.length || !targetLength) return [];
+  if (values.length === targetLength) return values.slice();
+  const out = [];
+  for (let i = 0; i < targetLength; i += 1) {
+    const idx = Math.round((i / Math.max(1, targetLength - 1)) * (values.length - 1));
+    out.push(Number(values[idx]) || 0);
+  }
+  return out;
+}
+
+function buildEmptyChartSvg() {
+  return `
+    <rect x="0" y="0" width="960" height="320" fill="rgba(255,255,255,0.002)"></rect>
+    ${buildChartGrid()}
+    <text x="40" y="162" fill="rgba(255,255,255,0.45)" font-size="14" font-family="Inter, sans-serif">
+      Verbinde und synchronisiere Strava / Garmin / WHOOP, um Live-Trends zu sehen.
+    </text>
+  `;
+}
+
+function buildChartSvg(series) {
+  const width = 960;
+  const height = 320;
+  const pad = { top: 20, right: 20, bottom: 28, left: 36 };
+  const innerW = width - pad.left - pad.right;
+  const innerH = height - pad.top - pad.bottom;
+
+  const xFor = (index) => pad.left + (index / (series.length - 1)) * innerW;
+  const yFor = (value) => pad.top + (1 - value / 100) * innerH;
+
+  const pathFor = (key) =>
+    series
+      .map((point, index) => `${index === 0 ? "M" : "L"} ${xFor(index).toFixed(1)} ${yFor(point[key]).toFixed(1)}`)
+      .join(" ");
+
+  const lastX = xFor(series.length - 1).toFixed(1);
+  const labels = [
+    { key: "fitness", color: "var(--accent-fit)" },
+    { key: "fatigue", color: "var(--accent-fatigue)" },
+    { key: "freshness", color: "var(--accent-fresh)" },
+    { key: "readiness", color: "var(--accent-ready)" },
+    { key: "vo2", color: "var(--accent-vo2)" },
+  ];
+
+  const labelMarks = labels
+    .map((item, idx) => {
+      const y = yFor(series[series.length - 1][item.key]);
+      return `
+        <circle cx="${lastX}" cy="${y.toFixed(1)}" r="3" fill="${item.color}" opacity="${item.key === "vo2" ? 0.95 : 0.85}"></circle>
+        <text x="${Math.max(8, Number(lastX) - 8)}" y="${(y - 8 - idx * 2).toFixed(1)}" text-anchor="end" fill="${item.color}" opacity="0.9" font-size="10">${item.key.toUpperCase()}</text>
+      `;
+    })
+    .join("");
+
+  return `
+    <defs>
+      <linearGradient id="chartFade" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%" stop-color="rgba(255,255,255,0.03)"></stop>
+        <stop offset="100%" stop-color="rgba(255,255,255,0)"></stop>
+      </linearGradient>
+    </defs>
+    <rect x="0" y="0" width="${width}" height="${height}" fill="rgba(255,255,255,0.002)"></rect>
+    ${buildChartGrid(width, height, pad)}
+    <rect x="${pad.left}" y="${pad.top}" width="${innerW}" height="${innerH}" fill="url(#chartFade)" opacity="0.35"></rect>
+    <path class="trend-line fit" d="${pathFor("fitness")}" stroke="var(--accent-fit)" stroke-width="2.2"></path>
+    <path class="trend-line fatigue" d="${pathFor("fatigue")}" stroke="var(--accent-fatigue)" stroke-width="2" opacity="0.9"></path>
+    <path class="trend-line fresh" d="${pathFor("freshness")}" stroke="var(--accent-fresh)" stroke-width="1.9" opacity="0.92"></path>
+    <path class="trend-line ready" d="${pathFor("readiness")}" stroke="var(--accent-ready)" stroke-width="1.9" opacity="0.88"></path>
+    <path class="trend-line vo2" d="${pathFor("vo2")}" stroke="var(--accent-vo2)" stroke-width="1.9" stroke-dasharray="5 4" opacity="0.92"></path>
+    ${labelMarks}
+  `;
+}
+
+function buildChartGrid(width = 960, height = 320, pad = { top: 20, right: 20, bottom: 28, left: 36 }) {
+  const innerW = width - pad.left - pad.right;
+  const innerH = height - pad.top - pad.bottom;
+  const horizontal = [0, 25, 50, 75, 100]
+    .map((v) => {
+      const y = pad.top + (1 - v / 100) * innerH;
+      return `
+        <line x1="${pad.left}" x2="${pad.left + innerW}" y1="${y}" y2="${y}" stroke="rgba(255,255,255,0.06)" stroke-width="1"></line>
+        <text x="${pad.left - 8}" y="${y + 4}" text-anchor="end" fill="rgba(255,255,255,0.34)" font-size="10">${v}</text>
+      `;
+    })
+    .join("");
+
+  const vertical = new Array(7)
+    .fill(0)
+    .map((_, i) => {
+      const x = pad.left + (i / 6) * innerW;
+      return `<line x1="${x}" x2="${x}" y1="${pad.top}" y2="${pad.top + innerH}" stroke="rgba(255,255,255,0.035)" stroke-width="1"></line>`;
+    })
+    .join("");
+
+  return `<g>${horizontal}${vertical}</g>`;
+}
+
+function renderMiniSparks(series = null, profile = latestProfile) {
+  const nodes = [...document.querySelectorAll(".mini-spark")];
+  if (!nodes.length) return;
+
+  nodes.forEach((svg, index) => {
+    const host = svg.closest("[data-spark-kind]");
+    const kind = host?.dataset.sparkKind || `k${index}`;
+    const values = series ? sparkValuesForKind(kind, series, profile) : new Array(12).fill(0).map((_, i) => 40 + Math.sin(i) * 5);
+    svg.innerHTML = buildMiniSparkSvg(values, miniSparkColor(kind));
+  });
+}
+
+function sparkValuesForKind(kind, series, profile) {
+  const tail = series.slice(-18);
+  const map = {
+    hrv: tail.map((p, i) => 50 + (p.freshness - 50) * 0.7 + Math.sin(i) * 4),
+    rhr: tail.map((p, i) => 55 - (p.freshness - 50) * 0.25 + (p.fatigue - p.fitness) * 0.18 + Math.cos(i) * 1.2),
+    load: tail.map((p, i) => 45 + (p.fatigue - 40) * 0.8 + Math.sin(i * 0.8) * 6),
+    strain: tail.map((p, i) => 42 + (p.fatigue - p.freshness) * 0.6 + Math.sin(i * 1.2) * 5),
+    sleep: tail.map((p, i) => 58 + (p.freshness - 50) * 0.5 - (p.fatigue - 50) * 0.18 + Math.cos(i * 0.7) * 4),
+    threshold: tail.map((p, i) => 46 + (p.fitness - 40) * 0.7 + Math.sin(i * 0.6) * 3),
+    longrun: tail.map((p, i) => 40 + p.readiness * 0.45 - (p.fatigue - 50) * 0.2 + Math.sin(i * 0.9) * 4),
+    race: tail.map((p, i) => 44 + p.fitness * 0.42 + p.readiness * 0.2 - p.fatigue * 0.14 + Math.cos(i * 0.5) * 3),
+    "pred-a": tail.map((p, i) => 60 + (profile?.discipline === "running" ? p.fitness : p.readiness) * 0.25 + Math.sin(i) * 2),
+    "pred-b": tail.map((p, i) => 56 + p.fitness * 0.22 + Math.cos(i * 0.7) * 2.5),
+    "pred-c": tail.map((p, i) => 52 + p.readiness * 0.23 + Math.sin(i * 0.6) * 2),
+    "pred-d": tail.map((p, i) => 50 + p.fitness * 0.2 + Math.cos(i * 0.4) * 2),
+  };
+  return (map[kind] || tail.map((p) => p.fitness)).map((v) => clamp(v, 0, 100));
+}
+
+function buildMiniSparkSvg(values, color) {
+  const width = 120;
+  const height = 34;
+  const xFor = (i) => (i / Math.max(1, values.length - 1)) * width;
+  const yFor = (v) => height - (v / 100) * height;
+  const path = values.map((v, i) => `${i === 0 ? "M" : "L"} ${xFor(i).toFixed(1)} ${yFor(v).toFixed(1)}`).join(" ");
+  const area = `${path} L ${width} ${height} L 0 ${height} Z`;
+  const lastX = xFor(values.length - 1).toFixed(1);
+  const lastY = yFor(values[values.length - 1]).toFixed(1);
+  const id = `spark-${Math.abs(hashString(color))}`;
+  return `
+    <defs>
+      <linearGradient id="${id}" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%" stop-color="${color}" stop-opacity="0.22"></stop>
+        <stop offset="100%" stop-color="${color}" stop-opacity="0"></stop>
+      </linearGradient>
+    </defs>
+    <path d="M0 8 H${width}" stroke="rgba(255,255,255,0.05)" stroke-width="1"></path>
+    <path d="M0 17 H${width}" stroke="rgba(255,255,255,0.04)" stroke-width="1"></path>
+    <path d="M0 26 H${width}" stroke="rgba(255,255,255,0.05)" stroke-width="1"></path>
+    <path d="${area}" fill="url(#${id})"></path>
+    <path d="${path}" fill="none" stroke="${color}" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" opacity="0.1"></path>
+    <path d="${path}" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+    <circle cx="${lastX}" cy="${lastY}" r="2.2" fill="${color}"></circle>
+  `;
+}
+
+function hashString(value) {
+  let h = 0;
+  const s = String(value);
+  for (let i = 0; i < s.length; i += 1) {
+    h = (h << 5) - h + s.charCodeAt(i);
+    h |= 0;
+  }
+  return h;
+}
+
+function miniSparkColor(kind) {
+  if (kind === "rhr" || kind === "strain") return "var(--accent-fatigue)";
+  if (kind === "sleep" || kind === "longrun") return "var(--accent-fresh)";
+  if (kind === "threshold" || kind === "pred-b") return "var(--accent-fit)";
+  if (kind.startsWith("pred")) return "var(--accent-ready)";
+  return "var(--accent-vo2)";
+}
+
+function setMetricValues(values) {
+  if (metricVo2El) metricVo2El.textContent = values.vo2;
+  if (metricFitnessEl) metricFitnessEl.textContent = values.fitness;
+  if (metricFatigueEl) metricFatigueEl.textContent = values.fatigue;
+  if (metricFreshnessEl) metricFreshnessEl.textContent = values.freshness;
+  if (metricReadinessEl) metricReadinessEl.textContent = values.readiness;
+}
+
+function setExtendedMetricsToEmpty() {
+  setText(metricHrvBaselineEl, "-");
+  setText(metricHrvCurrentEl, "Current: -");
+  setText(metricRhrTrendEl, "-");
+  setText(metricRhrValueEl, "RHR: - bpm");
+  setText(metricLoadRatioEl, "-");
+  setText(metricLoadAbsEl, "7d: - / 42d: -");
+  setText(metricMonotonyEl, "-");
+  setText(metricStrainEl, "Strain: -");
+  setText(metricSleepScoreEl, "-");
+  setText(metricSleepDurationEl, "Sleep: -");
+  setText(metricThresholdPaceEl, "-");
+  setText(metricThresholdHrEl, "HR: - bpm");
+  setText(metricLongrunToleranceEl, "-");
+  setText(metricLongrunContextEl, "Stability: -");
+  setText(metricRaceTrendEl, "-");
+  setText(metricRaceDeltaEl, "Delta 90d: -");
+  setText(document.getElementById("pred-label-a"), "-");
+  setText(document.getElementById("pred-label-b"), "-");
+  setText(document.getElementById("pred-label-c"), "-");
+  setText(document.getElementById("pred-label-d"), "-");
+  setText(predSprintEl, "-");
+  setText(predOlympicEl, "-");
+  setText(pred703El, "-");
+  setText(predIronmanEl, "-");
+}
+
+function setExtendedMetricValues(metrics) {
+  setText(metricHrvBaselineEl, `${metrics.hrvBaseline} ms`);
+  setText(metricHrvCurrentEl, `Current: ${metrics.hrvCurrent} ms (${metrics.hrvDelta})`);
+  setText(metricRhrTrendEl, metrics.rhrTrend);
+  setText(metricRhrValueEl, `RHR: ${metrics.rhrValue} bpm`);
+  setText(metricLoadRatioEl, metrics.acwr);
+  setText(metricLoadAbsEl, `7d: ${metrics.load7} / 42d: ${metrics.load42}`);
+  setText(metricMonotonyEl, metrics.monotony);
+  setText(metricStrainEl, `Strain: ${metrics.strain}`);
+  setText(metricSleepScoreEl, `${metrics.sleepScore}`);
+  setText(metricSleepDurationEl, `Sleep: ${metrics.sleepDuration}`);
+  setText(metricThresholdPaceEl, metrics.thresholdPace);
+  setText(metricThresholdHrEl, `HR: ${metrics.thresholdHr} bpm`);
+  setText(metricLongrunToleranceEl, metrics.longRunTolerance);
+  setText(metricLongrunContextEl, `Stability: ${metrics.longRunStability}`);
+  setText(metricRaceTrendEl, metrics.raceTrendLabel);
+  setText(metricRaceDeltaEl, `Delta 90d: ${metrics.raceTrendDelta}`);
+  setText(document.getElementById("pred-label-a"), metrics.predictions.labels.a);
+  setText(document.getElementById("pred-label-b"), metrics.predictions.labels.b);
+  setText(document.getElementById("pred-label-c"), metrics.predictions.labels.c);
+  setText(document.getElementById("pred-label-d"), metrics.predictions.labels.d);
+  setText(predSprintEl, metrics.predictions.values.a);
+  setText(predOlympicEl, metrics.predictions.values.b);
+  setText(pred703El, metrics.predictions.values.c);
+  setText(predIronmanEl, metrics.predictions.values.d);
+}
+
+function buildExtendedMetrics(profile, plan, series, sourceCount) {
+  const last = series[series.length - 1];
+  const levelBaseHrv = { starter: 48, intermediate: 62, advanced: 74 }[profile.fitnessLevel];
+  const hrvBaseline = Math.round(levelBaseHrv + sourceCount * 2);
+  const hrvCurrent = Math.round(hrvBaseline + (last.freshness - 50) * 0.18 - (last.fatigue - 55) * 0.12);
+  const hrvDeltaNum = hrvCurrent - hrvBaseline;
+
+  const rhrBase = { starter: 58, intermediate: 52, advanced: 47 }[profile.fitnessLevel];
+  const rhrValue = Math.round(rhrBase + (last.fatigue - last.fitness) * 0.08 + (connectedSources.has("Whoop") ? -1 : 0));
+  const rhrTrend = rhrValue <= rhrBase ? "Improving" : rhrValue <= rhrBase + 2 ? "Stable" : "Elevated";
+
+  const load42 = Math.round(plan.meta.weeklyKmBase * 6);
+  const load7 = Math.round(plan.meta.weeklyKmBase * (0.85 + (last.fatigue - 50) / 120));
+  const acwrValue = clamp(load7 / Math.max(1, load42 / 6), 0.4, 1.9);
+
+  const monotony = (1.15 + (last.fatigue - last.freshness) / 95 + (profile.weeklyHours > 10 ? 0.12 : 0)).toFixed(2);
+  const strain = Math.round(load7 * Number(monotony));
+
+  const sleepScore = Math.round(clamp(68 + sourceCount * 4 + (last.freshness - 50) * 0.5 - (last.fatigue - 50) * 0.22, 45, 97));
+  const sleepHours = 6.6 + sourceCount * 0.18 + (sleepScore - 75) * 0.015;
+
+  const thresholdHr = Math.round(
+    (profile.discipline === "triathlon" ? 162 : 168)
+      + (profile.fitnessLevel === "advanced" ? 4 : profile.fitnessLevel === "starter" ? -3 : 0)
+      + (connectedSources.has("Whoop") ? -1 : 0)
+  );
+  const thresholdPace = thresholdDescriptor(profile, last);
+
+  const longRunTolerance = longRunToleranceLabel(last.readiness, last.fatigue);
+  const longRunStability = longRunStabilityLabel(last.freshness, last.readiness);
+
+  const predictions = buildRacePredictions(profile, last, plan);
+  const raceTrendDelta = `${predictions.trendDelta > 0 ? "-" : "+"}${Math.abs(predictions.trendDelta)} min`;
+  const raceTrendLabel = predictions.trendDelta > 0 ? "Getting Faster" : predictions.trendDelta === 0 ? "Stable" : "Needs Recovery";
+
+  return {
+    hrvBaseline,
+    hrvCurrent,
+    hrvDelta: `${hrvDeltaNum >= 0 ? "+" : ""}${hrvDeltaNum}`,
+    rhrTrend,
+    rhrValue,
+    acwr: `${acwrValue.toFixed(2)}`,
+    load7,
+    load42,
+    monotony,
+    strain,
+    sleepScore,
+    sleepDuration: `${sleepHours.toFixed(1)} h`,
+    thresholdPace,
+    thresholdHr,
+    longRunTolerance,
+    longRunStability,
+    raceTrendLabel,
+    raceTrendDelta,
+    predictions,
+  };
+}
+
+function buildRacePredictions(profile, last, plan) {
+  const capability = last.fitness + last.readiness * 0.25 - last.fatigue * 0.12 + (connectedSources.size * 1.8);
+  const weekly = plan.meta.weeklyKmBase;
+  const trendDelta = Math.round(clamp((last.readiness - 55) / 4 + (last.fitness - 50) / 8, -12, 18));
+
+  if (profile.discipline === "running") {
+    const minutes = {
+      a: Math.round(clamp(24 - capability * 0.06 - weekly * 0.01, 14, 40)), // 5k
+      b: Math.round(clamp(52 - capability * 0.11 - weekly * 0.015, 30, 85)), // 10k
+      c: Math.round(clamp(115 - capability * 0.22 - weekly * 0.025, 72, 190)), // HM
+      d: Math.round(clamp(240 - capability * 0.45 - weekly * 0.05, 150, 400)), // M
+    };
+    return {
+      trendDelta,
+      labels: { a: "5 km", b: "10 km", c: "Halbmarathon", d: "Marathon" },
+      values: {
+        a: formatDurationMinutes(minutes.a),
+        b: formatDurationMinutes(minutes.b),
+        c: formatDurationMinutes(minutes.c),
+        d: formatDurationMinutes(minutes.d),
+      },
+    };
+  }
+
+  if (profile.discipline === "cycling") {
+    const minutes = {
+      a: Math.round(clamp(65 - capability * 0.18 - weekly * 0.02, 40, 120)), // crit
+      b: Math.round(clamp(63 - capability * 0.16 - weekly * 0.025, 38, 110)), // tt40
+      c: Math.round(clamp(345 - capability * 0.65 - weekly * 0.05, 220, 520)), // fondo
+      d: Math.round(clamp(355 - capability * 0.7 - weekly * 0.06, 230, 560)), // century
+    };
+    return {
+      trendDelta,
+      labels: { a: "Crit", b: "TT 40 km", c: "Gran Fondo", d: "Century" },
+      values: {
+        a: formatDurationMinutes(minutes.a),
+        b: formatDurationMinutes(minutes.b),
+        c: formatDurationMinutes(minutes.c),
+        d: formatDurationMinutes(minutes.d),
+      },
+    };
+  }
+
+  if (profile.discipline === "hyrox") {
+    const baseMinutes = Math.max(55, Math.round(112 - capability * 0.55 - weekly * 0.12));
+    const doublesLabel = profile.goalDistance === "doublespro" ? "HYROX Doubles Pro" : "HYROX Doubles";
+    const doublesMinutes = profile.goalDistance === "doublespro" ? Math.max(37, baseMinutes - 19) : Math.max(40, baseMinutes - 16);
+    return {
+      trendDelta,
+      labels: { a: "HYROX Open", b: "HYROX Pro", c: doublesLabel, d: "HYROX Relay" },
+      values: {
+        a: formatDurationMinutes(baseMinutes),
+        b: formatDurationMinutes(Math.max(45, baseMinutes - 6)),
+        c: formatDurationMinutes(doublesMinutes),
+        d: formatDurationMinutes(Math.max(32, baseMinutes - 28)),
+      },
+    };
+  }
+
+  if (profile.discipline === "shape") {
+    const currentWeight = Number(profile.weightKg) || null;
+    const targetWeight = Number(profile.targetWeightKg) || null;
+    const weeks = plan.weeks.length;
+    const projectedDelta =
+      profile.goalDistance === "fatloss"
+        ? -(0.2 + capability * 0.002 + weekly * 0.003) * weeks
+        : profile.goalDistance === "build"
+          ? (0.12 + capability * 0.001 + weekly * 0.002) * weeks
+          : profile.goalDistance === "recomp"
+            ? -(0.05 + weekly * 0.001) * weeks
+            : 0;
+    const projectedWeight = currentWeight ? Math.max(40, currentWeight + projectedDelta) : null;
+    const restingHr = Math.round(clamp(64 - capability * 0.08 - connectedSources.size * 1.2, 45, 78));
+    const workCap = Math.round(clamp(45 + capability * 0.55 + weekly * 0.08, 35, 95));
+    const pushups = Math.round(clamp(10 + capability * 0.35 + weekly * 0.15, 8, 70));
+    return {
+      trendDelta,
+      labels: {
+        a: currentWeight && targetWeight ? "Gewicht (proj.)" : "Body Trend",
+        b: "Resting HR",
+        c: "Push-ups",
+        d: "Work Capacity",
+      },
+      values: {
+        a: projectedWeight ? `${projectedWeight.toFixed(1)} kg` : profile.goalDistance === "fatloss" ? "- trend" : "+ trend",
+        b: `${restingHr} bpm`,
+        c: `${pushups} reps`,
+        d: `${workCap}/100`,
+      },
+    };
+  }
+
+  const minutes = {
+    a: Math.round(clamp(86 - capability * 0.35 - weekly * 0.03, 58, 120)),
+    b: Math.round(clamp(178 - capability * 0.62 - weekly * 0.05, 120, 240)),
+    c: Math.round(clamp(360 - capability * 1.1 - weekly * 0.08, 255, 460)),
+    d: Math.round(clamp(760 - capability * 2.0 - weekly * 0.16, 550, 1020)),
+  };
+
+  return {
+    trendDelta,
+    labels: { a: "Sprint", b: "Olympic", c: "70.3", d: "Ironman" },
+    values: {
+      a: formatDurationMinutes(minutes.a),
+      b: formatDurationMinutes(minutes.b),
+      c: formatDurationMinutes(minutes.c),
+      d: formatDurationMinutes(minutes.d),
+    },
+  };
+}
+
+function thresholdDescriptor(profile, last) {
+  if (profile.discipline === "triathlon") {
+    const bikePower = Math.round(220 + (last.fitness - 50) * 2.6 + (profile.fitnessLevel === "advanced" ? 25 : 0));
+    const runPace = secondsToPace(Math.round(280 - (last.fitness - 45) * 1.9));
+    return `${bikePower}W / ${runPace}`;
+  }
+  if (profile.discipline === "hyrox") {
+    const runPace = secondsToPace(Math.round(320 - (last.fitness - 45) * 1.8));
+    const stationPace = last.readiness >= 65 ? "Stations: race-paced" : "Stations: controlled";
+    return `${runPace} / ${stationPace}`;
+  }
+  return secondsToPace(Math.round(300 - (last.fitness - 45) * 2.1));
+}
+
+function longRunToleranceLabel(readiness, fatigue) {
+  const score = readiness - (fatigue - 60) * 0.4;
+  if (score >= 72) return "High";
+  if (score >= 58) return "Moderate";
+  return "Fragile";
+}
+
+function longRunStabilityLabel(freshness, readiness) {
+  const combo = freshness * 0.45 + readiness * 0.55;
+  if (combo >= 72) return "Stable";
+  if (combo >= 58) return "Manageable";
+  return "Volatile";
+}
+
+function setText(el, value) {
+  if (el) el.textContent = value;
+}
+
+function scrollToGeneratedPlan() {
+  const target = sectionCalendarEl || planMetaEl || calendarEl;
+  if (!target) return;
+  window.requestAnimationFrame(() => {
+    const mobile = window.matchMedia?.("(max-width: 760px)")?.matches;
+    const offset = mobile ? 154 : 108;
+    const targetTop = Math.max(0, window.scrollY + target.getBoundingClientRect().top - offset);
+    animateWindowScrollTo(targetTop, mobile ? 820 : 760);
+  });
+}
+
+function scrollToSectionStart(target, { mobileOffset = 154, desktopOffset = 108, duration = 520 } = {}) {
+  if (!target) return;
+  window.requestAnimationFrame(() => {
+    const mobile = window.matchMedia?.("(max-width: 760px)")?.matches;
+    const offset = mobile ? mobileOffset : desktopOffset;
+    const targetTop = Math.max(0, window.scrollY + target.getBoundingClientRect().top - offset);
+    animateWindowScrollTo(targetTop, duration);
+  });
+}
+
+function animateWindowScrollTo(targetTop, duration = 760) {
+  const startY = window.scrollY || window.pageYOffset || 0;
+  const distance = targetTop - startY;
+  if (Math.abs(distance) < 4) return;
+  if (generatedPlanScrollRaf) {
+    window.cancelAnimationFrame(generatedPlanScrollRaf);
+    generatedPlanScrollRaf = 0;
+  }
+  const startTs = performance.now();
+  const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
+  const step = (now) => {
+    const elapsed = now - startTs;
+    const progress = clamp(elapsed / duration, 0, 1);
+    const eased = easeInOut(progress);
+    window.scrollTo(0, startY + distance * eased);
+    if (progress < 1) {
+      generatedPlanScrollRaf = window.requestAnimationFrame(step);
+    } else {
+      generatedPlanScrollRaf = 0;
+    }
+  };
+  generatedPlanScrollRaf = window.requestAnimationFrame(step);
+}
+
+function estimateSessionNutrition(session, profile) {
+  const weight = Number(profile?.weightKg) || (profile?.sex === "female" ? 62 : 74);
+  const heightCm = Number(profile?.heightCm) || (profile?.sex === "female" ? 168 : 178);
+  const age = Number(profile?.age) || 34;
+  const sex = profile?.sex || null;
+  const bmr =
+    sex === "female"
+      ? 10 * weight + 6.25 * heightCm - 5 * age - 161
+      : sex === "male"
+        ? 10 * weight + 6.25 * heightCm - 5 * age + 5
+        : 10 * weight + 6.25 * heightCm - 5 * age - 70;
+  const activityFactor = profile?.discipline === "shape" ? 1.38 : 1.45;
+  const tdeeBase = Math.round(bmr * activityFactor);
+  const title = String(session?.title || "").toLowerCase();
+  let trainingLoadKcal = 260;
+  let carbPerKg = 4.0;
+  let proteinPerKg = 1.7;
+  let fatPerKg = 0.8;
+
+  if (title.includes("long")) {
+    trainingLoadKcal = profile?.discipline === "triathlon" || profile?.discipline === "cycling" ? 500 : 360;
+    carbPerKg = 6.5;
+    proteinPerKg = 1.8;
+    fatPerKg = 0.8;
+  } else if (title.includes("threshold")) {
+    trainingLoadKcal = 330;
+    carbPerKg = 5.8;
+    proteinPerKg = 1.7;
+    fatPerKg = 0.8;
+  } else if (title.includes("vo2")) {
+    trainingLoadKcal = 320;
+    carbPerKg = 5.5;
+    proteinPerKg = 1.8;
+    fatPerKg = 0.8;
+  } else if (title.includes("strength") || title.includes("carry") || title.includes("circuit") || title.includes("hyrox")) {
+    trainingLoadKcal = 240;
+    carbPerKg = profile?.discipline === "shape" ? 2.4 : 4.2;
+    proteinPerKg = 1.9;
+    fatPerKg = 0.75;
+  } else if (title.includes("swim")) {
+    trainingLoadKcal = 220;
+    carbPerKg = 4.8;
+    proteinPerKg = 1.6;
+    fatPerKg = 0.85;
+  } else if (session?.type === "rest") {
+    trainingLoadKcal = 40;
+    carbPerKg = 2.4;
+    proteinPerKg = 1.8;
+    fatPerKg = 0.8;
+  }
+
+  let kcalTarget = tdeeBase + trainingLoadKcal;
+  if (profile?.discipline === "shape") {
+    const goal = profile?.goalDistance;
+    const targetWeight = Number(profile?.targetWeightKg) || null;
+    const currentWeight = Number(profile?.weightKg) || null;
+    const deficit = goal === "fatloss" ? 550 : goal === "recomp" ? 250 : 0;
+    const surplus = goal === "build" ? 220 : 0;
+    if (goal === "fatloss" || (goal === "recomp" && targetWeight && currentWeight && targetWeight <= currentWeight)) {
+      kcalTarget = tdeeBase + Math.max(0, trainingLoadKcal * 0.45) - deficit;
+      proteinPerKg = Math.max(proteinPerKg, 1.9);
+      carbPerKg = session?.type === "rest" ? 1.8 : title.includes("long") || title.includes("threshold") ? 3.2 : 2.4;
+      fatPerKg = 0.65;
+    } else if (goal === "recomp") {
+      kcalTarget = tdeeBase + Math.max(0, trainingLoadKcal * 0.35) - 120;
+      proteinPerKg = Math.max(proteinPerKg, 1.9);
+      carbPerKg = session?.type === "rest" ? 2.0 : 2.8;
+      fatPerKg = 0.7;
+    } else if (goal === "build") {
+      kcalTarget = tdeeBase + Math.max(0, trainingLoadKcal * 0.55) + surplus;
+      proteinPerKg = Math.max(proteinPerKg, 1.8);
+      carbPerKg = session?.type === "rest" ? 2.8 : 3.8;
+      fatPerKg = 0.8;
+    } else {
+      kcalTarget = tdeeBase + Math.max(0, trainingLoadKcal * 0.4) - 80;
+      carbPerKg = session?.type === "rest" ? 2.2 : 2.9;
+      proteinPerKg = Math.max(proteinPerKg, 1.8);
+      fatPerKg = 0.72;
+    }
+  }
+
+  kcalTarget = clamp(Math.round(kcalTarget), Math.round(weight * 20), Math.round(weight * 42));
+
+  let carbsG = Math.round(weight * carbPerKg);
+  let proteinG = Math.round(weight * proteinPerKg);
+  let fatG = Math.round(weight * fatPerKg);
+
+  const macroKcal = carbsG * 4 + proteinG * 4 + fatG * 9;
+  if (macroKcal > kcalTarget + 120) {
+    const minFatG = Math.round(weight * (profile?.discipline === "shape" && profile?.goalDistance === "fatloss" ? 0.55 : 0.6));
+    const remainingForCarbs = Math.max(0, kcalTarget - proteinG * 4 - Math.max(minFatG, fatG) * 9);
+    fatG = Math.max(minFatG, Math.min(fatG, Math.round((kcalTarget * 0.32) / 9)));
+    carbsG = Math.max(0, Math.round((kcalTarget - proteinG * 4 - fatG * 9) / 4));
+    if (carbsG * 4 + proteinG * 4 + fatG * 9 > kcalTarget + 80) {
+      carbsG = Math.max(0, Math.round(remainingForCarbs / 4));
+    }
+  }
+
+  return {
+    kcal: kcalTarget,
+    carbsG,
+    proteinG,
+    fatG,
+  };
+}
+
+function buildSessionNutritionGuidance(session, profile, nutrition) {
+  const txt = (de, en, ja) => (currentLang === "de" ? de : currentLang === "ja" ? ja : en);
+  const title = String(session?.title || "").toLowerCase();
+  const isRest = session?.type === "rest";
+  if (profile?.discipline === "shape") {
+    if (profile.goalDistance === "fatloss") {
+      if (isRest) {
+        return txt(
+          `Protein hoch halten, Gemüse/Faser priorisieren, Kohlenhydrate heute eher niedriger. Ziel: Sättigung + Defizit halten (~${nutrition.kcal} kcal).`,
+          `Keep protein high, prioritize fiber/veg, keep carbs lower today. Goal: satiety + hold the deficit (~${nutrition.kcal} kcal).`,
+          `タンパク質高め、食物繊維・野菜を優先。今日は炭水化物をやや低めにして満腹感と赤字を維持（約${nutrition.kcal}kcal）。`
+        );
+      }
+      return txt(
+        `Cut-Fokus: Protein priorisieren, Kohlenhydrate um die Einheit herum einsetzen (vor/nach Training), Rest des Tages eher lean + ballaststoffreich.`,
+        `Cut focus: prioritize protein, place carbs around the session (pre/post), keep the rest of the day lean and fiber-rich.`,
+        `減量重視：タンパク質優先。炭水化物は練習前後に寄せ、他は脂質控えめ・食物繊維多めで整える。`
+      );
+    }
+    if (profile.goalDistance === "recomp") {
+      return txt(
+        `Recomp-Fokus: Protein konstant hoch, Kohlenhydrate nach Belastung/Qualität höher, an leichten Tagen moderater. Wochenkonsistenz wichtiger als Perfektion.`,
+        `Recomp focus: keep protein consistently high, raise carbs after quality sessions, keep them moderate on easy days. Weekly consistency beats perfection.`,
+        `リコンプ重視：タンパク質を安定して高く。質の高い練習後は炭水化物を増やし、軽い日は控えめに。週単位の継続が重要。`
+      );
+    }
+    if (profile.goalDistance === "build") {
+      return txt(
+        `Strength Build: Energieverfügbarkeit sichern, Protein + Carbs rund um Krafttage erhöhen. Defizit vermeiden, damit Leistung und Progression steigen können.`,
+        `Strength build: protect energy availability, push protein + carbs around lifting days. Avoid a deficit so performance and progression can rise.`,
+        `筋力構築：エネルギー不足を避け、筋トレ日周辺でタンパク質と炭水化物を増やす。赤字は避けて進歩を優先。`
+      );
+    }
+    return txt(
+      `General Fitness: ausgewogen essen, Protein täglich solide halten, Kohlenhydrate nach Belastung timen. Fokus auf Alltagstauglichkeit und Konsistenz.`,
+      `General fitness: eat balanced, keep protein solid daily, time carbs after work. Focus on consistency and a sustainable routine.`,
+      `一般フィットネス：バランス重視。タンパク質を毎日確保し、負荷の高い日の前後で炭水化物を調整。継続しやすさ優先。`
+    );
+  }
+
+  if (title.includes("long") || title.includes("threshold") || title.includes("vo2")) {
+    return txt(
+      `Qualität/Lang: Kohlenhydrate priorisieren (vor/nach Einheit), Protein zur Regeneration sichern, Flüssigkeit + Elektrolyte mitdenken.`,
+      `Quality/long day: prioritize carbs (pre/post), secure protein for recovery, and account for fluids + electrolytes.`,
+      `質/ロング：前後で炭水化物を優先し、回復のためのタンパク質を確保。水分・電解質も忘れずに。`
+    );
+  }
+  if (profile?.discipline === "triathlon" || profile?.discipline === "cycling") {
+    return txt(
+      `Ausdauerfokus: Kohlenhydrate rund um Schlüsselreize höher, Protein konstant, Fett moderat. Bei längeren Sessions Fueling gezielt üben.`,
+      `Endurance focus: higher carbs around key sessions, consistent protein, moderate fat. Practice fueling intentionally on longer sessions.`,
+      `持久系：重要練習の前後で炭水化物を多め、タンパク質は安定、脂質は中程度。ロングでは補給練習も実施。`
+    );
+  }
+  return txt(
+    `Heute ausgewogen: Proteinbasis sichern, Kohlenhydrate an Belastung anpassen, nicht unterfuelen. Recovery beginnt direkt nach der Einheit.`,
+    `Balanced today: secure a protein base, adjust carbs to the session, and avoid underfueling. Recovery starts right after the workout.`,
+    `今日はバランス重視：タンパク質を確保し、負荷に合わせて炭水化物を調整。低エネルギーにしすぎない。`
+  );
+}
+
+function readinessBand(value) {
+  if (value >= 78) return "hoch";
+  if (value >= 60) return "solide";
+  if (value >= 45) return "moderat";
+  return "niedrig";
+}
+
+function recommendWeeklyHoursBand(profile) {
+  const level = profile?.fitnessLevel || "starter";
+  const exp = profile?.experience || "lt1";
+  const discipline = profile?.discipline || "running";
+
+  const baseByLevel =
+    discipline === "shape"
+      ? {
+          starter: { rec: [3, 5], cap: 7 },
+          intermediate: { rec: [4, 7], cap: 10 },
+          advanced: { rec: [6, 10], cap: 13 },
+        }
+      : {
+          starter: { rec: [3, 6], cap: 8 },
+          intermediate: { rec: [5, 9], cap: 12 },
+          advanced: { rec: [7, 12], cap: 16 },
+        };
+
+  const chosen = { ...baseByLevel[level] };
+  if (exp === "lt1") {
+    chosen.rec = [Math.max(2, chosen.rec[0] - 1), Math.max(chosen.rec[0], chosen.rec[1] - 1)];
+    chosen.cap = Math.max(chosen.rec[1] + 1, chosen.cap - 1);
+  } else if (exp === "5plus" && level !== "starter") {
+    chosen.rec = [chosen.rec[0], chosen.rec[1] + 1];
+    chosen.cap += 1;
+  }
+  return chosen;
+}
+
+function effectivePlanningHours(profile) {
+  const requested = Number(profile?.weeklyHours) || 0;
+  const band = profile?.weeklyHoursRecommended || recommendWeeklyHoursBand(profile);
+  if (!requested) return band.rec[0];
+  return clamp(requested, 2, band.cap);
+}
+
+function computeAthleteCapacity(profile) {
+  const levelScore = { starter: 0, intermediate: 1, advanced: 2 }[profile?.fitnessLevel] ?? 0;
+  const expScore = { lt1: 0, "1to3": 1, "3to5": 2, "5plus": 3 }[profile?.experience] ?? 0;
+  const weight = Number(profile?.weightKg) || null;
+  const heightCm = Number(profile?.heightCm) || null;
+  const bmi = weight && heightCm ? weight / ((heightCm / 100) ** 2) : null;
+
+  let score = levelScore * 2 + expScore;
+  if (bmi && bmi >= 30) score -= 2;
+  if (bmi && bmi >= 35) score -= 2;
+  if (bmi && bmi >= 40) score -= 2;
+  if ((Number(profile?.age) || 0) >= 50) score -= 1;
+  if ((Number(profile?.age) || 0) >= 60) score -= 1;
+
+  const tier = score <= 0 ? "low" : score <= 3 ? "moderate" : "high";
+  const introWeeks = tier === "low" ? 2 : tier === "moderate" ? 1 : 1;
+  const complexity = tier === "low" ? "basic" : tier === "moderate" ? "standard" : "advanced";
+  return { bmi, score, tier, introWeeks, complexity };
+}
+
+function estimateBaseKm(profile) {
+  const weeklyHours = effectivePlanningHours(profile);
+  if (profile.discipline === "triathlon") {
+    const factorByLevel = {
+      starter: 3.2,
+      intermediate: 4.2,
+      advanced: 5.3,
+    };
+    const base = Math.round(weeklyHours * factorByLevel[profile.fitnessLevel] * 2.0);
+    const distanceBoost =
+      profile.goalDistance === "ironman" ? 10 : profile.goalDistance === "703" ? 6 : profile.goalDistance === "olympic" ? 3 : 1;
+    const ageAdj = profile.age ? clamp((44 - profile.age) * 0.35, -5, 4) : 0;
+    const weightAdj = profile.weightKg ? clamp((75 - profile.weightKg) * 0.12, -3, 2.5) : 0;
+    return clamp(base + distanceBoost + ageAdj + weightAdj, 20, 90);
+  }
+
+  if (profile.discipline === "hyrox") {
+    const factorByLevel = { starter: 3.8, intermediate: 4.9, advanced: 6.1 };
+    const base = Math.round(weeklyHours * factorByLevel[profile.fitnessLevel] * 2.0);
+    const goalBoost =
+      profile.goalDistance === "pro" ? 7 : profile.goalDistance === "doublespro" ? 5 : profile.goalDistance === "open" ? 4 : profile.goalDistance === "doubles" ? 3 : 2;
+    const ageAdj = profile.age ? clamp((40 - profile.age) * 0.2, -3, 2) : 0;
+    return clamp(base + goalBoost + ageAdj, 18, 85);
+  }
+
+  if (profile.discipline === "shape") {
+    const factorByLevel = { starter: 4.2, intermediate: 5.1, advanced: 6.2 };
+    const base = Math.round(weeklyHours * factorByLevel[profile.fitnessLevel] * 2.0);
+    const goalAdj =
+      profile.goalDistance === "fatloss" ? 4 :
+      profile.goalDistance === "recomp" ? 3 :
+      profile.goalDistance === "build" ? 2 : 2;
+    const ageAdj = profile.age ? clamp((40 - profile.age) * 0.18, -2.5, 2) : 0;
+    return clamp(base + goalAdj + ageAdj, 14, 72);
+  }
+
+  if (profile.discipline === "cycling") {
+    const factorByLevel = { starter: 8.5, intermediate: 11.2, advanced: 14.6 };
+    const base = Math.round(weeklyHours * factorByLevel[profile.fitnessLevel]);
+    const distanceBoost =
+      profile.goalDistance === "century" ? 22 : profile.goalDistance === "granfondo" ? 14 : profile.goalDistance === "tt40" ? 6 : 2;
+    const ageAdj = profile.age ? clamp((42 - profile.age) * 0.5, -8, 7) : 0;
+    return clamp(base + distanceBoost + ageAdj, 35, 220);
+  }
+
+  const factorByLevel = {
+    starter: 5.4,
+    intermediate: 7.2,
+    advanced: 9.1,
+  };
+  const base = Math.round(weeklyHours * factorByLevel[profile.fitnessLevel]);
+  const distanceBoost = profile.goalDistance === "marathon" ? 10 : profile.goalDistance === "half" ? 5 : profile.goalDistance === "10k" ? 2 : 0;
+  const ageAdj = profile.age ? clamp((40 - profile.age) * 0.35, -6, 5) : 0;
+  return clamp(base + distanceBoost + ageAdj, 18, 120);
+}
+
+function estimateHoursFromKm(profile, km) {
+  if (profile.discipline === "triathlon") {
+    const hours = km / 18;
+    return Math.max(3, Math.round(hours * 10) / 10);
+  }
+  if (profile.discipline === "hyrox") {
+    const hours = km / 16;
+    return Math.max(3, Math.round(hours * 10) / 10);
+  }
+  if (profile.discipline === "shape") {
+    const hours = km / 10.5;
+    return Math.max(2.5, Math.round(hours * 10) / 10);
+  }
+
+  if (profile.discipline === "cycling") {
+    const hours = km / 28;
+    return Math.max(2.5, Math.round(hours * 10) / 10);
+  }
+
+  const paces = {
+    starter: 7.2,
+    intermediate: 5.8,
+    advanced: 4.8,
+  };
+  const hours = km * (paces[profile.fitnessLevel] / 60);
+  return Math.max(2, Math.round(hours * 10) / 10);
+}
+
+function calcReadiness(profile, baseKm) {
+  if (profile.discipline === "triathlon") {
+    const feasibility = assessGoalFeasibility(profile);
+    if (feasibility.level === "unrealistic") return feasibility.message;
+    if (feasibility.level === "aggressive") return feasibility.message;
+    if ((profile.goalDistance === "703" || profile.goalDistance === "ironman") && baseKm < 70) {
+      return "Ambitioniertes Triathlon-Ziel. Braucht saubere Belastungssteuerung über Swim/Bike/Run, Recovery und Fueling.";
+    }
+    return "Solider Ausgangspunkt für Triathlon. Fokus auf konsistente Wochenstruktur, Schwellensteuerung und Brick-Verträglichkeit.";
+  }
+  if (profile.discipline === "cycling") {
+    return "Solider Ausgangspunkt fürs Rad. Fokus auf FTP-/VO2-Steuerung, Long-Ride-Verträglichkeit und progressive Belastung.";
+  }
+  if (profile.discipline === "hyrox") {
+    const feasibility = assessGoalFeasibility(profile);
+    if (feasibility.level !== "ok") return feasibility.message;
+    return "Solider Ausgangspunkt für HYROX. Fokus auf Race-Pacing, Laufökonomie unter Vorermüdung und Stations-Qualität.";
+  }
+  if (profile.discipline === "shape") {
+    const feasibility = assessGoalFeasibility(profile);
+    if (feasibility.level !== "ok") return feasibility.message;
+    return "Solider Ausgangspunkt für Shape. Fokus auf Kontinuität, progressive Belastung, ausreichende Recovery und passendes Kaloriendefizit/-plus.";
+  }
+
+  if (profile.goalDistance === "marathon" && profile.goalTime.startsWith("2:") && baseKm < 55) {
+    return "Ambitioniertes Ziel. Möglich, aber nur mit konsequenter Progression, Recovery-Steuerung und realistischen Load-Checks.";
+  }
+  const feasibility = assessGoalFeasibility(profile);
+  if (feasibility.level !== "ok") return feasibility.message;
+  if (profile.fitnessLevel === "starter") {
+    return "Guter Startpunkt. Priorität auf Kontinuität, Technik, Belastungsverträglichkeit und schrittweiser Umfangssteigerung.";
+  }
+  return "Solider Ausgangspunkt. Fokus auf Schwellenarbeit, saubere Steuerung der Intensität und progressive Wochenstruktur.";
+}
+
+function assessGoalFeasibility(profile) {
+  const weeksToRace = profile?.raceDate ? Math.max(1, Math.ceil((startOfDay(profile.raceDate) - startOfDay(new Date())) / 86400000 / 7)) : 12;
+  const weeklyHours = Number(profile?.weeklyHours) || 0;
+  const level = profile?.fitnessLevel || "starter";
+  const goalSeconds = parseGoalTimeToSeconds(profile?.goalTime);
+
+  if (profile.discipline === "triathlon") {
+    if (profile.goalDistance === "ironman") {
+      if (weeklyHours < 7 || weeksToRace < 16) {
+        return { level: "unrealistic", message: "Unrealistisch für Ironman in dieser Zeit/mit diesem Umfang. Mehr Vorlauf (oft 20-30 Wochen) oder Ziel anpassen." };
+      }
+      if (goalSeconds && goalSeconds < 10 * 3600 && (weeklyHours < 10 || level === "starter")) {
+        return { level: "unrealistic", message: "Sub-10 Ironman ist mit aktuellem Umfang/Level sehr wahrscheinlich unrealistisch. Zielzeit oder Aufbauzeit erhöhen." };
+      }
+      if (goalSeconds && goalSeconds < 11 * 3600 && (weeklyHours < 8 || level === "starter")) {
+        return { level: "aggressive", message: "Sehr ambitioniertes Ironman-Ziel. Realistisch nur mit sauberem Aufbau, konstantem Training und guter Recovery/Fueling-Disziplin." };
+      }
+    }
+    if (profile.goalDistance === "703") {
+      if (weeklyHours < 5 || weeksToRace < 10) {
+        return { level: "aggressive", message: "70.3 mit wenig Vorlauf/Umfang ist ambitioniert. Zielzeit konservativ wählen und Progression eng steuern." };
+      }
+      if (goalSeconds && goalSeconds < 5 * 3600 && (weeklyHours < 7 || level === "starter")) {
+        return { level: "aggressive", message: "Sub-5h auf 70.3 ist mit aktuellem Umfang/Level sehr ambitioniert. Möglich nur mit starkem Ausgangsniveau." };
+      }
+    }
+    return { level: "ok", message: "" };
+  }
+
+  if (profile.discipline === "hyrox") {
+    if (weeklyHours < 3 || weeksToRace < 6) {
+      return { level: "aggressive", message: "HYROX-Ziel mit wenig Vorlauf/Umfang ist ambitioniert. Technik, Pacing und Belastungsverträglichkeit priorisieren." };
+    }
+    if (profile.goalDistance === "pro" && (weeklyHours < 5 || level === "starter")) {
+      return { level: "aggressive", message: "HYROX Pro ist mit aktuellem Umfang/Level sehr ambitioniert. Open/Doubles oder längerer Aufbau wäre realistischer." };
+    }
+    if (profile.goalDistance === "doublespro" && (weeklyHours < 4 || level === "starter")) {
+      return { level: "aggressive", message: "HYROX Doubles Pro ist mit aktuellem Umfang/Level ambitioniert. Doubles/Open oder mehr Aufbauzeit wäre oft sinnvoller." };
+    }
+    return { level: "ok", message: "" };
+  }
+
+  if (profile.discipline === "shape") {
+    const currentWeight = Number(profile.weightKg) || null;
+    const targetWeight = Number(profile.targetWeightKg) || null;
+    if ((Number(profile.weeklyHours) || 0) > (recommendWeeklyHoursBand(profile).cap + 1) && level === "starter") {
+      return { level: "aggressive", message: "Für dein Profil sind die gewählten Wochenstunden hoch. Für bessere Konstanz und Motivation lieber mit weniger Stunden starten." };
+    }
+    if (currentWeight && targetWeight && weeksToRace >= 2) {
+      const delta = targetWeight - currentWeight;
+      const kgPerWeek = delta / weeksToRace;
+      if (delta < 0 && Math.abs(kgPerWeek) > 1.0) {
+        return { level: "unrealistic", message: "Sehr schnelle Gewichtsabnahme geplant. Nachhaltiger sind meist ca. 0.25-0.75 kg pro Woche (individuell)." };
+      }
+      if (delta > 0 && kgPerWeek > 0.5 && profile.goalDistance !== "build") {
+        return { level: "aggressive", message: "Schneller Aufbau geplant. Achte auf progressive Kraftreize und realistische Gewichtszunahme pro Woche." };
+      }
+    }
+    return { level: "ok", message: "" };
+  }
+
+  if (profile.discipline === "running" && profile.goalDistance === "marathon") {
+    if (goalSeconds && goalSeconds < 3 * 3600 && (weeklyHours < 8 || weeksToRace < 14 || level !== "advanced")) {
+      return { level: "unrealistic", message: "Sub-3 Marathon ist mit aktuellem Umfang/Zeithorizont sehr wahrscheinlich unrealistisch. Mehr Wochen oder konservativere Zielzeit einplanen." };
+    }
+  }
+
+  return { level: "ok", message: "" };
+}
+
+function fitnessText(value) {
+  return {
+    starter: "Einsteiger",
+    intermediate: "Fortgeschritten",
+    advanced: "Sehr fit",
+  }[value];
+}
+
+function experienceText(value) {
+  return {
+    lt1: "<1 Jahr",
+    "1to3": "1-3 Jahre",
+    "3to5": "3-5 Jahre",
+    "5plus": "5+ Jahre",
+  }[value];
+}
+
+function labelDistance(value) {
+  return {
+    "5k": "5 km",
+    "10k": "10 km",
+    half: "Halbmarathon",
+    marathon: "Marathon",
+    sprint: "Sprint Triathlon",
+    olympic: "Olympic Triathlon",
+    "703": "70.3",
+    ironman: "Ironman",
+    crit: "Crit / Race",
+    tt40: "TT 40 km",
+    granfondo: "Gran Fondo",
+    century: "Century 100 mi",
+    open: "HYROX Open",
+    pro: "HYROX Pro",
+    doubles: "HYROX Doubles",
+    doublespro: "HYROX Doubles Pro",
+    relay: "HYROX Relay",
+    fatloss: "Lean Cut",
+    recomp: "Body Recomp",
+    build: "Strength Build",
+    fitness: "General Fitness",
+  }[value];
+}
+
+function sexLabel(value) {
+  return {
+    female: "Female",
+    male: "Male",
+  }[value] || value;
+}
+
+function goalSpecificBoost(profile) {
+  if (profile.discipline === "triathlon") {
+    return profile.goalDistance === "ironman" ? 5 : profile.goalDistance === "703" ? 3 : profile.goalDistance === "olympic" ? 1.8 : 0.8;
+  }
+  if (profile.discipline === "cycling") {
+    return profile.goalDistance === "century" ? 4.5 : profile.goalDistance === "granfondo" ? 3 : profile.goalDistance === "tt40" ? 2 : 1;
+  }
+  if (profile.discipline === "hyrox") {
+    return profile.goalDistance === "pro" ? 3.5 : profile.goalDistance === "doublespro" ? 2.9 : profile.goalDistance === "open" ? 2.4 : profile.goalDistance === "doubles" ? 2.1 : 1.6;
+  }
+  if (profile.discipline === "shape") {
+    return profile.goalDistance === "fatloss" ? 2.2 : profile.goalDistance === "recomp" ? 2.0 : profile.goalDistance === "build" ? 2.4 : 1.8;
+  }
+  return profile.goalDistance === "marathon" ? 4 : profile.goalDistance === "half" ? 2 : 0.8;
+}
+
+function disciplineLabel(value) {
+  return {
+    running: "Laufen",
+    triathlon: "Triathlon",
+    cycling: "Rad",
+    hyrox: "Hyrox",
+    shape: "Shape",
+  }[value] || "Training";
+}
+
+function sessionTypeLabel(type) {
+  return {
+    threshold: "Threshold",
+    quality: "Quality",
+    longrun: "Long Run",
+    recovery: "Easy",
+    rest: "Rest",
+  }[type] || "Session";
+}
+
+function formatDateInput(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function formatDateShort(date) {
+  return `${String(date.getDate()).padStart(2, "0")}.${String(date.getMonth() + 1).padStart(2, "0")}.${date.getFullYear()}`;
+}
+
+function startOfDay(date) {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function startOfWeek(date) {
+  const d = startOfDay(date);
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  return d;
+}
+
+function addDays(date, days) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
+function dayName(date) {
+  return ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"][date.getDay()];
+}
+
+function dayIndexFromDate(date) {
+  const jsDay = date.getDay();
+  return jsDay === 0 ? 6 : jsDay - 1;
+}
+
+function sameWeek(weekStart, date) {
+  const d = startOfDay(date);
+  return d >= weekStart && d <= addDays(weekStart, 6);
+}
+
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function round1(value) {
+  return Math.round(Number(value) * 10) / 10;
+}
+
+function parseGoalTimeToSeconds(value) {
+  const parts = String(value || "")
+    .trim()
+    .split(":")
+    .map((v) => Number(v));
+  if (parts.length !== 3 || parts.some((n) => Number.isNaN(n))) return null;
+  const [h, m, s] = parts;
+  return h * 3600 + m * 60 + s;
+}
+
+function parseFlexibleDurationToSeconds(value) {
+  const parts = String(value || "")
+    .trim()
+    .split(":")
+    .map((v) => Number(v));
+  if (!parts.length || parts.some((n) => !Number.isFinite(n) || n < 0)) return null;
+  if (parts.length === 3) {
+    const [h, m, s] = parts;
+    if (m >= 60 || s >= 60) return null;
+    return h * 3600 + m * 60 + s;
+  }
+  if (parts.length === 2) {
+    const [m, s] = parts;
+    if (s >= 60) return null;
+    return m * 60 + s;
+  }
+  if (parts.length === 1) {
+    const [seconds] = parts;
+    return Number.isFinite(seconds) ? seconds : null;
+  }
+  return null;
+}
+
+function parsePacePerKmToSeconds(value) {
+  const raw = String(value || "").trim().replace(",", ".");
+  if (!raw) return null;
+  const m = raw.match(/^(\d{1,2}):(\d{1,2})(?:\.(\d+))?$/);
+  if (m) {
+    const mins = Number(m[1]);
+    const secs = Number(m[2]);
+    if (!Number.isFinite(mins) || !Number.isFinite(secs) || secs >= 60) return null;
+    return mins * 60 + secs;
+  }
+  const numeric = Number(raw);
+  if (Number.isFinite(numeric) && numeric > 2 && numeric < 12) {
+    return Math.round(numeric * 60);
+  }
+  return null;
+}
+
+function formatHourRange(minHours, maxHours) {
+  const fmt = (h) => {
+    const mins = Math.round(h * 60);
+    const hh = Math.floor(mins / 60);
+    const mm = mins % 60;
+    return `${hh}:${String(mm).padStart(2, "0")}`;
+  };
+  return `${fmt(minHours)}-${fmt(maxHours)}`;
+}
+
+function toIcsDateTime(date) {
+  const y = date.getUTCFullYear();
+  const m = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const d = String(date.getUTCDate()).padStart(2, "0");
+  const h = String(date.getUTCHours()).padStart(2, "0");
+  const min = String(date.getUTCMinutes()).padStart(2, "0");
+  const s = String(date.getUTCSeconds()).padStart(2, "0");
+  return `${y}${m}${d}T${h}${min}${s}Z`;
+}
+
+function formatDurationMinutes(totalMinutes) {
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return `${hours}:${String(minutes).padStart(2, "0")} h`;
+}
+
+function formatDateForFile(date) {
+  const d = new Date(date);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function slugify(value) {
+  return String(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60) || "workout";
+}
+
+function escapeXml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&apos;");
+}
+
+function downloadTextFile({ content, filename, mimeType }) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function secondsToPace(seconds) {
+  const clamped = clamp(seconds, 190, 520);
+  const mins = Math.floor(clamped / 60);
+  const secs = Math.round(clamped % 60);
+  return `${mins}:${String(secs).padStart(2, "0")}/km`;
+}
+
+function escapeIcs(value) {
+  return String(value)
+    .replace(/\\/g, "\\\\")
+    .replace(/\n/g, "\\n")
+    .replace(/,/g, "\\,")
+    .replace(/;/g, "\\;");
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function initScrollFx() {
+  if (!scrollStage || !parallaxLayers.length) return;
+
+  if (brandAnchorEl) {
+    brandAnchorEl.style.setProperty("--brand-shift", "0");
+    brandAnchorEl.style.setProperty("--brand-opacity", "1");
+  }
+
+  const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  const mobileViewport = window.matchMedia?.("(max-width: 760px)")?.matches;
+  if (mobileViewport) {
+    document.documentElement.style.setProperty("--mobile-account-bar-top", "102px");
+    document.documentElement.style.setProperty("--global-header-mask-height", "148px");
+    document.documentElement.style.setProperty("--global-header-line-top", "136px");
+    return;
+  }
+  if (reduceMotion) return;
+
+  const applyProgress = (progress) => {
+    parallaxLayers.forEach((layer) => {
+      const depth = Number(layer.dataset.parallax || 0);
+      const shift = progress * depth * 260;
+      layer.style.setProperty("--parallax-shift", shift.toFixed(2));
+    });
+
+    if (landingLayerEl) {
+      const hold = 0.22;
+      const push = clamp((progress - hold) / 0.5, 0, 1);
+      const shift = Math.round(push * 172);
+      const opacity = clamp(1 - Math.max(0, (progress - 0.44) / 0.26), 0, 1);
+      const scale = 1 - push * 0.025;
+      landingLayerEl.style.setProperty("--landing-shift", String(shift));
+      landingLayerEl.style.setProperty("--landing-opacity", opacity.toFixed(3));
+      landingLayerEl.style.setProperty("--landing-scale", scale.toFixed(4));
+    }
+
+    if (brandAnchorEl) {
+      brandAnchorEl.style.setProperty("--brand-shift", "0");
+      brandAnchorEl.style.setProperty("--brand-opacity", "1");
+    }
+
+    document.documentElement.style.setProperty("--hero-glint", `${-25 + progress * 120}%`);
+  };
+
+  const update = () => {
+    scrollFxRaf = 0;
+    const rect = scrollStage.getBoundingClientRect();
+    const viewport = window.innerHeight || 1;
+    const total = Math.max(1, rect.height - viewport);
+    const progress = clamp(-rect.top / total, 0, 1);
+    applyProgress(progress);
+  };
+
+  const queueUpdate = () => {
+    if (scrollFxRaf) return;
+    scrollFxRaf = window.requestAnimationFrame(update);
+  };
+
+  window.addEventListener("scroll", queueUpdate, { passive: true });
+  window.addEventListener("resize", queueUpdate);
+  queueUpdate();
+}
+
+function initMobileHeaderScrollFx() {
+  const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  let raf = 0;
+  const root = document.documentElement;
+
+  const update = () => {
+    raf = 0;
+    const y = window.scrollY || window.pageYOffset || 0;
+    const startTop = 102;
+    const minTop = 70;
+    const travel = startTop - minTop;
+    const progress = reduceMotion ? 1 : clamp(y / 72, 0, 1);
+    const top = startTop - travel * progress;
+    root.style.setProperty("--mobile-account-bar-top", `${top.toFixed(1)}px`);
+    const maskHeight = Math.round(top + 44);
+    root.style.setProperty("--mobile-header-mask-height", `${maskHeight}px`);
+  };
+
+  const queue = () => {
+    if (raf) return;
+    raf = window.requestAnimationFrame(update);
+  };
+
+  window.addEventListener("scroll", queue, { passive: true });
+  window.addEventListener("resize", queue);
+  queue();
+}
+
+function initStageReveals() {
+  if (!stageRevealEls.length) return;
+  const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  if (reduceMotion || !("IntersectionObserver" in window)) {
+    stageRevealEls.forEach((el) => el.classList.add("is-visible"));
+    return;
+  }
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.14, rootMargin: "0px 0px -8% 0px" }
+  );
+
+  stageRevealEls.forEach((el, idx) => {
+    el.style.transitionDelay = `${Math.min(idx * 40, 180)}ms`;
+    observer.observe(el);
+  });
+}
+
+function syncUiState() {
+  document.body.classList.toggle("has-data", connectedSources.size > 0);
+  if (latestProfile && latestPlan) {
+    renderPerformanceInsights(latestProfile, latestPlan);
+  }
+}

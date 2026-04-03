@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" role="img" aria-label="Urban runner at night">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#07090d"/>
+      <stop offset="1" stop-color="#11151c"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="72%" cy="28%" r="42%">
+      <stop offset="0" stop-color="#f3f6ff" stop-opacity="0.30"/>
+      <stop offset="1" stop-color="#f3f6ff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="road" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#181d27"/>
+      <stop offset="1" stop-color="#0a0d12"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#bg)"/>
+  <rect width="1600" height="1000" fill="url(#glow)"/>
+  <g opacity="0.2" stroke="#d6dde9" stroke-width="2">
+    <line x1="120" y1="140" x2="120" y2="580"/><line x1="240" y1="100" x2="240" y2="560"/><line x1="420" y1="160" x2="420" y2="600"/>
+    <line x1="1120" y1="120" x2="1120" y2="560"/><line x1="1260" y1="90" x2="1260" y2="560"/><line x1="1410" y1="150" x2="1410" y2="600"/>
+  </g>
+  <polygon points="0,620 1600,620 1600,1000 0,1000" fill="url(#road)"/>
+  <g opacity="0.32">
+    <ellipse cx="800" cy="750" rx="760" ry="150" fill="#cfd8e5" opacity="0.10"/>
+    <ellipse cx="820" cy="770" rx="680" ry="120" fill="#dfe7f2" opacity="0.10"/>
+  </g>
+  <g fill="#f4f8ff" opacity="0.88">
+    <path d="M760 600c26 0 45 22 45 50 0 20-10 39-24 54l-20 22 38 64-37 20-42-67-58 67-33-24 70-80 13-48c6-22 24-38 48-38z"/>
+    <circle cx="770" cy="552" r="24"/>
+    <rect x="664" y="874" width="86" height="16" rx="8"/>
+    <rect x="778" y="886" width="94" height="14" rx="7"/>
+  </g>
+  <g opacity="0.45" fill="#f7fbff">
+    <rect x="120" y="290" width="22" height="6"/><rect x="238" y="250" width="20" height="6"/><rect x="418" y="310" width="20" height="6"/>
+    <rect x="1118" y="260" width="22" height="6"/><rect x="1256" y="232" width="20" height="6"/><rect x="1406" y="302" width="20" height="6"/>
+  </g>
+</svg>

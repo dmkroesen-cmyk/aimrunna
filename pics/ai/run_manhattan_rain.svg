@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" role="img" aria-label="Runner in rainy Manhattan street">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0a0d12"/>
+      <stop offset="1" stop-color="#171c25"/>
+    </linearGradient>
+    <linearGradient id="wet" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#dce6f6" stop-opacity="0.15"/>
+      <stop offset="1" stop-color="#dce6f6" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#bg)"/>
+  <g opacity="0.22" fill="#dce5f2">
+    <rect x="60" y="120" width="120" height="480"/><rect x="220" y="80" width="150" height="520"/><rect x="410" y="150" width="130" height="450"/>
+    <rect x="1040" y="140" width="120" height="460"/><rect x="1190" y="90" width="180" height="520"/><rect x="1410" y="180" width="130" height="430"/>
+  </g>
+  <polygon points="0,620 1600,620 1600,1000 0,1000" fill="#0b0f15"/>
+  <polygon points="0,760 1600,700 1600,1000 0,1000" fill="url(#wet)"/>
+  <g stroke="#f5f9ff" stroke-opacity="0.26" stroke-width="2">
+    <line x1="0" y1="640" x2="1600" y2="590"/>
+    <line x1="0" y1="700" x2="1600" y2="650"/>
+    <line x1="0" y1="760" x2="1600" y2="710"/>
+  </g>
+  <g fill="#f8fbff" opacity="0.9">
+    <circle cx="860" cy="552" r="24"/>
+    <path d="M850 580l46 28-24 42-50-31-22 64-42-12 24-75 43-16z"/>
+    <path d="M820 626l-72 86-34-24 62-84z"/>
+    <path d="M896 650l90 58-23 36-99-56z"/>
+    <rect x="684" y="872" width="96" height="16" rx="8"/>
+    <rect x="978" y="792" width="110" height="14" rx="7" transform="rotate(28 1033 799)"/>
+  </g>
+</svg>

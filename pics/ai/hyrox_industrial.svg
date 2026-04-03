@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" role="img" aria-label="Hyrox style industrial workout scene">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#07090d"/>
+      <stop offset="1" stop-color="#121820"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#bg)"/>
+  <g opacity="0.24" fill="#d8e3f4">
+    <rect x="120" y="110" width="210" height="520"/><rect x="380" y="140" width="260" height="490"/>
+    <rect x="980" y="120" width="230" height="520"/><rect x="1250" y="150" width="220" height="490"/>
+  </g>
+  <rect x="0" y="640" width="1600" height="360" fill="#090d13"/>
+  <g fill="#f7fbff" opacity="0.92">
+    <circle cx="760" cy="548" r="24"/>
+    <path d="M748 575l74 30-16 36-49-19-26 45-34-20 34-58z"/>
+    <rect x="860" y="612" width="210" height="24" rx="12"/>
+    <rect x="886" y="560" width="20" height="70" rx="8"/>
+    <rect x="1022" y="560" width="20" height="70" rx="8"/>
+    <rect x="692" y="874" width="98" height="14" rx="7"/>
+    <rect x="942" y="692" width="120" height="14" rx="7"/>
+  </g>
+</svg>

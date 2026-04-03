@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" role="img" aria-label="Night track runner silhouette">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#07090e"/>
+      <stop offset="1" stop-color="#141a24"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#bg)"/>
+  <g opacity="0.2" fill="#d6e1f2">
+    <rect x="100" y="120" width="220" height="500"/><rect x="380" y="100" width="260" height="530"/>
+    <rect x="980" y="120" width="240" height="500"/><rect x="1260" y="140" width="220" height="480"/>
+  </g>
+  <rect x="0" y="620" width="1600" height="380" fill="#0a0f15"/>
+  <g stroke="#f6fbff" stroke-opacity="0.28" stroke-width="3">
+    <path d="M0 700C420 640 920 640 1600 690"/>
+    <path d="M0 750C420 690 920 690 1600 740"/>
+    <path d="M0 800C420 740 920 740 1600 790"/>
+  </g>
+  <g fill="#f7fbff" opacity="0.9">
+    <circle cx="810" cy="548" r="24"/>
+    <path d="M798 576l72 24-16 36-48-16-26 48-34-20 32-56z"/>
+    <path d="M798 620l-86 82-30-26 72-78z"/>
+    <path d="M868 634l90 62-24 34-96-58z"/>
+  </g>
+</svg>

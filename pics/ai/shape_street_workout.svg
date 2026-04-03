@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" role="img" aria-label="Street workout night scene">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#080a0f"/>
+      <stop offset="1" stop-color="#161d28"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#bg)"/>
+  <g opacity="0.2" fill="#d7e1f3">
+    <rect x="80" y="130" width="180" height="500"/><rect x="300" y="100" width="180" height="540"/><rect x="520" y="160" width="150" height="470"/>
+    <rect x="980" y="120" width="160" height="500"/><rect x="1180" y="90" width="170" height="550"/><rect x="1390" y="170" width="130" height="470"/>
+  </g>
+  <rect x="0" y="640" width="1600" height="360" fill="#0a0f15"/>
+  <g stroke="#f7fbff" stroke-width="10" opacity="0.9" fill="none">
+    <line x1="640" y1="460" x2="640" y2="640"/>
+    <line x1="980" y1="460" x2="980" y2="640"/>
+    <line x1="640" y1="460" x2="980" y2="460"/>
+  </g>
+  <g fill="#f7fbff" opacity="0.9">
+    <circle cx="820" cy="520" r="22"/>
+    <path d="M812 542l64 20-14 36-40-12-34 56-34-20 40-64z"/>
+    <rect x="742" y="870" width="102" height="14" rx="7"/>
+    <rect x="902" y="812" width="108" height="14" rx="7"/>
+  </g>
+</svg>
