@@ -3632,6 +3632,8 @@ function syncPlanModeUI() {
   }
   if (tuningToggleRowEl) tuningToggleRowEl.hidden = isQuick;
   if (tuningPanelHostEl && isQuick) tuningPanelHostEl.hidden = true;
+  const constraintsFieldEl = document.getElementById("constraints-field");
+  if (constraintsFieldEl) constraintsFieldEl.hidden = isQuick;
 
   if (quickGoalDistanceSelect) quickGoalDistanceSelect.disabled = !isQuick;
   if (quickGoalTimeInput) quickGoalTimeInput.disabled = !isQuick;
