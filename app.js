@@ -3252,7 +3252,8 @@ function renderProfilePredictions(profile, plan) {
   const vdotTag = document.getElementById("predictions-vdot-tag");
   if (vdotTag) {
     const vdotVal = predictions.currentVdot || vdotFromProfile(profile) || "-";
-    vdotTag.textContent = `VDOT ${typeof vdotVal === "number" ? vdotVal.toFixed(1) : vdotVal}`;
+    const confLabel = predictions.confidence === "high" ? "+" : predictions.confidence === "moderate" ? "" : "~";
+    vdotTag.textContent = `VDOT ${typeof vdotVal === "number" ? vdotVal.toFixed(1) : vdotVal}${confLabel}`;
   }
 
   // Current predictions
@@ -3278,7 +3279,9 @@ function renderProfilePredictions(profile, plan) {
     const noteEl = document.getElementById("predictions-raceday-note");
     if (noteEl && predictions.raceDayVdot) {
       const raceDateStr = profile.raceDate ? new Date(profile.raceDate).toLocaleDateString("de-DE", { day: "numeric", month: "short", year: "numeric" }) : "";
-      noteEl.textContent = `Proj. VDOT ${predictions.raceDayVdot.toFixed(1)} am ${raceDateStr} — basierend auf geplantem Training & Tapering.`;
+      const methodNote = predictions.method ? ` · Modell: ${predictions.method}` : "";
+      const fNote = predictions.personalFatigueFactor ? ` · Persönlicher Fatigue-Faktor: ${predictions.personalFatigueFactor.toFixed(3)}` : "";
+      noteEl.textContent = `Proj. VDOT ${predictions.raceDayVdot.toFixed(1)} am ${raceDateStr} — basierend auf geplantem Training, Marathon-Korrektur & Tapering.${methodNote}${fNote}`;
     }
   } else if (rdCol) {
     rdCol.hidden = true;
@@ -10883,39 +10886,41 @@ function buildExtendedMetrics(profile, plan, series, sourceCount) {
 function buildRacePredictions(profile, last, plan) {
   const trendDelta = Math.round(clamp((last.readiness - 55) / 4 + (last.fitness - 50) / 8, -12, 18));
 
-  // VDOT-based predictions for running disciplines
+  // Multi-model ensemble predictions for running disciplines
   if (profile.discipline === "running" || profile.discipline === "triathlon" || profile.discipline === "hyrox") {
-    const currentVdot = vdotFromProfile(profile) || 40;
-    const predictions = vdotRacePredictions(currentVdot);
+    const ensemble = ensembleRacePredictions(profile);
+    const currentVdot = ensemble.vdot;
 
-    // Race-day projection: estimate VDOT on race day based on remaining training
-    const raceDayVdot = projectRaceDayVdot(currentVdot, profile, plan);
-    const raceDayPredictions = vdotRacePredictions(raceDayVdot);
+    // Race-day projection with full model
+    const raceDayPreds = projectRaceDayPredictions(profile, plan);
 
     if (profile.discipline === "running") {
       return {
         trendDelta,
         currentVdot: +currentVdot.toFixed(1),
-        raceDayVdot: +raceDayVdot.toFixed(1),
+        raceDayVdot: +raceDayPreds.vdot.toFixed(1),
+        confidence: ensemble.confidence,
+        method: ensemble.method,
+        personalFatigueFactor: ensemble.personalFatigueFactor,
         labels: { a: "5 km", b: "10 km", c: "Halbmarathon", d: "Marathon" },
         values: {
-          a: formatRaceTimeSec(predictions.fiveK),
-          b: formatRaceTimeSec(predictions.tenK),
-          c: formatRaceTimeSec(predictions.half),
-          d: formatRaceTimeSec(predictions.marathon),
+          a: formatRaceTimeSec(ensemble.fiveK),
+          b: formatRaceTimeSec(ensemble.tenK),
+          c: formatRaceTimeSec(ensemble.half),
+          d: formatRaceTimeSec(ensemble.marathon),
         },
         raceDayValues: {
-          a: formatRaceTimeSec(raceDayPredictions.fiveK),
-          b: formatRaceTimeSec(raceDayPredictions.tenK),
-          c: formatRaceTimeSec(raceDayPredictions.half),
-          d: formatRaceTimeSec(raceDayPredictions.marathon),
+          a: formatRaceTimeSec(raceDayPreds.fiveK),
+          b: formatRaceTimeSec(raceDayPreds.tenK),
+          c: formatRaceTimeSec(raceDayPreds.half),
+          d: formatRaceTimeSec(raceDayPreds.marathon),
         },
       };
     }
 
     if (profile.discipline === "hyrox") {
       // HYROX: use 10K VDOT as base, add station overhead
-      const run8x1k = predictions.tenK * 0.82; // 8x1km slightly faster than 10K pace
+      const run8x1k = ensemble.tenK * 0.82; // 8x1km slightly faster than 10K pace
       const stationTime = profile.fitnessLevel === "advanced" ? 22 * 60 : profile.fitnessLevel === "intermediate" ? 28 * 60 : 36 * 60;
       const transition = 8 * 15; // ~15s per transition
       const openTotal = Math.round(run8x1k + stationTime + transition);
@@ -10925,7 +10930,7 @@ function buildRacePredictions(profile, last, plan) {
       return {
         trendDelta,
         currentVdot: +currentVdot.toFixed(1),
-        raceDayVdot: +raceDayVdot.toFixed(1),
+        raceDayVdot: +raceDayPreds.vdot.toFixed(1),
         labels: { a: "HYROX Open", b: "HYROX Pro", c: doublesLabel, d: "HYROX Relay" },
         values: {
           a: formatRaceTimeSec(openTotal),
@@ -10941,14 +10946,14 @@ function buildRacePredictions(profile, last, plan) {
     const swimCssSec = profile.swimCss ? parsePacePerKmToSeconds(profile.swimCss) * 10 : null; // per 100m → per km
     const ftp = profile.bikeFtp || (profile.fitnessLevel === "advanced" ? 260 : profile.fitnessLevel === "intermediate" ? 210 : 170);
 
-    const sprintMin = Math.round((swimCssSec ? 750 / (1000 / swimCssSec) : 14 * 60) + 40 * 60 * (220 / Math.max(150, ftp)) + predictions.fiveK) / 60;
-    const olyMin = Math.round((swimCssSec ? 1500 / (1000 / swimCssSec) : 28 * 60) + 80 * 60 * (250 / Math.max(150, ftp)) + predictions.tenK) / 60;
-    const halfMin = Math.round((swimCssSec ? 1900 / (1000 / swimCssSec) : 38 * 60) + 150 * 60 * (260 / Math.max(150, ftp)) + predictions.half) / 60;
-    const fullMin = Math.round((swimCssSec ? 3800 / (1000 / swimCssSec) : 78 * 60) + 300 * 60 * (270 / Math.max(150, ftp)) + predictions.marathon) / 60;
+    const sprintMin = Math.round((swimCssSec ? 750 / (1000 / swimCssSec) : 14 * 60) + 40 * 60 * (220 / Math.max(150, ftp)) + ensemble.fiveK) / 60;
+    const olyMin = Math.round((swimCssSec ? 1500 / (1000 / swimCssSec) : 28 * 60) + 80 * 60 * (250 / Math.max(150, ftp)) + ensemble.tenK) / 60;
+    const halfMin = Math.round((swimCssSec ? 1900 / (1000 / swimCssSec) : 38 * 60) + 150 * 60 * (260 / Math.max(150, ftp)) + ensemble.half) / 60;
+    const fullMin = Math.round((swimCssSec ? 3800 / (1000 / swimCssSec) : 78 * 60) + 300 * 60 * (270 / Math.max(150, ftp)) + ensemble.marathon) / 60;
     return {
       trendDelta,
       currentVdot: +currentVdot.toFixed(1),
-      raceDayVdot: +raceDayVdot.toFixed(1),
+      raceDayVdot: +raceDayPreds.vdot.toFixed(1),
       labels: { a: "Sprint", b: "Olympic", c: "70.3", d: "Ironman" },
       values: {
         a: formatDurationMinutes(Math.round(sprintMin)),
@@ -11021,9 +11026,17 @@ function buildRacePredictions(profile, last, plan) {
   return { trendDelta, labels: { a: "-", b: "-", c: "-", d: "-" }, values: { a: "-", b: "-", c: "-", d: "-" }, raceDayValues: null };
 }
 
-/* VDOT → race time interpolation from Daniels' table */
+/* ═══════════════════════════════════════════════════════════════════════════
+   RACE PREDICTION ENGINE — Multi-model approach
+   Sources: Daniels VDOT, Riegel power law, Critical Speed, marathon correction
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/*
+ * PRIMARY: VDOT table interpolation (Daniels)
+ * Most accurate when athlete has recent race data to anchor VDOT.
+ */
 function vdotRacePredictions(vdot) {
-  const v = clamp(vdot, 25, 90);
+  const v = clamp(vdot, 18, 90);
   let lo = VDOT_TABLE[0], hi = VDOT_TABLE[1];
   for (let i = 0; i < VDOT_TABLE.length - 1; i++) {
     if (v >= VDOT_TABLE[i][0] && v <= VDOT_TABLE[i + 1][0]) {
@@ -11037,19 +11050,226 @@ function vdotRacePredictions(vdot) {
     lo = VDOT_TABLE[VDOT_TABLE.length - 2];
     hi = VDOT_TABLE[VDOT_TABLE.length - 1];
   }
-
   const frac = hi[0] !== lo[0] ? (v - lo[0]) / (hi[0] - lo[0]) : 0;
   const interp = (col) => Math.round(lo[col] + (hi[col] - lo[col]) * frac);
+  return { fiveK: interp(1), tenK: interp(2), half: interp(3), marathon: interp(4) };
+}
+
+/*
+ * SECONDARY: Riegel power-law with individual fatigue factor
+ * T2 = T1 × (D2/D1)^F
+ * F = 1.06 population average; varies 1.04 (endurance beast) to 1.10 (speed-type)
+ * Research: individual F derived from two race distances via log-log regression
+ */
+function riegelPredict(refTimeSec, refDistKm, targetDistKm, fatigueFactor) {
+  if (!refTimeSec || !refDistKm || refTimeSec <= 0) return null;
+  const F = fatigueFactor || 1.06;
+  return Math.round(refTimeSec * Math.pow(targetDistKm / refDistKm, F));
+}
+
+/*
+ * Derive individual fatigue factor from two race performances
+ * F = ln(T2/T1) / ln(D2/D1)
+ * Clamp to [1.02, 1.15] — outside this range indicates bad data
+ */
+function deriveFatigueFactor(time1Sec, dist1Km, time2Sec, dist2Km) {
+  if (!time1Sec || !time2Sec || !dist1Km || !dist2Km) return null;
+  if (dist1Km === dist2Km) return null;
+  const F = Math.log(time2Sec / time1Sec) / Math.log(dist2Km / dist1Km);
+  if (!Number.isFinite(F)) return null;
+  return clamp(F, 1.02, 1.15);
+}
+
+/*
+ * Marathon correction factor — accounts for glycogen depletion & economy loss
+ * Research: running economy degrades 7-16% during marathon, glycogen depletes ~mile 16-20
+ * First-timers: 8-15% slower than pure VDOT predicts
+ * Experienced: 3-6% slower
+ * Garmin data: marathon predictions 8-15% optimistic for recreational runners
+ */
+function marathonCorrectionFactor(profile) {
+  const experience = profile?.experience || "1to3";
+  const level = profile?.fitnessLevel || "intermediate";
+  const weeklyKm = Number(profile?._observedWeeklyKm || profile?.weeklyHours * 8) || 30;
+  const hasMarathonPb = (profile?.recentPbRows || []).some(pb => {
+    const d = String(pb?.distance || "").toLowerCase();
+    return d === "marathon" || d === "42.2" || d === "42k";
+  });
+
+  // Base correction: VDOT assumes perfect execution
+  let correction = 1.0;
+
+  // Experience penalty
+  if (hasMarathonPb) correction *= 1.02; // minimal — they've done it before
+  else if (experience === "5plus" || level === "advanced") correction *= 1.04;
+  else if (experience === "3to5") correction *= 1.06;
+  else if (experience === "1to3") correction *= 1.08;
+  else correction *= 1.12; // first-timers
+
+  // Volume penalty: below 50km/week marathon prediction degrades
+  if (weeklyKm < 30) correction *= 1.06;
+  else if (weeklyKm < 50) correction *= 1.03;
+  // Above 70km/week: slightly more reliable
+  else if (weeklyKm > 70) correction *= 0.99;
+
+  return correction;
+}
+
+/*
+ * Half-marathon correction — smaller but still relevant
+ * Experienced runners: VDOT is ~1-2% optimistic
+ * Less experienced: 2-4%
+ */
+function halfCorrectionFactor(profile) {
+  const level = profile?.fitnessLevel || "intermediate";
+  if (level === "advanced") return 1.01;
+  if (level === "intermediate") return 1.025;
+  return 1.04; // starter
+}
+
+/*
+ * ENSEMBLE: Combine VDOT + Riegel (if data available) for best prediction
+ * With 2+ race PBs: blend VDOT (60%) + Riegel with personal F (40%)
+ * With 1 PB: pure VDOT with experience correction
+ * With 0 PBs: VDOT from level fallback + larger correction
+ */
+function ensembleRacePredictions(profile) {
+  const currentVdot = vdotFromProfile(profile) || 38;
+  const vdotPreds = vdotRacePredictions(currentVdot);
+
+  // Collect race PB data for Riegel calibration
+  const pbData = extractPbDataForPrediction(profile);
+  let personalF = null;
+  let riegelPreds = null;
+
+  if (pbData.length >= 2) {
+    // Derive individual fatigue factor from best two data points
+    // Prefer most different distances for better calibration
+    pbData.sort((a, b) => a.distKm - b.distKm);
+    const shortest = pbData[0];
+    const longest = pbData[pbData.length - 1];
+    personalF = deriveFatigueFactor(shortest.timeSec, shortest.distKm, longest.timeSec, longest.distKm);
+
+    if (personalF) {
+      // Use the most reliable PB (closest to mid-range 10K-HM) as reference
+      const ref = pbData.reduce((best, pb) => {
+        const midDist = Math.abs(Math.log(pb.distKm / 15));
+        const bestDist = Math.abs(Math.log(best.distKm / 15));
+        return midDist < bestDist ? pb : best;
+      });
+
+      riegelPreds = {
+        fiveK: riegelPredict(ref.timeSec, ref.distKm, 5, personalF),
+        tenK: riegelPredict(ref.timeSec, ref.distKm, 10, personalF),
+        half: riegelPredict(ref.timeSec, ref.distKm, 21.1, personalF),
+        marathon: riegelPredict(ref.timeSec, ref.distKm, 42.195, personalF),
+      };
+    }
+  }
+
+  // Blend VDOT + Riegel if both available
+  let preds;
+  let confidence;
+  if (riegelPreds && personalF) {
+    // Weighted blend: VDOT 55%, Riegel 45% — Riegel captures individual fatigue profile
+    const blend = (vdotVal, riegelVal) => Math.round(vdotVal * 0.55 + riegelVal * 0.45);
+    preds = {
+      fiveK: blend(vdotPreds.fiveK, riegelPreds.fiveK),
+      tenK: blend(vdotPreds.tenK, riegelPreds.tenK),
+      half: blend(vdotPreds.half, riegelPreds.half),
+      marathon: blend(vdotPreds.marathon, riegelPreds.marathon),
+    };
+    confidence = "high";
+  } else if (pbData.length === 1) {
+    // Single PB: use VDOT with default Riegel cross-check
+    const ref = pbData[0];
+    const riegelCheck = {
+      fiveK: riegelPredict(ref.timeSec, ref.distKm, 5, 1.06),
+      tenK: riegelPredict(ref.timeSec, ref.distKm, 10, 1.06),
+      half: riegelPredict(ref.timeSec, ref.distKm, 21.1, 1.06),
+      marathon: riegelPredict(ref.timeSec, ref.distKm, 42.195, 1.06),
+    };
+    const blend = (vdotVal, riegelVal) => riegelVal ? Math.round(vdotVal * 0.65 + riegelVal * 0.35) : vdotVal;
+    preds = {
+      fiveK: blend(vdotPreds.fiveK, riegelCheck.fiveK),
+      tenK: blend(vdotPreds.tenK, riegelCheck.tenK),
+      half: blend(vdotPreds.half, riegelCheck.half),
+      marathon: blend(vdotPreds.marathon, riegelCheck.marathon),
+    };
+    confidence = "moderate";
+  } else {
+    preds = { ...vdotPreds };
+    confidence = "low";
+  }
+
+  // Apply distance-specific corrections
+  preds.half = Math.round(preds.half * halfCorrectionFactor(profile));
+  preds.marathon = Math.round(preds.marathon * marathonCorrectionFactor(profile));
 
   return {
-    fiveK: interp(1),
-    tenK: interp(2),
-    half: interp(3),
-    marathon: interp(4),
+    ...preds,
+    vdot: currentVdot,
+    personalFatigueFactor: personalF,
+    confidence,
+    method: riegelPreds ? "VDOT+Riegel ensemble" : pbData.length ? "VDOT+Riegel cross-check" : "VDOT (level estimate)",
   };
 }
 
-/* Project VDOT on race day based on remaining structured training */
+function extractPbDataForPrediction(profile) {
+  const results = [];
+  // From PB rows (Strava-detected or manual)
+  const pbRows = profile?.recentPbRows || [];
+  for (const pb of pbRows) {
+    const km = distanceKmFromGoal(pb.distance);
+    const sec = parseGoalTimeToSeconds(pb.time);
+    if (km && sec && sec > 0) results.push({ distKm: km, timeSec: sec, source: "pb" });
+  }
+  // From activity analysis (auto-detected PBs)
+  const analysis = profile?._activityAnalysis;
+  if (analysis?.runPbs) {
+    const rp = analysis.runPbs;
+    if (rp.fiveK?.time) results.push({ distKm: 5, timeSec: rp.fiveK.time, source: "strava" });
+    if (rp.tenK?.time) results.push({ distKm: 10, timeSec: rp.tenK.time, source: "strava" });
+    if (rp.half?.time) results.push({ distKm: 21.1, timeSec: rp.half.time, source: "strava" });
+    if (rp.marathon?.time) results.push({ distKm: 42.2, timeSec: rp.marathon.time, source: "strava" });
+  }
+  // From manual PBs
+  if (profile?.pb1Distance && profile?.pb1Time) {
+    const km = distanceKmFromGoal(profile.pb1Distance);
+    const sec = parseGoalTimeToSeconds(profile.pb1Time);
+    if (km && sec) results.push({ distKm: km, timeSec: sec, source: "manual" });
+  }
+  if (profile?.pb2Distance && profile?.pb2Time) {
+    const km = distanceKmFromGoal(profile.pb2Distance);
+    const sec = parseGoalTimeToSeconds(profile.pb2Time);
+    if (km && sec) results.push({ distKm: km, timeSec: sec, source: "manual" });
+  }
+  // Deduplicate by distance (keep fastest)
+  const byDist = {};
+  for (const r of results) {
+    const key = r.distKm.toFixed(1);
+    if (!byDist[key] || r.timeSec < byDist[key].timeSec) byDist[key] = r;
+  }
+  return Object.values(byDist);
+}
+
+/*
+ * Project VDOT on race day based on remaining structured training
+ *
+ * Research basis:
+ * - VO2max improves 5-15% with structured training (meta-analysis, PMC3774727)
+ * - Beginners: 7-13% in 8 weeks (Norwegian 4×4 study)
+ * - Experienced: plateaus after 6-8 weeks, ~1-3% per mesocycle
+ * - VDOT ~1 point per 6 weeks well-trained, ~1 per 3-4 weeks novice
+ * - Taper yields 2-3% performance boost (equivalent ~1-1.5 VDOT)
+ * - Diminishing returns above VDOT 55+ (genetic ceiling approaching)
+ *
+ * Training volume influence:
+ * - Higher weekly km → faster adaptation (up to a point)
+ * - Below 30km/week: adaptation rate reduced ~40%
+ * - 30-60km/week: normal rate
+ * - 60+ km/week: slight bonus for advanced runners
+ */
 function projectRaceDayVdot(currentVdot, profile, plan) {
   if (!plan || !plan.weeks || !plan.weeks.length) return currentVdot;
 
@@ -11060,22 +11280,69 @@ function projectRaceDayVdot(currentVdot, profile, plan) {
   const weeksRemaining = Math.max(0, Math.ceil((raceDate - now) / (7 * 86400000)));
   if (weeksRemaining === 0) return currentVdot;
 
-  // VDOT improvement rate per week of structured training
-  // Research (Daniels, Pfitzinger): ~0.5-1.5 VDOT per 8-week block
-  // Diminishing returns at higher VDOT values
-  const diminishingFactor = clamp(1 - (currentVdot - 35) / 80, 0.3, 1.0);
-  const levelRate = profile.fitnessLevel === "starter" ? 0.16
-    : profile.fitnessLevel === "advanced" ? 0.05 : 0.10;
-  const weeklyGain = levelRate * diminishingFactor;
+  // Base adaptation rate per week (VDOT points)
+  // Research: ~1 VDOT per 6 weeks intermediate, ~1 per 3 weeks starter
+  const levelRate = profile.fitnessLevel === "starter" ? 0.28
+    : profile.fitnessLevel === "advanced" ? 0.08 : 0.16;
 
-  // Compliance discount if adaptive signals exist
+  // Diminishing returns: harder to gain at higher VDOT
+  // Linear decay from full rate at VDOT 30 to 30% at VDOT 75
+  const diminishingFactor = clamp(1 - (currentVdot - 30) / 65, 0.3, 1.0);
+
+  // Volume influence on adaptation rate
+  const weeklyKm = Number(profile?._observedWeeklyKm) || (Number(profile?.weeklyHours || 5) * 8);
+  let volumeMult = 1.0;
+  if (weeklyKm < 25) volumeMult = 0.6;
+  else if (weeklyKm < 40) volumeMult = 0.8;
+  else if (weeklyKm > 70) volumeMult = 1.08;
+
+  // Quality session influence: threshold/interval work drives VO2max faster
+  const qualityShare = plan.sessions
+    ? plan.sessions.filter(s => s.type === "threshold" || s.type === "quality").length / Math.max(1, plan.sessions.length)
+    : 0.25;
+  const qualityMult = clamp(0.8 + qualityShare * 0.8, 0.85, 1.15);
+
+  // Compliance discount from adaptive engine
   const complianceMult = plan.meta?.adaptiveSignals?.compliance || 1.0;
 
-  // Taper boost: last 2-3 weeks before race typically yield 2-3% performance gain
-  const taperBoostVdot = weeksRemaining <= 3 ? 0.8 : 0;
+  // Effective weekly gain
+  const weeklyGain = levelRate * diminishingFactor * volumeMult * qualityMult * complianceMult;
 
-  const projectedVdot = currentVdot + (weeklyGain * weeksRemaining * complianceMult) + taperBoostVdot;
-  return Math.min(projectedVdot, currentVdot + 8); // cap at +8 VDOT max improvement
+  // Apply gains but plateau after ~12 mesocycle weeks (body needs recovery blocks)
+  const effectiveWeeks = Math.min(weeksRemaining, 20); // cap meaningful training at 20 weeks
+  const accumulatedGain = weeklyGain * effectiveWeeks * (1 - effectiveWeeks * 0.01); // slight diminishing over time
+
+  // Taper boost: 2-3% performance = ~1-1.5 VDOT equivalent
+  const taperWeeks = plan.meta?.phaseLayout?.taperWeeks || (weeksRemaining <= 3 ? weeksRemaining : 0);
+  const taperBoost = taperWeeks > 0 ? clamp(taperWeeks * 0.5, 0.5, 1.5) : 0;
+
+  // Age factor: older athletes adapt slower (small effect)
+  const age = Number(profile?.age) || 30;
+  const ageFactor = age > 45 ? 0.85 : age > 55 ? 0.7 : 1.0;
+
+  const projectedVdot = currentVdot + (accumulatedGain * ageFactor) + taperBoost;
+
+  // Hard cap: max +6 VDOT in any projection (prevents unrealistic promises)
+  return Math.min(projectedVdot, currentVdot + 6);
+}
+
+/*
+ * Project race-day predictions (not just VDOT but full ensemble)
+ */
+function projectRaceDayPredictions(profile, plan) {
+  const raceDayVdot = projectRaceDayVdot(vdotFromProfile(profile) || 38, profile, plan);
+  const raceDayProfile = { ...profile, _projectedVdot: raceDayVdot };
+
+  // Get VDOT-based predictions at projected fitness
+  const vdotPreds = vdotRacePredictions(raceDayVdot);
+
+  // Apply same marathon/half corrections
+  vdotPreds.half = Math.round(vdotPreds.half * halfCorrectionFactor(profile));
+  // Marathon correction slightly less for race-day (assumes taper + proper prep)
+  const mCorr = marathonCorrectionFactor(profile);
+  vdotPreds.marathon = Math.round(vdotPreds.marathon * (1 + (mCorr - 1) * 0.7)); // 70% of correction
+
+  return { ...vdotPreds, vdot: raceDayVdot };
 }
 
 function formatRaceTimeSec(totalSec) {
