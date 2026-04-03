@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Frontend (Static Server)",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "-l", "5500", "."],
+      "port": 5500
+    },
+    {
+      "name": "Backend OAuth Server",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["backend/strava-oauth/server.js"],
+      "port": 8787
+    }
+  ]
+}
