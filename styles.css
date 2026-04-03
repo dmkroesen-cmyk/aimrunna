@@ -669,32 +669,38 @@ input[type="range"]:focus {
 input[type="range"]::-webkit-slider-runnable-track {
   height: 4px;
   border-radius: 999px;
-  background: rgba(255,255,255,0.14);
+  background: linear-gradient(90deg, rgba(134, 215, 255, 0.18), rgba(255, 255, 255, 0.12));
 }
 
 input[type="range"]::-webkit-slider-thumb {
   appearance: none;
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   border-radius: 999px;
-  margin-top: -5px;
+  margin-top: -6px;
   background: #f5f8fd;
-  box-shadow: 0 0 0 3px rgba(255,255,255,0.08);
+  box-shadow: 0 0 0 3px rgba(134, 215, 255, 0.12), 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: box-shadow 120ms ease, transform 120ms ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  box-shadow: 0 0 0 4px rgba(134, 215, 255, 0.2), 0 2px 12px rgba(0, 0, 0, 0.4);
+  transform: scale(1.1);
 }
 
 input[type="range"]::-moz-range-track {
   height: 4px;
   border-radius: 999px;
-  background: rgba(255,255,255,0.14);
+  background: linear-gradient(90deg, rgba(134, 215, 255, 0.18), rgba(255, 255, 255, 0.12));
 }
 
 input[type="range"]::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   border: 0;
   border-radius: 999px;
   background: #f5f8fd;
-  box-shadow: 0 0 0 3px rgba(255,255,255,0.08);
+  box-shadow: 0 0 0 3px rgba(134, 215, 255, 0.12), 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 input:not([type="checkbox"])::placeholder {
@@ -703,9 +709,9 @@ input:not([type="checkbox"])::placeholder {
 
 input:not([type="checkbox"]):focus,
 select:focus {
-  border-color: rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.016);
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.03);
+  border-color: rgba(134, 215, 255, 0.3);
+  background: rgba(255, 255, 255, 0.02);
+  box-shadow: 0 0 0 3px rgba(134, 215, 255, 0.06), 0 0 16px rgba(134, 215, 255, 0.04);
 }
 
 select {
@@ -1004,8 +1010,25 @@ select {
   font-weight: 700;
   letter-spacing: 0.01em;
   cursor: pointer;
-  transition: transform 120ms ease, box-shadow 120ms ease;
+  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
   box-shadow: 0 14px 32px rgba(255, 255, 255, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.cta::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(134, 215, 255, 0.12), transparent 60%);
+  opacity: 0;
+  transition: opacity 200ms ease;
+  pointer-events: none;
+}
+
+.cta:hover::after {
+  opacity: 1;
 }
 
 .cta-race {
@@ -1014,8 +1037,13 @@ select {
 }
 
 .cta:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 18px 36px rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 18px 42px rgba(255, 255, 255, 0.12), 0 0 0 1px rgba(134, 215, 255, 0.15);
+}
+
+.cta:active {
+  transform: translateY(0);
+  box-shadow: 0 8px 20px rgba(255, 255, 255, 0.06);
 }
 
 .content-shell {
@@ -1037,9 +1065,14 @@ select {
   backdrop-filter: none;
   box-shadow: var(--shadow);
   padding: 14px;
-  transition: opacity 220ms ease, border-color 220ms ease, background-color 220ms ease;
+  transition: opacity 220ms ease, border-color 220ms ease, background-color 220ms ease, box-shadow 280ms ease;
   position: relative;
   z-index: 11;
+}
+
+.surface:hover {
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 28px 64px rgba(0, 0, 0, 0.42), 0 0 0 1px rgba(255, 255, 255, 0.03);
 }
 
 .surface-head {
@@ -1634,6 +1667,116 @@ body.profile-view-settings .profile-settings-card.is-active {
   gap: 8px;
 }
 
+/* ── Crew Layout: Feed + Sidebar ── */
+.crew-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 12px;
+  align-items: start;
+}
+
+.crew-feed-main {
+  grid-column: 1;
+  min-height: 300px;
+}
+
+.crew-feed-main .activity-feed-list {
+  max-height: 600px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+}
+
+.crew-sidebar {
+  grid-column: 2;
+  display: grid;
+  gap: 10px;
+  position: sticky;
+  top: 120px;
+}
+
+.crew-sidebar-card {
+  padding: 12px;
+}
+
+.crew-sidebar-card .result-title-row h4 {
+  font-size: 13px;
+}
+
+.crew-sidebar-card .empty-copy {
+  font-size: 11px;
+  padding: 6px 0;
+}
+
+.crew-add-form {
+  margin-top: 8px;
+  grid-template-columns: 1fr 36px;
+  gap: 6px;
+}
+
+.crew-add-form input {
+  min-height: 34px;
+  font-size: 12px;
+  padding: 0 8px;
+}
+
+.crew-add-form button {
+  min-height: 34px;
+  min-width: 36px;
+  padding: 0;
+  font-size: 14px;
+  display: grid;
+  place-items: center;
+}
+
+.friends-compact {
+  margin-top: 6px;
+  gap: 5px;
+  max-height: 180px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+.friends-compact .friend-item,
+.friends-compact .account-search-item {
+  padding: 7px 9px;
+  border-radius: 8px;
+}
+
+.friends-compact .friend-item strong,
+.friends-compact .account-search-item strong {
+  font-size: 12px;
+}
+
+.friends-compact .friend-item small,
+.friends-compact .account-search-item small {
+  font-size: 10px;
+  margin-top: 2px;
+}
+
+@media (max-width: 760px) {
+  .crew-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .crew-feed-main {
+    grid-column: 1;
+  }
+
+  .crew-sidebar {
+    grid-column: 1;
+    position: static;
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .crew-sidebar {
+    grid-template-columns: 1fr;
+  }
+}
+
 .activity-post-form {
   margin-top: 8px;
   display: grid;
@@ -2184,11 +2327,11 @@ body.profile-view-settings .profile-settings-card.is-active {
   max-height: 0;
   overflow: hidden;
   opacity: 0;
-  transition: max-height 220ms ease, opacity 180ms ease;
+  transition: max-height 350ms ease, opacity 250ms ease;
 }
 
 .plan-mission-long.is-open {
-  max-height: 140px;
+  max-height: 600px;
   opacity: 1;
 }
 
@@ -3806,6 +3949,444 @@ body.has-output .section-data { border-color: rgba(255, 255, 255, 0.1); }
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   MOBILE PHONE BREAKPOINT (≤480px)
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+  .landing-panel {
+    padding: 72px 8px 10px;
+    width: 100vw;
+    border-radius: 0;
+  }
+
+  .landing-copy h1 {
+    font-size: clamp(1.5rem, 8vw, 2.2rem);
+  }
+
+  .landing-copy p {
+    font-size: 12px;
+  }
+
+  .account-bar {
+    top: var(--mobile-account-bar-top, 96px);
+    left: 6px;
+    right: 6px;
+    gap: 2px 3px;
+    padding: 3px 4px;
+  }
+
+  .account-btn {
+    height: 32px;
+    padding: 0 8px;
+    font-size: 11px;
+    border-radius: 8px;
+  }
+
+  /* Day grid: stack vertically on very small screens */
+  .day-grid {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .day-card {
+    min-height: auto;
+    padding: 12px;
+    grid-template-rows: auto auto auto auto;
+    gap: 4px;
+  }
+
+  .day-main {
+    font-size: 13px;
+  }
+
+  .day-sub {
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  .day-name {
+    font-size: 13px;
+  }
+
+  .day-date {
+    font-size: 12px;
+  }
+
+  .day-type {
+    font-size: 10px;
+    padding: 3px 7px;
+  }
+
+  .week-card {
+    padding: 10px;
+    border-radius: 12px;
+  }
+
+  .week-focus {
+    font-size: 14px;
+  }
+
+  .week-load {
+    font-size: 11px;
+    padding: 5px 8px;
+  }
+
+  /* Form inputs: larger tap targets */
+  .field input,
+  .field select,
+  .field textarea {
+    min-height: 44px;
+    font-size: 16px; /* prevents iOS zoom on focus */
+  }
+
+  .field label span,
+  .field > span {
+    font-size: 12px;
+  }
+
+  /* CTA button bigger on mobile */
+  .cta {
+    min-height: 48px;
+    font-size: 15px;
+  }
+
+  /* Plan overview chart */
+  .plan-overview-card {
+    padding: 8px;
+  }
+
+  /* Calendar max-height: use more screen */
+  .calendar-list {
+    max-height: none;
+  }
+
+  /* Constraints field */
+  #constraints-field textarea {
+    min-height: 60px;
+  }
+
+  /* Tuning panels: more space */
+  #tuning-panel-host {
+    max-height: min(50svh, 440px);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   VISUAL POLISH IMPROVEMENTS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Better focus rings */
+.field input:focus-visible,
+.field select:focus-visible,
+.field textarea:focus-visible {
+  outline: none;
+  border-color: var(--accent-fit);
+  box-shadow: 0 0 0 2px rgba(134, 215, 255, 0.25), 0 0 12px rgba(134, 215, 255, 0.08);
+}
+
+/* Input validation states */
+.field input:invalid:not(:placeholder-shown):not(:focus) {
+  border-color: rgba(255, 107, 107, 0.5);
+}
+
+.field input:disabled,
+.field select:disabled,
+.field textarea:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Enhanced week card hover */
+@media (hover: hover) and (pointer: fine) {
+  .week-card:hover {
+    border-color: rgba(134, 215, 255, 0.15);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28), 0 0 20px rgba(134, 215, 255, 0.04);
+  }
+
+  .day-card:hover {
+    border-color: rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.022);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  }
+}
+
+/* Stronger race day highlighting */
+.day-card.scheduled-race {
+  border-width: 2px;
+  border-color: rgba(255, 210, 120, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(255, 214, 120, 0.12), 0 0 16px rgba(255, 214, 120, 0.06);
+}
+
+.day-card.scheduled-race.race-a {
+  border-color: rgba(255, 220, 133, 0.72);
+  box-shadow: inset 0 0 0 1px rgba(255, 220, 133, 0.26), 0 0 20px rgba(255, 220, 133, 0.1);
+}
+
+/* Key day stronger highlight */
+.day-card.is-key {
+  border-color: rgba(255, 193, 112, 0.38);
+  box-shadow: inset 0 0 0 1px rgba(255, 193, 112, 0.12);
+}
+
+/* Better contrast for muted text */
+.day-sub {
+  color: #b8c0cc;
+}
+
+.day-load {
+  color: rgba(255, 255, 255, 0.68);
+}
+
+/* Range slider improvements */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent-fit);
+  cursor: pointer;
+  border: 2px solid rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent-fit);
+  cursor: pointer;
+  border: 2px solid rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Constraints textarea styling */
+#constraints-field textarea {
+  resize: vertical;
+  min-height: 48px;
+  line-height: 1.5;
+}
+
+/* Swim CSS field styling */
+#swim-css-field input {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Strava Data Insights Panel ── */
+.plan-data-insights {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(134, 215, 255, 0.15);
+  background: linear-gradient(135deg, rgba(134, 215, 255, 0.04), rgba(134, 215, 255, 0.01));
+}
+
+.plan-insights-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.plan-insights-head strong {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent-fit);
+}
+
+.plan-insights-icon {
+  font-size: 14px;
+}
+
+.plan-insights-list {
+  margin: 0;
+  padding: 0 0 0 18px;
+  list-style: none;
+}
+
+.plan-insights-list li {
+  position: relative;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #c8d0dc;
+  padding-left: 4px;
+}
+
+.plan-insights-list li::before {
+  content: "›";
+  position: absolute;
+  left: -14px;
+  color: var(--accent-fit);
+  font-weight: 700;
+}
+
+/* ── Fitness Analysis Card ── */
+.fitness-analysis-body {
+  display: grid;
+  gap: 14px;
+}
+
+.fitness-section h5 {
+  margin: 0 0 8px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted-2);
+}
+
+.fitness-metrics-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.fitness-metric {
+  flex: 1 1 80px;
+  min-width: 80px;
+  max-width: 160px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.012);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.fitness-metric-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.fitness-metric-value {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.fitness-metric-value.acwr-optimal {
+  color: var(--accent-fresh);
+}
+
+.fitness-metric-value.acwr-low {
+  color: var(--accent-fit);
+}
+
+.fitness-metric-value.acwr-high {
+  color: var(--accent-fatigue);
+}
+
+.fitness-metric-hint {
+  font-size: 10px;
+  color: var(--muted-2);
+}
+
+@media (max-width: 480px) {
+  .fitness-metrics-row {
+    gap: 6px;
+  }
+
+  .fitness-metric {
+    min-width: 70px;
+    padding: 8px 10px;
+  }
+
+  .fitness-metric-value {
+    font-size: 15px;
+  }
+}
+
+/* PWA / Safe area support */
+@supports (padding: env(safe-area-inset-top)) {
+  .brand-anchor {
+    top: calc(14px + env(safe-area-inset-top));
+  }
+
+  .account-bar {
+    top: calc(var(--mobile-account-bar-top, 112px) + env(safe-area-inset-top));
+  }
+
+  .landing-actions {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Smooth scrollbar for all scrollable areas */
+.calendar-list,
+#tuning-panel-host,
+.account-section-body {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+}
+
+.calendar-list::-webkit-scrollbar,
+#tuning-panel-host::-webkit-scrollbar,
+.account-section-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.calendar-list::-webkit-scrollbar-thumb,
+#tuning-panel-host::-webkit-scrollbar-thumb,
+.account-section-body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* Plan week cards stagger animation */
+@keyframes cardSlideIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.week-card {
+  animation: cardSlideIn 320ms ease both;
+}
+
+.week-card:nth-child(2) { animation-delay: 40ms; }
+.week-card:nth-child(3) { animation-delay: 80ms; }
+.week-card:nth-child(4) { animation-delay: 120ms; }
+.week-card:nth-child(5) { animation-delay: 160ms; }
+.week-card:nth-child(6) { animation-delay: 200ms; }
+
+/* Ghost button press feedback */
+.ghost:active {
+  transform: translateY(0) scale(0.98);
+  transition-duration: 60ms;
+}
+
+/* Status dot pulse for active connections */
+@keyframes statusPulse {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(154, 255, 128, 0.12); }
+  50% { box-shadow: 0 0 0 7px rgba(154, 255, 128, 0.06); }
+}
+
+body.is-authenticated .account-dot {
+  animation: statusPulse 3s ease-in-out infinite;
+}
+
+/* Smooth focus transition for all interactive elements */
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid rgba(134, 215, 255, 0.4);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .stage-reveal {
     opacity: 1;
@@ -3820,5 +4401,17 @@ body.has-output .section-data { border-color: rgba(255, 255, 255, 0.1); }
     stroke-dasharray: none;
     stroke-dashoffset: 0;
     opacity: 1;
+  }
+
+  .week-card {
+    animation: none;
+  }
+
+  body.is-authenticated .account-dot {
+    animation: none;
+  }
+
+  .plan-mission-long {
+    transition: none;
   }
 }
