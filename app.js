@@ -5263,8 +5263,17 @@ function handleOAuthReturnParams() {
       connectedSources.add("Strava");
       persistConnectedSourcesForCurrentUser();
       updateConnectionStateCopy();
-      setText(stravaProfileFetchStatusEl, "Strava OAuth abgeschlossen. Lade Athlete-Daten …");
-      fetchStravaStatusAndAthlete({ force: true });
+      setText(stravaProfileFetchStatusEl, "Strava OAuth abgeschlossen. Lade Athlete-Daten & importiere Historie …");
+      fetchStravaStatusAndAthlete({ force: true }).then(() => {
+        // Auto-import after successful connection
+        const acct = getCurrentAccount();
+        if (acct) {
+          ensureAccountIntegrationsShape(acct);
+          acct.integrations.strava = { ...acct.integrations.strava, connected: true };
+          persistStore();
+          importStravaHistory();
+        }
+      });
     }
     url.searchParams.delete("oauth");
     url.searchParams.delete("status");
