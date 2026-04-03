@@ -67,6 +67,7 @@ const bikeLactateFieldEl = document.getElementById("bike-lactate-field");
 const runThresholdPaceFieldEl = document.getElementById("run-thr-pace-field");
 const runThresholdHrFieldEl = document.getElementById("run-thr-hr-field");
 const runLactateFieldEl = document.getElementById("run-lactate-field");
+const swimCssFieldEl = document.getElementById("swim-css-field");
 const recentPbsFieldEl = document.getElementById("recent-pbs-field");
 const pb1DisciplineSelectEl = document.getElementById("pb1-discipline-select");
 const pb1DistanceSelectEl = document.getElementById("pb1-distance-select");
@@ -2983,6 +2984,7 @@ function renderAccountUi() {
   renderProfileFeed(account);
   renderCrewFeed(account);
   renderCrewRanking(account);
+  renderFitnessAnalysis(account);
   setActiveAccountSection(activeAccountSection);
   syncProfileComposerVisibility();
   renderStravaProfileStatus(account);
@@ -3223,6 +3225,86 @@ function renderProfileStats(account) {
   applyProfileStatsToBindings(profileStatBindings.today, statsToday);
   applyProfileStatsToBindings(profileStatBindings.year, statsYear);
   applyProfileStatsToBindings(profileStatBindings.all, statsAll);
+}
+
+function renderFitnessAnalysis(account) {
+  const bodyEl = document.getElementById("fitness-analysis-body");
+  const sourceEl = document.getElementById("fitness-analysis-source");
+  if (!bodyEl) return;
+
+  const activities = account?.activities;
+  if (!Array.isArray(activities) || !activities.length) {
+    if (sourceEl) sourceEl.textContent = "–";
+    bodyEl.innerHTML = `<p class="card-copy">Verbinde Strava, Garmin oder WHOOP um deine Fitness automatisch zu analysieren.</p>`;
+    return;
+  }
+
+  const analysis = analyzeActivityHistory(activities);
+  if (!analysis) return;
+
+  const sources = new Set(activities.map((a) => a.source).filter(Boolean));
+  if (sourceEl) sourceEl.textContent = [...sources].join(", ") || "Daten";
+
+  const rows = [];
+
+  // PBs
+  if (analysis.runPbs?.length) {
+    const pbHtml = analysis.runPbs.map((pb) =>
+      `<div class="fitness-metric"><span class="fitness-metric-label">${pb.distance.toUpperCase()}</span><strong class="fitness-metric-value">${escapeHtml(pb.timeFormatted)}</strong></div>`
+    ).join("");
+    rows.push(`<div class="fitness-section"><h5>Bestzeiten (Auto-Detect)</h5><div class="fitness-metrics-row">${pbHtml}</div></div>`);
+  }
+
+  // Training Load
+  if (analysis.trainingLoad) {
+    const tl = analysis.trainingLoad;
+    const acwr = tl.acwr;
+    const acwrClass = acwr < 0.8 ? "low" : acwr <= 1.3 ? "optimal" : "high";
+    const acwrLabel = acwr < 0.8 ? "Unterbelastet" : acwr <= 1.3 ? "Sweet Spot" : "Überlastrisiko";
+    rows.push(`<div class="fitness-section"><h5>Trainingsbelastung</h5><div class="fitness-metrics-row">
+      <div class="fitness-metric"><span class="fitness-metric-label">Akut (7d)</span><strong class="fitness-metric-value">${tl.acuteLoad7d}</strong></div>
+      <div class="fitness-metric"><span class="fitness-metric-label">Chronisch (28d)</span><strong class="fitness-metric-value">${tl.chronicLoad28d}</strong></div>
+      <div class="fitness-metric"><span class="fitness-metric-label">ACWR</span><strong class="fitness-metric-value acwr-${acwrClass}">${acwr}</strong><span class="fitness-metric-hint">${acwrLabel}</span></div>
+    </div></div>`);
+  }
+
+  // Weekly Volume
+  if (analysis.weeklyVolume) {
+    const wv = analysis.weeklyVolume;
+    rows.push(`<div class="fitness-section"><h5>Wochenvolumen (Ø ${wv.weeksAnalyzed} Wochen)</h5><div class="fitness-metrics-row">
+      <div class="fitness-metric"><span class="fitness-metric-label">Distanz</span><strong class="fitness-metric-value">${wv.avgWeeklyKm} km</strong></div>
+      <div class="fitness-metric"><span class="fitness-metric-label">Stunden</span><strong class="fitness-metric-value">${wv.avgWeeklyHours}h</strong></div>
+      <div class="fitness-metric"><span class="fitness-metric-label">Sessions</span><strong class="fitness-metric-value">${wv.avgWeeklySessions}</strong></div>
+    </div></div>`);
+  }
+
+  // HR Profile
+  if (analysis.hrProfile) {
+    const hr = analysis.hrProfile;
+    rows.push(`<div class="fitness-section"><h5>Herzfrequenz-Profil</h5><div class="fitness-metrics-row">
+      <div class="fitness-metric"><span class="fitness-metric-label">Max HR</span><strong class="fitness-metric-value">${hr.maxHr} bpm</strong></div>
+      <div class="fitness-metric"><span class="fitness-metric-label">Schwelle (est.)</span><strong class="fitness-metric-value">${hr.estimatedThresholdHr} bpm</strong></div>
+      <div class="fitness-metric"><span class="fitness-metric-label">Samples</span><strong class="fitness-metric-value">${hr.sampleSize}</strong></div>
+    </div></div>`);
+  }
+
+  // FTP
+  if (analysis.estimatedFtp) {
+    rows.push(`<div class="fitness-section"><h5>Rad-Leistung</h5><div class="fitness-metrics-row">
+      <div class="fitness-metric"><span class="fitness-metric-label">FTP (est.)</span><strong class="fitness-metric-value">${analysis.estimatedFtp.ftp}W</strong><span class="fitness-metric-hint">${analysis.estimatedFtp.confidence} confidence</span></div>
+    </div></div>`);
+  }
+
+  // Swim CSS
+  if (analysis.swimCss) {
+    rows.push(`<div class="fitness-section"><h5>Schwimmen</h5><div class="fitness-metrics-row">
+      <div class="fitness-metric"><span class="fitness-metric-label">CSS</span><strong class="fitness-metric-value">${escapeHtml(analysis.swimCss.formatted)}/100m</strong></div>
+    </div></div>`);
+  }
+
+  bodyEl.innerHTML = rows.length
+    ? rows.join("")
+    : `<p class="card-copy">Nicht genug Aktivitätsdaten für eine Analyse.</p>`;
 }
 
 function renderProfileFeed(account) {
@@ -3621,6 +3703,7 @@ function syncDisciplineSpecificFields(discipline = disciplineSelect?.value) {
   if (runThresholdPaceFieldEl) runThresholdPaceFieldEl.hidden = !showRunThresholds;
   if (runThresholdHrFieldEl) runThresholdHrFieldEl.hidden = !showRunThresholds;
   if (runLactateFieldEl) runLactateFieldEl.hidden = !showRunThresholds;
+  if (swimCssFieldEl) swimCssFieldEl.hidden = discipline !== "triathlon";
   if (recentPbsFieldEl) recentPbsFieldEl.hidden = !showRecentPbs;
   if (raceCalendarFieldEl) raceCalendarFieldEl.hidden = !showRaceEvents;
   if (goalDistanceFieldEl) goalDistanceFieldEl.hidden = !showPrimaryGoalFields;
@@ -3638,6 +3721,7 @@ function syncDisciplineSpecificFields(discipline = disciplineSelect?.value) {
   setFieldEnabled(runThresholdPaceFieldEl, showRunThresholds);
   setFieldEnabled(runThresholdHrFieldEl, showRunThresholds);
   setFieldEnabled(runLactateFieldEl, showRunThresholds);
+  setFieldEnabled(swimCssFieldEl, discipline === "triathlon");
   setFieldEnabled(recentPbsFieldEl, showRecentPbs);
   setFieldEnabled(raceCalendarFieldEl, showRaceEvents);
   setFieldEnabled(goalDistanceFieldEl, true);
@@ -4495,15 +4579,30 @@ function mapStravaActivityToLocalFeed(activity) {
   const sportType = sportTypeRaw.includes("run")
     ? "run"
     : (sportTypeRaw.includes("ride") || sportTypeRaw.includes("bike") ? "bike" : (sportTypeRaw.includes("swim") ? "swim" : "other"));
-  const distanceKm = Math.max(0, (Number(activity.distance) || 0) / 1000);
-  const movingMin = Math.max(0, Math.round((Number(activity.moving_time) || 0) / 60));
+  const distanceM = Number(activity.distance || activity.distance_m) || 0;
+  const distanceKm = Math.max(0, distanceM / 1000);
+  const movingTimeSec = Number(activity.moving_time || activity.moving_time_s) || 0;
+  const movingMin = Math.max(0, Math.round(movingTimeSec / 60));
   const dateIso = activity.start_date || activity.start_date_local || new Date().toISOString();
+  const avgHr = Number(activity.average_heartrate) || null;
+  const maxHr = Number(activity.max_heartrate) || null;
+  const avgSpeedMps = Number(activity.average_speed || activity.average_speed_mps) || 0;
+  const maxSpeedMps = Number(activity.max_speed || activity.max_speed_mps) || 0;
+  const elevGain = Number(activity.total_elevation_gain || activity.total_elevation_gain_m) || 0;
+  const avgWatts = Number(activity.average_watts) || null;
+  const maxWatts = Number(activity.max_watts) || null;
+  const weightedAvgWatts = Number(activity.weighted_average_watts) || null;
+  const sufferScore = Number(activity.suffer_score) || null;
+  const avgCadence = Number(activity.average_cadence) || null;
   const noteMeta = [];
   if (movingMin > 0) noteMeta.push(`${movingMin} min`);
-  if (Number.isFinite(Number(activity.total_elevation_gain)) && Number(activity.total_elevation_gain) > 0) {
-    noteMeta.push(`${Math.round(Number(activity.total_elevation_gain))} hm`);
-  }
+  if (elevGain > 0) noteMeta.push(`${Math.round(elevGain)} hm`);
+  if (avgHr) noteMeta.push(`ø${avgHr} bpm`);
+  if (avgWatts) noteMeta.push(`ø${avgWatts}W`);
   const title = String(activity.name || `${sportType === "run" ? "Run" : sportType === "bike" ? "Ride" : sportType === "swim" ? "Swim" : "Workout"}`).trim();
+  // Pace: sec/km for running, km/h for cycling
+  const paceSecPerKm = sportType === "run" && distanceKm > 0 && movingTimeSec > 0 ? movingTimeSec / distanceKm : null;
+  const speedKmh = distanceKm > 0 && movingTimeSec > 0 ? (distanceKm / movingTimeSec) * 3600 : null;
   return {
     id: `strava_${activityId}`,
     source: "strava",
@@ -4514,9 +4613,290 @@ function mapStravaActivityToLocalFeed(activity) {
     kind: "training",
     sportType,
     distanceKm: Number(distanceKm.toFixed(2)),
+    movingTimeSec,
+    elevationGainM: elevGain > 0 ? Math.round(elevGain) : null,
+    avgHeartrate: avgHr,
+    maxHeartrate: maxHr,
+    avgWatts,
+    maxWatts,
+    weightedAvgWatts,
+    sufferScore,
+    avgCadence,
+    paceSecPerKm,
+    speedKmh,
     imageDataUrl: null,
     propsBy: [],
   };
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   STRAVA/ACTIVITY DATA → PLAN ENGINE BRIDGE
+   Analyzes imported activity history to auto-detect PBs, estimate FTP,
+   threshold HR, training load, and feed into plan generation.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function analyzeActivityHistory(activities) {
+  if (!Array.isArray(activities) || !activities.length) return null;
+  const now = Date.now();
+  const msPerDay = 86400000;
+  const recent = activities.filter((a) => {
+    const d = new Date(a.createdAt || 0).getTime();
+    return d > now - 365 * msPerDay; // last 12 months
+  });
+  const veryRecent = recent.filter((a) => {
+    const d = new Date(a.createdAt || 0).getTime();
+    return d > now - 90 * msPerDay; // last 3 months
+  });
+
+  const runs = recent.filter((a) => a.sportType === "run" && a.distanceKm > 0 && a.movingTimeSec > 0);
+  const bikes = recent.filter((a) => a.sportType === "bike" && a.distanceKm > 0 && a.movingTimeSec > 0);
+  const swims = recent.filter((a) => a.sportType === "swim" && a.distanceKm > 0 && a.movingTimeSec > 0);
+
+  return {
+    runPbs: extractRunPbs(runs),
+    estimatedFtp: estimateFtpFromActivities(bikes),
+    hrProfile: estimateHrProfileFromActivities([...runs, ...bikes]),
+    weeklyVolume: estimateWeeklyVolume(veryRecent),
+    swimCss: estimateSwimCss(swims),
+    trainingLoad: estimateTrainingLoad(veryRecent),
+    activityCounts: {
+      total: recent.length,
+      runs: runs.length,
+      bikes: bikes.length,
+      swims: swims.length,
+      recent90d: veryRecent.length,
+    },
+  };
+}
+
+function extractRunPbs(runs) {
+  if (!runs.length) return [];
+  // Distance buckets: 5k, 10k, half marathon, marathon
+  const buckets = [
+    { label: "5k", minKm: 4.8, maxKm: 5.5, key: "5k" },
+    { label: "10k", minKm: 9.5, maxKm: 10.8, key: "10k" },
+    { label: "half", minKm: 20.5, maxKm: 22.0, key: "half" },
+    { label: "marathon", minKm: 41.5, maxKm: 43.5, key: "marathon" },
+  ];
+  const pbs = [];
+  for (const bucket of buckets) {
+    const matching = runs.filter((r) => r.distanceKm >= bucket.minKm && r.distanceKm <= bucket.maxKm);
+    if (!matching.length) continue;
+    const best = matching.reduce((a, b) => (a.movingTimeSec < b.movingTimeSec ? a : b));
+    pbs.push({
+      discipline: "running",
+      distance: bucket.key,
+      timeSec: best.movingTimeSec,
+      timeFormatted: formatDuration(best.movingTimeSec),
+      date: best.createdAt,
+      paceSecPerKm: best.paceSecPerKm,
+      source: best.source || "strava",
+    });
+  }
+  return pbs;
+}
+
+function estimateFtpFromActivities(bikes) {
+  if (!bikes.length) return null;
+  // Look for rides with power data
+  const withPower = bikes.filter((b) => b.weightedAvgWatts > 0 || b.avgWatts > 0);
+  if (!withPower.length) return null;
+
+  // Best approach: weighted_average_watts from hard efforts (20+ min, high intensity)
+  const hardEfforts = withPower.filter((b) => b.movingTimeSec >= 1200 && (b.weightedAvgWatts || b.avgWatts) > 100);
+  if (!hardEfforts.length) {
+    // Fallback: best normalized power from any ride
+    const best = withPower.reduce((a, b) => ((b.weightedAvgWatts || b.avgWatts) > (a.weightedAvgWatts || a.avgWatts) ? b : a));
+    return { ftp: Math.round((best.weightedAvgWatts || best.avgWatts) * 0.85), confidence: "low", source: "strava_avg" };
+  }
+
+  // Find efforts closest to 20-60 min (most FTP-relevant)
+  const ftpRelevant = hardEfforts
+    .filter((b) => b.movingTimeSec >= 1200 && b.movingTimeSec <= 7200)
+    .sort((a, b) => (b.weightedAvgWatts || b.avgWatts) - (a.weightedAvgWatts || a.avgWatts));
+
+  if (ftpRelevant.length) {
+    const top = ftpRelevant[0];
+    const np = top.weightedAvgWatts || top.avgWatts;
+    // Duration-based correction: 20 min → 0.95, 40 min → 0.98, 60 min → 1.0
+    const durMin = top.movingTimeSec / 60;
+    const factor = durMin <= 20 ? 0.95 : durMin <= 40 ? 0.97 : durMin <= 60 ? 0.99 : 1.0;
+    return { ftp: Math.round(np * factor), confidence: withPower.length >= 10 ? "medium" : "low", source: "strava_np" };
+  }
+
+  const best = hardEfforts.reduce((a, b) => ((b.weightedAvgWatts || b.avgWatts) > (a.weightedAvgWatts || a.avgWatts) ? b : a));
+  return { ftp: Math.round((best.weightedAvgWatts || best.avgWatts) * 0.90), confidence: "low", source: "strava_hard" };
+}
+
+function estimateHrProfileFromActivities(activities) {
+  if (!activities.length) return null;
+  const withHr = activities.filter((a) => a.maxHeartrate > 0 && a.avgHeartrate > 0);
+  if (!withHr.length) return null;
+
+  // Max HR: highest observed across all activities
+  const maxHr = Math.max(...withHr.map((a) => a.maxHeartrate));
+
+  // Threshold HR estimate: average HR during hard efforts (top 20% by avg HR)
+  const sorted = [...withHr].sort((a, b) => b.avgHeartrate - a.avgHeartrate);
+  const top20pct = sorted.slice(0, Math.max(3, Math.ceil(sorted.length * 0.2)));
+  const thresholdHrEstimate = Math.round(top20pct.reduce((sum, a) => sum + a.avgHeartrate, 0) / top20pct.length);
+
+  // Resting HR proxy: lowest avg HR from easy/recovery activities
+  const bottom20pct = sorted.slice(-Math.max(3, Math.ceil(sorted.length * 0.2)));
+  const restingHrProxy = Math.round(bottom20pct.reduce((sum, a) => sum + a.avgHeartrate, 0) / bottom20pct.length);
+
+  return {
+    maxHr,
+    estimatedThresholdHr: thresholdHrEstimate,
+    restingHrProxy,
+    confidence: withHr.length >= 20 ? "medium" : "low",
+    sampleSize: withHr.length,
+  };
+}
+
+function estimateWeeklyVolume(recentActivities) {
+  if (!recentActivities.length) return null;
+  const now = Date.now();
+  const msPerWeek = 7 * 86400000;
+  // Group by week
+  const weeks = new Map();
+  for (const a of recentActivities) {
+    const d = new Date(a.createdAt || 0).getTime();
+    const weekNum = Math.floor((now - d) / msPerWeek);
+    if (!weeks.has(weekNum)) weeks.set(weekNum, { km: 0, hours: 0, sessions: 0 });
+    const w = weeks.get(weekNum);
+    w.km += a.distanceKm || 0;
+    w.hours += (a.movingTimeSec || 0) / 3600;
+    w.sessions += 1;
+  }
+  const weekData = [...weeks.values()];
+  if (!weekData.length) return null;
+  const avgKm = weekData.reduce((s, w) => s + w.km, 0) / weekData.length;
+  const avgHours = weekData.reduce((s, w) => s + w.hours, 0) / weekData.length;
+  const avgSessions = weekData.reduce((s, w) => s + w.sessions, 0) / weekData.length;
+  return {
+    avgWeeklyKm: Math.round(avgKm * 10) / 10,
+    avgWeeklyHours: Math.round(avgHours * 10) / 10,
+    avgWeeklySessions: Math.round(avgSessions * 10) / 10,
+    weeksAnalyzed: weekData.length,
+  };
+}
+
+function estimateSwimCss(swims) {
+  if (swims.length < 3) return null;
+  // CSS approximation: average pace of moderate-distance swims (400m-2000m)
+  const moderate = swims.filter((s) => s.distanceKm >= 0.4 && s.distanceKm <= 2.0 && s.paceSecPerKm);
+  if (moderate.length < 2) return null;
+  // Sort by pace, take top 30% as CSS estimate
+  const sorted = [...moderate].sort((a, b) => a.paceSecPerKm - b.paceSecPerKm);
+  const top30 = sorted.slice(0, Math.max(2, Math.ceil(sorted.length * 0.3)));
+  const avgPacePerKm = top30.reduce((s, a) => s + a.paceSecPerKm, 0) / top30.length;
+  // Convert to pace per 100m
+  const cssPer100m = avgPacePerKm / 10;
+  const min = Math.floor(cssPer100m / 60);
+  const sec = Math.round(cssPer100m % 60);
+  return { cssPer100m, formatted: `${min}:${String(sec).padStart(2, "0")}`, confidence: moderate.length >= 5 ? "medium" : "low" };
+}
+
+function estimateTrainingLoad(recentActivities) {
+  if (!recentActivities.length) return null;
+  const now = Date.now();
+  const msPerDay = 86400000;
+  // TRIMP-like estimation: duration × HR intensity
+  let totalLoad7d = 0, totalLoad28d = 0, totalLoad90d = 0;
+  for (const a of recentActivities) {
+    const d = new Date(a.createdAt || 0).getTime();
+    const daysAgo = (now - d) / msPerDay;
+    const durationH = (a.movingTimeSec || 0) / 3600;
+    // Simple load proxy: duration × (avgHR/150)^1.5 or duration × 1.0 if no HR
+    const hrFactor = a.avgHeartrate ? Math.pow(a.avgHeartrate / 150, 1.5) : 1.0;
+    const load = durationH * hrFactor * 100;
+    if (daysAgo <= 7) totalLoad7d += load;
+    if (daysAgo <= 28) totalLoad28d += load;
+    if (daysAgo <= 90) totalLoad90d += load;
+  }
+  const acuteLoad = totalLoad7d;
+  const chronicLoad = totalLoad28d / 4;
+  const acwr = chronicLoad > 0 ? Math.round((acuteLoad / chronicLoad) * 100) / 100 : null;
+  return {
+    acuteLoad7d: Math.round(totalLoad7d),
+    chronicLoad28d: Math.round(chronicLoad),
+    acwr, // Acute:Chronic Workload Ratio (sweet spot: 0.8-1.3)
+    load90d: Math.round(totalLoad90d),
+  };
+}
+
+function formatDuration(totalSec) {
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = Math.round(totalSec % 60);
+  if (h > 0) return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
+
+/**
+ * Enrich a profile with insights from imported activity data.
+ * Called before plan generation to auto-fill missing values.
+ */
+function enrichProfileFromActivityData(profile) {
+  const account = getCurrentAccount?.() || null;
+  const activities = account?.activities;
+  if (!Array.isArray(activities) || !activities.length) return profile;
+
+  const analysis = analyzeActivityHistory(activities);
+  if (!analysis) return profile;
+
+  // Store analysis on profile for reference
+  profile._activityAnalysis = analysis;
+
+  // Auto-fill PBs if user hasn't entered any
+  if ((!profile.recentPbRows || !profile.recentPbRows.length) && analysis.runPbs.length) {
+    profile.recentPbRows = analysis.runPbs.slice(0, 2).map((pb) => ({
+      discipline: pb.discipline,
+      distance: pb.distance,
+      time: pb.timeFormatted,
+    }));
+    profile.recentPbs = profile.recentPbRows.map((r) => `${r.discipline} ${r.distance} ${r.time}`).join(", ");
+  }
+
+  // Auto-fill FTP if not manually set
+  if (!profile.bikeFtp && analysis.estimatedFtp) {
+    profile.bikeFtp = analysis.estimatedFtp.ftp;
+    profile._bikeFtpSource = analysis.estimatedFtp.source;
+  }
+
+  // Auto-fill threshold HR if not manually set
+  if (!profile.runThresholdHr && analysis.hrProfile) {
+    profile.runThresholdHr = analysis.hrProfile.estimatedThresholdHr;
+    profile._runThresholdHrSource = "strava_activity_analysis";
+  }
+  if (!profile.bikeThresholdHr && analysis.hrProfile) {
+    // Bike threshold HR is typically ~5 bpm lower than run
+    profile.bikeThresholdHr = Math.max(120, analysis.hrProfile.estimatedThresholdHr - 5);
+    profile._bikeThresholdHrSource = "strava_activity_analysis";
+  }
+
+  // Auto-fill swim CSS for triathlon
+  if (!profile.swimCss && analysis.swimCss) {
+    profile.swimCss = analysis.swimCss.formatted;
+    profile._swimCssSource = "strava_swim_analysis";
+  }
+
+  // Inform weekly volume estimation
+  if (analysis.weeklyVolume) {
+    profile._observedWeeklyHours = analysis.weeklyVolume.avgWeeklyHours;
+    profile._observedWeeklyKm = analysis.weeklyVolume.avgWeeklyKm;
+    profile._observedWeeklySessions = analysis.weeklyVolume.avgWeeklySessions;
+  }
+
+  // Inform training load for guardrails
+  if (analysis.trainingLoad) {
+    profile._acuteLoad = analysis.trainingLoad.acuteLoad7d;
+    profile._chronicLoad = analysis.trainingLoad.chronicLoad28d;
+    profile._acwr = analysis.trainingLoad.acwr;
+  }
+
+  return profile;
 }
 
 function renderStravaProfileStatus(account) {
@@ -4717,6 +5097,371 @@ function defaultGoalTimeFor(discipline, goalDistance) {
   };
   return map[discipline]?.[goalDistance] || "02:59:00";
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   VDOT PACE CALCULATOR & TRAINING ZONE SYSTEM
+   Based on Jack Daniels' Running Formula & modern training science.
+   Provides: VDOT estimation, 5 training pace zones, HR zones, power zones,
+   nutrition guidance, and polarized distribution tracking.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+// VDOT reference table: [vdot, 5kSec, 10kSec, halfSec, marathonSec, easyMinPace, easyMaxPace, marathonPace, thresholdPace, intervalPace, repPace]
+// Paces in seconds per km
+const VDOT_TABLE = [
+  [30, 1620, 3360, 7500, 15720, 471, 432, 400, 368, 333, 308],
+  [32, 1512, 3138, 7020, 14760, 442, 406, 375, 346, 313, 290],
+  [34, 1416, 2940, 6576, 13860, 416, 382, 353, 326, 296, 274],
+  [36, 1332, 2766, 6180, 13020, 393, 361, 333, 308, 280, 259],
+  [38, 1254, 2604, 5820, 12240, 372, 342, 316, 292, 266, 246],
+  [40, 1182, 2460, 5490, 11520, 353, 325, 300, 277, 253, 234],
+  [42, 1116, 2322, 5190, 10860, 336, 309, 286, 264, 241, 223],
+  [44, 1056, 2196, 4920, 10260, 320, 294, 273, 252, 230, 213],
+  [46, 1002, 2082, 4668, 9720, 306, 281, 261, 241, 220, 204],
+  [48, 948, 1974, 4440, 9240, 292, 269, 250, 231, 211, 196],
+  [50, 900, 1872, 4230, 8760, 280, 258, 240, 222, 203, 188],
+  [52, 858, 1782, 4032, 8340, 269, 248, 231, 213, 195, 181],
+  [54, 816, 1698, 3852, 7980, 258, 238, 222, 205, 188, 174],
+  [56, 780, 1620, 3684, 7620, 248, 229, 214, 198, 181, 168],
+  [58, 744, 1548, 3528, 7320, 239, 221, 206, 191, 175, 162],
+  [60, 714, 1482, 3384, 7020, 231, 213, 199, 185, 169, 157],
+  [62, 684, 1422, 3252, 6780, 223, 206, 193, 179, 164, 152],
+  [64, 654, 1362, 3126, 6540, 215, 199, 187, 173, 159, 147],
+  [66, 630, 1308, 3012, 6336, 208, 193, 181, 168, 154, 143],
+  [68, 606, 1260, 2904, 6120, 202, 187, 176, 163, 150, 139],
+  [70, 582, 1212, 2808, 5940, 196, 182, 171, 159, 146, 135],
+  [72, 564, 1170, 2712, 5760, 190, 177, 166, 154, 142, 132],
+  [75, 534, 1110, 2580, 5460, 182, 169, 159, 148, 136, 126],
+  [80, 492, 1020, 2400, 5100, 169, 158, 148, 138, 127, 118],
+  [85, 456, 948,  2232, 4800, 158, 148, 139, 130, 120, 111],
+];
+
+function vdotFromRaceTime(distanceKm, timeSec) {
+  if (!Number.isFinite(distanceKm) || !Number.isFinite(timeSec) || timeSec <= 0 || distanceKm <= 0) return null;
+  const colMap = { 5: 1, 10: 2, 21.1: 3, 42.2: 4 };
+  let col = colMap[distanceKm];
+  if (!col) {
+    // Find closest standard distance
+    const dists = [5, 10, 21.1, 42.2];
+    const closest = dists.reduce((a, b) => Math.abs(b - distanceKm) < Math.abs(a - distanceKm) ? b : a);
+    col = colMap[closest];
+    // Adjust time proportionally
+    timeSec = timeSec * (closest / distanceKm);
+  }
+  // Interpolate VDOT from table
+  for (let i = 0; i < VDOT_TABLE.length - 1; i++) {
+    const lo = VDOT_TABLE[i];
+    const hi = VDOT_TABLE[i + 1];
+    if (timeSec <= lo[col] && timeSec >= hi[col]) {
+      const frac = (lo[col] - timeSec) / Math.max(1, lo[col] - hi[col]);
+      return lo[0] + frac * (hi[0] - lo[0]);
+    }
+  }
+  // Extrapolate if outside table
+  if (timeSec > VDOT_TABLE[0][col]) return Math.max(25, VDOT_TABLE[0][0] - (timeSec - VDOT_TABLE[0][col]) / 60);
+  if (timeSec < VDOT_TABLE[VDOT_TABLE.length - 1][col]) return Math.min(90, VDOT_TABLE[VDOT_TABLE.length - 1][0] + (VDOT_TABLE[VDOT_TABLE.length - 1][col] - timeSec) / 30);
+  return 40; // safe fallback
+}
+
+function vdotFromProfile(profile) {
+  // Try to derive VDOT from PBs, goal time, or threshold pace
+  const pbs = [
+    { dist: profile?.pb1Distance, time: profile?.pb1Time },
+    { dist: profile?.pb2Distance, time: profile?.pb2Time },
+  ].filter(pb => pb.dist && pb.time);
+
+  const vdots = [];
+  for (const pb of pbs) {
+    const km = distanceKmFromGoal(pb.dist);
+    const sec = parseGoalTimeToSeconds(pb.time);
+    if (km && sec) {
+      const v = vdotFromRaceTime(km, sec);
+      if (v) vdots.push(v);
+    }
+  }
+
+  // Try goal time
+  if (profile?.goalTime && profile?.goalDistance && (profile?.discipline === "running")) {
+    const km = distanceKmFromGoal(profile.goalDistance);
+    const sec = parseGoalTimeToSeconds(profile.goalTime);
+    if (km && sec) {
+      const v = vdotFromRaceTime(km, sec);
+      if (v) vdots.push(v * 0.97); // goal is aspirational, slightly discount
+    }
+  }
+
+  // Try threshold pace
+  const thrPaceSec = profile?.runThresholdPace
+    ? (typeof profile.runThresholdPace === "number" ? profile.runThresholdPace : parsePacePerKmToSeconds(String(profile.runThresholdPace)))
+    : null;
+  if (thrPaceSec) {
+    // Threshold pace ≈ VDOT threshold column
+    for (let i = 0; i < VDOT_TABLE.length - 1; i++) {
+      const lo = VDOT_TABLE[i];
+      const hi = VDOT_TABLE[i + 1];
+      if (thrPaceSec <= lo[8] && thrPaceSec >= hi[8]) {
+        const frac = (lo[8] - thrPaceSec) / Math.max(1, lo[8] - hi[8]);
+        vdots.push(lo[0] + frac * (hi[0] - lo[0]));
+        break;
+      }
+    }
+  }
+
+  if (vdots.length) return vdots.reduce((a, b) => a + b, 0) / vdots.length;
+
+  // Fallback by level
+  return { starter: 33, intermediate: 42, advanced: 55 }[profile?.fitnessLevel] || 38;
+}
+
+function trainingPacesFromVdot(vdot) {
+  // Interpolate all training paces from VDOT table
+  const v = clamp(vdot, 25, 90);
+  let lo = VDOT_TABLE[0], hi = VDOT_TABLE[1];
+  for (let i = 0; i < VDOT_TABLE.length - 1; i++) {
+    if (v >= VDOT_TABLE[i][0] && v <= VDOT_TABLE[i + 1][0]) {
+      lo = VDOT_TABLE[i];
+      hi = VDOT_TABLE[i + 1];
+      break;
+    }
+    if (v <= VDOT_TABLE[i][0]) {
+      lo = VDOT_TABLE[Math.max(0, i - 1)];
+      hi = VDOT_TABLE[i];
+      break;
+    }
+  }
+  if (v >= VDOT_TABLE[VDOT_TABLE.length - 1][0]) {
+    lo = VDOT_TABLE[VDOT_TABLE.length - 2];
+    hi = VDOT_TABLE[VDOT_TABLE.length - 1];
+  }
+  const frac = (hi[0] === lo[0]) ? 0 : (v - lo[0]) / (hi[0] - lo[0]);
+  const lerp = (a, b) => Math.round(a + frac * (b - a));
+
+  return {
+    vdot: Math.round(v * 10) / 10,
+    easyMinPace: lerp(lo[5], hi[5]),   // slower end of easy
+    easyMaxPace: lerp(lo[6], hi[6]),   // faster end of easy
+    marathonPace: lerp(lo[7], hi[7]),
+    thresholdPace: lerp(lo[8], hi[8]),
+    intervalPace: lerp(lo[9], hi[9]),
+    repPace: lerp(lo[10], hi[10]),
+    // Derived zones
+    zone1Pace: lerp(lo[5], hi[5]),          // Recovery: slower than easy
+    zone2Pace: Math.round((lerp(lo[5], hi[5]) + lerp(lo[6], hi[6])) / 2), // Easy/Aerobic
+    zone3Pace: lerp(lo[7], hi[7]),          // Marathon/Tempo
+    zone4Pace: lerp(lo[8], hi[8]),          // Threshold
+    zone5Pace: lerp(lo[9], hi[9]),          // VO2max
+  };
+}
+
+function hrZonesFromThreshold(thresholdHr, maxHr) {
+  // 5-zone model based on %LTHR (lactate threshold heart rate)
+  // If only maxHr provided, estimate LTHR as ~85% of maxHr
+  const lthr = thresholdHr || (maxHr ? Math.round(maxHr * 0.85) : null);
+  if (!lthr) return null;
+  const hr = (pct) => Math.round(lthr * pct);
+  return {
+    zone1: { min: hr(0.65), max: hr(0.81), label: "Zone 1 – Active Recovery", pctRange: "65-81% LTHR" },
+    zone2: { min: hr(0.81), max: hr(0.89), label: "Zone 2 – Aerobic/Easy", pctRange: "81-89% LTHR" },
+    zone3: { min: hr(0.89), max: hr(0.95), label: "Zone 3 – Tempo", pctRange: "89-95% LTHR" },
+    zone4: { min: hr(0.95), max: hr(1.02), label: "Zone 4 – Threshold", pctRange: "95-102% LTHR" },
+    zone5: { min: hr(1.02), max: hr(1.10), label: "Zone 5 – VO2max+", pctRange: "102-110% LTHR" },
+    lthr,
+  };
+}
+
+function hrZonesFromAge(age) {
+  // Estimate HRmax using Tanaka formula: 208 - 0.7 * age
+  const hrMax = Math.round(208 - 0.7 * (age || 35));
+  return hrZonesFromThreshold(null, hrMax);
+}
+
+function powerZonesFromFtp(ftp) {
+  if (!ftp || !Number.isFinite(ftp)) return null;
+  const pz = (pct) => Math.round(ftp * pct);
+  return {
+    zone1: { min: 0, max: pz(0.55), label: "Zone 1 – Active Recovery", pctRange: "<55% FTP" },
+    zone2: { min: pz(0.55), max: pz(0.75), label: "Zone 2 – Endurance", pctRange: "55-75% FTP" },
+    zone3: { min: pz(0.75), max: pz(0.90), label: "Zone 3 – Tempo", pctRange: "75-90% FTP" },
+    sweetSpot: { min: pz(0.88), max: pz(0.94), label: "Sweet Spot", pctRange: "88-94% FTP" },
+    zone4: { min: pz(0.90), max: pz(1.05), label: "Zone 4 – Threshold", pctRange: "90-105% FTP" },
+    zone5: { min: pz(1.05), max: pz(1.20), label: "Zone 5 – VO2max", pctRange: "105-120% FTP" },
+    zone6: { min: pz(1.20), max: pz(1.50), label: "Zone 6 – Anaerobic", pctRange: "120-150% FTP" },
+    ftp,
+  };
+}
+
+function computeTrainingZones(profile) {
+  const vdot = vdotFromProfile(profile);
+  const paces = trainingPacesFromVdot(vdot);
+
+  // HR zones
+  const runThrHr = Number(profile?.runThresholdHr) || null;
+  const bikeThrHr = Number(profile?.bikeThresholdHr) || null;
+  const age = Number(profile?.age) || null;
+  const runHrZones = runThrHr ? hrZonesFromThreshold(runThrHr) : (age ? hrZonesFromAge(age) : null);
+  const bikeHrZones = bikeThrHr ? hrZonesFromThreshold(bikeThrHr) : runHrZones;
+
+  // Power zones
+  const ftp = Number(profile?.bikeFtp) || null;
+  const bikePowerZones = ftp ? powerZonesFromFtp(ftp) : null;
+
+  return {
+    vdot,
+    paces,
+    runHrZones,
+    bikeHrZones,
+    bikePowerZones,
+    // Convenience formatters
+    formatPace: (sec) => formatPacePerKm(sec),
+    easyRange: () => `${formatPacePerKm(paces.easyMinPace)}-${formatPacePerKm(paces.easyMaxPace)}`,
+    z2Range: () => runHrZones ? `${runHrZones.zone2.min}-${runHrZones.zone2.max} bpm` : "Zone 2 (Gesprächsfähig)",
+    thresholdRange: () => `${formatPacePerKm(paces.thresholdPace)}${runHrZones ? ` / ${runHrZones.zone4.min}-${runHrZones.zone4.max} bpm` : ""}`,
+    intervalRange: () => `${formatPacePerKm(paces.intervalPace)}${runHrZones ? ` / >${runHrZones.zone5.min} bpm` : ""}`,
+    marathonRange: () => formatPacePerKm(paces.marathonPace),
+  };
+}
+
+// Nutrition guidance by session type & duration
+function sessionNutritionPrescription(sessionType, durationMin, discipline, profile) {
+  const weight = Number(profile?.weightKg) || 70;
+  const proteinPerKg = 0.3;
+  const proteinPost = Math.round(weight * proteinPerKg);
+  const isRace = sessionType === "race";
+  const carbsPerKgDay = sessionType === "race" ? "8-10" : sessionType === "long" ? "7-10" : sessionType === "threshold" || sessionType === "quality" ? "5-7" : "3-5";
+  const hydrationNote = discipline === "cycling" ? "Trinken alle 15 min, ~750ml/h" : "400-800ml/h (individuell nach Schweißrate)";
+  const electrolyteNote = "Na+ 300-600mg/h";
+
+  if (durationMin <= 45) {
+    return {
+      before: "Leichter Snack 1-2h vorher (100-200 kcal, kohlenhydratbetont)",
+      during: "Wasser reicht",
+      after: `${proteinPost}g Protein + 40-60g Carbs innerhalb 30-60 min (Glykogen-Fenster)`,
+      carbsPerHour: 0,
+      dailyCarbs: `${carbsPerKgDay}g Carbs/kg/Tag`,
+    };
+  }
+
+  if (durationMin <= 75) {
+    return {
+      before: `${isRace ? "1-4g Carbs/kg, " : ""}200-400 kcal Mahlzeit 2-3h vorher (Reis, Brot, Banane)`,
+      during: `Wasser + ${electrolyteNote}${isRace ? ", ggf. Mouth-Rinse mit Kohlenhydraten" : ""}`,
+      after: `${proteinPost}g Protein + ${Math.round(weight * 1.0)}-${Math.round(weight * 1.2)}g Carbs innerhalb 30-60 min`,
+      carbsPerHour: isRace ? 30 : 0,
+      dailyCarbs: `${carbsPerKgDay}g Carbs/kg/Tag`,
+    };
+  }
+
+  if (durationMin <= 120) {
+    return {
+      before: `400-600 kcal Mahlzeit 2.5-3h vorher (niedrig Fett/Ballaststoff)${isRace ? " + Carb-Loading 24-48h vorher: 8-10g/kg/Tag" : ""}`,
+      during: `30-60g Carbs/h (Glukose:Fruktose 2:1 für >40g/h) + ${hydrationNote} + ${electrolyteNote}`,
+      after: `${proteinPost + 5}g Protein + ${Math.round(weight * 1.0)}-${Math.round(weight * 1.5)}g Carbs innerhalb 30-60 min (4:1 Carb:Protein)`,
+      carbsPerHour: 45,
+      dailyCarbs: `${carbsPerKgDay}g Carbs/kg/Tag`,
+    };
+  }
+
+  // Long sessions >2h
+  return {
+    before: `500-800 kcal Mahlzeit 3h vorher + 200 kcal Snack 30min vorher${isRace ? ". Carb-Loading: 8-12g Carbs/kg 24-48h vorher" : ""}`,
+    during: `60-90g Carbs/h (Glukose:Fruktose 2:1, alle ~20min ~20g), ${hydrationNote}, ${electrolyteNote}`,
+    after: `${proteinPost + 10}g Protein + ${Math.round(weight * 1.2)}-${Math.round(weight * 1.5)}g Carbs in den ersten 2h, verteilt (1.0-1.5g Carbs/kg/h)`,
+    carbsPerHour: isRace ? 80 : 70,
+    dailyCarbs: `${carbsPerKgDay}g Carbs/kg/Tag`,
+    note: isRace
+      ? "Fueling-Strategie vorher im Training testen! Trainierter Darm schafft 80-90g/h."
+      : "Fueling im Training üben – nicht erst am Renntag testen!",
+  };
+}
+
+// Polarized distribution check for a week
+function weekPolarizedDistribution(weekDays) {
+  let easyMin = 0, hardMin = 0, totalMin = 0;
+  for (const day of (weekDays || [])) {
+    if (!day || day.type === "rest") continue;
+    const mins = Number(day.nominalHours || 0) * 60 || estimateSessionMinutesSimple(day);
+    totalMin += mins;
+    const t = String(day.type || "");
+    if (t === "recovery" || t === "longrun") {
+      easyMin += mins;
+    } else if (t === "threshold" || t === "quality") {
+      // For polarized: threshold/quality sessions have ~40% warm-up/cool-down that's easy
+      easyMin += mins * 0.35;
+      hardMin += mins * 0.65;
+    }
+  }
+  if (totalMin <= 0) return { easyPct: 80, hardPct: 20, balanced: true };
+  const easyPct = Math.round(easyMin / totalMin * 100);
+  const hardPct = Math.round(hardMin / totalMin * 100);
+  return {
+    easyPct,
+    hardPct,
+    balanced: easyPct >= 72 && easyPct <= 88,
+    warning: easyPct < 72 ? "Zu viel Intensität – mehr Zone 2 einbauen" : easyPct > 88 ? "Kaum Qualitätsreize – härteren Block ergänzen" : null,
+  };
+}
+
+function estimateSessionMinutesSimple(session) {
+  const dur = String(session?.duration || "");
+  const match = dur.match(/(\d+)/);
+  return match ? Number(match[1]) : 45;
+}
+
+// Format training zones as compact prescription strings for session details
+function formatRunSessionWithZones(zones, sessionType, params = {}) {
+  if (!zones?.paces) return null;
+  const p = zones.paces;
+  const hr = zones.runHrZones;
+  const fp = (sec) => formatPacePerKm(sec);
+  const hrHint = (zone) => hr ? ` (${hr[zone].min}-${hr[zone].max} bpm)` : "";
+
+  switch (sessionType) {
+    case "recovery":
+      return `Pace: ${fp(p.easyMinPace + 20)}-${fp(p.easyMinPace)}${hrHint("zone1")} • Nasenatmung möglich, Gespräch locker`;
+    case "easy":
+      return `Pace: ${fp(p.easyMinPace)}-${fp(p.easyMaxPace)}${hrHint("zone2")} • Gesprächsfähig, nicht schneller!`;
+    case "longrun":
+      return params.progressive
+        ? `Start: ${fp(p.easyMinPace)}, letztes Drittel: ${fp(p.marathonPace)}${hrHint("zone2")} → Zone 3`
+        : `Pace: ${fp(p.easyMinPace)}-${fp(p.easyMaxPace)}${hrHint("zone2")} • Gleichmäßig, Fueling üben`;
+    case "marathon":
+      return `Pace: ${fp(p.marathonPace)}${hrHint("zone3")} • Kontrolliert, rhythmisch`;
+    case "threshold":
+      return `Intervall-Pace: ${fp(p.thresholdPace)}${hrHint("zone4")} • Hart aber kontrolliert, Atmung rhythmisch`;
+    case "cruise":
+      return `Cruise: ${fp(p.thresholdPace + 5)}-${fp(p.thresholdPace)}${hrHint("zone4")} • Knapp unter Schwelle`;
+    case "interval":
+      return `Intervall-Pace: ${fp(p.intervalPace)}${hrHint("zone5")} • 95-100% VO2max, 3-5 min Blöcke`;
+    case "repetition":
+      return `Rep-Pace: ${fp(p.repPace)} • Kurz & schnell (200-400m), volle Erholung`;
+    case "strides":
+      return `Strides: ${fp(p.repPace)}-${fp(p.repPace - 10)} über 80-100m • 6-8x, nicht all-out`;
+    default:
+      return null;
+  }
+}
+
+function formatBikeSessionWithZones(zones, sessionType) {
+  if (!zones?.bikePowerZones) return null;
+  const pz = zones.bikePowerZones;
+  switch (sessionType) {
+    case "recovery":
+      return `<${pz.zone1.max}W${zones.bikeHrZones ? ` / <${zones.bikeHrZones.zone1.max} bpm` : ""} • Locker treten, hohe Kadenz`;
+    case "endurance":
+      return `${pz.zone2.min}-${pz.zone2.max}W${zones.bikeHrZones ? ` / ${zones.bikeHrZones.zone2.min}-${zones.bikeHrZones.zone2.max} bpm` : ""} • Zone 2 steady`;
+    case "sweetspot":
+      return `${pz.sweetSpot.min}-${pz.sweetSpot.max}W (88-94% FTP) • Effizient, nicht Schwelle`;
+    case "threshold":
+      return `${pz.zone4.min}-${pz.zone4.max}W (90-105% FTP)${zones.bikeHrZones ? ` / ${zones.bikeHrZones.zone4.min}-${zones.bikeHrZones.zone4.max} bpm` : ""}`;
+    case "vo2":
+      return `${pz.zone5.min}-${pz.zone5.max}W (105-120% FTP)${zones.bikeHrZones ? ` / >${zones.bikeHrZones.zone5.min} bpm` : ""} • 3-5 min Blöcke`;
+    default:
+      return null;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   END VDOT / ZONE SYSTEM
+   ═══════════════════════════════════════════════════════════════════════════ */
 
 function buildSessionInsight(session, profile) {
   const title = String(session.title || "").toLowerCase();
@@ -5320,6 +6065,7 @@ function extractProfile(data) {
     runThresholdPace: parsePacePerKmToSeconds(runThresholdPaceRaw),
     runThresholdHr: runThresholdHrRaw ? Number(runThresholdHrRaw) : null,
     runThresholdLactate: runThresholdLactateRaw ? Number(String(runThresholdLactateRaw).replace(",", ".")) : null,
+    swimCss: String(data.get("swimCss") || "").trim() || null,
     recentPbRows: pbRows,
     recentPbs: recentPbsRaw || null,
     raceEvents: parseRaceEventsJson(raceEventsRaw),
@@ -5541,9 +6287,11 @@ function buildProgressionModel(profile) {
   );
   const blockGrowth = clamp(0.03 + maturity * 0.023 + usableAmbition * 0.012 + safeAggression * 0.018 - cautionPenalty * 0.008, 0.016, 0.074);
   const waveAmplitude = clamp(0.06 + maturity * 0.033 + usableAmbition * 0.018 + safeAggression * 0.021 - cautionPenalty * 0.008, 0.045, 0.145);
-  const deloadDrop = clamp(0.2 - maturity * 0.05 + cautionPenalty * 0.04 - safeAggression * 0.032, 0.12, 0.28);
-  const taper1 = clamp(0.67 + maturity * 0.05 - usableAmbition * 0.04 - mismatchPenalty * 0.03, 0.54, 0.74);
-  const taper2 = clamp(0.46 + maturity * 0.04 - usableAmbition * 0.03 - mismatchPenalty * 0.02, 0.36, 0.58);
+  // Research: deload should reduce volume 30-50% (Issurin 2010, Bompa 2019)
+  const deloadDrop = clamp(0.35 - maturity * 0.06 + cautionPenalty * 0.05 - safeAggression * 0.04, 0.28, 0.45);
+  // Research: taper should reduce volume 40-60%, maintain intensity (Mujika & Padilla 2003)
+  const taper1 = clamp(0.58 + maturity * 0.05 - usableAmbition * 0.04 - mismatchPenalty * 0.03, 0.48, 0.68);
+  const taper2 = clamp(0.42 + maturity * 0.04 - usableAmbition * 0.03 - mismatchPenalty * 0.02, 0.32, 0.52);
   const floorMultiplier = clamp(0.36 + (profile.capacity?.tier === "low" ? 0.06 : 0), 0.34, 0.5);
   const ceilingMultiplier = clamp(1.26 + maturity * 0.42 + usableAmbition * 0.11 + safeAggression * 0.14 + disciplineBias - cautionPenalty * 0.08, 1.22, 1.9);
 
@@ -5885,10 +6633,13 @@ function runSessionTemplateCheck(days, profile) {
 }
 
 function buildPlan(profile) {
+  // Enrich profile from imported activity data (Strava/Garmin/WHOOP)
+  enrichProfileFromActivityData(profile);
   profile.weeklyHoursRecommended = recommendWeeklyHoursBand(profile);
   profile.planningWeeklyHours = effectivePlanningHours(profile);
   profile.capacity = computeAthleteCapacity(profile);
   profile.performanceAnchors = buildPerformanceAnchors(profile);
+  profile.trainingZones = computeTrainingZones(profile);
   profile.constraintHints = parseConstraintHints(profile.constraints || "");
   if ((!profile.longRunDay || profile.longRunDay === "none") && profile.constraintHints?.longSessionDay) {
     profile.longRunDay = profile.constraintHints.longSessionDay;
@@ -6344,6 +7095,17 @@ function createWeekSessions({
     });
   }
 
+  // S&C periodization guidance (research: 2-3x base → 1-2x build → 1x peak/taper)
+  const scGuidance = (() => {
+    if (isTaper) return { freq: "1x/Woche", vol: "Maintain-Modus: 2 Sets, schwere Grundübungen (Squat, Deadlift). Kein neues Volumen.", focus: "Kraft erhalten, nicht aufbauen" };
+    if (isDeload) return { freq: "1x/Woche (reduziert)", vol: "2 Sets à 3-5 Reps @ 70-80% 1RM (Squat, RDL, Step-Up). Core: 2x Plank 45s.", focus: "Reiz ohne Ermüdung" };
+    if (phase === "base") return { freq: "2-3x/Woche", vol: "3-4 Sets à 4-6 Reps @ 80-85% 1RM: Squat, Deadlift, Lunges, Step-Ups. + Plyos: 40-60 Bodenkontakte (Box Jumps, Bounds). Core: 10-15 min.", focus: "Maximalkraft + Laufökonomie aufbauen" };
+    if (phase === "build") return { freq: "2x/Woche", vol: "3 Sets à 4-6 Reps @ 80-90% 1RM: Squat, Deadlift, Bulgarian Split Squat. + 30-40 Plyos. Core: 10 min.", focus: "Kraft erhalten, Laufökonomie verbessern (2-8% Verbesserung bei trainierten Läufern)" };
+    return { freq: "1-2x/Woche", vol: "2-3 Sets à 3-5 Reps: Squat, Single-Leg Deadlift, Nordic Curls. Core: 10 min.", focus: "Verletzungsprävention + Kraft erhalten" };
+  })();
+
+  const z = profile.trainingZones || computeTrainingZones(profile);
+  const fp = (sec) => formatPacePerKm(sec);
   const longRunKm = Math.max(12, Math.round(weekKm * (isTaper ? 0.22 : 0.3)));
   const easyKm = Math.max(6, Math.round(weekKm * 0.14));
   const recoveryKm = Math.max(5, Math.round(weekKm * 0.1));
@@ -6355,12 +7117,7 @@ function createWeekSessions({
   const raceWeek = sameWeek(currentWeekStart, raceDate);
   const isIntro = weekIndex < (profile.capacity?.introWeeks || 0);
   const beginner = profile.fitnessLevel === "starter" || profile.experience === "lt1" || profile.capacity?.tier === "low";
-  const runGoalCaps = {
-    "5k": 12,
-    "10k": 16,
-    half: 22,
-    marathon: 30,
-  };
+  const runGoalCaps = { "5k": 12, "10k": 16, half: 22, marathon: 30 };
   const longRunCap = beginner
     ? (runGoalCaps[profile.goalDistance] || 16)
     : (runGoalCaps[profile.goalDistance] ? runGoalCaps[profile.goalDistance] + 4 : 22);
@@ -6373,48 +7130,161 @@ function createWeekSessions({
   const thresholdTotalKm = clamp(Math.round(qualityKm * 1.05 * intensityScale), beginner ? 6 : 8, beginner ? 14 : 22);
   const speedTotalKm = clamp(Math.round(qualityKm * 0.95 * intensityScale), beginner ? 5 : 7, beginner ? 12 : 20);
 
+  // Pace prescriptions from VDOT zones
+  const easyPace = z.easyRange();
+  const recovPace = formatRunSessionWithZones(z, "recovery") || `${fp(z.paces.easyMinPace + 20)}-${fp(z.paces.easyMinPace)}`;
+  const thrPace = z.thresholdRange();
+  const intPace = z.intervalRange();
+  const z2Hint = z.z2Range();
+  const stridePace = formatRunSessionWithZones(z, "strides") || "";
+  const marathonPace = z.marathonRange();
+  const longRunPace = formatRunSessionWithZones(z, "longrun", { progressive: isSpecificPhase(phase) }) || "";
+
+  // Nutrition per session type
+  const recovNut = sessionNutritionPrescription("recovery", 45, "running", profile);
+  const thrNut = sessionNutritionPrescription("threshold", 70, "running", profile);
+  const longNut = sessionNutritionPrescription("long", longRunKmAdj >= 18 ? 140 : 100, "running", profile);
+  const raceEstMin = { "5k": 20, "10k": 45, half: 100, marathon: 210 }[profile.goalDistance] || 90;
+  const raceNut = sessionNutritionPrescription("race", raceEstMin, "running", profile);
+
+  // Build threshold session detail by phase
+  let thrTitle, thrDetails, thrDuration;
+  if (isIntro) {
+    thrTitle = "Controlled Tempo";
+    thrDetails = `${Math.max(6, Math.round(thresholdTotalKm * 0.85))} km gesamt: 2 km Einlaufen @ ${easyPace} + 3-4x5' kontrolliert zügig bei ${thrPace} (2-3' Trabpause @ ${easyPace}) + 1.5 km Auslaufen. Ziel: Tempo-Gewöhnung, nicht maximale Belastung.`;
+    thrDuration = "50-60 min";
+  } else if (phase === "base") {
+    thrTitle = "Cruise Intervals (Aerobic Threshold)";
+    thrDetails = `${thresholdTotalKm} km gesamt: 2 km Einlaufen @ ${easyPace} + 4-5x6' Cruise @ ${fp(z.paces.thresholdPace + 5)}-${fp(z.paces.thresholdPace)} (90-95% Schwelle, 2' Trabpause) + 2 km Auslaufen. ${z2Hint}. Physiologie: Laktatclearance verbessern, aerobe Kapazität ausbauen.`;
+    thrDuration = "65-75 min";
+  } else if (isSpecificPhase(phase)) {
+    if (doubleThreshold) {
+      thrTitle = "Double Threshold (Race-Specific)";
+      thrDetails = `${thresholdTotalKm} km gesamt: AM: 5x6' @ ${thrPace} (2' Trabpause) / PM: ${gapSignal.needRunPush ? "5-6x1 km" : "4-5x1 km"} @ ${fp(z.paces.thresholdPace - 3)}-${fp(z.paces.thresholdPace)} (90s Trabpause). Race-pace-spezifisch, kontrollierte Erschöpfung.`;
+    } else {
+      thrTitle = "Race-Specific Threshold";
+      thrDetails = `${thresholdTotalKm} km gesamt: 2 km Einlaufen @ ${easyPace} + ${gapSignal.needRunPush ? "5-6x1 km" : "4-5x1 km"} @ ${thrPace} (Intervallpause: 90s Trab @ ${easyPace}) + 2 km Auslaufen. Ziel: Wettkampfpace unter kontrollierter Ermüdung stabilisieren.`;
+    }
+    thrDuration = doubleThreshold ? "2x 55 min" : "70-80 min";
+  } else if (isDeload) {
+    thrTitle = "Easy Tempo (Deload)";
+    thrDetails = `${Math.max(6, Math.round(thresholdTotalKm * 0.8))} km gesamt: 2 km Einlaufen + 2x10' @ ${fp(z.paces.marathonPace)} (Marathon-Pace, nicht Schwelle) + 2 km Auslaufen. Deload: Reiz setzen ohne Ermüdung aufzubauen.`;
+    thrDuration = "55-65 min";
+  } else {
+    thrTitle = qualityLabel;
+    const shortDist = profile.goalDistance === "5k" || profile.goalDistance === "10k";
+    if (shortDist) {
+      thrDetails = `${thresholdTotalKm} km gesamt: 2 km Einlaufen @ ${easyPace} + 3x2 km @ ${thrPace} (2' Trabpause) + 2 km Auslaufen. Sauber negative splitten. Physiologie: Laktattoleranz, VO2-Nutzung.`;
+    } else {
+      thrDetails = `${thresholdTotalKm} km gesamt: 2 km Einlaufen @ ${easyPace} + 2x20' @ ${fp(z.paces.thresholdPace + 3)}-${fp(z.paces.thresholdPace)} (3' Trabpause) + 2 km Auslaufen. Physiologie: Laktatclearance, Schwellenstabilität.`;
+    }
+    thrDuration = runFocus.thresholdShare >= 0.47 ? "75 min" : "65-75 min";
+  }
+
+  // Build VO2/Speed session detail by phase
+  let speedTitle, speedDetails, speedDuration;
+  if (isIntro) {
+    speedTitle = "Technique + Strides";
+    speedDetails = `${Math.max(5, Math.round(speedTotalKm * 0.8))} km gesamt: 2 km Einlaufen @ ${easyPace} + Lauf-ABC (15 min) + 6-8x80m Strides @ ${fp(z.paces.repPace)} (Walk-back Recovery). ${stridePace}. Physiologie: Neuromuskuläre Aktivierung, Laufökonomie.`;
+    speedDuration = "40-50 min";
+  } else if (phase === "base") {
+    speedTitle = "Neuromuscular + Hills";
+    speedDetails = `${speedTotalKm} km gesamt: 2 km Einlaufen @ ${easyPace} + 6-8x30s Hügel-Sprints (90% Effort, Trab-Erholung bergab) + 6x100m Strides @ ${fp(z.paces.repPace)} (Walk Recovery) + 2 km Auslaufen. Physiologie: Muskelrekrutierung, Laufökonomie. Kein volles VO2-Set in Base-Phase.`;
+    speedDuration = "55-65 min";
+  } else if (isDeload) {
+    speedTitle = "Easy Fartlek (Deload)";
+    speedDetails = `${Math.max(6, Math.round(speedTotalKm * 0.85))} km gesamt: 2 km Einlaufen + 20' Fartlek (1' zügig @ ${fp(z.paces.marathonPace)} / 2' easy @ ${easyPace}) + 4x100m Strides + Auslaufen. Deload: Reize setzen, keine tiefe Ermüdung.`;
+    speedDuration = "50 min";
+  } else if (isSpecificPhase(phase)) {
+    const shortDist = profile.goalDistance === "5k" || profile.goalDistance === "10k";
+    if (shortDist) {
+      speedTitle = "VO2max Intervals (Race-Specific)";
+      speedDetails = `${speedTotalKm} km gesamt: 2 km Einlaufen @ ${easyPace} + ${runFocus.speedShare >= 0.3 ? "6x1000m" : "5x1000m"} @ ${intPace} (3' Trabpause @ ${easyPace}) + 4x200m @ ${fp(z.paces.repPace)} (Walk Recovery) + 2 km Auslaufen. Physiologie: VO2max-Nutzung maximieren, Pace unter Ermüdung halten.`;
+    } else {
+      speedTitle = "VO2max + Race Tempo";
+      speedDetails = `${speedTotalKm} km gesamt: 2 km Einlaufen @ ${easyPace} + ${runFocus.speedShare >= 0.3 ? "5x4'" : "4x4'"} @ ${intPace} (3' Trabpause) + 10' kontrolliert @ ${marathonPace} (Race-Feel) + 2 km Auslaufen. Physiologie: VO2max-Decke heben + Tempo-Gefühl unter Vorermüdung.`;
+    }
+    speedDuration = runFocus.speedShare >= 0.3 ? "70-80 min" : "60-70 min";
+  } else {
+    speedTitle = "VO2max Intervals";
+    const reps = runFocus.speedShare >= 0.3 ? "5-6x3'" : "4-5x3'";
+    speedDetails = `${speedTotalKm} km gesamt: 2 km Einlaufen @ ${easyPace} + ${reps} @ ${intPace} (Equal Trabpause) + 6x100m Strides @ ${fp(z.paces.repPace)} + 2 km Auslaufen. Physiologie: VO2max stimulieren, 95-100% VO2max-Intensität. Pausen nicht zu kurz!`;
+    speedDuration = runFocus.speedShare >= 0.3 ? "65-75 min" : "55-65 min";
+  }
+
+  // Build long run detail
+  let longTitle, longDetails, longDuration;
+  const longDurMin = isIntro ? (30 + Math.round(longRunKmAdj * 5)) : (50 + Math.round(longRunKmAdj * 5));
+  const longNutHint = longDurMin >= 75 ? ` | Fueling: ${longNut.during}` : "";
+  if (isIntro) {
+    longTitle = "Long Easy Run";
+    const km = Math.max(6, Math.round(longRunKmAdj * 0.7));
+    longDetails = `${km} km gleichmäßig @ ${easyPace}. ${z2Hint}. Ziel: aerobe Basis, nicht schnell. Nasenatmung möglich halten.${longNutHint}`;
+    longDuration = `${Math.max(40, Math.round(km * 6))}-${Math.round(km * 7.5)} min`;
+  } else if (isSpecificPhase(phase) && !beginner) {
+    longTitle = "Long Run (Progressive)";
+    longDetails = `${longRunKmAdj} km: Erste 60% @ ${easyPace} (${z2Hint}), dann 25% progressiv auf ${marathonPace}, letzte 15% @ ${fp(z.paces.thresholdPace + 10)} (kontrolliert, nicht all-out). Physiologie: Fettoxidation unter progressiver Ermüdung, Glycogen-Management, mentale Härte.${longNutHint}`;
+    longDuration = `${longDurMin}-${longDurMin + 20} min`;
+  } else if (isDeload) {
+    longTitle = "Long Easy (Deload)";
+    const km = Math.max(8, Math.round(longRunKmAdj * 0.75));
+    longDetails = `${km} km ruhig @ ${easyPace}. Deload: Volumen reduziert, Tempo easy. ${z2Hint}.${longNutHint}`;
+    longDuration = `${Math.round(km * 5.5)}-${Math.round(km * 7)} min`;
+  } else {
+    longTitle = "Long Run";
+    if (beginner) {
+      longDetails = `${longRunKmAdj} km gleichmäßig-locker @ ${easyPace}. ${z2Hint}. Nicht schneller werden! Fueling/Hydration üben.${longNutHint}`;
+    } else if (profile.goalDistance === "marathon" || profile.goalDistance === "half") {
+      longDetails = `${longRunKmAdj} km: Erste Hälfte @ ${easyPace}, zweite Hälfte progressiv auf ${marathonPace}. ${z2Hint} → Zone 3. Physiologie: Mitochondriale Dichte, Fettoxidation, Long-Run-Durability.${longNutHint}`;
+    } else {
+      longDetails = `${longRunKmAdj} km: Erste 70% @ ${easyPace}, letztes Drittel steady @ ${fp(z.paces.marathonPace + 8)}. ${z2Hint}. Physiologie: Aerobe Kapazität, Ermüdungsresistenz.${longNutHint}`;
+    }
+    longDuration = `${longDurMin}-${longDurMin + 20} min`;
+  }
+
   const days = [
-    { type: "recovery", title: "Recovery Run", details: `${recoveryKmAdj} km locker + Mobility`, duration: `${40 + Math.round(recoveryKmAdj * 4)} min` },
+    {
+      type: "recovery",
+      title: "Recovery Run",
+      details: `${recoveryKmAdj} km @ ${recovPace}. ${z2Hint}. + 10-15 min Mobility (Hüfte, Sprunggelenk, Thorax). Nicht schneller als Gesprächspace!`,
+      duration: `${35 + Math.round(recoveryKmAdj * 5)} min`,
+    },
     {
       type: "threshold",
-      title: qualityLabel,
-      details: isIntro
-        ? `${Math.max(6, Math.round(thresholdTotalKm * 0.85))} km gesamt: 2 km einlaufen + 3-4x5' kontrolliert zügig (2-3' locker) + auslaufen`
-        : phase === "base"
-          ? `${thresholdTotalKm} km gesamt: 2 km einlaufen + Cruise-Intervalle 4-5x6' steady @ Schwelle-1 (2' locker) + auslaufen`
-          : isSpecificPhase(phase)
-            ? (doubleThreshold
-                ? `${thresholdTotalKm} km gesamt: AM 5x6' / PM ${gapSignal.needRunPush ? "9x1 km" : "8x1 km"} race-nah (kontrolliert)`
-                : `${thresholdTotalKm} km gesamt: ${gapSignal.needRunPush ? "6-7x1 km" : "5-6x1 km"} @ wettkampfnaher Schwelle (lockere Pausen)`)
-            : (doubleThreshold ? `${thresholdTotalKm} km gesamt: AM 5x6' / PM 10x1 km (kontrolliert)` : `${thresholdTotalKm} km gesamt: 6x1 km @ Schwelle (lockere Pausen)`),
-      duration: doubleThreshold ? "2x 55 min" : runFocus.thresholdShare >= 0.47 ? "75 min" : "65-70 min",
+      title: thrTitle,
+      details: thrDetails,
+      duration: thrDuration,
     },
-    { type: "rest", title: "Regeneration", details: "Optional Walk / Mobility / Schlaf-Fokus", duration: "20-30 min optional" },
+    {
+      type: "rest",
+      title: "Regeneration",
+      details: `Kompletter Ruhetag oder 20-30 min Walk + Mobility + Foam Rolling. Schlaf: 7-9h priorisieren. | S&C (${scGuidance.freq}): ${scGuidance.vol} – ${scGuidance.focus}. Physiologie: Supercompensation – Anpassung findet in der Erholung statt.`,
+      duration: "Ruhetag (optional 20-30 min Walk + S&C)",
+    },
     {
       type: "quality",
-      title: "VO2 / Speed Support",
-      details: isIntro
-        ? `${Math.max(5, Math.round(speedTotalKm * 0.8))} km gesamt: Lauftechnik + 6-8 kurze Steigerungen / Walk-Run optional`
-        : phase === "base"
-          ? `${speedTotalKm} km gesamt: Strides + kurze Hills (neuromuskulär), kein volles VO2-Set`
-          : (isDeload ? `${Math.max(6, Math.round(speedTotalKm * 0.85))} km gesamt: kurze Bergläufe + Technik` : (runFocus.speedShare >= 0.3 ? `${speedTotalKm} km gesamt: ${gapSignal.needRunPush ? "14-16x400m" : "14x400m"} kontrolliert schnell (nicht all-out)` : `${speedTotalKm} km gesamt: ${gapSignal.needRunPush ? "12x400m" : "10-12x400m"} kontrolliert schnell (nicht all-out)`)),
-      duration: isIntro ? "40-50 min" : isDeload ? "50 min" : runFocus.speedShare >= 0.3 ? "65-70 min" : "55-65 min",
+      title: speedTitle,
+      details: speedDetails,
+      duration: speedDuration,
     },
-    { type: "recovery", title: "Easy Aerobic", details: `${easyKmAdj} km locker, nasal / low HR`, duration: `${40 + easyKmAdj * 4} min` },
+    {
+      type: "recovery",
+      title: "Easy Aerobic (Zone 2)",
+      details: `${easyKmAdj} km @ ${easyPace}. ${z2Hint}. Nasal breathing check: wenn du nicht durch die Nase atmen kannst, bist du zu schnell. Physiologie: Mitochondriale Biogenese, Kapillarisierung, Fettoxidation – die Basis für alles.`,
+      duration: `${35 + Math.round(easyKmAdj * 5)} min`,
+    },
     {
       type: "longrun",
-      title: "Long Run",
-      details: isIntro
-        ? `${Math.max(6, Math.round(longRunKmAdj * 0.7))} km locker (gleichmäßig, ruhig)`
-        : isSpecificPhase(phase)
-          ? `${longRunKmAdj} km progressiv (race-pace-naher Schlussblock kontrolliert)`
-          : `${longRunKmAdj} km ${beginner ? "locker-stetig" : "progressiv (letztes Drittel steady)"}`,
-      duration: isIntro ? "45-70 min" : `${70 + longRunKmAdj * 4} min`,
+      title: longTitle,
+      details: longDetails,
+      duration: longDuration,
     },
     {
       type: "recovery",
       title: "Easy + Strides",
-      details: raceWeek ? "25-40 min locker, 4-6 Strides" : "50 min locker + 6 Strides",
+      details: raceWeek
+        ? `25-40 min locker @ ${easyPace} + 4-6x80m Strides @ ${fp(z.paces.repPace)} (Walk-back). Neuromuskuläre Aktivierung vor dem Rennen.`
+        : `${Math.max(6, Math.round(easyKmAdj * 0.85))} km @ ${easyPace} + 6x100m Strides @ ${fp(z.paces.repPace)} (Walk-back). 80/20 Regel: dieser Tag ist Teil der 80% easy.`,
       duration: raceWeek ? "30-40 min" : "50 min",
     },
   ];
@@ -6424,7 +7294,7 @@ function createWeekSessions({
     days[raceDayIndex] = {
       type: "quality",
       title: "Race Day",
-      details: `${labelDistance(profile.goalDistance)} - Ziel: ${profile.goalTime}`,
+      details: `${labelDistance(profile.goalDistance)} – Ziel: ${profile.goalTime}. Race-Pace: ${marathonPace}. Vorbereitung: ${raceNut.before}. Fueling: ${raceNut.during}. Recovery danach: ${raceNut.after}. Pacing-Strategie: erste Hälfte kontrolliert, zweite Hälfte Commitment.`,
       duration: "Event",
       scheduledRace: true,
       racePriority: "A",
@@ -6435,7 +7305,7 @@ function createWeekSessions({
     days[3] = {
       type: "threshold",
       title: "Sharpener",
-      details: `${Math.max(6, Math.round(speedTotalKm * 0.8))} km gesamt: 3x8' @ Schwelle + 4x200m flott`,
+      details: `${Math.max(6, Math.round(speedTotalKm * 0.8))} km gesamt: 2 km Einlaufen @ ${easyPace} + 3x8' @ ${thrPace} (2' Trabpause) + 4x200m @ ${fp(z.paces.repPace)} (Walk Recovery). Taper: Intensität halten, Volumen reduziert.`,
       duration: "55 min",
     };
   }
@@ -6842,6 +7712,10 @@ function applyLoadGuardrailsToWeek({ weekDays, profile, prevWeekLoad, isDeload, 
   };
   const level = String(profile?.fitnessLevel || "intermediate");
   const cap = capByLevel[level] || capByLevel.intermediate;
+  // If Strava ACWR is high (>1.3), tighten ramp cap to prevent overtraining
+  const acwr = Number(profile?._acwr) || 0;
+  if (acwr > 1.3) cap.ramp = Math.min(cap.ramp, 0.06);
+  else if (acwr > 1.1) cap.ramp = Math.min(cap.ramp, 0.08);
   if (isDeload || isTaper) return;
 
   let pass = 0;
@@ -6886,29 +7760,38 @@ function createShapeWeekSessions({ profile, weekIndex, weekKm, isDeload, isTaper
   const level = profile.fitnessLevel || "starter";
   const runKm = Math.round(clamp(weekKm * 0.42, 6, 28));
   const cardioMinutes = Math.round(clamp((Number(profile.planningWeeklyHours || profile.weeklyHours) || 5) * 60 * 0.35, 60, 240));
-  const strengthDensity = level === "advanced" ? "hoch" : level === "intermediate" ? "moderat" : "kontrolliert";
   const goalType = profile.goalDistance;
   const focus = String(profile.shapeTargetFocus || "");
   const isCut = goalType === "fatloss";
   const isRecomp = goalType === "recomp";
   const isBuild = goalType === "build";
   const isGeneral = goalType === "fitness";
+  const noHighImpact = Boolean(profile?.constraintHints?.noHighImpact);
+
+  // Zone integration
+  const z = profile.trainingZones || computeTrainingZones(profile);
+  const fp = (sec) => formatPacePerKm(sec);
+  const hr = z.runHrZones;
+  const hrHint = (zone) => hr ? ` (${hr[zone].min}-${hr[zone].max} bpm)` : "";
+  const easyPace = z.easyRange();
+  const z2Hint = z.z2Range();
+
+  // Goal-specific guidance
   const goalBias =
     isCut
-      ? "mehr Zone-2 + zügige Zirkel"
+      ? "Fokus: Zone-2-Cardio + metabolisch dichte Zirkel (Fettoxidation maximieren)"
       : isBuild
-        ? "mehr Kraftblöcke + längere Satzpausen"
+        ? "Fokus: Kraft-Volumen + progressive Überlastung (Muskelaufbau)"
         : isRecomp
-          ? "Kraft + Cardio balanciert"
-          : "allgemeine Fitness / Konstanz";
+          ? "Fokus: Kraft + Cardio balanciert (Körperkomposition)"
+          : "Fokus: allgemeine Fitness, Konstanz, Wohlbefinden";
   const focusBias = focus === "strength" || focus === "performance"
-    ? "mehr Lastqualität, klare Satzstruktur"
+    ? "Priorität: Lastqualität, klare Satzstruktur, progressive Überlastung"
     : focus === "weight" || focus === "bodycomp"
-      ? "höhere dichte Arbeit bei kontrollierter Ermüdung"
+      ? "Priorität: Metabolische Dichte, kontrollierte Ermüdung, Kalorienverbrauch"
       : focus === "conditioning"
-        ? "mehr Ausdauer-/Intervallanteile"
-        : "balancierter Mix";
-  const noHighImpact = Boolean(profile?.constraintHints?.noHighImpact);
+        ? "Priorität: Ausdauer-/Intervallanteile, kardiovaskuläre Fitness"
+        : "Priorität: Balancierter Mix aus Kraft, Cardio, Beweglichkeit";
 
   const strengthMain = gymHeavy
     ? "Gym-Tag: Langhantel/DB Squat, Hinge, Row, Press, Loaded Carries"
@@ -6917,60 +7800,82 @@ function createShapeWeekSessions({ profile, weekIndex, weekKm, isDeload, isTaper
       : "Mixed: Gym-Option (DB/KB + Carries) oder Home-Option (Bodyweight + Band)";
   const metabolicTools = gymHeavy ? "Gym-Option: BikeErg/Rower/Treadmill" : "Home/Outdoor: Run, Step-ups, low-impact Cardio";
 
+  // Nutrition guidance
+  const longNut = sessionNutritionPrescription("long", 80, "running", profile);
+  const nutHint = isCut
+    ? "Ernährung: Leichtes Defizit, Protein hoch (1.6-2.2g/kg), Cardio nüchtern oder leicht."
+    : isBuild
+      ? "Ernährung: Kalorienüberschuss ~200-300 kcal, Protein 1.6-2.2g/kg, Carbs um Training."
+      : isRecomp
+        ? "Ernährung: Erhaltungskalorien, Protein hoch (1.8-2.2g/kg), Carbs um Training."
+        : "Ernährung: Ausgewogen, Protein 1.4-1.8g/kg, genug Carbs für Leistung.";
+
   const longCardioMin = isCut ? [55, 95] : isGeneral ? [45, 80] : isRecomp ? [40, 75] : [35, 65];
   const days = [
-    { type: "recovery", title: "Mobility + Easy Cardio", details: `${Math.max(20, Math.round(cardioMinutes * (isIntro || lowCap ? 0.2 : 0.25)))} min easy walk/jog/bike + Mobility`, duration: "35-55 min" },
+    {
+      type: "recovery",
+      title: "Mobility + Easy Cardio",
+      details: `${Math.max(20, Math.round(cardioMinutes * (isIntro || lowCap ? 0.2 : 0.25)))} min easy Walk/Jog/Bike @ Zone 1-2${hrHint("zone2")}. Nasenatmung möglich halten. + 15 min Mobility (Hüfte, Sprunggelenk, Schulter). Physiologie: Aktive Erholung, Durchblutung.`,
+      duration: "35-55 min",
+    },
     {
       type: "quality",
       title: "Strength Foundation",
       details: isIntro || lowCap
-        ? `${strengthMain} • 2-3 Sätze je Übung x 8-12 Wdh • Satzpause 60-90s • Technik vor Last • ${goalBias}`
-        : `${strengthMain} • 3-5 Sätze je Übung x ${isBuild ? "4-8" : "6-12"} Wdh • Satzpause ${isBuild ? "90-150s" : "60-120s"} • ${focusBias}`,
+        ? `${strengthMain} • 2-3 Sätze je Übung x 8-12 Wdh • Satzpause 60-90s • Technik vor Last. ${goalBias}. Physiologie: Neurale Adaptation, Bewegungsmuster etablieren.`
+        : `${strengthMain} • 3-5 Sätze je Übung x ${isBuild ? "4-8" : "6-12"} Wdh • Satzpause ${isBuild ? "90-150s" : "60-120s"} • ${focusBias}. Physiologie: ${isBuild ? "Mechanische Spannung → Hypertrophie-Signal" : "Metabolischer Stress + Muskelerhalt"}.`,
       duration: isIntro ? "35-50 min" : isDeload ? "45-60 min" : "55-75 min",
     },
     {
       type: "threshold",
       title: "Cardio Intervals",
       details: isIntro || lowCap
-        ? "Intervall-Einstieg: 6-10x1' zügiges Gehen / easy jog + 2' locker (low impact möglich)"
+        ? `Intervall-Einstieg: 6-10x1' zügiges Gehen/easy jog @ ${fp(z.paces.marathonPace + 15)}-${fp(z.paces.marathonPace)}${hrHint("zone3")} + 2' locker @ ${easyPace} (low impact möglich). Physiologie: Kardiovaskuläre Basis, EPOC-Effekt.`
         : isBuild
-          ? (isSpecificPhase(phase) ? "8-10x2' zügig / 2' locker (dicht, aber kontrolliert)" : "6-8x2' zügig / 2' locker (nicht maximal)")
+          ? (isSpecificPhase(phase)
+              ? `8-10x2' zügig @ ${fp(z.paces.thresholdPace + 5)}-${fp(z.paces.thresholdPace)}${hrHint("zone4")} / 2' Trab @ ${easyPace} (dicht, aber kontrolliert). ${nutHint}`
+              : `6-8x2' zügig @ ${fp(z.paces.thresholdPace + 10)}-${fp(z.paces.thresholdPace)}${hrHint("zone4")} / 2' Trab (nicht maximal). Physiologie: VO2max stimulieren, Conditioning ohne Kraft-Recovery zu stören.`)
           : isCut
-            ? "4-8x3' zügig / 2' locker + zusätzlich 15-20 min Zone 2"
-            : "4-6x4' kontrolliert hart / 2' locker (Run oder Bike)",
+            ? `4-8x3' @ ${fp(z.paces.thresholdPace + 10)}-${fp(z.paces.thresholdPace)}${hrHint("zone4")} / 2' Trab + 15-20 min Zone 2 @ ${easyPace}${hrHint("zone2")}. Physiologie: EPOC (Nachbrenneffekt) + Fettoxidation in Zone 2.`
+            : `4-6x4' @ ${fp(z.paces.thresholdPace + 8)}-${fp(z.paces.thresholdPace)}${hrHint("zone4")} / 2' Trab @ ${easyPace} (Run oder Bike). Physiologie: Schwellenanhebung, metabolische Effizienz.`,
       duration: isIntro ? "30-45 min" : isTaper ? "35-45 min" : "45-60 min",
     },
     {
       type: "quality",
-      title: isBuild ? "Strength Circuit / Hypertrophy Support" : "Functional Circuit (Home/Outdoor Friendly)",
+      title: isBuild ? "Strength Circuit / Hypertrophy Support" : "Functional Circuit",
       details: isIntro || lowCap
-        ? `2-4 Runden (low impact) • 8-12 Wdh: Chair/Box Squats, Step-ups, Incline Push-ups, Glute Bridge, Carry/March, Plank 30-45s • ${metabolicTools}`
+        ? `2-4 Runden (low impact) • 8-12 Wdh: Chair/Box Squats, Step-ups, Incline Push-ups, Glute Bridge, Carry/March, Plank 30-45s. HR-Ziel: Zone 2-3${hrHint("zone3")}. ${metabolicTools}`
         : isBuild
           ? (gymHeavy
-              ? "3-5 Runden • 6-10 Wdh: Squat/Hinge/Press/Row/Carry (Gym-Equipment erlaubt), Satzpause 90-150s"
-              : "3-5 Runden • 8-12 Wdh: Squat/Hinge/Press/Row/Carry (Home-/Bodyweight-Variante), Satzpause 60-120s")
+              ? `3-5 Runden • 6-10 Wdh: Squat/Hinge/Press/Row/Carry (Gym), Satzpause 90-150s. HR-Ziel: Zone 2-3${hrHint("zone3")}. ${focusBias}.`
+              : `3-5 Runden • 8-12 Wdh: Squat/Hinge/Press/Row/Carry (Home/BW), Satzpause 60-120s. HR-Ziel: Zone 2-3${hrHint("zone3")}. ${focusBias}.`)
           : isCut
             ? (noHighImpact
-                ? "4-7 Runden • 10-16 Wdh: Step-ups, Reverse Lunges, Push-ups, Carry + 60-90s low-impact Cardio"
-                : "4-7 Runden • 10-16 Wdh: Step-ups/Burpees/Lunges/Push-ups/Carry + 60-90s Cardio (dichte Arbeit)")
+                ? `4-7 Runden • 10-16 Wdh: Step-ups, Reverse Lunges, Push-ups, Carry + 60-90s low-impact Cardio. HR-Ziel: Zone 3-4${hrHint("zone4")} (metabolisch dicht). Physiologie: Hoher EPOC, Muskelerhalt im Defizit.`
+                : `4-7 Runden • 10-16 Wdh: Step-ups/Burpees/Lunges/Push-ups/Carry + 60-90s Cardio. HR-Ziel: Zone 3-4${hrHint("zone4")} (dichte Arbeit). Physiologie: Hoher EPOC, Muskelerhalt im Defizit.`)
             : (noHighImpact
-                ? "3-6 Runden • 8-14 Wdh: Step-ups, Lunges, Push-ups, Carry/Plank + 60-90s Bike/Walk"
-                : "3-6 Runden • 8-14 Wdh: Burpees, Squat Jumps/Step-ups, Lunges, Push-ups, Carry/Plank + 60-90s Run"),
+                ? `3-6 Runden • 8-14 Wdh: Step-ups, Lunges, Push-ups, Carry/Plank + 60-90s Bike/Walk. HR-Ziel: Zone 2-3${hrHint("zone3")}.`
+                : `3-6 Runden • 8-14 Wdh: Burpees, Squat Jumps/Step-ups, Lunges, Push-ups, Carry/Plank + 60-90s Run. HR-Ziel: Zone 3-4${hrHint("zone4")}.`),
       duration: isIntro ? "30-45 min" : isBuild ? "50-75 min" : isDeload ? "35-50 min" : "45-70 min",
     },
-    { type: "rest", title: "Recovery / Walk", details: "Schlaf, Schritte, Mobility, optional 20-30 min easy", duration: "Optional" },
+    {
+      type: "rest",
+      title: "Recovery / Walk",
+      details: `Schlaf 7-9h, 8000+ Schritte, Mobility 15 min, optional 20-30 min easy Walk/Jog. ${nutHint}`,
+      duration: "Optional",
+    },
     {
       type: "longrun",
       title: "Long Cardio / Outdoor Session",
       details: isIntro || lowCap
-        ? `${Math.max(30, Math.round(cardioMinutes * 0.35))}-${Math.max(45, Math.round(cardioMinutes * 0.5))} min steady (Walk / Walk-Run / Bike) • low impact`
-        : `${Math.max(longCardioMin[0], Math.round(cardioMinutes * 0.45))}-${Math.max(longCardioMin[1], Math.round(cardioMinutes * 0.65))} min steady (${Math.max(4, Math.round(runKm * 0.55))}-${Math.max(6, Math.round(runKm * 0.8))} km Run oder Alternative)`,
+        ? `${Math.max(30, Math.round(cardioMinutes * 0.35))}-${Math.max(45, Math.round(cardioMinutes * 0.5))} min steady @ Zone 2${hrHint("zone2")} (Walk / Walk-Run / Bike) • low impact. ${z2Hint}. Physiologie: Fettoxidation, aerobes Fundament.`
+        : `${Math.max(longCardioMin[0], Math.round(cardioMinutes * 0.45))}-${Math.max(longCardioMin[1], Math.round(cardioMinutes * 0.65))} min steady @ ${easyPace}${hrHint("zone2")} (${Math.max(4, Math.round(runKm * 0.55))}-${Math.max(6, Math.round(runKm * 0.8))} km Run oder Alternative). ${z2Hint}. ${longCardioMin[1] >= 75 ? `Fueling: ${longNut.during}.` : ""} Physiologie: Mitochondriale Dichte, Fettoxidation, mentale Ausdauer.`,
       duration: isIntro ? "40-70 min" : isCut ? "60-105 min" : isBuild ? "45-80 min" : "50-95 min",
     },
     {
       type: "recovery",
       title: "Movement + Core Reset",
-      details: "Core, Hips, Ankles, Trunk Stability + optional lockeres Cardio 20-30 min",
+      details: `Core (Anti-Extension, Anti-Rotation, Hüftstabilität) + Mobility (Hüfte, Sprunggelenk, Brustwirbelsäule). Optional: 20-30 min lockeres Cardio @ Zone 1${hrHint("zone1")}. Physiologie: Stabilität, Verletzungsprävention.`,
       duration: "25-45 min",
     },
   ];
@@ -6981,9 +7886,9 @@ function createShapeWeekSessions({ profile, weekIndex, weekKm, isDeload, isTaper
       title: isBuild ? "Heavy Strength + Power Touch" : "Power + Sprint Touch",
       details: isBuild
         ? (gymHeavy
-            ? "4-5 Sätze x 3-6 Wdh schwere Hauptlifts + 2-3 Power-Finisher x 3-5 Wdh (lange Pausen)"
-            : "4-5 Sätze x 5-8 Wdh schwere Home-Patterns + 2-3 Power-Finisher x 4-6 Wdh (kontrolliert)")
-        : "6-10 Kurzsprints/Hill Sprints + 3-4 Sätze explosive Bodyweight/DB-Patterns x 4-8 Wdh",
+            ? `4-5 Sätze x 3-6 Wdh schwere Hauptlifts (RPE 8-9) + 2-3 Power-Finisher x 3-5 Wdh (lange Pausen 2-3 min). Physiologie: Maximalkraft → neurale Adaptation + mechanische Spannung.`
+            : `4-5 Sätze x 5-8 Wdh schwere Home-Patterns (RPE 8-9) + 2-3 Power-Finisher x 4-6 Wdh (kontrolliert). Physiologie: Kraft-Stimulus trotz begrenztem Equipment.`)
+        : `6-10 Kurzsprints/Hill Sprints (8-15s, volle Erholung 60-90s) + 3-4 Sätze explosive BW/DB-Patterns x 4-8 Wdh. Physiologie: Schnellkraft, neurale Aktivierung, Sprintökonomie.`,
       duration: isBuild ? "55-75 min" : "40-55 min",
     };
   }
@@ -6993,7 +7898,7 @@ function createShapeWeekSessions({ profile, weekIndex, weekKm, isDeload, isTaper
     days[idx] = {
       type: "quality",
       title: "Check-in / Progress Day",
-      details: `${labelDistance(profile.goalDistance)} • Zielwert: ${profile.goalTime || (profile.targetWeightKg ? `${profile.targetWeightKg} kg` : "n/a")}`,
+      details: `${labelDistance(profile.goalDistance)} • Zielwert: ${profile.goalTime || (profile.targetWeightKg ? `${profile.targetWeightKg} kg` : "n/a")}. Assessment: Kraft-Tests, Umfänge, Fotos, subjektives Befinden.`,
       duration: "Assessment",
     };
   }
@@ -7019,57 +7924,96 @@ function createHyroxWeekSessions({ profile, weekIndex, weekKm, isDeload, isTaper
   const isRelay = profile.goalDistance === "relay";
   const stationVolume = lowCap ? "leicht / technisch" : isProSpec ? "hoch / schwerer" : isRelay ? "moderat / schneller" : "solide";
   const simulationRounds = isIntro || lowCap ? "3-4" : isRelay ? "4-5" : isProSpec ? "6-8" : "5-7";
+
+  // Zone integration
+  const z = profile.trainingZones || computeTrainingZones(profile);
+  const fp = (sec) => formatPacePerKm(sec);
+  const hr = z.runHrZones;
+  const hrHint = (zone) => hr ? ` (${hr[zone].min}-${hr[zone].max} bpm)` : "";
+  const easyPace = z.easyRange();
+  const thrPace = z.thresholdRange();
+  const intPace = z.intervalRange();
+  const z2Hint = z.z2Range();
+
+  // Nutrition
+  const longNut = sessionNutritionPrescription("long", longRunKm >= 16 ? 110 : 80, "running", profile);
+  const thrNut = sessionNutritionPrescription("threshold", 70, "running", profile);
+
   const thresholdReps = isIntro || lowCap
-    ? "6-10x1' zügig + 2' locker"
+    ? `6-10x1' zügig @ ${fp(z.paces.marathonPace)}-${fp(z.paces.thresholdPace + 10)} + 2' Trab @ ${easyPace}`
     : isTaper
-      ? "4x800 m"
+      ? `4x800 m @ ${thrPace}`
       : isSpecificPhase(phase)
-        ? (isProSpec ? "5-6x1 km race-nah" : "4-5x1 km race-nah")
-        : (isProSpec ? "5-6x1 km" : "4-5x1 km");
+        ? (isProSpec ? `5-6x1 km @ ${thrPace} (90s Trab)` : `4-5x1 km @ ${thrPace} (90s Trab)`)
+        : (isProSpec ? `5-6x1 km @ ${fp(z.paces.thresholdPace + 5)}-${fp(z.paces.thresholdPace)}` : `4-5x1 km @ ${fp(z.paces.thresholdPace + 5)}-${fp(z.paces.thresholdPace)}`);
   const stationAlt = mostlyHome
-    ? "Home-Alternativen: Sled Push/Pull -> Uphill Push/Drag oder Step-ups + Band-Drags; Ski/Row -> Run/Jump-Rope + Band-Pulls; Wall Balls -> Thrusters/Air Squats"
+    ? "Home-Alternativen: Sled Push/Pull → Uphill Push/Drag oder Step-ups + Band-Drags; Ski/Row → Run/Jump-Rope + Band-Pulls; Wall Balls → Thrusters/Air Squats"
     : gymHeavy
       ? "Gym/Box-Option: SkiErg/Rower/Sled/Wall-Ball voll nutzbar; alternativ Run + Carry/Thruster"
       : "Mixed-Option: Sled/Ski/Row optional, sonst Run/Bike + Carries + Thrusters";
 
   const days = [
-    { type: "recovery", title: "Easy Run + Mobility", details: `${easyKm} km locker + Mobility + Fuß/Ankle Prep`, duration: "45-65 min" },
+    {
+      type: "recovery",
+      title: "Easy Run + Mobility",
+      details: `${easyKm} km locker @ ${easyPace}${hrHint("zone2")}. Kadenz 170-180 SPM, Nasenatmung möglich halten. Danach: 15 min Mobility (Hüfte, Sprunggelenk, T-Spine). Physiologie: Aktive Erholung, Durchblutung fördern ohne Ermüdung.`,
+      duration: "45-65 min",
+    },
     {
       type: "threshold",
-      title: "Run Threshold",
+      title: "Run Threshold (HYROX-Pacing)",
       details: isIntro || lowCap
-        ? `${Math.max(4, Math.round(thresholdKm * 0.8))} km gesamt: ${thresholdReps} (low impact möglich) + Technikfokus`
-        : `${thresholdKm} km gesamt: ${thresholdReps} @ kontrollierter Schwelle (HYROX-Run-Pacing) + 4-6 kurze Strides`,
+        ? `${Math.max(4, Math.round(thresholdKm * 0.8))} km gesamt: 1.5 km Einlaufen @ ${easyPace} + ${thresholdReps} + Technikfokus (Armarbeit, Fußaufsatz). Physiologie: Neuromuskuläre Gewöhnung an höheres Tempo.`
+        : `${thresholdKm} km gesamt: 2 km Einlaufen @ ${easyPace} + ${thresholdReps}${hrHint("zone4")} + 4-6x80m Strides @ ${fp(z.paces.repPace)} + 1.5 km Auslaufen. HYROX-Run-Pacing: 1 km-Splits gleichmäßig halten! Physiologie: Laktatclearance, Schwellenstabilität unter HYROX-typischer Vorermüdung. ${thrNut.during ? `Fueling: ${thrNut.during}` : ""}`,
       duration: isIntro ? "40-55 min" : isDeload ? "55 min" : "65-75 min",
     },
     {
       type: "quality",
-      title: "HYROX Strength-Endurance (No-Box Friendly)",
+      title: "HYROX Strength-Endurance",
       details: lowCap || isIntro
-        ? `3-4 Sätze • 10-12 Step-ups je Seite • 12 Reverse Lunges je Seite • 150-200 m Carry • 10 Thruster • Core 30-45s. ${stationAlt}`
-        : `${isProSpec ? "6-8" : "5-7"} Sätze • ${noHighImpact ? "12-16 Step-ups je Seite" : "10-14 Burpee Broad Jumps"} • 20 Walking Lunges je Seite • 200-300 m Farmers Carry • 12-16 Squat/Thruster • Core 45-60s (${stationVolume})${hyroxFocus.transitionPriority ? " • +20-30s Transition-Drills pro Satz" : ""}. ${stationAlt}`,
+        ? `3-4 Sätze • 10-12 Step-ups je Seite • 12 Reverse Lunges je Seite • 150-200 m Carry • 10 Thruster • Core 30-45s. HR-Ziel: Zone 3${hrHint("zone3")} (kontrolliert erhöht). ${stationAlt}`
+        : `${isProSpec ? "6-8" : "5-7"} Sätze • ${noHighImpact ? "12-16 Step-ups je Seite" : "10-14 Burpee Broad Jumps"} • 20 Walking Lunges je Seite • 200-300 m Farmers Carry • 12-16 Squat/Thruster • Core 45-60s (${stationVolume})${hyroxFocus.transitionPriority ? " • +20-30s Transition-Drills pro Satz" : ""}. HR-Ziel: Zone 3-4${hrHint("zone4")} (Race-Simulation). Physiologie: Periphere Muskelausdauer, Kraft unter metabolischer Last. ${stationAlt}`,
       duration: isIntro ? "35-55 min" : isDeload ? "45-60 min" : "60-80 min",
     },
-    { type: "recovery", title: "Aerobic Run", details: `${Math.round(clamp(runKm * 0.2, 4, 14))} km low HR + optional Carries/Step-ups 10-15 min`, duration: "40-65 min" },
+    {
+      type: "recovery",
+      title: "Aerobic Run",
+      details: `${Math.round(clamp(runKm * 0.2, 4, 14))} km @ ${easyPace}${hrHint("zone2")}. ${z2Hint}. Optional: 10-15 min Carries/Step-ups danach (leicht). Physiologie: Mitochondriale Biogenese, Fettoxidation – das aerobe Fundament für HYROX-Durchhaltevermögen.`,
+      duration: "40-65 min",
+    },
     {
       type: "quality",
-      title: "HYROX Compromised Intervals",
+      title: "HYROX Compromised Running",
       details: isIntro || lowCap
-        ? `${Math.max(4, Math.round(runKm * 0.25))} km Run-Anteil • 3-4 Sätze: 400-600 m Walk-Run + 1 Station (Step-ups/Carry/Lunges) • 90s easy`
+        ? `${Math.max(4, Math.round(runKm * 0.25))} km Run-Anteil • 3-4 Sätze: 400-600 m Walk-Run @ ${fp(z.paces.marathonPace + 10)} + 1 Station (Step-ups/Carry/Lunges) • 90s easy @ ${easyPace}. Physiologie: Laufen unter Vorermüdung trainieren (das HYROX-Prinzip).`
         : isTaper
-        ? `${Math.max(4, Math.round(runKm * 0.22))} km Run-Anteil • 3-4 Sätze: 800 m Run (race-pace-nah) + 1 leichte Station • 90s easy`
-        : `${Math.max(5, Math.round(runKm * 0.3))} km Run-Anteil • ${simulationRounds} Sätze: 800-1000 m Run + 1 Station im Wechsel (Race-Pacing, kontrolliert)${hyroxFocus.transitionPriority ? " • feste Transitionsplits pro Satz" : ""} • 90s easy. ${stationAlt}`,
+        ? `${Math.max(4, Math.round(runKm * 0.22))} km Run-Anteil • 3-4 Sätze: 800 m @ ${fp(z.paces.thresholdPace + 5)} (race-pace-nah) + 1 leichte Station • 90s easy. Taper: Schärfe behalten, kein Volumen.`
+        : `${Math.max(5, Math.round(runKm * 0.3))} km Run-Anteil • ${simulationRounds} Sätze: 800-1000 m Run @ ${fp(z.paces.thresholdPace + 8)}-${fp(z.paces.thresholdPace)}${hrHint("zone4")} + 1 Station im Wechsel (Race-Pacing)${hyroxFocus.transitionPriority ? " • feste Transitionsplits pro Satz" : ""} • 90s easy. Physiologie: Compromised Running = Laufen mit vorermüdeten Beinen. Laktattoleranz, mentale Härte. ${stationAlt}`,
       duration: isIntro ? "35-55 min" : isTaper ? "45-60 min" : "70-95 min",
     },
-    { type: "longrun", title: "Long Run / Aerobic Durability", details: lowCap || isIntro ? `${Math.max(6, Math.round(longRunKm * 0.7))} km ruhig / Walk-Run möglich` : `${longRunKm} km steady (ruhig, ökonomisch) + optional 6x20s Strides`, duration: isIntro ? "45-80 min" : "60-110 min" },
-    { type: "rest", title: "Recovery / Mobility / Tissue Work", details: "Walk, Mobility, Core, leichte Activation. Optional 20-30 min easy spin/jog.", duration: "Optional" },
+    {
+      type: "longrun",
+      title: "Long Run / Aerobic Durability",
+      details: lowCap || isIntro
+        ? `${Math.max(6, Math.round(longRunKm * 0.7))} km ruhig @ ${easyPace} / Walk-Run möglich. ${z2Hint}. Physiologie: Aerobe Basis aufbauen, Ermüdungsresistenz.`
+        : isSpecificPhase(phase)
+          ? `${longRunKm} km: Erste 65% @ ${easyPace} (${z2Hint}), letzte 35% progressiv auf ${fp(z.paces.marathonPace)}${hrHint("zone3")}. + 6x20s Strides. Fueling: ${longNut.during}. Physiologie: Fettoxidation unter progressiver Ermüdung, HYROX-Durability.`
+          : `${longRunKm} km steady @ ${easyPace} (${z2Hint}), ökonomisch. + optional 6x20s Strides @ ${fp(z.paces.repPace)}. ${longRunKm >= 14 ? `Fueling: ${longNut.during}.` : ""} Physiologie: Mitochondriale Dichte, Ermüdungsresistenz.`,
+      duration: isIntro ? "45-80 min" : "60-110 min",
+    },
+    {
+      type: "rest",
+      title: "Recovery / Mobility / Tissue Work",
+      details: `Walk, Mobility, Core, leichte Activation. Optional 20-30 min easy spin/jog. Schlaf 7-9h. | S&C-Empfehlung (${phase === "base" ? "2x/Woche" : phase === "build" ? "1-2x/Woche" : "1x/Woche"}): ${phase === "base" ? "3-4 Sets à 5 Reps: Squat, Deadlift, Lunges + 40-60 Plyos (Box Jumps, Bounds). Core 10-15 min." : isTaper ? "2 Sets Grundübungen, Maintain-Modus. Kein neues Volumen." : "2-3 Sets à 5 Reps: Squat, Single-Leg Deadlift, Nordic Curls. Core 10 min."} Physiologie: Glykogen-Resynthese, Muskelreparatur, Adaptation.`,
+      duration: "Optional (+ S&C)",
+    },
   ];
 
   if (!isIntro && !lowCap && !isTaper && !isDeload && profile.fitnessLevel === "advanced") {
     days[3] = {
       type: "quality",
       title: "Aerobic Run + Functional Density",
-      details: `${Math.round(clamp(runKm * 0.18, 5, 13))} km locker • danach 20-25 min EMOM (${noHighImpact ? "lunges/carries/step-ups/core" : "lunges/burpees/carries/jumps"}) • 40s on / 20s off`,
+      details: `${Math.round(clamp(runKm * 0.18, 5, 13))} km locker @ ${easyPace}${hrHint("zone2")} • danach 20-25 min EMOM (${noHighImpact ? "lunges/carries/step-ups/core" : "lunges/burpees/carries/jumps"}) • 40s on / 20s off. HR-Ziel EMOM: Zone 3-4${hrHint("zone4")}. Physiologie: Kraft-Ausdauer-Kopplung, metabolische Flexibilität.`,
       duration: "65-85 min",
     };
   }
@@ -7079,7 +8023,7 @@ function createHyroxWeekSessions({ profile, weekIndex, weekKm, isDeload, isTaper
     days[raceDayIndex] = {
       type: "quality",
       title: "Race Day",
-      details: `${labelDistance(profile.goalDistance)} - Ziel: ${profile.goalTime}`,
+      details: `${labelDistance(profile.goalDistance)} – Ziel: ${profile.goalTime}. Run-Splits: 1 km @ ${fp(z.paces.thresholdPace + 5)}-${fp(z.paces.thresholdPace)} (gleichmäßig!). Pacing: Erste 4 Stationen konservativ, dann Commitment. Vorbereitung: ${sessionNutritionPrescription("race", 90, "running", profile).before}. Fueling: ${sessionNutritionPrescription("race", 90, "running", profile).during}`,
       duration: "Event",
       scheduledRace: true,
       racePriority: "A",
@@ -7106,66 +8050,94 @@ function createTriathlonWeekSessions({ profile, weekIndex = 0, weekKm, isDeload,
   const gapSignal = computeThresholdGapSignal(profile);
   const runThresholdKm = Math.max(5, Math.round(tri.weeklyRunKm * 0.24));
   const brickShortKm = Math.max(2, Math.round(tri.brickRunKm * 0.7));
+
+  // Zone integration
+  const z = profile.trainingZones || computeTrainingZones(profile);
+  const fp = (sec) => formatPacePerKm(sec);
+  const runHr = z.runHrZones;
+  const bikeHr = z.bikeHrZones;
+  const pz = z.bikePowerZones;
+  const ftp = pz?.ftp || Number(profile?.bikeFtp) || null;
+  const hrRun = (zone) => runHr ? ` (${runHr[zone].min}-${runHr[zone].max} bpm)` : "";
+  const hrBike = (zone) => bikeHr ? ` (${bikeHr[zone].min}-${bikeHr[zone].max} bpm)` : "";
+  const pw = (pctLo, pctHi) => ftp ? `${Math.round(ftp * pctLo)}-${Math.round(ftp * pctHi)}W` : `${Math.round(pctLo * 100)}-${Math.round(pctHi * 100)}% FTP`;
+  const easyPace = z.easyRange();
+  const thrPace = z.thresholdRange();
+  const marathonPace = z.marathonRange();
+  const z2Hint = z.z2Range();
+  const loc = trainerOnly ? "Trainer" : mostlyIndoor ? "Indoor" : "";
+
+  // Nutrition
+  const longNut = sessionNutritionPrescription("long", 180, "cycling", profile);
+  const brickNut = sessionNutritionPrescription("long", 120, "running", profile);
+  const thrNut = sessionNutritionPrescription("threshold", 75, "running", profile);
+
   const days = [
     {
       type: "recovery",
       title: "Swim + Easy Run",
-      details: `${tri.swimEasyKm} km Technik + ${tri.runEasyKm} km locker${cap.tier === "low" ? " (sehr ruhig, Technikfokus)" : ""}`,
+      details: cap.tier === "low"
+        ? `${tri.swimEasyKm} km Schwimmen Technik (Drills: Catch-up, Fist, Sculling) + ${tri.runEasyKm} km locker @ ${easyPace}${hrRun("zone1")}. Sehr ruhig, Technikfokus.`
+        : `${tri.swimEasyKm} km Schwimmen Technik (Pull-Buoy, Paddles, Sighting-Drills) + ${tri.runEasyKm} km locker @ ${easyPace}${hrRun("zone2")}. ${z2Hint}. Physiologie: Aktive Erholung, Schwimm-Ökonomie.`,
       duration: cap.tier === "low" ? "45-70 min" : "60-80 min",
     },
     {
       type: "threshold",
-      title: trainerOnly || mostlyIndoor ? "Bike Threshold (Trainer)" : "Bike Threshold",
+      title: `${loc ? loc + " " : ""}Bike Threshold + Brick`,
       details: cap.tier === "low" || isIntro
-        ? `${trainerOnly || mostlyIndoor ? "Trainer" : "Bike"} Aerobic Intervals: 4-6x4' steady (80-86% FTP) / 3' locker + ${brickShortKm} km Brick-Run locker`
+        ? `${loc || "Bike"} Aerobic Intervals: 4-6x4' @ ${pw(0.80, 0.86)}${hrBike("zone3")} / 3' locker @ ${pw(0.50, 0.60)} + ${brickShortKm} km Brick-Run locker @ ${easyPace}. Physiologie: Neuromuskuläre Gewöhnung, FTP-Basis.`
         : isDeload
-        ? `${trainerOnly || mostlyIndoor ? "Indoor " : ""}4x8' @ 88-92% FTP (Z4 kontrolliert) + ${brickShortKm} km Brick-Run`
+        ? `${loc || "Bike"} 4x8' @ ${pw(0.88, 0.92)}${hrBike("zone4")} (kontrolliert) + ${brickShortKm} km Brick-Run @ ${easyPace}. Deload: Reiz halten.`
         : isSpecificPhase(phase)
-          ? `${trainerOnly || mostlyIndoor ? "Trainer " : ""}${gapSignal.needBikePush ? "3x18'" : "2x20'"} @ ${gapSignal.needBikePush ? "82-90" : "80-88"}% FTP (70.3/IM-nah) + ${brickShortKm} km Brick-Run`
+          ? `${loc || "Bike"} ${gapSignal.needBikePush ? "3x18'" : "2x20'"} @ ${pw(gapSignal.needBikePush ? 0.82 : 0.80, gapSignal.needBikePush ? 0.90 : 0.88)}${hrBike("zone4")} (70.3/IM-Spezifität) + ${brickShortKm} km Brick-Run @ ${fp(z.paces.marathonPace)}${hrRun("zone3")}. Physiologie: Race-Pace unter Ermüdung, Wechselqualität.`
         : cycleAware
-          ? `${trainerOnly || mostlyIndoor ? "Trainer-" : ""}Schwellenblock adaptiv (88-95% FTP, zyklusorientiert) + ${brickShortKm} km Brick-Run`
-          : `${trainerOnly || mostlyIndoor ? "Trainer " : ""}3x12' @ 88-95% FTP + ${brickShortKm} km Brick-Run`,
+          ? `${loc || "Bike"} Schwellenblock adaptiv @ ${pw(0.88, 0.95)}${hrBike("zone4")} (zyklusorientiert) + ${brickShortKm} km Brick-Run @ ${easyPace}. Intensität an Phase anpassen.`
+          : `${loc || "Bike"} 3x12' @ ${pw(0.88, 0.95)}${hrBike("zone4")} + ${brickShortKm} km Brick-Run @ ${easyPace}${hrRun("zone2")}. Physiologie: FTP-Anhebung, Laktatclearance.`,
       duration: cap.tier === "low" || isIntro ? "60-75 min" : isDeload ? "75 min" : "95 min",
     },
     {
       type: "quality",
       title: "Swim Quality",
-      details: cap.tier === "low" || isIntro ? `${Math.max(1.2, tri.swimEasyKm)} km Technik/Drills + lockere Serien` : `${tri.swimQualityKm} km Main Set @ CSS + Pull / Technik`,
+      details: cap.tier === "low" || isIntro
+        ? `${Math.max(1.2, tri.swimEasyKm)} km Technik/Drills + lockere Serien (4-8x100m @ locker, 20s Pause). Catch-Drill, Skulling, Sighting. Physiologie: Wasserlage, Vortrieb, Ökonomie.`
+        : `${tri.swimQualityKm} km Main Set @ CSS (${profile.swimCss ? `${profile.swimCss}/100m` : "kontrolliert, nicht all-out"}) + Pull-Set + Technik. Beispiel: 10x200m @ CSS, 20s Pause. Physiologie: Schwellenkapazität im Wasser, aerobe Leistung.`,
       duration: cap.tier === "low" || isIntro ? "40-55 min" : tri.swimQualityKm >= 3.2 ? "60-75 min" : "50-65 min",
     },
     {
       type: "recovery",
       title: "Aerobic Run",
-      details: cap.tier === "low" || isIntro ? `${Math.max(4, Math.round(tri.runAerobicKm * 0.7))} km low HR / Walk-Run möglich` : `${tri.runAerobicKm} km low HR + Strides`,
+      details: cap.tier === "low" || isIntro
+        ? `${Math.max(4, Math.round(tri.runAerobicKm * 0.7))} km low HR @ ${easyPace}${hrRun("zone1")} / Walk-Run möglich. ${z2Hint}. Physiologie: Aerobes Fundament.`
+        : `${tri.runAerobicKm} km @ ${easyPace}${hrRun("zone2")} + 6x100m Strides @ ${fp(z.paces.repPace)}. ${z2Hint}. Physiologie: Mitochondriale Dichte, Fettoxidation, Laufökonomie.`,
       duration: cap.tier === "low" || isIntro ? "40-60 min" : "50-75 min",
     },
     {
       type: "threshold",
       title: "Run Threshold",
       details: cap.tier === "low" || isIntro
-        ? `${Math.max(4, Math.round(runThresholdKm * 0.8))} km gesamt: Run steady intervals / Technik statt harte Schwelle`
+        ? `${Math.max(4, Math.round(runThresholdKm * 0.8))} km gesamt: 1.5 km Einlaufen @ ${easyPace} + 4-6x3' steady @ ${fp(z.paces.marathonPace)}${hrRun("zone3")} (2' Trab) + Auslaufen. Technik vor Intensität.`
         : isSpecificPhase(phase)
-        ? `${runThresholdKm} km gesamt: ${gapSignal.needRunPush ? "etwas dichterer" : "race-pace-naher"} Intervallblock (kontrolliert) + ökonomischer Schluss`
+        ? `${runThresholdKm} km gesamt: 2 km Einlaufen @ ${easyPace} + ${gapSignal.needRunPush ? "5-6x1 km etwas dichter" : "4-5x1 km race-pace-nah"} @ ${thrPace}${hrRun("zone4")} (90s Trab) + 2 km Auslaufen. ${thrNut.during ? `Fueling: ${thrNut.during}.` : ""} Physiologie: Race-Pace unter Tri-Ermüdung stabilisieren.`
         : cycleAware
-        ? `${runThresholdKm} km gesamt: Schwellenarbeit adaptiv nach Phase / Readiness`
+        ? `${runThresholdKm} km gesamt: Schwellenarbeit adaptiv @ ${thrPace}${hrRun("zone4")} nach Zyklusphase/Readiness. 2 km ein/auslaufen @ ${easyPace}.`
         : isTaper
-          ? `${Math.max(5, Math.round(runThresholdKm * 0.8))} km gesamt: 3x8' steady / controlled`
-          : `${runThresholdKm} km gesamt: 2x20' @ Schwelle (kontrolliert)`,
+          ? `${Math.max(5, Math.round(runThresholdKm * 0.8))} km gesamt: 2 km Einlaufen + 3x8' steady @ ${fp(z.paces.thresholdPace + 5)}${hrRun("zone4")} + 2 km Auslaufen. Taper: Schärfe behalten.`
+          : `${runThresholdKm} km gesamt: 2 km Einlaufen @ ${easyPace} + 2x20' @ ${thrPace}${hrRun("zone4")} (3' Trabpause) + 2 km Auslaufen. Physiologie: Laktatclearance, Schwellenanhebung.`,
       duration: cap.tier === "low" || isIntro ? "45-60 min" : isTaper ? "55 min" : "75 min",
     },
     {
       type: "longrun",
       title: trainerOnly ? "Long Bike (Trainer) + Brick" : mostlyOutdoor ? "Outdoor Long Bike + Brick" : "Long Bike + Brick",
       details: cap.tier === "low" || isIntro
-        ? `${Math.round(tri.longBikeKm * 0.7)} km ${trainerOnly ? "Trainer" : "Bike"} @ 65-75% FTP + ${Math.max(2, Math.round(tri.brickRunKm * 0.6))} km Brick/Walk-Run${!trainerOnly && bikeOutdoorDay !== "none" ? ` (${bikeOutdoorDayLabel(bikeOutdoorDay)})` : ""}`
-        : `${tri.longBikeKm} km ${trainerOnly ? "Trainer" : "Bike"} @ 68-78% FTP${mostlyOutdoor ? " (ruhig draußen / fueling practice)" : ""} + ${tri.brickRunKm} km Brick Run${!trainerOnly && bikeOutdoorDay !== "none" ? ` (${bikeOutdoorDayLabel(bikeOutdoorDay)})` : ""}`,
+        ? `${Math.round(tri.longBikeKm * 0.7)} km ${trainerOnly ? "Trainer" : "Bike"} @ ${pw(0.65, 0.75)}${hrBike("zone2")} + ${Math.max(2, Math.round(tri.brickRunKm * 0.6))} km Brick/Walk-Run @ ${easyPace}. Kadenz 80-90 RPM.${!trainerOnly && bikeOutdoorDay !== "none" ? ` (${bikeOutdoorDayLabel(bikeOutdoorDay)})` : ""}`
+        : `${tri.longBikeKm} km ${trainerOnly ? "Trainer" : "Bike"} @ ${pw(0.68, 0.78)}${hrBike("zone2")}${mostlyOutdoor ? " (ruhig draußen)" : ""}. Kadenz 80-90 RPM. + ${tri.brickRunKm} km Brick Run @ ${easyPace} → progressiv ${marathonPace}${hrRun("zone3")}. Fueling üben: ${longNut.during}. Physiologie: Metabolische Robustheit, Ermüdungsresistenz, Wechsel-Adaptation.${!trainerOnly && bikeOutdoorDay !== "none" ? ` (${bikeOutdoorDayLabel(bikeOutdoorDay)})` : ""}`,
       duration: cap.tier === "low" || isIntro ? "1:45-3:15 h" : tri.longBikeDuration,
     },
     {
       type: "rest",
       title: "Recovery / Mobility",
-      details: "Optional Easy Swim, Mobility, Sleep, Fueling",
-      duration: "Optional",
+      details: `Optional: Easy Swim 20-30 min, Mobility (Hüfte, Schulter, T-Spine), Schlaf 7-9h, Fueling/Hydration optimieren. | S&C (${phase === "base" ? "2x/Woche" : "1x/Woche"}): ${phase === "base" ? "3 Sets à 5 Reps: Squat, Step-Ups, Single-Leg Deadlift + Core 10-15 min. Verbessert Laufökonomie (2-8%) und Verletzungsprävention." : isTaper ? "1-2 Sets Grundübungen, Maintain only." : "2-3 Sets à 5 Reps: Squat, Bulgarian Split Squat, Nordic Curls. Core 10 min."} Physiologie: Adaptation, Glykogen-Resynthese.`,
+      duration: "Optional (+ S&C)",
     },
   ];
 
@@ -7179,7 +8151,7 @@ function createTriathlonWeekSessions({ profile, weekIndex = 0, weekKm, isDeload,
     days[raceDayIndex] = {
       type: "quality",
       title: "Race Day",
-      details: `${labelDistance(profile.goalDistance)} - Ziel: ${profile.goalTime}`,
+      details: `${labelDistance(profile.goalDistance)} – Ziel: ${profile.goalTime}.${ftp ? ` Bike: ${pw(0.70, 0.80)}.` : ""} Run: ${fp(z.paces.marathonPace)}-${fp(z.paces.thresholdPace + 10)}. Vorbereitung: ${sessionNutritionPrescription("race", 300, "cycling", profile).before}. Fueling: ${sessionNutritionPrescription("race", 300, "cycling", profile).during}. Pacing: Schwimmen kontrolliert, Rad konservativ-steady, Laufen committen.`,
       duration: "Event",
       scheduledRace: true,
       racePriority: "A",
@@ -7200,8 +8172,7 @@ function createCyclingWeekSessions({ profile, weekIndex = 0, weekKm, isDeload, i
   const enduranceKm = Math.round(clamp(bikeKm * (0.16 + cyclingFocus.enduranceShare * 0.24), 35, 185));
   const longKm = Math.round(clamp(
     bikeKm * (isTaper ? (0.26 + cyclingFocus.enduranceShare * 0.08) : (0.32 + cyclingFocus.enduranceShare * 0.18)),
-    55,
-    255
+    55, 255
   ));
   const bikeIndoorShare = clamp(Number(profile?.bikeIndoorShare ?? profile?.gymShare) || 0, 0, 100);
   const bikeOutdoorDay = String(profile?.bikeOutdoorDay || "none");
@@ -7209,35 +8180,72 @@ function createCyclingWeekSessions({ profile, weekIndex = 0, weekKm, isDeload, i
   const mostlyIndoor = bikeIndoorShare >= 60;
   const mostlyOutdoor = bikeIndoorShare <= 30 && bikeOutdoorDay !== "never";
   const gapSignal = computeThresholdGapSignal(profile);
+  const z = profile.trainingZones || computeTrainingZones(profile);
+  const pz = z.bikePowerZones;
+  const bikeHr = z.bikeHrZones;
+  const ftp = pz?.ftp || Number(profile?.bikeFtp) || null;
+  const loc = trainerOnly ? "Trainer" : mostlyIndoor ? "Indoor" : "";
+
+  // Power zone display helpers
+  const pw = (pctLo, pctHi) => ftp ? `${Math.round(ftp * pctLo)}-${Math.round(ftp * pctHi)}W` : `${Math.round(pctLo * 100)}-${Math.round(pctHi * 100)}% FTP`;
+  const hrHint = (zone) => bikeHr ? ` / ${bikeHr[zone].min}-${bikeHr[zone].max} bpm` : "";
+  const longNut = sessionNutritionPrescription("long", 180, "cycling", profile);
 
   const days = [
-    { type: "recovery", title: "Recovery Spin", details: cap.tier === "low" || isIntro ? "35-50 min locker, sehr ruhig" : "45-60 min locker, hohe Kadenz", duration: cap.tier === "low" || isIntro ? "35-50 min" : "45-60 min" },
+    {
+      type: "recovery",
+      title: "Recovery Spin",
+      details: cap.tier === "low" || isIntro
+        ? `35-50 min locker @ ${pw(0.45, 0.55)}${hrHint("zone1")}. Hohe Kadenz (90-100 RPM), kein Druck.`
+        : `45-60 min locker @ ${pw(0.45, 0.55)}${hrHint("zone1")} + 6x30s einbeinig (Tritttechnik). Physiologie: Aktive Erholung, Durchblutung fördern.`,
+      duration: cap.tier === "low" || isIntro ? "35-50 min" : "45-60 min",
+    },
     {
       type: "threshold",
-      title: mostlyIndoor || trainerOnly ? "Threshold Intervals (Trainer)" : "Threshold Intervals",
+      title: `${loc ? loc + " " : ""}Threshold Intervals`,
       details: cap.tier === "low" || isIntro
-        ? "4-6x4' steady (80-86% FTP) / 3' locker (Tempo-Gewöhnung)"
+        ? `10 min Einrollen @ ${pw(0.5, 0.65)} + 4-6x4' @ ${pw(0.80, 0.86)} (3' locker). Physiologie: Neuromuskuläre Gewöhnung an höhere Wattlagen.`
         : isDeload
-          ? `${mostlyIndoor || trainerOnly ? "Indoor " : ""}4x8' @ 88-92% FTP`
+          ? `10 min Einrollen + 4x8' @ ${pw(0.88, 0.92)}${hrHint("zone4")} (3' locker). Deload: Reiz halten, kein tiefes Loch.`
           : isSpecificPhase(phase)
-            ? `${mostlyIndoor || trainerOnly ? "Trainer " : ""}${cyclingFocus.thresholdShare >= 0.46 ? (gapSignal.needBikePush ? "3x18'" : "2x22'") : (gapSignal.needBikePush ? "3x14'" : "2x18-20'")} @ ${gapSignal.needBikePush ? "91-98" : "90-96"}% FTP race-pace-nah + kontrollierte Cadence-Blocks`
-            : `${mostlyIndoor || trainerOnly ? "Trainer " : ""}${cyclingFocus.thresholdShare >= 0.46 ? "3x16'" : "3x12-15'"} @ 88-94% FTP (Sweet Spot / FTP)`,
-      duration: cap.tier === "low" || isIntro ? "55-70 min" : isDeload ? "75 min" : "95 min",
+            ? `10 min Einrollen + ${cyclingFocus.thresholdShare >= 0.46 ? (gapSignal.needBikePush ? "3x18'" : "2x22'") : (gapSignal.needBikePush ? "3x14'" : "2x20'")} @ ${pw(gapSignal.needBikePush ? 0.91 : 0.90, gapSignal.needBikePush ? 0.98 : 0.96)}${hrHint("zone4")} + Cadence-Blocks (100-110 RPM). Physiologie: Race-Pace-Spezifität, Laktatclearance unter Ermüdung.`
+            : `10 min Einrollen + ${cyclingFocus.thresholdShare >= 0.46 ? "3x16'" : "3x12-15'"} @ ${pw(0.88, 0.94)} (Sweet Spot/FTP${hrHint("zone4")}). Physiologie: Schwellenanhebung, metabolische Effizienz.`,
+      duration: cap.tier === "low" || isIntro ? "55-70 min" : isDeload ? "75 min" : "90-100 min",
     },
-    { type: "rest", title: "Rest / Mobility", details: "Optional Walk, Mobility, Schlaf", duration: "Optional" },
+    {
+      type: "rest",
+      title: "Rest / Mobility",
+      details: `Ruhetag. Optional: 20 min Walk, Foam Rolling, Hip/Ankle Mobility. Schlaf 7-9h. | S&C (${phase === "base" ? "2-3x/Woche" : phase === "build" ? "1-2x/Woche" : "1x/Woche"}): ${phase === "base" ? "3-4 Sets à 4-6 Reps @ 80-85% 1RM: Squat, Deadlift, Step-Ups, Single-Leg Press. + Core 10-15 min. Verbessert Tretökonomie und Sprintleistung." : isTaper ? "2 Sets Grundübungen, nur Maintain." : "2-3 Sets à 5 Reps: Squat, Single-Leg Deadlift, Bulgarian Split Squat. Core 10 min."} Physiologie: Glykogen-Resynthese, Muskelreparatur.`,
+      duration: "Ruhetag (+ S&C)",
+    },
     {
       type: "quality",
-      title: mostlyIndoor || trainerOnly ? "VO2 Bike Session (Trainer)" : "VO2 Bike Session",
+      title: `${loc ? loc + " " : ""}VO2max Intervals`,
       details: cap.tier === "low" || isIntro
-        ? "Cadence + kurze zügige Blöcke (95-102% FTP, kontrolliert)"
+        ? `10 min Einrollen + 6-8x1' @ ${pw(0.95, 1.02)} / 2' locker. Cadence-Fokus (95+ RPM). Kontrollierte Einführung in höhere Intensitäten.`
         : isTaper
-          ? "6x2' sharpeners @ 105-112% FTP"
-          : `${mostlyIndoor || trainerOnly ? "Trainer " : ""}${cyclingFocus.vo2Share >= 0.28 ? "6x4'" : "4-5x4'"} @ 108-120% FTP (VO2) + locker rollen`,
-      duration: cap.tier === "low" || isIntro ? "45-60 min" : isTaper ? "55 min" : cyclingFocus.vo2Share >= 0.28 ? "70-75 min" : "60-70 min",
+          ? `10 min Einrollen + 6x2' @ ${pw(1.05, 1.12)} (Sharpeners) + 10 min locker. Taper: Schärfe behalten, kein Volumen.`
+          : `10 min Einrollen + ${cyclingFocus.vo2Share >= 0.28 ? "6x4'" : "4-5x4'"} @ ${pw(1.08, 1.20)}${hrHint("zone5")} (Equal Erholung, locker Treten). Physiologie: VO2max stimulieren, kardiovaskuläre Kapazität maximieren. 95-100% VO2max-Intensität.`,
+      duration: cap.tier === "low" || isIntro ? "45-60 min" : isTaper ? "55 min" : cyclingFocus.vo2Share >= 0.28 ? "70-80 min" : "60-70 min",
     },
-    { type: "recovery", title: (mostlyOutdoor && !trainerOnly) ? "Endurance Ride (Outdoor-ready)" : "Endurance Ride", details: `${cap.tier === "low" || isIntro ? Math.round(enduranceKm * 0.7) : enduranceKm} km Z2 steady (65-75% FTP)${(!trainerOnly && bikeOutdoorDay !== "none" && mostlyOutdoor) ? " (ruhig draußen möglich)" : ""}`, duration: cap.tier === "low" || isIntro ? "60-90 min" : "75-120 min" },
-    { type: "longrun", title: trainerOnly ? "Long Ride (Trainer)" : mostlyOutdoor ? "Long Ride (Outdoor)" : "Long Ride", details: `${cap.tier === "low" || isIntro ? Math.round(longKm * 0.7) : longKm} km ${trainerOnly ? "steady trainer ride @ 65-75% FTP" : cap.tier === "low" || isIntro ? "steady / locker @ 65-75% FTP" : "ruhige längere Ausfahrt @ 68-78% FTP / fueling practice"}${!trainerOnly && bikeOutdoorDay !== "none" ? ` (${bikeOutdoorDayLabel(bikeOutdoorDay)})` : ""}`, duration: cap.tier === "low" || isIntro ? "1:45-3:00 h" : "2:30-4:30 h" },
-    { type: "recovery", title: "Easy Spin + Cadence", details: "50 min locker + 6x high cadence spin-ups", duration: "50 min" },
+    {
+      type: "recovery",
+      title: mostlyOutdoor && !trainerOnly ? "Endurance Ride (Outdoor)" : "Endurance Ride",
+      details: `${cap.tier === "low" || isIntro ? Math.round(enduranceKm * 0.7) : enduranceKm} km Zone 2 @ ${pw(0.55, 0.75)}${hrHint("zone2")}. Steady, gleichmäßig, Kadenz 80-95 RPM. Physiologie: Mitochondriale Biogenese, Fettoxidation, Kapillarisierung – das aerobe Fundament.`,
+      duration: cap.tier === "low" || isIntro ? "60-90 min" : "75-120 min",
+    },
+    {
+      type: "longrun",
+      title: trainerOnly ? "Long Ride (Trainer)" : mostlyOutdoor ? "Long Ride (Outdoor)" : "Long Ride",
+      details: `${cap.tier === "low" || isIntro ? Math.round(longKm * 0.7) : longKm} km @ ${pw(0.65, 0.78)}${hrHint("zone2")}. ${trainerOnly ? "Steady auf dem Trainer" : "Ruhige Ausfahrt"}, Kadenz 80-90 RPM. Fueling üben: ${longNut.during}. Physiologie: Metabolische Robustheit, Ermüdungsresistenz, Fettoxidation bei langer Dauer.${!trainerOnly && bikeOutdoorDay !== "none" ? ` (${bikeOutdoorDayLabel(bikeOutdoorDay)})` : ""}`,
+      duration: cap.tier === "low" || isIntro ? "1:45-3:00 h" : "2:30-4:30 h",
+    },
+    {
+      type: "recovery",
+      title: "Easy Spin + Cadence Drills",
+      details: `50 min locker @ ${pw(0.45, 0.55)} + 6x30s Cadence Spin-ups (110-120 RPM, kein Wippen). Physiologie: Aktive Erholung + neuromuskuläre Koordination.`,
+      duration: "50 min",
+    },
   ];
 
   if (!trainerOnly && bikeOutdoorDay !== "none") {
@@ -7249,7 +8257,7 @@ function createCyclingWeekSessions({ profile, weekIndex = 0, weekKm, isDeload, i
     days[raceDayIndex] = {
       type: "quality",
       title: "Race Day",
-      details: `${labelDistance(profile.goalDistance)} - Ziel: ${profile.goalTime}`,
+      details: `${labelDistance(profile.goalDistance)} – Ziel: ${profile.goalTime}.${ftp ? ` Race Power: ${pw(0.72, 0.82)} (TT) oder ${pw(0.68, 0.76)} (Granfondo).` : ""} Vorbereitung: ${sessionNutritionPrescription("race", 180, "cycling", profile).before}. Fueling: ${sessionNutritionPrescription("race", 180, "cycling", profile).during}. Pacing: Erste Hälfte konservativ, zweite Hälfte Commitment.`,
       duration: "Event",
       scheduledRace: true,
       racePriority: "A",
@@ -7553,6 +8561,11 @@ function buildPlanMissionBrief(profile, plan) {
     "If readiness stays low for 2-3 days, cut secondary volume first, keep key sessions, and raise sleep/fueling quality.",
     "Readinessが2-3日低い場合は、まず補助ボリュームを削り、キーセッションを維持し、睡眠と補給の質を上げる。"
   );
+  const recoveryScienceHint = txt(
+    "Recovery-Protokoll: 7-9h Schlaf priorisieren (Adaptation passiert im Schlaf). HRV morgens messen – wenn 7-Tage-Trend fällt, Belastung rausnehmen. Zwischen harten Sessions mind. 48h. Active Recovery (20-40 min Z1) ist besser als komplette Ruhe. S&C nicht vergessen: Krafttraining verbessert Laufökonomie um 2-8%.",
+    "Recovery protocol: prioritize 7-9h sleep (adaptation occurs during sleep). Measure HRV every morning – if 7-day trend drops, reduce load. Min 48h between hard sessions. Active recovery (20-40 min Z1) beats complete rest. Don't skip S&C: strength training improves running economy by 2-8%.",
+    "回復プロトコル: 7-9時間睡眠を優先（適応は睡眠中）。HRVを毎朝測定 – 7日トレンドが低下したら負荷を減らす。ハードセッション間は48h以上。アクティブリカバリー（Z1で20-40分）は完全休養より効果的。S&Cを忘れずに。"
+  );
 
   const title = txt("Mission Brief", "Mission Brief", "ミッション概要");
   const short = txt(
@@ -7561,9 +8574,9 @@ function buildPlanMissionBrief(profile, plan) {
     `ミッション ${goal}。${weeks}週間、${keyTone}。優先: ${focusHint}。${complianceRule}`
   );
   const long = txt(
-    `Coach-Ansage: Wir spielen dieses Ziel nicht über Aktionismus, sondern über Präzision. In ${weeks} Wochen gehen wir von belastbar zu spezifisch: Onboarding/Base legt Technik und Verträglichkeit, Build/Peak macht dich zielnah schnell, Taper bringt die Frische auf den Punkt. ${complianceRule} ${nonNegotiables} ${keySessionHint} ${mechanismHint} ${recoveryRule} ${urgencyHint} Phasen: ${phaseHint}. ${vibeLine}`,
-    `Coach note: we don't chase this goal with chaos, we win it with precision. Over ${weeks} weeks we move from durable to specific: onboarding/base sets tolerance and technique, build/peak creates race-specific speed, taper delivers freshness at the right time. ${complianceRule} ${nonNegotiables} ${keySessionHint} ${mechanismHint} ${recoveryRule} ${urgencyHint} Phases: ${phaseHint}. ${vibeLine}`,
-    `コーチメモ: この目標は勢い任せではなく、精度で取りにいきます。${weeks}週間で「耐性」から「特異性」へ移行。Onboarding/Baseで土台、Build/Peakで競技特異性、Taperで仕上げます。${complianceRule} ${nonNegotiables} ${keySessionHint} ${mechanismHint} ${recoveryRule} ${urgencyHint} フェーズ: ${phaseHint}。${vibeLine}`
+    `Coach-Ansage: Wir spielen dieses Ziel nicht über Aktionismus, sondern über Präzision. In ${weeks} Wochen gehen wir von belastbar zu spezifisch: Onboarding/Base legt Technik und Verträglichkeit, Build/Peak macht dich zielnah schnell, Taper bringt die Frische auf den Punkt. ${complianceRule} ${nonNegotiables} ${keySessionHint} ${mechanismHint} ${recoveryRule} ${recoveryScienceHint} ${urgencyHint} Phasen: ${phaseHint}. ${vibeLine}`,
+    `Coach note: we don't chase this goal with chaos, we win it with precision. Over ${weeks} weeks we move from durable to specific: onboarding/base sets tolerance and technique, build/peak creates race-specific speed, taper delivers freshness at the right time. ${complianceRule} ${nonNegotiables} ${keySessionHint} ${mechanismHint} ${recoveryRule} ${recoveryScienceHint} ${urgencyHint} Phases: ${phaseHint}. ${vibeLine}`,
+    `コーチメモ: この目標は勢い任せではなく、精度で取りにいきます。${weeks}週間で「耐性」から「特異性」へ移行。Onboarding/Baseで土台、Build/Peakで競技特異性、Taperで仕上げます。${complianceRule} ${nonNegotiables} ${keySessionHint} ${mechanismHint} ${recoveryRule} ${recoveryScienceHint} ${urgencyHint} フェーズ: ${phaseHint}。${vibeLine}`
   );
   const toggleLabel = missionBriefExpanded
     ? txt("weniger", "less", "閉じる")
@@ -7574,6 +8587,7 @@ function buildPlanMissionBrief(profile, plan) {
 function renderPlanMissionBrief(profile, plan) {
   if (!planMissionBriefEl) return;
   const brief = buildPlanMissionBrief(profile, plan);
+  const insightsHtml = buildStravaInsightsHtml(profile);
   planMissionBriefEl.hidden = false;
   planMissionBriefEl.innerHTML = `
     <div class="plan-mission-head">
@@ -7582,7 +8596,50 @@ function renderPlanMissionBrief(profile, plan) {
     </div>
     <p class="plan-mission-copy plan-mission-short">${escapeHtml(brief.short)}</p>
     <p class="plan-mission-copy plan-mission-long ${missionBriefExpanded ? "is-open" : ""}">${escapeHtml(brief.long)}</p>
+    ${insightsHtml}
   `;
+}
+
+function buildStravaInsightsHtml(profile) {
+  const analysis = profile?._activityAnalysis;
+  if (!analysis) return "";
+  const items = [];
+  const txt = (de, en) => currentLang === "de" ? de : en;
+
+  if (analysis.activityCounts?.total > 0) {
+    items.push(`${analysis.activityCounts.total} ${txt("Aktivitäten analysiert", "activities analyzed")} (${analysis.activityCounts.runs} Runs, ${analysis.activityCounts.bikes} Rides, ${analysis.activityCounts.swims} Swims)`);
+  }
+  if (analysis.runPbs?.length) {
+    const pbStrs = analysis.runPbs.map((pb) => `${pb.distance.toUpperCase()} ${pb.timeFormatted}`);
+    items.push(`${txt("Auto-PBs", "Auto-PBs")}: ${pbStrs.join(", ")}`);
+  }
+  if (analysis.estimatedFtp) {
+    items.push(`${txt("Geschätzte FTP", "Estimated FTP")}: ${analysis.estimatedFtp.ftp}W (${analysis.estimatedFtp.confidence})`);
+  }
+  if (analysis.hrProfile) {
+    items.push(`${txt("Max HR", "Max HR")}: ${analysis.hrProfile.maxHr} bpm, ${txt("Schwelle", "Threshold")} ~${analysis.hrProfile.estimatedThresholdHr} bpm`);
+  }
+  if (analysis.weeklyVolume) {
+    items.push(`${txt("Ø Wochenvolumen", "Avg weekly volume")}: ${analysis.weeklyVolume.avgWeeklyKm} km / ${analysis.weeklyVolume.avgWeeklyHours}h (${analysis.weeklyVolume.avgWeeklySessions} Sessions)`);
+  }
+  if (analysis.trainingLoad?.acwr != null) {
+    const acwr = analysis.trainingLoad.acwr;
+    const zone = acwr < 0.8 ? txt("Untertraining", "Undertrained") : acwr <= 1.3 ? txt("Sweet Spot", "Sweet Spot") : txt("Überlastrisiko", "Overload risk");
+    items.push(`ACWR: ${acwr} (${zone})`);
+  }
+  if (analysis.swimCss) {
+    items.push(`${txt("Swim CSS", "Swim CSS")}: ${analysis.swimCss.formatted}/100m`);
+  }
+
+  if (!items.length) return "";
+
+  return `<div class="plan-data-insights">
+    <div class="plan-insights-head">
+      <span class="plan-insights-icon">📊</span>
+      <strong>${txt("Aus deinen Daten abgeleitet", "Derived from your data")}</strong>
+    </div>
+    <ul class="plan-insights-list">${items.map((i) => `<li>${escapeHtml(i)}</li>`).join("")}</ul>
+  </div>`;
 }
 
 function requiredRunningThresholdPaceSec(profile) {
@@ -9777,7 +10834,18 @@ function recommendWeeklyHoursBand(profile) {
 function effectivePlanningHours(profile) {
   const requested = Number(profile?.weeklyHours) || 0;
   const band = profile?.weeklyHoursRecommended || recommendWeeklyHoursBand(profile);
+  const observed = Number(profile?._observedWeeklyHours) || 0;
+  // If user hasn't specified hours but we have Strava data, use observed as baseline
+  if (!requested && observed > 0) {
+    return clamp(observed, 2, band.cap);
+  }
   if (!requested) return band.rec[0];
+  // If user requested hours but observed differs significantly, blend conservatively
+  if (observed > 0 && Math.abs(requested - observed) > 3) {
+    // Lean toward what the athlete actually does, not what they claim
+    const blended = requested * 0.6 + observed * 0.4;
+    return clamp(Math.round(blended * 10) / 10, 2, band.cap);
+  }
   return clamp(requested, 2, band.cap);
 }
 
