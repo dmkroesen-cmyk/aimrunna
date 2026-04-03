@@ -2,8 +2,14 @@
 <html lang="de">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AImRUNNA | Training Platform Prototype</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#050506" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="description" content="AImRUNNA – Dein intelligenter Trainingsplan. Laufen, Radfahren, Triathlon, HYROX, Shape." />
+    <link rel="manifest" href="./manifest.json" />
+    <title>AImRUNNA | Training Platform</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://images.pexels.com" crossorigin />
@@ -228,6 +234,11 @@
                         <input type="number" name="runThresholdLactate" id="threshold-run-lactate-hidden" min="2" max="6" step="0.1" placeholder="z. B. 3.8" />
                       </label>
 
+                      <label class="field" id="swim-css-field">
+                        <span data-i18n="field_swim_css">Swim CSS (/100m)</span>
+                        <input type="text" name="swimCss" id="threshold-swim-css-hidden" placeholder="z. B. 1:42" />
+                      </label>
+
                       <div class="field" id="recent-pbs-field">
                         <span data-i18n="field_recent_pbs">Letzte Bestzeiten</span>
                         <div class="pb-entry-list">
@@ -361,6 +372,11 @@
                   </div>
 
                   <div id="shape-goal-guidance" class="shape-goal-guidance" hidden>Gib Startgewicht, Zielgewicht und Zieldatum an.</div>
+                </div>
+
+                <div class="field" id="constraints-field">
+                  <label for="constraints" data-i18n="label_constraints">Einschränkungen / Präferenzen</label>
+                  <textarea name="constraints" id="constraints-input" rows="2" placeholder="z.B. Long Run nur Samstag, kein Laufen bei Knieproblemen, Bike nur Indoor..."></textarea>
                 </div>
 
                 <div class="landing-actions">
@@ -523,6 +539,16 @@
                     <div class="profile-stat"><span data-i18n="profile_total_points">Total Points</span><strong id="profile-stat-all-points-total">0</strong></div>
                   </div>
                 </section>
+              </div>
+            </section>
+
+            <section class="result-card account-card profile-main-card profile-card-overview profile-card-health" id="profile-card-fitness-analysis">
+              <div class="result-title-row">
+                <h4>Fitness Analyse</h4>
+                <span class="tag subtle" id="fitness-analysis-source">–</span>
+              </div>
+              <div id="fitness-analysis-body" class="fitness-analysis-body">
+                <p class="card-copy">Verbinde Strava, Garmin oder WHOOP um deine Fitness automatisch zu analysieren.</p>
               </div>
             </section>
 
@@ -784,55 +810,60 @@
           </div>
 
           <div class="account-pane" id="account-pane-crew">
-          <div class="account-grid">
-            <section class="result-card account-card">
-              <div class="result-title-row">
-                <h4 data-i18n="crew_friends_connect">Friends Connect</h4>
-                <span class="tag subtle">MVP</span>
-              </div>
-              <form id="friend-form" class="friend-form">
-                <input type="email" name="friendEmail" placeholder="friend@email.com" data-i18n-placeholder="placeholder_friend_email" />
-                <button type="submit" class="ghost" data-i18n="connect">Verbinden</button>
-              </form>
-              <div id="friends-list" class="friends-list">
-                <div class="empty-copy" data-i18n="empty_connections">Noch keine Verbindungen.</div>
-              </div>
-            </section>
+          <div class="account-grid crew-layout">
 
-            <section class="result-card account-card">
+            <!-- Community Feed (primary - takes most space) -->
+            <section class="result-card account-card account-social-card crew-feed-main" id="crew-feed-card">
               <div class="result-title-row">
-                <h4 data-i18n="crew_ranking">Community Ranking</h4>
-                <span class="tag subtle" id="crew-ranking-count">0</span>
-              </div>
-              <div id="crew-ranking-list" class="friends-list">
-                <div class="empty-copy" data-i18n="empty_crew_data">Keine Crew-Daten vorhanden.</div>
-              </div>
-            </section>
-
-            <section class="result-card account-card account-social-card">
-              <div class="result-title-row">
-                <h4 data-i18n="crew_search">Community Suche</h4>
-                <span class="tag subtle" id="crew-result-count">0</span>
-              </div>
-              <p class="card-copy" data-i18n="crew_search_copy">Suche andere Accounts, verbinde dich und sieh später gemeinsame Aktivitäten / Pläne.</p>
-              <form id="account-search-form" class="friend-form">
-                <input type="search" name="query" placeholder="Accounts suchen (E-Mail / Name)" data-i18n-placeholder="placeholder_search_accounts" />
-                <button type="submit" class="ghost" data-i18n="search">Suchen</button>
-              </form>
-              <div id="account-search-results" class="friends-list">
-                <div class="empty-copy" data-i18n="empty_search_prompt">Suche nach einem Account, um dich zu verbinden.</div>
-              </div>
-            </section>
-
-            <section class="result-card account-card account-social-card">
-              <div class="result-title-row">
-                <h4 data-i18n="crew_feed">Community Feed</h4>
+                <h4 data-i18n="crew_feed">Feed</h4>
                 <span class="tag subtle" id="crew-feed-count">0</span>
               </div>
               <div id="crew-feed-list" class="activity-feed-list">
-                <div class="empty-copy" data-i18n="empty_crew_feed">Verbinde dich mit deiner Community, um den Feed zu sehen.</div>
+                <div class="empty-copy" data-i18n="empty_crew_feed">Verbinde dich mit Freunden, um deren Aktivitäten hier zu sehen.</div>
               </div>
             </section>
+
+            <!-- Sidebar: Friends + Search combined -->
+            <aside class="crew-sidebar">
+              <section class="result-card account-card crew-sidebar-card">
+                <div class="result-title-row">
+                  <h4 data-i18n="crew_friends_connect">Freunde</h4>
+                  <span class="tag subtle">MVP</span>
+                </div>
+                <div id="friends-list" class="friends-list friends-compact">
+                  <div class="empty-copy" data-i18n="empty_connections">Noch keine Verbindungen.</div>
+                </div>
+                <form id="friend-form" class="friend-form crew-add-form">
+                  <input type="email" name="friendEmail" placeholder="E-Mail eingeben..." data-i18n-placeholder="placeholder_friend_email" />
+                  <button type="submit" class="ghost" data-i18n="connect">+</button>
+                </form>
+              </section>
+
+              <section class="result-card account-card crew-sidebar-card">
+                <div class="result-title-row">
+                  <h4 data-i18n="crew_search">Entdecken</h4>
+                  <span class="tag subtle" id="crew-result-count">0</span>
+                </div>
+                <form id="account-search-form" class="friend-form crew-add-form">
+                  <input type="search" name="query" placeholder="Suchen..." data-i18n-placeholder="placeholder_search_accounts" />
+                  <button type="submit" class="ghost" data-i18n="search">Go</button>
+                </form>
+                <div id="account-search-results" class="friends-list friends-compact">
+                  <div class="empty-copy" data-i18n="empty_search_prompt">Finde andere Athleten.</div>
+                </div>
+              </section>
+
+              <section class="result-card account-card crew-sidebar-card">
+                <div class="result-title-row">
+                  <h4 data-i18n="crew_ranking">Rangliste</h4>
+                  <span class="tag subtle" id="crew-ranking-count">0</span>
+                </div>
+                <div id="crew-ranking-list" class="friends-list friends-compact">
+                  <div class="empty-copy" data-i18n="empty_crew_data">Noch keine Daten.</div>
+                </div>
+              </section>
+            </aside>
+
           </div>
           </div>
         </section>
