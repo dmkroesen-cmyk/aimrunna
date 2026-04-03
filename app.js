@@ -1117,6 +1117,7 @@ function generatePlanFromProfile(profile) {
   renderAnalysis(profile, plan);
   renderPlan(plan);
   renderPerformanceInsights(profile, plan);
+  renderProfilePredictions(profile, plan);
   exportIcalBtn.disabled = false;
   document.body.classList.add("has-output");
   syncUiState();
@@ -2935,9 +2936,12 @@ function loadSavedPlanById(planId) {
   latestProfile = hydrateStoredProfile(item.profile);
   latestPlan = hydrateStoredPlan(item.plan);
   generatedSessions = latestPlan.sessions || [];
+  // Adapt plan to current reality before rendering
+  maybeAdaptPlan();
   renderAnalysis(latestProfile, latestPlan);
   renderPlan(latestPlan);
   renderPerformanceInsights(latestProfile, latestPlan);
+  renderProfilePredictions(latestProfile, latestPlan);
   exportIcalBtn.disabled = generatedSessions.length === 0;
   document.body.classList.add("has-output");
   syncUiState();
@@ -3225,6 +3229,79 @@ function renderProfileStats(account) {
   applyProfileStatsToBindings(profileStatBindings.today, statsToday);
   applyProfileStatsToBindings(profileStatBindings.year, statsYear);
   applyProfileStatsToBindings(profileStatBindings.all, statsAll);
+}
+
+function renderProfilePredictions(profile, plan) {
+  const card = document.getElementById("profile-card-predictions");
+  if (!card) return;
+
+  if (!profile || !plan) { card.hidden = true; return; }
+
+  // Build a minimal "last" object from plan projection for predictions
+  const series = getActualPerformanceSeries(profile, plan);
+  const last = series && series.length
+    ? series[series.length - 1]
+    : { fitness: 50, fatigue: 45, freshness: 52, readiness: 58, vo2: vdotFromProfile(profile) || 40 };
+
+  const predictions = buildRacePredictions(profile, last, plan);
+  if (!predictions || !predictions.labels) { card.hidden = true; return; }
+
+  card.hidden = false;
+
+  // VDOT tag
+  const vdotTag = document.getElementById("predictions-vdot-tag");
+  if (vdotTag) {
+    const vdotVal = predictions.currentVdot || vdotFromProfile(profile) || "-";
+    vdotTag.textContent = `VDOT ${typeof vdotVal === "number" ? vdotVal.toFixed(1) : vdotVal}`;
+  }
+
+  // Current predictions
+  const labels = predictions.labels;
+  const values = predictions.values;
+  setText(document.getElementById("profile-pred-label-a"), labels.a);
+  setText(document.getElementById("profile-pred-label-b"), labels.b);
+  setText(document.getElementById("profile-pred-label-c"), labels.c);
+  setText(document.getElementById("profile-pred-label-d"), labels.d);
+  setText(document.getElementById("profile-pred-a"), values.a);
+  setText(document.getElementById("profile-pred-b"), values.b);
+  setText(document.getElementById("profile-pred-c"), values.c);
+  setText(document.getElementById("profile-pred-d"), values.d);
+
+  // Race-day projections
+  const rdCol = document.getElementById("predictions-raceday-col");
+  if (predictions.raceDayValues && rdCol) {
+    rdCol.hidden = false;
+    setText(document.getElementById("profile-pred-rd-a"), predictions.raceDayValues.a);
+    setText(document.getElementById("profile-pred-rd-b"), predictions.raceDayValues.b);
+    setText(document.getElementById("profile-pred-rd-c"), predictions.raceDayValues.c);
+    setText(document.getElementById("profile-pred-rd-d"), predictions.raceDayValues.d);
+    const noteEl = document.getElementById("predictions-raceday-note");
+    if (noteEl && predictions.raceDayVdot) {
+      const raceDateStr = profile.raceDate ? new Date(profile.raceDate).toLocaleDateString("de-DE", { day: "numeric", month: "short", year: "numeric" }) : "";
+      noteEl.textContent = `Proj. VDOT ${predictions.raceDayVdot.toFixed(1)} am ${raceDateStr} — basierend auf geplantem Training & Tapering.`;
+    }
+  } else if (rdCol) {
+    rdCol.hidden = true;
+  }
+
+  // Adaptive status
+  const statusEl = document.getElementById("predictions-adaptive-status");
+  if (statusEl && plan.meta?.adaptiveSignals) {
+    const signals = plan.meta.adaptiveSignals;
+    const parts = [];
+    if (signals.complianceLabel && signals.complianceLabel !== "No data") parts.push(`Compliance: ${signals.complianceLabel}`);
+    if (signals.trajectoryLabel) parts.push(`Trajectory: ${signals.trajectoryLabel}`);
+    if (signals.fatigueRisk && signals.fatigueRisk !== "optimal") parts.push(`Fatigue: ${signals.fatigueRisk}`);
+    if (signals.adjustmentType && signals.adjustmentType !== "none") parts.push(`Adjustment: ${signals.adjustmentType}`);
+    if (parts.length) {
+      statusEl.hidden = false;
+      statusEl.textContent = parts.join(" · ");
+    } else {
+      statusEl.hidden = true;
+    }
+  } else if (statusEl) {
+    statusEl.hidden = true;
+  }
 }
 
 function renderFitnessAnalysis(account) {
@@ -4336,6 +4413,7 @@ function initLanguageSwitcher() {
         renderAnalysis(latestProfile, latestPlan);
         renderPlan(latestPlan);
         renderPerformanceInsights(latestProfile, latestPlan);
+        renderProfilePredictions(latestProfile, latestPlan);
         if (expandedSessionId) {
           const session = generatedSessions.find((s) => s._id === expandedSessionId);
           if (session) openSessionOverlay(session);
@@ -4549,6 +4627,8 @@ async function importStravaHistory() {
       stravaProfileFetchStatusEl,
       `Import fertig: +${Number(importJson.imported) || 0} neu, ${Number(importJson.totalStored) || 0} gesamt.`
     );
+    // Trigger adaptive plan adjustment with fresh activity data
+    maybeAdaptPlan();
   } catch (error) {
     setText(stravaProfileFetchStatusEl, `Import fehlgeschlagen: ${String(error?.message || error)}`);
   } finally {
@@ -5110,6 +5190,11 @@ function defaultGoalTimeFor(discipline, goalDistance) {
 // VDOT reference table: [vdot, 5kSec, 10kSec, halfSec, marathonSec, easyMinPace, easyMaxPace, marathonPace, thresholdPace, intervalPace, repPace]
 // Paces in seconds per km
 const VDOT_TABLE = [
+  [20, 2220, 4620, 10440, 22200, 590, 540, 508, 468, 428, 396],
+  [22, 2040, 4230, 9540, 20100, 555, 510, 475, 438, 400, 370],
+  [24, 1890, 3924, 8820, 18540, 525, 482, 448, 414, 377, 349],
+  [26, 1770, 3672, 8244, 17340, 500, 460, 426, 394, 358, 332],
+  [28, 1680, 3492, 7836, 16500, 484, 444, 412, 380, 345, 319],
   [30, 1620, 3360, 7500, 15720, 471, 432, 400, 368, 333, 308],
   [32, 1512, 3138, 7020, 14760, 442, 406, 375, 346, 313, 290],
   [34, 1416, 2940, 6576, 13860, 416, 382, 353, 326, 296, 274],
@@ -6854,6 +6939,360 @@ function buildPlan(profile) {
       sessionTemplateFixes: templateFixCount,
     },
   };
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ADAPTIVE PLAN ENGINE — live plan adjustments based on reality
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function adaptPlanToReality(plan, profile, account) {
+  if (!plan || !plan.weeks || !plan.weeks.length || !profile) return plan;
+
+  const now = startOfDay(new Date());
+  const activities = account?.activities || account?.activityFeed || [];
+  const analysis = profile._activityAnalysis || analyzeActivityHistoryLight(activities);
+
+  // Determine current week index
+  const currentWeekIdx = plan.weeks.findIndex(w => {
+    const wStart = startOfDay(new Date(w.start));
+    const wEnd = startOfDay(new Date(w.end));
+    return now >= wStart && now <= wEnd;
+  });
+  if (currentWeekIdx < 0) return plan; // plan hasn't started or already finished
+
+  // 1. Compliance analysis — compare planned vs actual for completed weeks
+  const compliance = assessCompliance(plan, activities, currentWeekIdx);
+
+  // 2. Fitness trajectory — is athlete ahead or behind expected progression?
+  const trajectory = assessFitnessTrajectory(profile, analysis, plan, currentWeekIdx);
+
+  // 3. Fatigue state — ACWR, missed time, illness detection
+  const fatigueState = assessFatigueState(profile, analysis, activities, now);
+
+  // 4. Apply adjustments to remaining weeks
+  const adjustedPlan = applyAdaptiveAdjustments(plan, profile, currentWeekIdx, compliance, trajectory, fatigueState);
+
+  // Tag the plan as adapted
+  adjustedPlan.meta.adapted = true;
+  adjustedPlan.meta.adaptedAt = now.toISOString();
+  adjustedPlan.meta.adaptiveSignals = {
+    compliance: compliance.score,
+    complianceLabel: compliance.label,
+    trajectory: trajectory.signal,
+    trajectoryLabel: trajectory.label,
+    fatigueRisk: fatigueState.risk,
+    missedDays: fatigueState.missedDays,
+    adjustmentType: fatigueState.adjustmentType,
+  };
+
+  return adjustedPlan;
+}
+
+function assessCompliance(plan, activities, currentWeekIdx) {
+  let plannedSessions = 0;
+  let matchedSessions = 0;
+
+  for (let wi = 0; wi < currentWeekIdx; wi++) {
+    const week = plan.weeks[wi];
+    if (!week || !week.days) continue;
+    const wStart = startOfDay(new Date(week.start));
+    const wEnd = startOfDay(new Date(week.end));
+
+    const weekActivities = activities.filter(a => {
+      const d = startOfDay(new Date(a.date || a.start_date));
+      return d >= wStart && d <= wEnd;
+    });
+
+    const trainDays = week.days.filter(d => d.type !== "rest");
+    plannedSessions += trainDays.length;
+
+    // Match activities to planned sessions by type similarity
+    for (const day of trainDays) {
+      const hasMatch = weekActivities.some(a => {
+        const actType = String(a.type || a.sport_type || "").toLowerCase();
+        const dayTitle = String(day.title || "").toLowerCase();
+        return actType.includes("run") && (dayTitle.includes("run") || dayTitle.includes("interval") || dayTitle.includes("tempo") || dayTitle.includes("long") || dayTitle.includes("recovery") || dayTitle.includes("strides"))
+          || actType.includes("ride") && (dayTitle.includes("bike") || dayTitle.includes("rad") || dayTitle.includes("spin"))
+          || actType.includes("swim") && dayTitle.includes("swim")
+          || actType.includes("weight") && (dayTitle.includes("s&c") || dayTitle.includes("gym") || dayTitle.includes("kraft"))
+          || actType.includes("workout"); // generic match
+      });
+      if (hasMatch) matchedSessions++;
+    }
+  }
+
+  if (plannedSessions === 0) return { score: 1.0, label: "No data", ratio: 1.0 };
+
+  const ratio = matchedSessions / plannedSessions;
+  let label, score;
+  if (ratio >= 0.85) { score = 1.0; label = "Excellent"; }
+  else if (ratio >= 0.7) { score = 0.85; label = "Good"; }
+  else if (ratio >= 0.5) { score = 0.65; label = "Moderate"; }
+  else if (ratio >= 0.3) { score = 0.4; label = "Low"; }
+  else { score = 0.2; label = "Critical"; }
+
+  return { score, label, ratio, plannedSessions, matchedSessions };
+}
+
+function assessFitnessTrajectory(profile, analysis, plan, currentWeekIdx) {
+  const currentVdot = vdotFromProfile(profile);
+  const totalWeeks = plan.weeks.length;
+  const progressFraction = currentWeekIdx / Math.max(1, totalWeeks);
+
+  // Expected VDOT improvement based on structured training
+  // Research: ~0.5-1.5 VDOT points per 8-week mesocycle for intermediate athletes
+  const expectedGainPerWeek = profile.fitnessLevel === "starter" ? 0.18
+    : profile.fitnessLevel === "advanced" ? 0.06 : 0.11;
+  const expectedVdot = (profile._baselineVdot || currentVdot - expectedGainPerWeek * currentWeekIdx)
+    + expectedGainPerWeek * currentWeekIdx;
+
+  // Check if actual is ahead or behind
+  const delta = currentVdot - expectedVdot;
+  let signal, label;
+  if (delta > 1.5) { signal = "ahead"; label = "Faster than expected"; }
+  else if (delta > 0.5) { signal = "slight_ahead"; label = "Slightly ahead"; }
+  else if (delta > -0.5) { signal = "on_track"; label = "On track"; }
+  else if (delta > -1.5) { signal = "slight_behind"; label = "Slightly behind"; }
+  else { signal = "behind"; label = "Behind schedule"; }
+
+  // Check recent PBs from activity analysis for positive signals
+  const runPbs = analysis?.runPbs;
+  if (runPbs) {
+    const recentPb5k = runPbs.fiveK?.time;
+    const recentPb10k = runPbs.tenK?.time;
+    if (recentPb5k) {
+      const pbVdot = vdotFromRaceTime(5, recentPb5k);
+      if (pbVdot && pbVdot > currentVdot + 1) {
+        signal = "breakout";
+        label = "Breakthrough detected";
+      }
+    } else if (recentPb10k) {
+      const pbVdot = vdotFromRaceTime(10, recentPb10k);
+      if (pbVdot && pbVdot > currentVdot + 1) {
+        signal = "breakout";
+        label = "Breakthrough detected";
+      }
+    }
+  }
+
+  return { signal, label, delta, currentVdot, expectedVdot, progressFraction };
+}
+
+function assessFatigueState(profile, analysis, activities, now) {
+  // ACWR from analysis or profile enrichment
+  const acwr = profile._acwr || analysis?.trainingLoad?.acwr || null;
+  const acuteLoad = profile._acuteLoad || analysis?.trainingLoad?.acute || 0;
+  const chronicLoad = profile._chronicLoad || analysis?.trainingLoad?.chronic || 0;
+
+  // Detect missed training days (gaps in activity)
+  const recentDays = 14;
+  const cutoff = new Date(now.getTime() - recentDays * 86400000);
+  const recentActivities = activities.filter(a => new Date(a.date || a.start_date) >= cutoff);
+  const activeDays = new Set(recentActivities.map(a => startOfDay(new Date(a.date || a.start_date)).toISOString()));
+  const missedDays = recentDays - activeDays.size;
+
+  // Consecutive rest detection (potential illness/injury)
+  let maxConsecutiveRest = 0;
+  let currentStreak = 0;
+  for (let i = 0; i < recentDays; i++) {
+    const checkDay = new Date(now.getTime() - i * 86400000);
+    const dayKey = startOfDay(checkDay).toISOString();
+    if (!activeDays.has(dayKey)) { currentStreak++; maxConsecutiveRest = Math.max(maxConsecutiveRest, currentStreak); }
+    else { currentStreak = 0; }
+  }
+
+  let risk, adjustmentType;
+  if (maxConsecutiveRest >= 10) {
+    risk = "extended_break";
+    adjustmentType = "rebuild"; // Need rebuild phase
+  } else if (maxConsecutiveRest >= 5) {
+    risk = "illness_likely";
+    adjustmentType = "recovery_block"; // Insert recovery micro-block
+  } else if (acwr && acwr > 1.4) {
+    risk = "overreach";
+    adjustmentType = "deload"; // Force deload
+  } else if (acwr && acwr > 1.25) {
+    risk = "elevated";
+    adjustmentType = "reduce"; // Moderate reduction
+  } else if (acwr && acwr < 0.7 && missedDays < 5) {
+    risk = "undertrained";
+    adjustmentType = "push"; // Can push harder
+  } else {
+    risk = "optimal";
+    adjustmentType = "none";
+  }
+
+  return { risk, adjustmentType, missedDays, maxConsecutiveRest, acwr, acuteLoad, chronicLoad };
+}
+
+function applyAdaptiveAdjustments(plan, profile, currentWeekIdx, compliance, trajectory, fatigueState) {
+  const adjusted = JSON.parse(JSON.stringify(plan)); // deep clone
+  const remainingWeeks = adjusted.weeks.slice(currentWeekIdx);
+
+  for (let i = 0; i < remainingWeeks.length; i++) {
+    const week = remainingWeeks[i];
+    const isNextWeek = i === 0;
+
+    // Volume multiplier based on signals
+    let volumeMult = 1.0;
+    let intensityMult = 1.0;
+
+    // Fatigue-based adjustments (highest priority)
+    switch (fatigueState.adjustmentType) {
+      case "rebuild":
+        if (i === 0) { volumeMult = 0.45; intensityMult = 0.7; week.focus = "Rebuild · Gentle Return"; }
+        else if (i === 1) { volumeMult = 0.6; intensityMult = 0.8; week.focus = "Rebuild · Progressive"; }
+        else if (i === 2) { volumeMult = 0.75; intensityMult = 0.9; week.focus = "Rebuild · Reloading"; }
+        else { volumeMult = Math.min(1.0, 0.8 + i * 0.05); }
+        break;
+      case "recovery_block":
+        if (i === 0) { volumeMult = 0.55; intensityMult = 0.75; week.focus = "Recovery · Return Week"; }
+        else if (i === 1) { volumeMult = 0.75; intensityMult = 0.88; }
+        else { volumeMult = Math.min(1.0, 0.85 + i * 0.05); }
+        break;
+      case "deload":
+        if (isNextWeek) { volumeMult = 0.65; intensityMult = 0.82; week.focus = "Adaptive Deload"; }
+        break;
+      case "reduce":
+        if (isNextWeek) { volumeMult = 0.85; intensityMult = 0.92; }
+        break;
+      case "push":
+        volumeMult = 1.08;
+        intensityMult = 1.05;
+        break;
+    }
+
+    // Trajectory-based adjustments (secondary)
+    if (fatigueState.adjustmentType === "none" || fatigueState.adjustmentType === "push") {
+      switch (trajectory.signal) {
+        case "ahead":
+        case "breakout":
+          volumeMult *= 1.1;
+          intensityMult *= 1.08;
+          if (i === 0 && trajectory.signal === "breakout") week.focus += " · Breakthrough Push";
+          break;
+        case "slight_ahead":
+          volumeMult *= 1.04;
+          intensityMult *= 1.03;
+          break;
+        case "slight_behind":
+          volumeMult *= 0.95;
+          // Keep intensity — need the stimulus
+          break;
+        case "behind":
+          volumeMult *= 0.88;
+          intensityMult *= 0.95;
+          break;
+      }
+    }
+
+    // Compliance-based adjustments (tertiary)
+    if (compliance.score < 0.5) {
+      // Athlete isn't completing sessions — reduce plan to what's achievable
+      volumeMult *= 0.85;
+      intensityMult *= 0.9;
+    }
+
+    // Apply multipliers to week
+    if (week.loadKm) week.loadKm = Math.round(week.loadKm * volumeMult);
+    if (week.loadHours) week.loadHours = +(week.loadHours * volumeMult).toFixed(1);
+
+    // Adjust individual sessions
+    if (week.days) {
+      for (const day of week.days) {
+        if (day.type === "rest") continue;
+
+        // Downgrade quality sessions during recovery/rebuild
+        if (fatigueState.adjustmentType === "rebuild" && i < 2) {
+          if (day.type === "quality" || day.type === "threshold") {
+            day.type = "recovery";
+            day.title = "Easy Recovery " + (day.title.includes("Bike") ? "Bike" : day.title.includes("Swim") ? "Swim" : "Run");
+            day.details = `Easy aerobic movement only. Keep HR in Zone 1-2. Focus on form and feel. Body is rebuilding.`;
+          }
+        }
+
+        // Boost quality sessions when athlete is progressing fast
+        if ((trajectory.signal === "ahead" || trajectory.signal === "breakout") && fatigueState.risk === "optimal") {
+          if (day.type === "threshold" || day.type === "quality") {
+            day._intensityBoost = Math.round((intensityMult - 1) * 100);
+            if (day._intensityBoost > 0) {
+              day.details += `\n⚡ Adaptive boost: +${day._intensityBoost}% intensity — du entwickelst dich schneller als erwartet.`;
+            }
+          }
+        }
+
+        // Apply load score adjustments
+        if (day.loadScore) day.loadScore = Math.round(day.loadScore * volumeMult * intensityMult);
+        if (day.adaptationScore) day.adaptationScore = Math.round(day.adaptationScore * intensityMult);
+        if (day.fatigueScore) day.fatigueScore = Math.round(day.fatigueScore * volumeMult);
+        if (day.nominalHours) day.nominalHours = +(day.nominalHours * volumeMult).toFixed(2);
+      }
+    }
+  }
+
+  // Recalculate flat sessions array
+  adjusted.sessions = adjusted.weeks.flatMap(w => (w.days || []).filter(d => d.type !== "rest"));
+
+  return adjusted;
+}
+
+function analyzeActivityHistoryLight(activities) {
+  if (!activities || !activities.length) return null;
+  const now = Date.now();
+  const recent = activities.filter(a => (now - new Date(a.date || a.start_date).getTime()) < 90 * 86400000);
+  if (!recent.length) return null;
+
+  const runs = recent.filter(a => String(a.type || a.sport_type || "").toLowerCase().includes("run"));
+  const runPbs = {};
+  for (const r of runs) {
+    const km = Number(r.distance) / 1000 || Number(r.distance_km) || 0;
+    const sec = Number(r.moving_time) || Number(r.elapsed_time) || 0;
+    if (km >= 4.8 && km <= 5.3 && sec > 0) {
+      if (!runPbs.fiveK || sec < runPbs.fiveK.time) runPbs.fiveK = { time: sec, distance: km };
+    }
+    if (km >= 9.8 && km <= 10.3 && sec > 0) {
+      if (!runPbs.tenK || sec < runPbs.tenK.time) runPbs.tenK = { time: sec, distance: km };
+    }
+    if (km >= 20.5 && km <= 21.5 && sec > 0) {
+      if (!runPbs.half || sec < runPbs.half.time) runPbs.half = { time: sec, distance: km };
+    }
+    if (km >= 41.5 && km <= 43 && sec > 0) {
+      if (!runPbs.marathon || sec < runPbs.marathon.time) runPbs.marathon = { time: sec, distance: km };
+    }
+  }
+
+  // Training load (simplified TRIMP)
+  const last7 = recent.filter(a => (now - new Date(a.date || a.start_date).getTime()) < 7 * 86400000);
+  const last28 = recent.filter(a => (now - new Date(a.date || a.start_date).getTime()) < 28 * 86400000);
+  const loadOf = (acts) => acts.reduce((s, a) => s + (Number(a.moving_time) || 0) / 60 * ((Number(a.average_heartrate) || 130) / 180), 0);
+  const acute = Math.round(loadOf(last7));
+  const chronic = Math.round(loadOf(last28) / 4);
+
+  return {
+    runPbs,
+    trainingLoad: { acute, chronic, acwr: chronic > 0 ? +(acute / chronic).toFixed(2) : null },
+  };
+}
+
+/* Trigger adaptive check when new activity data arrives or plan is loaded */
+function maybeAdaptPlan() {
+  if (!latestPlan || !latestProfile) return;
+  const account = getCurrentAccount();
+  const feed = account?.activities || account?.activityFeed || [];
+  if (!account || feed.length < 3) return;
+
+  const adapted = adaptPlanToReality(latestPlan, latestProfile, account);
+  if (adapted.meta.adapted) {
+    latestPlan = adapted;
+    generatedSessions = adapted.sessions || [];
+    renderPlan(adapted);
+    renderPerformanceInsights(latestProfile, adapted);
+    renderProfilePredictions(latestProfile, adapted);
+    if (account) {
+      savePlanToLibrary(account, latestProfile, adapted);
+      persistStore();
+    }
+  }
 }
 
 function computeGoalPressure(profile) {
@@ -10442,65 +10881,109 @@ function buildExtendedMetrics(profile, plan, series, sourceCount) {
 }
 
 function buildRacePredictions(profile, last, plan) {
-  const capability = last.fitness + last.readiness * 0.25 - last.fatigue * 0.12 + (connectedSources.size * 1.8);
-  const weekly = plan.meta.weeklyKmBase;
   const trendDelta = Math.round(clamp((last.readiness - 55) / 4 + (last.fitness - 50) / 8, -12, 18));
 
-  if (profile.discipline === "running") {
-    const minutes = {
-      a: Math.round(clamp(24 - capability * 0.06 - weekly * 0.01, 14, 40)), // 5k
-      b: Math.round(clamp(52 - capability * 0.11 - weekly * 0.015, 30, 85)), // 10k
-      c: Math.round(clamp(115 - capability * 0.22 - weekly * 0.025, 72, 190)), // HM
-      d: Math.round(clamp(240 - capability * 0.45 - weekly * 0.05, 150, 400)), // M
-    };
+  // VDOT-based predictions for running disciplines
+  if (profile.discipline === "running" || profile.discipline === "triathlon" || profile.discipline === "hyrox") {
+    const currentVdot = vdotFromProfile(profile) || 40;
+    const predictions = vdotRacePredictions(currentVdot);
+
+    // Race-day projection: estimate VDOT on race day based on remaining training
+    const raceDayVdot = projectRaceDayVdot(currentVdot, profile, plan);
+    const raceDayPredictions = vdotRacePredictions(raceDayVdot);
+
+    if (profile.discipline === "running") {
+      return {
+        trendDelta,
+        currentVdot: +currentVdot.toFixed(1),
+        raceDayVdot: +raceDayVdot.toFixed(1),
+        labels: { a: "5 km", b: "10 km", c: "Halbmarathon", d: "Marathon" },
+        values: {
+          a: formatRaceTimeSec(predictions.fiveK),
+          b: formatRaceTimeSec(predictions.tenK),
+          c: formatRaceTimeSec(predictions.half),
+          d: formatRaceTimeSec(predictions.marathon),
+        },
+        raceDayValues: {
+          a: formatRaceTimeSec(raceDayPredictions.fiveK),
+          b: formatRaceTimeSec(raceDayPredictions.tenK),
+          c: formatRaceTimeSec(raceDayPredictions.half),
+          d: formatRaceTimeSec(raceDayPredictions.marathon),
+        },
+      };
+    }
+
+    if (profile.discipline === "hyrox") {
+      // HYROX: use 10K VDOT as base, add station overhead
+      const run8x1k = predictions.tenK * 0.82; // 8x1km slightly faster than 10K pace
+      const stationTime = profile.fitnessLevel === "advanced" ? 22 * 60 : profile.fitnessLevel === "intermediate" ? 28 * 60 : 36 * 60;
+      const transition = 8 * 15; // ~15s per transition
+      const openTotal = Math.round(run8x1k + stationTime + transition);
+      const proTotal = Math.round(openTotal * 0.92);
+      const doublesLabel = profile.goalDistance === "doublespro" ? "HYROX Doubles Pro" : "HYROX Doubles";
+      const doublesTotal = Math.round(openTotal * (profile.goalDistance === "doublespro" ? 0.82 : 0.86));
+      return {
+        trendDelta,
+        currentVdot: +currentVdot.toFixed(1),
+        raceDayVdot: +raceDayVdot.toFixed(1),
+        labels: { a: "HYROX Open", b: "HYROX Pro", c: doublesLabel, d: "HYROX Relay" },
+        values: {
+          a: formatRaceTimeSec(openTotal),
+          b: formatRaceTimeSec(proTotal),
+          c: formatRaceTimeSec(doublesTotal),
+          d: formatRaceTimeSec(Math.round(openTotal * 0.38)),
+        },
+        raceDayValues: null,
+      };
+    }
+
+    // Triathlon: use VDOT for run, estimate swim/bike from profile
+    const swimCssSec = profile.swimCss ? parsePacePerKmToSeconds(profile.swimCss) * 10 : null; // per 100m → per km
+    const ftp = profile.bikeFtp || (profile.fitnessLevel === "advanced" ? 260 : profile.fitnessLevel === "intermediate" ? 210 : 170);
+
+    const sprintMin = Math.round((swimCssSec ? 750 / (1000 / swimCssSec) : 14 * 60) + 40 * 60 * (220 / Math.max(150, ftp)) + predictions.fiveK) / 60;
+    const olyMin = Math.round((swimCssSec ? 1500 / (1000 / swimCssSec) : 28 * 60) + 80 * 60 * (250 / Math.max(150, ftp)) + predictions.tenK) / 60;
+    const halfMin = Math.round((swimCssSec ? 1900 / (1000 / swimCssSec) : 38 * 60) + 150 * 60 * (260 / Math.max(150, ftp)) + predictions.half) / 60;
+    const fullMin = Math.round((swimCssSec ? 3800 / (1000 / swimCssSec) : 78 * 60) + 300 * 60 * (270 / Math.max(150, ftp)) + predictions.marathon) / 60;
     return {
       trendDelta,
-      labels: { a: "5 km", b: "10 km", c: "Halbmarathon", d: "Marathon" },
+      currentVdot: +currentVdot.toFixed(1),
+      raceDayVdot: +raceDayVdot.toFixed(1),
+      labels: { a: "Sprint", b: "Olympic", c: "70.3", d: "Ironman" },
       values: {
-        a: formatDurationMinutes(minutes.a),
-        b: formatDurationMinutes(minutes.b),
-        c: formatDurationMinutes(minutes.c),
-        d: formatDurationMinutes(minutes.d),
+        a: formatDurationMinutes(Math.round(sprintMin)),
+        b: formatDurationMinutes(Math.round(olyMin)),
+        c: formatDurationMinutes(Math.round(halfMin)),
+        d: formatDurationMinutes(Math.round(fullMin)),
       },
+      raceDayValues: null,
     };
   }
 
   if (profile.discipline === "cycling") {
-    const minutes = {
-      a: Math.round(clamp(65 - capability * 0.18 - weekly * 0.02, 40, 120)), // crit
-      b: Math.round(clamp(63 - capability * 0.16 - weekly * 0.025, 38, 110)), // tt40
-      c: Math.round(clamp(345 - capability * 0.65 - weekly * 0.05, 220, 520)), // fondo
-      d: Math.round(clamp(355 - capability * 0.7 - weekly * 0.06, 230, 560)), // century
-    };
+    const ftp = profile.bikeFtp || (profile.fitnessLevel === "advanced" ? 280 : profile.fitnessLevel === "intermediate" ? 220 : 175);
+    const wPerKg = ftp / (Number(profile.weightKg) || 75);
+    // Power-duration model for cycling predictions
+    const tt40Sec = Math.round(40000 / (wPerKg * 0.95 * 3.6 * 0.28)); // simplified aero model
+    const critSec = Math.round(tt40Sec * 0.88);
+    const fondoSec = Math.round(tt40Sec * 4.8);
+    const centurySec = Math.round(tt40Sec * 5.2);
     return {
       trendDelta,
       labels: { a: "Crit", b: "TT 40 km", c: "Gran Fondo", d: "Century" },
       values: {
-        a: formatDurationMinutes(minutes.a),
-        b: formatDurationMinutes(minutes.b),
-        c: formatDurationMinutes(minutes.c),
-        d: formatDurationMinutes(minutes.d),
+        a: formatRaceTimeSec(clamp(critSec, 2400, 7200)),
+        b: formatRaceTimeSec(clamp(tt40Sec, 2280, 6600)),
+        c: formatRaceTimeSec(clamp(fondoSec, 13200, 31200)),
+        d: formatRaceTimeSec(clamp(centurySec, 13800, 33600)),
       },
-    };
-  }
-
-  if (profile.discipline === "hyrox") {
-    const baseMinutes = Math.max(55, Math.round(112 - capability * 0.55 - weekly * 0.12));
-    const doublesLabel = profile.goalDistance === "doublespro" ? "HYROX Doubles Pro" : "HYROX Doubles";
-    const doublesMinutes = profile.goalDistance === "doublespro" ? Math.max(37, baseMinutes - 19) : Math.max(40, baseMinutes - 16);
-    return {
-      trendDelta,
-      labels: { a: "HYROX Open", b: "HYROX Pro", c: doublesLabel, d: "HYROX Relay" },
-      values: {
-        a: formatDurationMinutes(baseMinutes),
-        b: formatDurationMinutes(Math.max(45, baseMinutes - 6)),
-        c: formatDurationMinutes(doublesMinutes),
-        d: formatDurationMinutes(Math.max(32, baseMinutes - 28)),
-      },
+      raceDayValues: null,
     };
   }
 
   if (profile.discipline === "shape") {
+    const capability = last.fitness + last.readiness * 0.25 - last.fatigue * 0.12 + (connectedSources.size * 1.8);
+    const weekly = plan.meta.weeklyKmBase;
     const currentWeight = Number(profile.weightKg) || null;
     const targetWeight = Number(profile.targetWeightKg) || null;
     const weeks = plan.weeks.length;
@@ -10530,26 +11013,78 @@ function buildRacePredictions(profile, last, plan) {
         c: `${pushups} reps`,
         d: `${workCap}/100`,
       },
+      raceDayValues: null,
     };
   }
 
-  const minutes = {
-    a: Math.round(clamp(86 - capability * 0.35 - weekly * 0.03, 58, 120)),
-    b: Math.round(clamp(178 - capability * 0.62 - weekly * 0.05, 120, 240)),
-    c: Math.round(clamp(360 - capability * 1.1 - weekly * 0.08, 255, 460)),
-    d: Math.round(clamp(760 - capability * 2.0 - weekly * 0.16, 550, 1020)),
-  };
+  // Fallback (shouldn't reach)
+  return { trendDelta, labels: { a: "-", b: "-", c: "-", d: "-" }, values: { a: "-", b: "-", c: "-", d: "-" }, raceDayValues: null };
+}
+
+/* VDOT → race time interpolation from Daniels' table */
+function vdotRacePredictions(vdot) {
+  const v = clamp(vdot, 25, 90);
+  let lo = VDOT_TABLE[0], hi = VDOT_TABLE[1];
+  for (let i = 0; i < VDOT_TABLE.length - 1; i++) {
+    if (v >= VDOT_TABLE[i][0] && v <= VDOT_TABLE[i + 1][0]) {
+      lo = VDOT_TABLE[i];
+      hi = VDOT_TABLE[i + 1];
+      break;
+    }
+    if (v < VDOT_TABLE[i][0]) { lo = VDOT_TABLE[Math.max(0, i - 1)]; hi = VDOT_TABLE[i]; break; }
+  }
+  if (v >= VDOT_TABLE[VDOT_TABLE.length - 1][0]) {
+    lo = VDOT_TABLE[VDOT_TABLE.length - 2];
+    hi = VDOT_TABLE[VDOT_TABLE.length - 1];
+  }
+
+  const frac = hi[0] !== lo[0] ? (v - lo[0]) / (hi[0] - lo[0]) : 0;
+  const interp = (col) => Math.round(lo[col] + (hi[col] - lo[col]) * frac);
 
   return {
-    trendDelta,
-    labels: { a: "Sprint", b: "Olympic", c: "70.3", d: "Ironman" },
-    values: {
-      a: formatDurationMinutes(minutes.a),
-      b: formatDurationMinutes(minutes.b),
-      c: formatDurationMinutes(minutes.c),
-      d: formatDurationMinutes(minutes.d),
-    },
+    fiveK: interp(1),
+    tenK: interp(2),
+    half: interp(3),
+    marathon: interp(4),
   };
+}
+
+/* Project VDOT on race day based on remaining structured training */
+function projectRaceDayVdot(currentVdot, profile, plan) {
+  if (!plan || !plan.weeks || !plan.weeks.length) return currentVdot;
+
+  const now = startOfDay(new Date());
+  const raceDate = profile.raceDate ? startOfDay(new Date(profile.raceDate)) : null;
+  if (!raceDate || raceDate <= now) return currentVdot;
+
+  const weeksRemaining = Math.max(0, Math.ceil((raceDate - now) / (7 * 86400000)));
+  if (weeksRemaining === 0) return currentVdot;
+
+  // VDOT improvement rate per week of structured training
+  // Research (Daniels, Pfitzinger): ~0.5-1.5 VDOT per 8-week block
+  // Diminishing returns at higher VDOT values
+  const diminishingFactor = clamp(1 - (currentVdot - 35) / 80, 0.3, 1.0);
+  const levelRate = profile.fitnessLevel === "starter" ? 0.16
+    : profile.fitnessLevel === "advanced" ? 0.05 : 0.10;
+  const weeklyGain = levelRate * diminishingFactor;
+
+  // Compliance discount if adaptive signals exist
+  const complianceMult = plan.meta?.adaptiveSignals?.compliance || 1.0;
+
+  // Taper boost: last 2-3 weeks before race typically yield 2-3% performance gain
+  const taperBoostVdot = weeksRemaining <= 3 ? 0.8 : 0;
+
+  const projectedVdot = currentVdot + (weeklyGain * weeksRemaining * complianceMult) + taperBoostVdot;
+  return Math.min(projectedVdot, currentVdot + 8); // cap at +8 VDOT max improvement
+}
+
+function formatRaceTimeSec(totalSec) {
+  if (!totalSec || totalSec <= 0) return "-";
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = Math.round(totalSec % 60);
+  if (h > 0) return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  return `${m}:${String(s).padStart(2, "0")}`;
 }
 
 function thresholdDescriptor(profile, last) {
@@ -10614,12 +11149,13 @@ function animateWindowScrollTo(targetTop, duration = 760) {
     generatedPlanScrollRaf = 0;
   }
   const startTs = performance.now();
-  const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+  /* cubic-bezier(0.16, 1, 0.3, 1) — fast decel, buttery finish */
+  const easeOutExpo = (t) => t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
 
   const step = (now) => {
     const elapsed = now - startTs;
     const progress = clamp(elapsed / duration, 0, 1);
-    const eased = easeInOut(progress);
+    const eased = easeOutExpo(progress);
     window.scrollTo(0, startY + distance * eased);
     if (progress < 1) {
       generatedPlanScrollRaf = window.requestAnimationFrame(step);
@@ -11359,11 +11895,11 @@ function initScrollFx() {
     });
 
     if (landingLayerEl) {
-      const hold = 0.22;
-      const push = clamp((progress - hold) / 0.5, 0, 1);
-      const shift = Math.round(push * 172);
-      const opacity = clamp(1 - Math.max(0, (progress - 0.44) / 0.26), 0, 1);
-      const scale = 1 - push * 0.025;
+      const hold = 0.18;
+      const push = clamp((progress - hold) / 0.55, 0, 1);
+      const shift = Math.round(push * 140);
+      const opacity = clamp(1 - Math.max(0, (progress - 0.35) / 0.35), 0, 1);
+      const scale = 1 - push * 0.02;
       landingLayerEl.style.setProperty("--landing-shift", String(shift));
       landingLayerEl.style.setProperty("--landing-opacity", opacity.toFixed(3));
       landingLayerEl.style.setProperty("--landing-scale", scale.toFixed(4));

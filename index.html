@@ -460,6 +460,35 @@
             </div>
           </div>
           <div class="account-grid">
+            <section class="result-card account-card profile-main-card profile-card-overview race-predictions-hero" id="profile-card-predictions" hidden>
+              <div class="result-title-row">
+                <h4>Race Predictions</h4>
+                <span class="tag subtle" id="predictions-vdot-tag">VDOT -</span>
+              </div>
+              <div class="predictions-dual-view">
+                <div class="predictions-column predictions-current">
+                  <p class="predictions-column-label">Aktuell</p>
+                  <div class="predictions-grid" id="profile-predictions-current">
+                    <div class="prediction-cell"><span id="profile-pred-label-a">5 km</span><strong id="profile-pred-a">-</strong></div>
+                    <div class="prediction-cell"><span id="profile-pred-label-b">10 km</span><strong id="profile-pred-b">-</strong></div>
+                    <div class="prediction-cell"><span id="profile-pred-label-c">Halbmarathon</span><strong id="profile-pred-c">-</strong></div>
+                    <div class="prediction-cell"><span id="profile-pred-label-d">Marathon</span><strong id="profile-pred-d">-</strong></div>
+                  </div>
+                </div>
+                <div class="predictions-column predictions-raceday" id="predictions-raceday-col" hidden>
+                  <p class="predictions-column-label">Race Day Prognose</p>
+                  <div class="predictions-grid" id="profile-predictions-raceday">
+                    <div class="prediction-cell"><span>5 km</span><strong id="profile-pred-rd-a">-</strong></div>
+                    <div class="prediction-cell"><span>10 km</span><strong id="profile-pred-rd-b">-</strong></div>
+                    <div class="prediction-cell"><span>Halbmarathon</span><strong id="profile-pred-rd-c">-</strong></div>
+                    <div class="prediction-cell"><span>Marathon</span><strong id="profile-pred-rd-d">-</strong></div>
+                  </div>
+                  <p class="predictions-raceday-note" id="predictions-raceday-note"></p>
+                </div>
+              </div>
+              <div class="predictions-adaptive-status" id="predictions-adaptive-status" hidden></div>
+            </section>
+
             <section class="result-card account-card profile-main-card profile-card-overview" id="profile-card-identity">
               <div class="result-title-row">
                 <h4 data-i18n="profile_card_title">Profil</h4>
