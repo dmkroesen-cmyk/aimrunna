@@ -202,6 +202,7 @@ const crewFeedListEl = document.getElementById("crew-feed-list");
 const crewRankingCountEl = document.getElementById("crew-ranking-count");
 const crewRankingListEl = document.getElementById("crew-ranking-list");
 const accountSectionTabButtons = [...document.querySelectorAll(".account-section-tab")];
+const accountPillEl = document.getElementById("account-pill");
 const accountPaneProfileEl = document.getElementById("account-pane-profile");
 const accountPaneCrewEl = document.getElementById("account-pane-crew");
 const profileViewTabButtons = [...document.querySelectorAll(".profile-view-tab")];
@@ -1188,7 +1189,6 @@ profileViewTabButtons.forEach((btn) =>
     const view = btn.dataset.profileView || "overview";
     setActiveProfileView(view);
     if (activeAppView !== "profile") setAppView("profile");
-    scrollToSectionStart(sectionAccountEl, { mobileOffset: 150, desktopOffset: 114, duration: 420 });
   })
 );
 
@@ -1254,24 +1254,42 @@ accountTabButtons.forEach((btn) =>
   btn.addEventListener("click", () => openAccountModal(btn.dataset.authMode || "login"))
 );
 
-accountFormEl?.addEventListener("submit", (event) => {
+accountFormEl?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const fd = new FormData(accountFormEl);
   const email = String(fd.get("email") || "").trim().toLowerCase();
   const password = String(fd.get("password") || "");
-  const result = authMode === "register" ? registerAccount(email, password) : loginAccount(email, password);
-  setText(accountFormStatusEl, result.message);
-  if (result.ok) {
-    renderAccountUi();
-    syncConnectorButtons();
-    updateConnectionStateCopy();
-    setTimeout(() => closeAccountModal(), 200);
+  const submitBtn = document.getElementById("account-submit-btn");
+  if (submitBtn) submitBtn.disabled = true;
+  setText(accountFormStatusEl, "Verbinde...");
+  try {
+    const result = await (authMode === "register" ? registerAccount(email, password) : loginAccount(email, password));
+    setText(accountFormStatusEl, result.message);
+    if (result.ok) {
+      renderAccountUi();
+      syncConnectorButtons();
+      updateConnectionStateCopy();
+      setTimeout(() => closeAccountModal(), 200);
+    }
+  } catch (err) {
+    setText(accountFormStatusEl, err.message || "Fehler aufgetreten.");
+  } finally {
+    if (submitBtn) submitBtn.disabled = false;
   }
 });
 
-accountForgotPasswordBtn?.addEventListener("click", () => {
+// Google OAuth login
+document.getElementById("google-login-btn")?.addEventListener("click", async () => {
+  try {
+    await sbAuth.signInWithGoogle();
+  } catch (err) {
+    setText(accountFormStatusEl, err.message || "Google Login fehlgeschlagen.");
+  }
+});
+
+accountForgotPasswordBtn?.addEventListener("click", async () => {
   const email = String(accountFormEl?.elements?.email?.value || "").trim().toLowerCase();
-  const result = requestPasswordReset(email);
+  const result = await requestPasswordReset(email);
   setText(accountFormStatusEl, result.message);
 });
 
@@ -1294,6 +1312,10 @@ accountSettingsFormEl?.addEventListener("submit", (event) => {
   };
   persistStore();
   setText(accountSettingsStatusEl, "Gespeichert.");
+  // Sync settings to Supabase
+  if (typeof sbDb !== "undefined" && account.id && !account.id.startsWith("acc_")) {
+    sbDb.updateProfile(account.id, { settings: account.settings }).catch(() => {});
+  }
 });
 
 privacySettingsFormEl?.addEventListener("submit", (event) => {
@@ -1317,6 +1339,9 @@ privacySettingsFormEl?.addEventListener("submit", (event) => {
   };
   persistStore();
   setText(privacySettingsStatusEl, "Gespeichert.");
+  if (typeof sbDb !== "undefined" && account.id && !account.id.startsWith("acc_")) {
+    sbDb.updateProfile(account.id, { settings: account.settings }).catch(() => {});
+  }
 });
 
 safetySettingsFormEl?.addEventListener("submit", (event) => {
@@ -1338,12 +1363,15 @@ safetySettingsFormEl?.addEventListener("submit", (event) => {
   };
   persistStore();
   setText(safetySettingsStatusEl, "Gespeichert.");
+  if (typeof sbDb !== "undefined" && account.id && !account.id.startsWith("acc_")) {
+    sbDb.updateProfile(account.id, { settings: account.settings }).catch(() => {});
+  }
 });
 
-passwordChangeFormEl?.addEventListener("submit", (event) => {
+passwordChangeFormEl?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const fd = new FormData(passwordChangeFormEl);
-  const result = changeCurrentAccountPassword(String(fd.get("currentPassword") || ""), String(fd.get("newPassword") || ""));
+  const result = await changeCurrentAccountPassword(String(fd.get("currentPassword") || ""), String(fd.get("newPassword") || ""));
   setText(passwordChangeStatusEl, result.message);
   if (result.ok) passwordChangeFormEl.reset();
 });
@@ -1810,6 +1838,35 @@ function initAccountUi() {
   renderAccountUi();
   setAuthMode("login");
   handleOAuthReturnParams();
+
+  // Supabase: recover session on page load (handles OAuth redirects too)
+  if (typeof sbAuth !== "undefined") {
+    sbAuth.getSession().then(async (session) => {
+      if (session?.user && currentAccountId !== session.user.id) {
+        await handleSupabaseAuth(session);
+        renderAccountUi();
+        syncConnectorButtons();
+        updateConnectionStateCopy();
+      }
+    }).catch(() => {});
+
+    // Listen for auth state changes (login/logout from other tabs, token refresh)
+    sbAuth.onAuthStateChange(async (event, session) => {
+      if (event === "SIGNED_IN" && session?.user) {
+        await handleSupabaseAuth(session);
+        renderAccountUi();
+        syncConnectorButtons();
+        updateConnectionStateCopy();
+        closeAccountModal();
+      } else if (event === "SIGNED_OUT") {
+        currentAccountId = null;
+        connectedSources.clear();
+        persistStore();
+        document.body.classList.remove("is-authenticated");
+        renderAccountUi();
+      }
+    });
+  }
 }
 
 function closeGlossaryModal() {
@@ -2737,63 +2794,128 @@ function closeAccountModal() {
   accountModalEl.hidden = true;
 }
 
-function registerAccount(email, password) {
+async function registerAccount(email, password) {
   if (!email || !email.includes("@")) return { ok: false, message: "Bitte gültige E-Mail eingeben." };
   if (!password || password.length < 6) return { ok: false, message: "Passwort muss mindestens 6 Zeichen haben." };
-  if (appStore.accounts.some((a) => a.email === email)) return { ok: false, message: "E-Mail existiert bereits." };
 
-  const account = {
-    id: `acc_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-    email,
-    password, // Local MVP only (replace with backend auth + hashing)
-    createdAt: new Date().toISOString(),
-    plans: [],
-    friends: [],
-    connectedSources: [],
-    settings: defaultAccountSettings(),
-  };
-  appStore.accounts.push(account);
-  currentAccountId = account.id;
+  try {
+    const data = await sbAuth.signUp(email, password);
+    if (data.user) {
+      await handleSupabaseAuth(data.session);
+      return { ok: true, message: "Account erstellt." };
+    }
+    return { ok: true, message: "Bestätigungs-E-Mail gesendet. Bitte Postfach prüfen." };
+  } catch (err) {
+    const msg = err.message?.includes("already registered") ? "E-Mail existiert bereits." : err.message || "Fehler bei der Registrierung.";
+    return { ok: false, message: msg };
+  }
+}
+
+async function loginAccount(email, password) {
+  try {
+    const data = await sbAuth.signIn(email, password);
+    await handleSupabaseAuth(data.session);
+    return { ok: true, message: "Eingeloggt." };
+  } catch (err) {
+    const msg = err.message?.includes("Invalid login") ? "E-Mail oder Passwort falsch." : err.message || "Login fehlgeschlagen.";
+    return { ok: false, message: msg };
+  }
+}
+
+async function handleSupabaseAuth(session) {
+  if (!session?.user) return;
+  const user = session.user;
+  // Create local account representation backed by Supabase
+  let account = appStore.accounts.find((a) => a.id === user.id);
+  if (!account) {
+    account = {
+      id: user.id,
+      email: user.email,
+      createdAt: user.created_at || new Date().toISOString(),
+      plans: [],
+      friends: [],
+      connectedSources: [],
+      settings: defaultAccountSettings(),
+    };
+    appStore.accounts.push(account);
+  }
+  // Sync profile from Supabase
+  try {
+    const profile = await sbDb.getProfile(user.id);
+    if (profile) {
+      account.email = profile.email || account.email;
+      account.displayName = profile.display_name;
+      account.profileImage = profile.profile_image;
+      if (profile.settings) account.settings = { ...defaultAccountSettings(), ...profile.settings };
+      if (profile.connected_sources) account.connectedSources = profile.connected_sources;
+    }
+    // Load plans from Supabase
+    const plans = await sbDb.getPlans(user.id);
+    if (plans.length) {
+      account.plans = plans.map((p) => ({
+        id: p.id,
+        createdAt: p.created_at,
+        title: p.title,
+        summary: p.summary,
+        profile: p.profile,
+        plan: p.plan_data,
+      }));
+    }
+    // Load activities from Supabase
+    const activities = await sbDb.getActivities(user.id, 60);
+    if (activities.length) {
+      account.activities = activities.map((a) => ({
+        id: a.id,
+        source: a.source,
+        sourceExternalId: a.source_external_id,
+        createdAt: a.created_at,
+        title: a.title,
+        note: a.note,
+        kind: a.kind,
+        sportType: a.sport_type,
+        distanceKm: +a.distance_km || 0,
+        movingTimeSec: a.moving_time_sec,
+        elevationGainM: a.elevation_gain_m,
+        imageDataUrl: a.image_url,
+        propsBy: [],
+        ...(a.metrics || {}),
+      }));
+    }
+  } catch (e) {
+    console.warn("Supabase sync error (non-blocking):", e);
+  }
+  currentAccountId = user.id;
   persistStore();
   hydrateConnectedSourcesFromAccount();
   document.body.classList.add("is-authenticated");
-  return { ok: true, message: "Account erstellt." };
 }
 
-function loginAccount(email, password) {
-  const account = appStore.accounts.find((a) => a.email === email);
-  if (!account) return { ok: false, message: "Account nicht gefunden." };
-  if (account.password !== password) return { ok: false, message: "Passwort falsch." };
-  currentAccountId = account.id;
-  persistStore();
-  hydrateConnectedSourcesFromAccount();
-  document.body.classList.add("is-authenticated");
-  return { ok: true, message: "Eingeloggt." };
-}
-
-function requestPasswordReset(email) {
+async function requestPasswordReset(email) {
   const normalized = String(email || "").trim().toLowerCase();
   if (!normalized || !normalized.includes("@")) {
     return { ok: false, message: "Bitte zuerst eine gültige E-Mail eingeben." };
   }
-  const account = appStore?.accounts?.find((a) => a.email === normalized);
-  if (!account) {
-    return { ok: true, message: "Wenn ein Account existiert, wurde ein Reset-Hinweis gesendet. (MVP lokal: keine Mail-Infrastruktur verbunden)" };
+  try {
+    await sb.auth.resetPasswordForEmail(normalized, {
+      redirectTo: window.location.origin + window.location.pathname,
+    });
+    return { ok: true, message: "Reset-Link gesendet. Bitte Postfach prüfen." };
+  } catch (err) {
+    return { ok: false, message: err.message || "Fehler beim Senden." };
   }
-  const tempPassword = `aim${Math.random().toString(36).slice(2, 8)}!`;
-  account.password = tempPassword;
-  persistStore();
-  return { ok: true, message: `MVP Reset: Temporäres Passwort lokal gesetzt: ${tempPassword}` };
 }
 
-function changeCurrentAccountPassword(currentPassword, newPassword) {
+async function changeCurrentAccountPassword(currentPassword, newPassword) {
   const account = getCurrentAccount();
   if (!account) return { ok: false, message: "Bitte zuerst einloggen." };
-  if (!currentPassword || account.password !== currentPassword) return { ok: false, message: "Aktuelles Passwort ist falsch." };
   if (!newPassword || newPassword.length < 6) return { ok: false, message: "Neues Passwort muss mindestens 6 Zeichen haben." };
-  account.password = newPassword;
-  persistStore();
-  return { ok: true, message: "Passwort aktualisiert." };
+  try {
+    const { error } = await sb.auth.updateUser({ password: newPassword });
+    if (error) throw error;
+    return { ok: true, message: "Passwort aktualisiert." };
+  } catch (err) {
+    return { ok: false, message: err.message || "Fehler beim Ändern." };
+  }
 }
 
 function exportCurrentAccountData() {
@@ -2831,7 +2953,8 @@ function deleteCurrentAccountLocalMvp() {
   return { ok: true, message: "Account lokal gelöscht." };
 }
 
-function logoutCurrentAccount() {
+async function logoutCurrentAccount() {
+  try { await sbAuth.signOut(); } catch (e) { /* ignore */ }
   currentAccountId = null;
   connectedSources.clear();
   connectorButtons.forEach((b) => b.classList.remove("active"));
@@ -2864,16 +2987,27 @@ function syncConnectorButtons() {
 
 function savePlanToLibrary(account, profile, plan) {
   account.plans = Array.isArray(account.plans) ? account.plans : [];
+  const title = `${disciplineLabel(profile.discipline)} • ${labelDistance(profile.goalDistance)} • ${profile.goalTime}`;
+  const summary = `${plan.weeks.length} Wochen • ${Math.round(plan.meta.weeklyKmBase)} Base`;
+  const serializedProfile = serializeProfile(profile);
+  const serializedPlan = serializePlan(plan);
   const item = {
     id: `plan_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
     createdAt: new Date().toISOString(),
-    title: `${disciplineLabel(profile.discipline)} • ${labelDistance(profile.goalDistance)} • ${profile.goalTime}`,
-    summary: `${plan.weeks.length} Wochen • ${Math.round(plan.meta.weeklyKmBase)} Base`,
-    profile: serializeProfile(profile),
-    plan: serializePlan(plan),
+    title,
+    summary,
+    profile: serializedProfile,
+    plan: serializedPlan,
   };
   account.plans.unshift(item);
   account.plans = account.plans.slice(0, 20);
+
+  // Sync to Supabase in background
+  if (typeof sbDb !== "undefined" && account.id && !account.id.startsWith("acc_")) {
+    sbDb.savePlan(account.id, { title, summary, profile: serializedProfile, plan_data: serializedPlan })
+      .then((saved) => { if (saved?.id) item.id = saved.id; })
+      .catch((e) => console.warn("Plan sync error:", e));
+  }
 }
 
 function serializeProfile(profile) {
@@ -3152,11 +3286,7 @@ function setActiveProfileView(view) {
   }
   if (activeProfileView === "overview") maybeFetchStravaStatus(getCurrentAccount());
   if (activeAppView === "profile") {
-    if (activeProfileView === "health") {
-      scrollToSectionStart(sectionDataEl || sectionAccountEl, { mobileOffset: 150, desktopOffset: 114, duration: 360 });
-    } else {
-      scrollToSectionStart(sectionAccountEl, { mobileOffset: 150, desktopOffset: 114, duration: 360 });
-    }
+    scrollToSectionStart(sectionAccountEl, { mobileOffset: 148, desktopOffset: 136, duration: 360 });
   }
 }
 
@@ -3183,7 +3313,10 @@ function setAppView(view) {
     setActiveProfileView(activeProfileView);
     sectionAccountEl?.classList.add("is-visible");
     sectionDataEl?.classList.add("is-visible");
-  } else if (activeAppView === "crew") {
+  } else {
+    document.body.classList.remove("profile-view-overview", "profile-view-activities", "profile-view-health", "profile-view-settings");
+  }
+  if (activeAppView === "crew") {
     sectionAccountEl?.classList.add("is-visible");
     scrollToSectionStart(sectionAccountEl, { mobileOffset: 150, desktopOffset: 114, duration: 520 });
   } else {
@@ -3207,18 +3340,29 @@ function renderProfileAvatar(account) {
 
 function postActivity(account, { title, note, kind, sportType, distanceKm, imageDataUrl }) {
   account.activities = Array.isArray(account.activities) ? account.activities : [];
-  account.activities.unshift({
+  const validSport = ["run", "bike", "swim", "hyrox", "other"].includes(sportType) ? sportType : "other";
+  const dist = clamp(Number(distanceKm) || 0, 0, 1000);
+  const activity = {
     id: `act_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
     createdAt: new Date().toISOString(),
     title,
     note,
     kind,
-    sportType: ["run", "bike", "swim", "hyrox", "other"].includes(sportType) ? sportType : "other",
-    distanceKm: clamp(Number(distanceKm) || 0, 0, 1000),
+    sportType: validSport,
+    distanceKm: dist,
     imageDataUrl: imageDataUrl || null,
     propsBy: [],
-  });
+  };
+  account.activities.unshift(activity);
   account.activities = account.activities.slice(0, 60);
+
+  // Sync to Supabase in background
+  if (typeof sbDb !== "undefined" && account.id && !account.id.startsWith("acc_")) {
+    sbDb.postActivity(account.id, {
+      title, note, kind, sport_type: validSport, distance_km: dist, image_url: imageDataUrl || null,
+    }).then((saved) => { if (saved?.id) activity.id = saved.id; })
+      .catch((e) => console.warn("Activity sync error:", e));
+  }
 }
 
 function renderProfileStats(account) {
@@ -3269,13 +3413,7 @@ function renderProfilePredictions(profile, plan) {
     fitAgeStrong.style.color = chronoAge ? (chronoAge > fitnessAge ? "var(--accent-fresh)" : chronoAge < fitnessAge ? "var(--accent-fatigue)" : "#fff") : "#fff";
   }
 
-  // VDOT tag
-  const vdotTag = document.getElementById("predictions-vdot-tag");
-  if (vdotTag) {
-    const vdotVal = predictions.currentVdot || vdotFromProfile(profile) || "-";
-    const confLabel = predictions.confidence === "high" ? "+" : predictions.confidence === "moderate" ? "" : "~";
-    vdotTag.textContent = `VDOT ${typeof vdotVal === "number" ? vdotVal.toFixed(1) : vdotVal}${confLabel}`;
-  }
+  // VDOT tag removed — not user-relevant
 
   // Current predictions
   const labels = predictions.labels;
@@ -3298,33 +3436,47 @@ function renderProfilePredictions(profile, plan) {
     setText(document.getElementById("profile-pred-rd-c"), predictions.raceDayValues.c);
     setText(document.getElementById("profile-pred-rd-d"), predictions.raceDayValues.d);
     const noteEl = document.getElementById("predictions-raceday-note");
-    if (noteEl && predictions.raceDayVdot) {
+    if (noteEl) {
       const raceDateStr = profile.raceDate ? new Date(profile.raceDate).toLocaleDateString("de-DE", { day: "numeric", month: "short", year: "numeric" }) : "";
-      const methodNote = predictions.method ? ` · Modell: ${predictions.method}` : "";
-      const fNote = predictions.personalFatigueFactor ? ` · Persönlicher Fatigue-Faktor: ${predictions.personalFatigueFactor.toFixed(3)}` : "";
-      noteEl.textContent = `Proj. VDOT ${predictions.raceDayVdot.toFixed(1)} am ${raceDateStr} — basierend auf geplantem Training, Marathon-Korrektur & Tapering.${methodNote}${fNote}`;
+      noteEl.textContent = raceDateStr ? `Prognose für ${raceDateStr} — basierend auf deinem Trainingsplan.` : "Basierend auf deinem Trainingsplan.";
     }
   } else if (rdCol) {
     rdCol.hidden = true;
   }
 
-  // Adaptive status
-  const statusEl = document.getElementById("predictions-adaptive-status");
-  if (statusEl && plan.meta?.adaptiveSignals) {
+  // Adaptive status — user-friendly German labels
+  const adaptStatusEl = document.getElementById("predictions-adaptive-status");
+  if (adaptStatusEl && plan.meta?.adaptiveSignals) {
     const signals = plan.meta.adaptiveSignals;
     const parts = [];
-    if (signals.complianceLabel && signals.complianceLabel !== "No data") parts.push(`Compliance: ${signals.complianceLabel}`);
-    if (signals.trajectoryLabel) parts.push(`Trajectory: ${signals.trajectoryLabel}`);
-    if (signals.fatigueRisk && signals.fatigueRisk !== "optimal") parts.push(`Fatigue: ${signals.fatigueRisk}`);
-    if (signals.adjustmentType && signals.adjustmentType !== "none") parts.push(`Adjustment: ${signals.adjustmentType}`);
-    if (parts.length) {
-      statusEl.hidden = false;
-      statusEl.textContent = parts.join(" · ");
-    } else {
-      statusEl.hidden = true;
+    const compMap = { excellent: "Sehr gut umgesetzt", good: "Gut umgesetzt", partial: "Teilweise umgesetzt", low: "Wenig umgesetzt" };
+    const trajMap = { ahead: "Über Plan", on_track: "Im Plan", behind: "Unter Plan", breakthrough: "Starker Fortschritt" };
+    const fatMap = { elevated: "Erhöhte Belastung", high: "Hohe Belastung", critical: "Erholung nötig" };
+    const adjMap = { deload: "Entlastungswoche", rebuild: "Aufbauwoche", push: "Steigerung", downgrade: "Anpassung" };
+    if (signals.complianceLabel && signals.complianceLabel !== "No data") {
+      const cl = compMap[signals.complianceLabel] || null;
+      if (cl) parts.push(cl);
     }
-  } else if (statusEl) {
-    statusEl.hidden = true;
+    if (signals.trajectoryLabel) {
+      const tl = trajMap[signals.trajectoryLabel] || null;
+      if (tl) parts.push(tl);
+    }
+    if (signals.fatigueRisk && signals.fatigueRisk !== "optimal") {
+      const fl = fatMap[signals.fatigueRisk] || null;
+      if (fl) parts.push(fl);
+    }
+    if (signals.adjustmentType && signals.adjustmentType !== "none") {
+      const al = adjMap[signals.adjustmentType] || null;
+      if (al) parts.push(al);
+    }
+    if (parts.length) {
+      adaptStatusEl.hidden = false;
+      adaptStatusEl.textContent = parts.join(" · ");
+    } else {
+      adaptStatusEl.hidden = true;
+    }
+  } else if (adaptStatusEl) {
+    adaptStatusEl.hidden = true;
   }
 }
 

@@ -462,8 +462,7 @@
           <div class="account-grid">
             <section class="result-card account-card profile-main-card profile-card-overview race-predictions-hero" id="profile-card-predictions" hidden>
               <div class="result-title-row">
-                <h4>Race Predictions</h4>
-                <span class="tag subtle" id="predictions-vdot-tag">VDOT -</span>
+                <h4>Prognosen</h4>
               </div>
               <div class="predictions-vitals">
                 <div class="vital-metric vital-vo2max">
@@ -472,7 +471,7 @@
                   <small>ml/kg/min</small>
                 </div>
                 <div class="vital-metric vital-fitness-age">
-                  <span>Fitness Age</span>
+                  <span>Fitness-Alter</span>
                   <strong id="profile-fitness-age">-</strong>
                   <small id="profile-fitness-age-delta"></small>
                 </div>
@@ -535,7 +534,7 @@
 
             <section class="result-card account-card account-stats-card profile-main-card profile-card-overview" id="profile-card-stats">
               <div class="result-title-row">
-                <h4 data-i18n="profile_stats">Profile Stats</h4>
+                <h4 data-i18n="profile_stats">Statistik</h4>
                 <span class="tag subtle" id="profile-points-badge">0 Pkt.</span>
               </div>
               <div class="profile-period-stats">
@@ -923,7 +922,7 @@
             <section class="result-card data-connect-card stage-reveal">
               <div class="result-title-row">
                 <h4>Quellen verbinden</h4>
-                <span class="tag subtle">Connectors</span>
+                <span class="tag subtle">Verbindungen</span>
               </div>
               <p class="card-copy">
                 Garmin, Strava und Whoop werden später per OAuth verbunden und liefern die
@@ -941,27 +940,27 @@
 
             <section class="result-card metrics-card stage-reveal">
               <div class="result-title-row">
-                <h4>Performance Snapshot</h4>
+                <h4>Leistungsübersicht</h4>
                 <span class="tag subtle">90 Tage</span>
               </div>
               <div class="metric-grid">
                 <div class="metric"><span>VO2max</span><strong id="metric-vo2">-</strong></div>
                 <div class="metric"><span>Fitness</span><strong id="metric-fitness">-</strong></div>
                 <div class="metric"><span>Ermüdung</span><strong id="metric-fatigue">-</strong></div>
-                <div class="metric"><span>Freshness</span><strong id="metric-freshness">-</strong></div>
-                <div class="metric"><span>Readiness</span><strong id="metric-readiness">-</strong></div>
+                <div class="metric"><span>Frische</span><strong id="metric-freshness">-</strong></div>
+                <div class="metric"><span>Bereitschaft</span><strong id="metric-readiness">-</strong></div>
               </div>
             </section>
           </div>
 
           <section class="result-card analytics-chart-card stage-reveal">
             <div class="result-title-row">
-              <h4>Fitness / Fatigue / Freshness / Readiness / VO2max</h4>
+              <h4>Leistungstrend</h4>
               <div class="chart-legend">
                 <span class="legend-item fit">Fitness</span>
-                <span class="legend-item fatigue">Fatigue</span>
-                <span class="legend-item fresh">Freshness</span>
-                <span class="legend-item ready">Readiness</span>
+                <span class="legend-item fatigue">Ermüdung</span>
+                <span class="legend-item fresh">Frische</span>
+                <span class="legend-item ready">Bereitschaft</span>
                 <span class="legend-item vo2">VO2max</span>
               </div>
             </div>
@@ -972,25 +971,25 @@
 
           <section class="result-card deep-metrics-card stage-reveal">
             <div class="result-title-row">
-              <h4>Recovery & Performance Details</h4>
-              <span class="tag subtle">Extended</span>
+              <h4>Erholung & Details</h4>
+              <span class="tag subtle">Erweitert</span>
             </div>
             <div class="deep-metric-grid">
-              <div class="deep-metric" data-spark-kind="hrv"><span>HRV Baseline</span><strong id="metric-hrv-baseline">-</strong><small id="metric-hrv-current">Current: -</small><svg class="mini-spark" viewBox="0 0 120 30" aria-hidden="true"></svg></div>
-              <div class="deep-metric" data-spark-kind="rhr"><span>Resting HR Trend</span><strong id="metric-rhr-trend">-</strong><small id="metric-rhr-value">RHR: - bpm</small><svg class="mini-spark" viewBox="0 0 120 30" aria-hidden="true"></svg></div>
-              <div class="deep-metric" data-spark-kind="load"><span>Acute / Chronic Load</span><strong id="metric-load-ratio">-</strong><small id="metric-load-abs">7d: - / 42d: -</small><svg class="mini-spark" viewBox="0 0 120 30" aria-hidden="true"></svg></div>
-              <div class="deep-metric" data-spark-kind="strain"><span>Monotony / Strain</span><strong id="metric-monotony">-</strong><small id="metric-strain">Strain: -</small><svg class="mini-spark" viewBox="0 0 120 30" aria-hidden="true"></svg></div>
-              <div class="deep-metric" data-spark-kind="sleep"><span>Sleep Score</span><strong id="metric-sleep-score">-</strong><small id="metric-sleep-duration">Sleep: -</small><svg class="mini-spark" viewBox="0 0 120 30" aria-hidden="true"></svg></div>
-              <div class="deep-metric" data-spark-kind="threshold"><span>Threshold Pace / HR</span><strong id="metric-threshold-pace">-</strong><small id="metric-threshold-hr">HR: - bpm</small><svg class="mini-spark" viewBox="0 0 120 30" aria-hidden="true"></svg></div>
-              <div class="deep-metric" data-spark-kind="longrun"><span>Long-Run Tolerance</span><strong id="metric-longrun-tolerance">-</strong><small id="metric-longrun-context">Stability: -</small><svg class="mini-spark" viewBox="0 0 120 30" aria-hidden="true"></svg></div>
-              <div class="deep-metric" data-spark-kind="race"><span>Race Prediction Trend</span><strong id="metric-race-trend">-</strong><small id="metric-race-delta">Delta 90d: -</small><svg class="mini-spark" viewBox="0 0 120 30" aria-hidden="true"></svg></div>
+              <div class="deep-metric" data-spark-kind="hrv"><span>HRV Baseline</span><strong id="metric-hrv-baseline">-</strong><small id="metric-hrv-current">Aktuell: -</small><svg class="mini-spark" viewBox="0 0 120 30" aria-hidden="true"></svg></div>
+              <div class="deep-metric" data-spark-kind="rhr"><span>Ruhepuls-Trend</span><strong id="metric-rhr-trend">-</strong><small id="metric-rhr-value">Ruhe-HF: - bpm</small><svg class="mini-spark" viewBox="0 0 120 30" aria-hidden="true"></svg></div>
+              <div class="deep-metric" data-spark-kind="load"><span>Akut / Chronische Last</span><strong id="metric-load-ratio">-</strong><small id="metric-load-abs">7T: - / 42T: -</small><svg class="mini-spark" viewBox="0 0 120 30" aria-hidden="true"></svg></div>
+              <div class="deep-metric" data-spark-kind="strain"><span>Monotonie / Belastung</span><strong id="metric-monotony">-</strong><small id="metric-strain">Belastung: -</small><svg class="mini-spark" viewBox="0 0 120 30" aria-hidden="true"></svg></div>
+              <div class="deep-metric" data-spark-kind="sleep"><span>Schlafqualität</span><strong id="metric-sleep-score">-</strong><small id="metric-sleep-duration">Schlaf: -</small><svg class="mini-spark" viewBox="0 0 120 30" aria-hidden="true"></svg></div>
+              <div class="deep-metric" data-spark-kind="threshold"><span>Schwellentempo / HF</span><strong id="metric-threshold-pace">-</strong><small id="metric-threshold-hr">HF: - bpm</small><svg class="mini-spark" viewBox="0 0 120 30" aria-hidden="true"></svg></div>
+              <div class="deep-metric" data-spark-kind="longrun"><span>Langstrecken-Toleranz</span><strong id="metric-longrun-tolerance">-</strong><small id="metric-longrun-context">Stabilität: -</small><svg class="mini-spark" viewBox="0 0 120 30" aria-hidden="true"></svg></div>
+              <div class="deep-metric" data-spark-kind="race"><span>Prognose-Trend</span><strong id="metric-race-trend">-</strong><small id="metric-race-delta">Δ 90 Tage: -</small><svg class="mini-spark" viewBox="0 0 120 30" aria-hidden="true"></svg></div>
             </div>
           </section>
 
           <section class="result-card prediction-card stage-reveal">
             <div class="result-title-row">
-              <h4>Predicted Race Splits</h4>
-              <span class="tag subtle">Model Preview</span>
+              <h4>Wettkampf-Prognosen</h4>
+              <span class="tag subtle">Vorschau</span>
             </div>
             <div class="prediction-grid">
               <div class="prediction-item" data-spark-kind="pred-a"><span id="pred-label-a">Sprint</span><strong id="pred-sprint">-</strong><svg class="mini-spark" viewBox="0 0 120 30" aria-hidden="true"></svg></div>
@@ -1121,6 +1120,11 @@
           </div>
         </div>
         <form id="account-form" class="account-form">
+          <button type="button" class="cta cta-google" id="google-login-btn">
+            <svg width="18" height="18" viewBox="0 0 48 48" style="vertical-align:middle;margin-right:8px"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59a14.5 14.5 0 0 1 0-9.18l-7.98-6.19a24.01 24.01 0 0 0 0 21.56l7.98-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+            Mit Google anmelden
+          </button>
+          <div class="auth-divider"><span>oder</span></div>
           <label class="field">
             <span>E-Mail</span>
             <input type="email" name="email" required placeholder="you@email.com" />
@@ -1136,9 +1140,6 @@
             <button type="submit" class="cta cta-race" id="account-submit-btn">login</button>
             <span class="connection-state" id="account-form-status" aria-live="polite"></span>
           </div>
-          <p class="micro-copy">
-            MVP Hinweis: Accounts laufen aktuell lokal im Browser (LocalStorage), bis das Backend/OAuth live ist.
-          </p>
         </form>
       </article>
     </div>
@@ -1341,6 +1342,8 @@
       </article>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="./supabase-client.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>

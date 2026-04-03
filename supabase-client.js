@@ -1,0 +1,231 @@
+// AImRUNNA Supabase Client
+// Loaded before app.js — provides window.sb and window.sbAuth helpers
+
+const SUPABASE_URL = "https://tpnfkumkvxnrurjuaxdq.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRwbmZrdW1rdnhucnVyanVheGRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNTA0NTEsImV4cCI6MjA5MDgyNjQ1MX0.yQys13L-cTohe5-rozZTexsGGboVMc7asWBG90wFjfA";
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ── Auth helpers ──────────────────────────────────────────────
+
+const sbAuth = {
+  /** Sign up with email + password */
+  async signUp(email, password, displayName) {
+    const { data, error } = await sb.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { full_name: displayName || email.split("@")[0] },
+      },
+    });
+    if (error) throw error;
+    return data;
+  },
+
+  /** Sign in with email + password */
+  async signIn(email, password) {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    return data;
+  },
+
+  /** Sign in with Google OAuth */
+  async signInWithGoogle() {
+    const { data, error } = await sb.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: window.location.origin + window.location.pathname,
+      },
+    });
+    if (error) throw error;
+    return data;
+  },
+
+  /** Sign out */
+  async signOut() {
+    const { error } = await sb.auth.signOut();
+    if (error) throw error;
+  },
+
+  /** Get current session (null if not logged in) */
+  async getSession() {
+    const { data: { session } } = await sb.auth.getSession();
+    return session;
+  },
+
+  /** Get current user (null if not logged in) */
+  async getUser() {
+    const { data: { user } } = await sb.auth.getUser();
+    return user;
+  },
+
+  /** Listen to auth state changes */
+  onAuthStateChange(callback) {
+    return sb.auth.onAuthStateChange((event, session) => {
+      callback(event, session);
+    });
+  },
+};
+
+// ── DB helpers ────────────────────────────────────────────────
+
+const sbDb = {
+  // ── Profile ──
+  async getProfile(userId) {
+    const { data, error } = await sb.from("profiles").select("*").eq("id", userId).single();
+    if (error && error.code !== "PGRST116") throw error;
+    return data;
+  },
+
+  async updateProfile(userId, updates) {
+    const { data, error } = await sb.from("profiles").update(updates).eq("id", userId).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  // ── Plans ──
+  async getPlans(userId) {
+    const { data, error } = await sb.from("plans").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(20);
+    if (error) throw error;
+    return data || [];
+  },
+
+  async savePlan(userId, plan) {
+    const { data, error } = await sb.from("plans").insert({
+      user_id: userId,
+      title: plan.title || "",
+      summary: plan.summary || "",
+      profile: plan.profile || {},
+      plan_data: plan.plan_data || {},
+    }).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async deletePlan(planId) {
+    const { error } = await sb.from("plans").delete().eq("id", planId);
+    if (error) throw error;
+  },
+
+  // ── Activities ──
+  async getActivities(userId, limit = 60) {
+    const { data, error } = await sb.from("activities").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(limit);
+    if (error) throw error;
+    return data || [];
+  },
+
+  async postActivity(userId, activity) {
+    const { data, error } = await sb.from("activities").insert({
+      user_id: userId,
+      source: activity.source || "manual",
+      source_external_id: activity.source_external_id || null,
+      title: activity.title || "",
+      note: activity.note || "",
+      kind: activity.kind || "training",
+      sport_type: activity.sport_type || "run",
+      distance_km: activity.distance_km || 0,
+      moving_time_sec: activity.moving_time_sec || null,
+      elevation_gain_m: activity.elevation_gain_m || null,
+      metrics: activity.metrics || {},
+      image_url: activity.image_url || null,
+    }).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async upsertStravaActivities(userId, activities) {
+    const rows = activities.map((a) => ({
+      user_id: userId,
+      source: "strava",
+      source_external_id: String(a.id),
+      title: a.name || "",
+      note: "",
+      kind: "training",
+      sport_type: a.type === "Run" ? "run" : a.type === "Ride" ? "bike" : a.type === "Swim" ? "swim" : "other",
+      distance_km: +(a.distance / 1000).toFixed(2),
+      moving_time_sec: a.moving_time || null,
+      elevation_gain_m: a.total_elevation_gain || null,
+      metrics: {
+        avg_heartrate: a.average_heartrate || null,
+        max_heartrate: a.max_heartrate || null,
+        avg_watts: a.average_watts || null,
+        max_watts: a.max_watts || null,
+        weighted_avg_watts: a.weighted_average_watts || null,
+        suffer_score: a.suffer_score || null,
+        avg_cadence: a.average_cadence || null,
+      },
+      created_at: a.start_date || new Date().toISOString(),
+    }));
+    const { data, error } = await sb.from("activities").upsert(rows, {
+      onConflict: "user_id,source,source_external_id",
+    }).select();
+    if (error) throw error;
+    return data || [];
+  },
+
+  // ── Props (likes) ──
+  async toggleProps(activityId, userId) {
+    const { data: existing } = await sb.from("activity_props").select("activity_id").eq("activity_id", activityId).eq("user_id", userId).maybeSingle();
+    if (existing) {
+      await sb.from("activity_props").delete().eq("activity_id", activityId).eq("user_id", userId);
+      return false;
+    } else {
+      await sb.from("activity_props").insert({ activity_id: activityId, user_id: userId });
+      return true;
+    }
+  },
+
+  async getPropsCount(activityId) {
+    const { count, error } = await sb.from("activity_props").select("*", { count: "exact", head: true }).eq("activity_id", activityId);
+    if (error) throw error;
+    return count || 0;
+  },
+
+  // ── Integrations ──
+  async getIntegration(userId, provider) {
+    const { data, error } = await sb.from("integrations").select("*").eq("user_id", userId).eq("provider", provider).maybeSingle();
+    if (error) throw error;
+    return data;
+  },
+
+  async upsertIntegration(userId, provider, updates) {
+    const { data, error } = await sb.from("integrations").upsert({
+      user_id: userId,
+      provider,
+      ...updates,
+    }, { onConflict: "user_id,provider" }).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  // ── Friendships ──
+  async getFriends(userId) {
+    const { data, error } = await sb.from("friendships").select(`
+      id, status, created_at,
+      friend:friend_id(id, email, display_name, profile_image)
+    `).eq("user_id", userId).eq("status", "accepted");
+    if (error) throw error;
+    return data || [];
+  },
+
+  async addFriend(userId, friendId) {
+    const { data, error } = await sb.from("friendships").insert({
+      user_id: userId,
+      friend_id: friendId,
+      status: "pending",
+    }).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async findUserByEmail(email) {
+    const { data, error } = await sb.from("profiles").select("id, email, display_name, profile_image").eq("email", email).maybeSingle();
+    if (error) throw error;
+    return data;
+  },
+};
+
+// Expose globally for app.js
+window.sb = sb;
+window.sbAuth = sbAuth;
+window.sbDb = sbDb;

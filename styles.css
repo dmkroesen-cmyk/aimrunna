@@ -90,6 +90,13 @@ body.app-view-crew .section-data {
   display: none;
 }
 
+body.app-view-crew .profile-main-card,
+body.app-view-crew .profile-pane-toolbar,
+body.app-view-crew .profile-settings-rail-card,
+body.app-view-crew .profile-settings-card {
+  display: none !important;
+}
+
 body.app-view-profile .content-shell,
 body.app-view-crew .content-shell {
   margin-top: 68px;
@@ -226,13 +233,13 @@ body.is-authenticated .account-dot {
   justify-content: space-between;
   gap: 10px;
   margin: 0 0 12px;
-  position: relative;
-  top: auto;
-  z-index: 1;
-  background: transparent;
-  backdrop-filter: none;
+  position: sticky;
+  top: 138px;
+  z-index: 12;
+  background: rgba(6, 7, 9, 0.96);
+  backdrop-filter: blur(4px);
   padding: 6px 0 8px;
-  border-bottom: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .profile-view-tabs {
@@ -2903,6 +2910,45 @@ body.profile-view-settings .profile-settings-card.is-active {
   gap: 10px;
 }
 
+.cta-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 11px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.cta-google:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--muted-2);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
 .account-settings-ops {
   margin-top: 12px;
   display: grid;
@@ -3721,6 +3767,21 @@ body.has-output .section-data { border-color: rgba(255, 255, 255, 0.1); }
   .profile-settings-rail-card {
     top: auto;
     z-index: auto;
+  }
+
+  body.profile-view-settings .account-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  body.profile-view-settings .profile-settings-rail-card {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  body.profile-view-settings .profile-settings-card {
+    grid-column: 1;
+    grid-row: auto;
   }
 
   .profile-settings-nav {
