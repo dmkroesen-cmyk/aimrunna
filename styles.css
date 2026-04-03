@@ -4407,11 +4407,54 @@ button:focus-visible {
   border-color: rgba(134, 215, 255, 0.12);
 }
 
+.predictions-vitals {
+  display: flex;
+  gap: 20px;
+  margin-top: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.vital-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.vital-metric span {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted-2);
+}
+
+.vital-metric strong {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  color: #fff;
+}
+
+.vital-vo2max strong {
+  color: var(--accent-fit);
+}
+
+.vital-fitness-age strong {
+  color: var(--accent-fresh);
+}
+
+.vital-metric small {
+  font-size: 10px;
+  color: var(--muted-2);
+  letter-spacing: 0.04em;
+}
+
 .predictions-dual-view {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
 .predictions-column-label {

@@ -3248,6 +3248,27 @@ function renderProfilePredictions(profile, plan) {
 
   card.hidden = false;
 
+  // VO2max and Fitness Age
+  const vo2maxResult = estimateVO2max(profile);
+  setText(document.getElementById("profile-vo2max"), vo2maxResult.value);
+  const chronoAge = Number(profile?.age) || null;
+  const fitnessAge = estimateFitnessAge(vo2maxResult.value, profile?.sex, chronoAge);
+  setText(document.getElementById("profile-fitness-age"), fitnessAge != null ? fitnessAge : "-");
+  const fitAgeDelta = document.getElementById("profile-fitness-age-delta");
+  const fitAgeStrong = document.getElementById("profile-fitness-age");
+  if (fitAgeDelta && fitnessAge != null && chronoAge) {
+    const diff = chronoAge - fitnessAge;
+    if (diff > 0) { fitAgeDelta.textContent = `${diff} J. jünger`; fitAgeDelta.style.color = "var(--accent-fresh)"; }
+    else if (diff < 0) { fitAgeDelta.textContent = `${Math.abs(diff)} J. älter`; fitAgeDelta.style.color = "var(--accent-fatigue)"; }
+    else { fitAgeDelta.textContent = "Durchschnitt"; fitAgeDelta.style.color = "var(--muted)"; }
+  } else if (fitAgeDelta) {
+    fitAgeDelta.textContent = "";
+  }
+  // Color Fitness Age only when comparison is possible
+  if (fitAgeStrong) {
+    fitAgeStrong.style.color = chronoAge ? (chronoAge > fitnessAge ? "var(--accent-fresh)" : chronoAge < fitnessAge ? "var(--accent-fatigue)" : "#fff") : "#fff";
+  }
+
   // VDOT tag
   const vdotTag = document.getElementById("predictions-vdot-tag");
   if (vdotTag) {
@@ -5300,6 +5321,99 @@ function vdotFromProfile(profile) {
 
   // Fallback by level
   return { starter: 33, intermediate: 42, advanced: 55 }[profile?.fitnessLevel] || 38;
+}
+
+/*
+ * VO2max estimation from VDOT using Daniels' oxygen cost formulas
+ * Source: Jack Daniels, "Daniels' Running Formula", 3rd ed.
+ *
+ * VO2 demand at velocity v (m/min):
+ *   VO2 = -4.60 + 0.182258·v + 0.000104·v²
+ *
+ * Fraction of VO2max sustainable at duration t (min):
+ *   F = 0.8 + 0.1894393·e^(-0.012778·t) + 0.2989558·e^(-0.1932605·t)
+ *
+ * VO2max = VO2_demand / F_fraction
+ *
+ * We use the best available race data; if none, derive from VDOT table pace.
+ */
+function estimateVO2max(profile) {
+  // Try from actual race data first (most accurate)
+  const pbData = extractPbDataForPrediction ? extractPbDataForPrediction(profile) : [];
+  if (pbData.length) {
+    // Use the race closest to 10-15 min duration (optimal VO2max test range)
+    const scored = pbData.map(pb => {
+      const durationMin = pb.timeSec / 60;
+      const optimalDist = Math.abs(durationMin - 12); // ~12 min is ideal for VO2max estimation
+      return { ...pb, durationMin, optimalDist };
+    }).sort((a, b) => a.optimalDist - b.optimalDist);
+
+    const best = scored[0];
+    const velocityMperMin = (best.distKm * 1000) / best.durationMin;
+    const vo2demand = -4.60 + 0.182258 * velocityMperMin + 0.000104 * velocityMperMin * velocityMperMin;
+    const t = best.durationMin;
+    const fraction = 0.8 + 0.1894393 * Math.exp(-0.012778 * t) + 0.2989558 * Math.exp(-0.1932605 * t);
+    const vo2max = vo2demand / fraction;
+    if (Number.isFinite(vo2max) && vo2max > 15 && vo2max < 95) {
+      return { value: +vo2max.toFixed(1), source: "race", confidence: "high" };
+    }
+  }
+
+  // Derive from VDOT using 12-min equivalent pace from table
+  const vdot = vdotFromProfile(profile);
+  if (vdot) {
+    // Use 5K time from VDOT table to compute VO2max
+    const preds = vdotRacePredictions(vdot);
+    const fiveKTimeSec = preds.fiveK;
+    if (fiveKTimeSec > 0) {
+      const durationMin = fiveKTimeSec / 60;
+      const velocityMperMin = 5000 / durationMin;
+      const vo2demand = -4.60 + 0.182258 * velocityMperMin + 0.000104 * velocityMperMin * velocityMperMin;
+      const fraction = 0.8 + 0.1894393 * Math.exp(-0.012778 * durationMin) + 0.2989558 * Math.exp(-0.1932605 * durationMin);
+      const vo2max = vo2demand / fraction;
+      if (Number.isFinite(vo2max) && vo2max > 15 && vo2max < 95) {
+        return { value: +vo2max.toFixed(1), source: "vdot", confidence: pbData.length ? "moderate" : "low" };
+      }
+    }
+  }
+
+  // Fallback from level
+  const fallback = { starter: 32, intermediate: 42, advanced: 55 }[profile?.fitnessLevel] || 38;
+  return { value: fallback, source: "estimate", confidence: "low" };
+}
+
+/*
+ * Fitness Age — biological age based on VO2max percentile
+ * Source: HUNT study (Nes et al., 2013) & ACSM normative data
+ *
+ * VO2max declines ~1% per year after age 25 in untrained individuals
+ * A 50-year-old with VO2max of 48 has the fitness of an average 30-year-old
+ *
+ * Reference tables (ml/kg/min, median by age/sex):
+ *   Male:   20s→47, 30s→44, 40s→41, 50s→37, 60s→33, 70s→29
+ *   Female: 20s→40, 30s→37, 40s→34, 50s→31, 60s→28, 70s→25
+ */
+function estimateFitnessAge(vo2max, sex, chronologicalAge) {
+  if (!vo2max || vo2max <= 0) return null;
+
+  // Median VO2max by age decade (ACSM/HUNT reference)
+  const maleRef = [[20, 47], [25, 46], [30, 44], [35, 43], [40, 41], [45, 39], [50, 37], [55, 35], [60, 33], [65, 31], [70, 29], [75, 27], [80, 25]];
+  const femaleRef = [[20, 40], [25, 39], [30, 37], [35, 36], [40, 34], [45, 32], [50, 31], [55, 29], [60, 28], [65, 26], [70, 25], [75, 23], [80, 21]];
+  const ref = sex === "female" ? femaleRef : maleRef;
+
+  // Find the age where the reference VO2max matches this person's VO2max
+  // Interpolate between reference points
+  if (vo2max >= ref[0][1]) return Math.max(18, ref[0][0] - Math.round((vo2max - ref[0][1]) * 1.5));
+  if (vo2max <= ref[ref.length - 1][1]) return ref[ref.length - 1][0];
+
+  for (let i = 0; i < ref.length - 1; i++) {
+    if (vo2max <= ref[i][1] && vo2max >= ref[i + 1][1]) {
+      const frac = (ref[i][1] - vo2max) / Math.max(1, ref[i][1] - ref[i + 1][1]);
+      return Math.round(ref[i][0] + frac * (ref[i + 1][0] - ref[i][0]));
+    }
+  }
+
+  return chronologicalAge || null;
 }
 
 function trainingPacesFromVdot(vdot) {
