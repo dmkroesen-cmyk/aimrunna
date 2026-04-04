@@ -7074,6 +7074,9 @@ function estimateVO2max(profile) {
 function estimateFitnessAge(vo2max, sex, chronologicalAge) {
   // Whoop-inspired multi-factor Fitness Age:
   // VO2max accounts for ~50% of score, activity scoring ~30%, resting HR ~20%
+  // Primary VO2max mapping: Nes et al. 2013 (HUNT3, n=3,320) linear regression
+  //   Male:   expected VO2max = 57.8 − 0.31 × age
+  //   Female: expected VO2max = 46.3 − 0.25 × age
   if (!chronologicalAge || chronologicalAge <= 0) return null;
   const account = getCurrentAccount();
   const activities = account?.activities || [];
@@ -15741,9 +15744,9 @@ function calculateActualPerformanceMetrics(account) {
     actual.vo2maxCalculated = vo2.value;
     sources.vo2max = vo2.source;
   } else if (actual.maxHr && actual.restingHr) {
-    // Uth-Sørensen-Overgaard 2004 formula: VO2max ≈ 15 × (HRmax/HRrest)
-    // Validated in Scand J Med Sci Sports; accurate within ±5 ml/kg/min
-    const uth = 15 * (actual.maxHr / actual.restingHr);
+    // Uth-Sørensen-Overgaard 2004: VO2max ≈ 15.3 × (HRmax/HRrest)
+    // Scand J Med Sci Sports 2004; SEE ~2.7 ml/kg/min (n=46 trained men, 21-51y)
+    const uth = 15.3 * (actual.maxHr / actual.restingHr);
     actual.vo2max = +uth.toFixed(1);
     actual.vo2maxCalculated = actual.vo2max;
     sources.vo2max = "uth-sorensen";
@@ -15758,13 +15761,13 @@ function calculateActualPerformanceMetrics(account) {
     sources.vo2max = vo2.source || "estimate";
   }
 
-  // ═══ FatMax (Achten & Jeukendrup 2003, J Sports Sci) ═══
-  // Peak fat oxidation occurs at ~62-64% VO2max, ~70-75% HRmax
+  // ═══ FatMax (Achten & Jeukendrup 2003, Int J Sports Med) ═══
+  // Peak fat oxidation: 63% VO2max (range 55-72%), ~65% HRmax (range 60-70%)
   if (actual.maxHr) {
-    const fatMaxHrLow = Math.round(actual.maxHr * 0.68);
-    const fatMaxHrHigh = Math.round(actual.maxHr * 0.78);
+    const fatMaxHrLow = Math.round(actual.maxHr * 0.60);
+    const fatMaxHrHigh = Math.round(actual.maxHr * 0.70);
     actual.fatMaxHr = `${fatMaxHrLow}-${fatMaxHrHigh}`;
-    actual.fatMaxHrMid = Math.round((fatMaxHrLow + fatMaxHrHigh) / 2);
+    actual.fatMaxHrMid = Math.round(actual.maxHr * 0.65);
   }
   if (actual.vo2max) {
     actual.fatMaxVo2 = +(actual.vo2max * 0.63).toFixed(1);
