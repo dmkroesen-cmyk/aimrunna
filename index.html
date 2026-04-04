@@ -29,21 +29,20 @@
     <div class="ambient ambient-noise" aria-hidden="true"></div>
     <div class="ambient ambient-glow glow-a" aria-hidden="true"></div>
     <div class="ambient ambient-glow glow-b" aria-hidden="true"></div>
-    <nav class="lang-switch" aria-label="Language selector">
-      <button type="button" class="lang-btn is-active" data-lang="de" aria-label="Deutsch">DE</button>
-      <button type="button" class="lang-btn" data-lang="en" aria-label="English">EN</button>
-      <button type="button" class="lang-btn" data-lang="ja" aria-label="日本語">JP</button>
-    </nav>
     <div class="account-bar" id="account-bar" aria-live="polite">
-      <div class="account-pill" id="account-pill" hidden>
-        <span class="account-dot"></span>
-        <span id="account-label">Guest</span>
+      <div class="account-bar-left">
+        <button type="button" class="account-btn is-active" id="account-home-btn" data-i18n="nav_home">Home</button>
+        <button type="button" class="account-btn" id="account-profile-btn" data-i18n="nav_profile">Profil</button>
       </div>
-      <button type="button" class="account-btn is-active" id="account-home-btn" data-i18n="nav_home">Home</button>
-      <button type="button" class="account-btn" id="account-profile-btn" data-i18n="nav_profile">Profil</button>
-      <button type="button" class="account-btn" id="account-login-btn" data-i18n="nav_login">Login</button>
-      <button type="button" class="account-btn" id="account-register-btn" data-i18n="nav_create">Create</button>
-      <button type="button" class="account-btn" id="account-logout-btn" hidden>Logout</button>
+      <div class="account-bar-right">
+        <button type="button" class="account-btn" id="account-login-btn" data-i18n="nav_login">Login</button>
+        <button type="button" class="account-btn" id="account-register-btn" data-i18n="nav_create">Create</button>
+        <div class="account-pill" id="account-pill" hidden>
+          <span class="account-dot"></span>
+          <span id="account-label">Guest</span>
+        </div>
+        <button type="button" class="account-btn account-btn-logout" id="account-logout-btn" hidden>Logout</button>
+      </div>
     </div>
 
     <div class="brand-anchor" id="brand-anchor">
@@ -979,25 +978,6 @@
           </div>
 
           <div class="data-grid">
-            <section class="result-card data-connect-card stage-reveal">
-              <div class="result-title-row">
-                <h4>Quellen verbinden</h4>
-                <span class="tag subtle">Verbindungen</span>
-              </div>
-              <p class="card-copy">
-                Garmin, Strava und Whoop werden später per OAuth verbunden und liefern die
-                Basis für Readiness-, Ermüdungs- und Leistungsanalyse.
-              </p>
-              <div class="connectors">
-                <button type="button" class="connector" data-source="Garmin">Garmin</button>
-                <button type="button" class="connector" data-source="Strava">Strava</button>
-                <button type="button" class="connector" data-source="Whoop">Whoop</button>
-              </div>
-                <div id="connection-state" class="connection-state" aria-live="polite">
-                  Noch keine Quelle verbunden.
-                </div>
-            </section>
-
             <section class="result-card metrics-card stage-reveal">
               <div class="result-title-row">
                 <h4>Leistungsübersicht</h4>
@@ -1073,18 +1053,34 @@
       </section>
 
       <footer class="site-footer">
-        <div class="footer-brand">
-          <strong>AImRUNNA</strong>
-          <span>Beta · Planning Prototype</span>
+        <div class="footer-top">
+          <div class="footer-brand">
+            <strong>AImRUNNA</strong>
+            <span>Training Platform · Beta</span>
+          </div>
+          <div class="footer-links">
+            <button type="button" class="footer-link" data-legal-open="imprint">Impressum</button>
+            <button type="button" class="footer-link" data-legal-open="privacy">Datenschutz</button>
+            <button type="button" class="footer-link" data-legal-open="terms">Nutzungsbedingungen</button>
+            <button type="button" class="footer-link" data-legal-open="agb">AGB</button>
+            <button type="button" class="footer-link" data-legal-open="disclaimer">Health Disclaimer</button>
+            <button type="button" class="footer-link" data-legal-open="cookies">Cookies</button>
+            <button type="button" class="footer-link" data-legal-open="community">Community</button>
+          </div>
         </div>
-        <div class="footer-links">
-          <button type="button" class="footer-link" data-legal-open="imprint">Impressum</button>
-          <button type="button" class="footer-link" data-legal-open="privacy">Datenschutz</button>
-          <button type="button" class="footer-link" data-legal-open="terms">Nutzungsbedingungen</button>
-          <button type="button" class="footer-link" data-legal-open="agb">AGB (Draft)</button>
-          <button type="button" class="footer-link" data-legal-open="disclaimer">Health Disclaimer</button>
-          <button type="button" class="footer-link" data-legal-open="cookies">Cookies</button>
-          <button type="button" class="footer-link" data-legal-open="community">Community Regeln</button>
+        <div class="footer-bottom">
+          <nav class="footer-lang" aria-label="Language selector">
+            <button type="button" class="lang-btn is-active" data-lang="de" aria-label="Deutsch">
+              <span class="lang-flag">🇩🇪</span> DE
+            </button>
+            <button type="button" class="lang-btn" data-lang="en" aria-label="English">
+              <span class="lang-flag">🇬🇧</span> EN
+            </button>
+            <button type="button" class="lang-btn" data-lang="ja" aria-label="日本語">
+              <span class="lang-flag">🇯🇵</span> JP
+            </button>
+          </nav>
+          <span class="footer-copy">© 2025 AImRUNNA. Alle Rechte vorbehalten.</span>
         </div>
       </footer>
     </main>

@@ -3414,7 +3414,7 @@ function setActiveProfileView(view) {
   syncPlaybookFormPlacement();
 
   if (activeAppView === "profile") {
-    scrollToSectionStart(sectionAccountEl, { mobileOffset: 148, desktopOffset: 136, duration: 360 });
+    scrollToSectionStart(sectionAccountEl, { mobileOffset: 72, desktopOffset: 64, duration: 360 });
   }
 }
 
@@ -5249,13 +5249,31 @@ async function importStravaHistory() {
 
     while (page <= maxPages) {
       setText(stravaProfileFetchStatusEl, `Import läuft … Seite ${page} (${totalImported} Aktivitäten bisher)`);
-      const activitiesRes = await fetch(
-        `${STRAVA_OAUTH_DEV_BASE}/api/oauth/strava/activities?user_id=${encodeURIComponent(userId)}&page=${page}&per_page=${perPage}`,
-        { method: "GET", headers: { Accept: "application/json" }, cache: "no-store" }
-      );
-      const activitiesJson = await activitiesRes.json().catch(() => ({}));
-      if (!activitiesRes.ok || !Array.isArray(activitiesJson?.activities)) {
-        if (page === 1) throw new Error(activitiesJson?.error || "Aktivitäten konnten nicht geladen werden");
+      let activitiesJson = null;
+      let lastError = null;
+      // Retry up to 3 times per page for resilience
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          const activitiesRes = await fetch(
+            `${STRAVA_OAUTH_DEV_BASE}/api/oauth/strava/activities?user_id=${encodeURIComponent(userId)}&page=${page}&per_page=${perPage}`,
+            { method: "GET", headers: { Accept: "application/json" }, cache: "no-store" }
+          );
+          activitiesJson = await activitiesRes.json().catch(() => ({}));
+          if (activitiesRes.ok && Array.isArray(activitiesJson?.activities)) {
+            lastError = null;
+            break;
+          }
+          lastError = activitiesJson?.error || `HTTP ${activitiesRes.status}`;
+        } catch (err) {
+          lastError = err.message || "Netzwerkfehler";
+        }
+        if (attempt < 2) {
+          setText(stravaProfileFetchStatusEl, `Seite ${page} — Retry ${attempt + 2}/3 …`);
+          await new Promise((r) => setTimeout(r, 1500 * (attempt + 1)));
+        }
+      }
+      if (lastError || !Array.isArray(activitiesJson?.activities)) {
+        if (page === 1) throw new Error(lastError || "Aktivitäten konnten nicht geladen werden");
         break;
       }
       const activities = activitiesJson.activities;
@@ -5271,6 +5289,8 @@ async function importStravaHistory() {
 
       if (activities.length < perPage) break;
       page++;
+      // Small delay between pages to avoid rate limiting
+      await new Promise((r) => setTimeout(r, 250));
     }
 
     // Merge all into local account
@@ -12969,31 +12989,7 @@ function initScrollFx() {
 }
 
 function initMobileHeaderScrollFx() {
-  const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-  let raf = 0;
-  const root = document.documentElement;
-
-  const update = () => {
-    raf = 0;
-    const y = window.scrollY || window.pageYOffset || 0;
-    const startTop = 102;
-    const minTop = 70;
-    const travel = startTop - minTop;
-    const progress = reduceMotion ? 1 : clamp(y / 72, 0, 1);
-    const top = startTop - travel * progress;
-    root.style.setProperty("--mobile-account-bar-top", `${top.toFixed(1)}px`);
-    const maskHeight = Math.round(top + 44);
-    root.style.setProperty("--mobile-header-mask-height", `${maskHeight}px`);
-  };
-
-  const queue = () => {
-    if (raf) return;
-    raf = window.requestAnimationFrame(update);
-  };
-
-  window.addEventListener("scroll", queue, { passive: true });
-  window.addEventListener("resize", queue);
-  queue();
+  // Nav bar is now fixed at top:0 — no scroll animation needed
 }
 
 function initStageReveals() {
