@@ -130,7 +130,34 @@ Weighted blend: VO2max 50%, activity 30%, RHR 20%.
 2. **Activity adjustment** — frequency (sessions/week), volume (min/week), variety (sport types), intensity (high-HR sessions), long-sessions count
 3. **RHR adjustment** — discrete buckets: <50 (−3), <55 (−2), <60 (−1), >75 (+2), >80 (+4)
 
-Future (planned per research 2025-04): add HRV, sleep-duration, sleep-quality, respiratory rate, stress (WHOOP-style weighted composite).
+### Enhanced multi-factor breakdown (implemented 2026-04)
+
+Transparent signed-year deltas per component, weighted composite. Sources:
+Nes 2011/2013 (HUNT), Kodama 2009 (JAMA), Lifelines HRV norms, WHOOP Healthspan 2024, Garmin Firstbeat.
+
+| Component | Weight | Formula (signed years delta, negative=younger) |
+|-----------|--------|-----------------------------------------------|
+| VO2max | 0.40 | `−0.2 × (VO2max − popMean)` where popMean_M = 57−0.40·age, popMean_F = 48−0.37·age |
+| Activity | 0.20 | `−0.002 × (stepsEquiv − 6000)` from weeklyCount×600 + weeklyMin×15 + 4000 base |
+| Sleep | 0.15 | `|h−7.5|×2 − 1.5` clamped [−3,+5] |
+| RHR | 0.10 | `0.25 × (RHR − (65+0.03·age))` clamped [−6,+8] |
+| HRV (RMSSD) | 0.10 | `−15 × (ln(RMSSD) − (4.3−0.022·age))` clamped [±6] |
+| Body (WHR) | 0.05 | `10 × (WHR − target)`; target 0.85 F / 0.90 M; clamped [−2,+3] |
+
+**Missing inputs:** effective weights renormalized over available components (Σw=1).
+**Hard clamp:** final delta bounded to ±15 years from chronological.
+**Confidence band:** `±(2 + 3·missingTierA + 0.5·missingOthers)` years.
+
+**WHOOP Healthspan (2024):** uses 9 inputs grouped as Sleep (duration/consistency/efficiency),
+Activity (HR zones/strength/steps/VO2max), Physiology (RHR + lean body mass). Explicitly
+uses RHR not HRV for cross-person comparison (HRV too genetically individualized).
+Outputs: WHOOP Age (6-mo baseline) + Pace of Aging (30d/180d multiplier).
+
+**Garmin Fitness Age:** `FitnessAge = chronoAge − 0.2 × (VO2max − popMean)`. Post-2022
+adds vigorous-minutes/week, RHR, BMI/BF%. Hard floor ~chrono−9 to −11 years.
+
+**Kodama 2009 meta-analysis (n≈103k):** +1 MET → −13% all-cause mortality, −15% CVD.
+VO2max = strongest modifiable predictor, justifies 0.40 weight.
 
 Source: Nes et al. *Med Sci Sports Exerc* 45(11):2024-30, 2013. HUNT3 study n=4,631.
 

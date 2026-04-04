@@ -7551,4 +7551,53 @@ img, video, canvas, svg {
   border-top: 2px dashed currentColor;
 }
 
+.fitness-age-breakdown {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: rgba(255,255,255,0.025);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+}
+.fa-bd-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.fa-bd-title { font-size: 12px; font-weight: 600; color: var(--text-primary, #fff); letter-spacing: 0.02em; }
+.fa-bd-net { font-size: 11px; color: var(--muted, #8b8f99); }
+.fa-bd-table { display: flex; flex-direction: column; gap: 2px; }
+.fa-bd-row {
+  display: grid;
+  grid-template-columns: 1.1fr 1.4fr 0.7fr 0.6fr 0.7fr;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 4px;
+  font-size: 11.5px;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+.fa-bd-header {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted, #8b8f99);
+  font-weight: 600;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  padding-bottom: 4px;
+  margin-bottom: 2px;
+}
+.fa-bd-label { color: var(--text-primary, #fff); font-weight: 500; }
+.fa-bd-input { color: var(--text-secondary, #c5c9d3); font-size: 11px; }
+.fa-bd-delta, .fa-bd-weight, .fa-bd-contrib { text-align: right; font-variant-numeric: tabular-nums; }
+.fa-bd-weight { color: var(--muted, #8b8f99); }
+.fa-bd-contrib { font-weight: 600; }
+.fa-bd-missing { opacity: 0.45; }
+.fa-bd-foot { margin: 10px 0 0; font-size: 10px; color: var(--muted, #8b8f99); line-height: 1.45; }
+@media (max-width: 640px) {
+  .fa-bd-row { grid-template-columns: 1fr 0.6fr 0.7fr; font-size: 11px; }
+  .fa-bd-input, .fa-bd-weight { display: none; }
+}
+
 [hidden] { display: none !important; }

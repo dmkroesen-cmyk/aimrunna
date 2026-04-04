@@ -7230,6 +7230,178 @@ function estimateVO2max(profile) {
  *   Male:   20s→47, 30s→44, 40s→41, 50s→37, 60s→33, 70s→29
  *   Female: 20s→40, 30s→37, 40s→34, 50s→31, 60s→28, 70s→25
  */
+/**
+ * Multi-factor Fitness Age breakdown (WHOOP-inspired, transparent).
+ * Returns signed year-deltas per component + weighted composite.
+ * Research: Nes 2011/2013 (HUNT), Kodama 2009 (JAMA), Lifelines HRV norms, WHOOP Healthspan 2024.
+ * See FORMULAS.md §7 for full formula derivation + sources.
+ */
+function computeFitnessAgeBreakdown(account) {
+  const profile = account?.profile || {};
+  const chronoAge = profile.birthYear ? (new Date().getFullYear() - profile.birthYear) : null;
+  if (!chronoAge) return null;
+  const sex = profile.sex || "male";
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  const activities = account?.activities || [];
+  const now = Date.now();
+  const ms = 86400000;
+  const recent90 = activities.filter(a => {
+    const d = new Date(a.createdAt || a.date || a.start_date || 0).getTime();
+    return d > now - 90 * ms;
+  });
+
+  const components = [];
+
+  // A) VO2max delta (Garmin/HUNT convention: -0.2 per ml/kg/min above pop mean)
+  const vo2Result = typeof estimateVO2max === "function" ? estimateVO2max(profile) : null;
+  const vo2 = vo2Result?.value ?? null;
+  if (vo2) {
+    const popMean = sex === "female" ? (48 - 0.37 * chronoAge) : (57 - 0.40 * chronoAge);
+    const deltaYr = clamp(-0.2 * (vo2 - popMean), -10, 10);
+    components.push({
+      key: "vo2max", label: "VO2max",
+      inputText: `${vo2.toFixed(1)} ml/kg/min (Norm ${popMean.toFixed(0)})`,
+      deltaYr, weight: 0.40, available: true,
+    });
+  } else {
+    components.push({ key: "vo2max", label: "VO2max", inputText: "keine Daten", deltaYr: 0, weight: 0.40, available: false });
+  }
+
+  // B) Activity delta: steps-proxy (sessions+minutes) & zone-2 time
+  let actDelta = 0;
+  if (recent90.length) {
+    const weeklyMin = recent90.reduce((s, a) => s + ((a.movingTimeSec || a.moving_time || 0) / 60), 0) / 13;
+    const weeklyCount = recent90.length / 13;
+    // Map to daily-steps-equivalent: rough proxy, 1 active session ~ 3000 step equiv.
+    const stepsEquiv = 4000 + weeklyCount * 600 + weeklyMin * 15;
+    actDelta = clamp(-0.002 * (stepsEquiv - 6000), -5, 3);
+    components.push({
+      key: "activity", label: "Aktivität",
+      inputText: `${weeklyCount.toFixed(1)}×/Wo · ${Math.round(weeklyMin)} min/Wo`,
+      deltaYr: actDelta, weight: 0.20, available: true,
+    });
+  } else {
+    components.push({ key: "activity", label: "Aktivität", inputText: "keine Daten", deltaYr: 0, weight: 0.20, available: false });
+  }
+
+  // C) Sleep delta (optional)
+  const sleepHours = profile.avgSleepHours || account?.healthData?.avgSleepHours;
+  if (sleepHours) {
+    const deviation = Math.abs(sleepHours - 7.5);
+    const sleepDelta = clamp(deviation * 2 - 1.5, -3, 5);
+    components.push({
+      key: "sleep", label: "Schlaf",
+      inputText: `${sleepHours.toFixed(1)} h/Nacht`,
+      deltaYr: sleepDelta, weight: 0.15, available: true,
+    });
+  } else {
+    components.push({ key: "sleep", label: "Schlaf", inputText: "keine Daten", deltaYr: 0, weight: 0.15, available: false });
+  }
+
+  // D) RHR delta
+  const rhr = profile.restingHr || account?.healthData?.restingHr;
+  if (rhr) {
+    const popRhr = 65 + 0.03 * chronoAge;
+    const rhrDelta = clamp(0.25 * (rhr - popRhr), -6, 8);
+    components.push({
+      key: "rhr", label: "Ruhepuls",
+      inputText: `${rhr} bpm (Norm ${popRhr.toFixed(0)})`,
+      deltaYr: rhrDelta, weight: 0.10, available: true,
+    });
+  } else {
+    components.push({ key: "rhr", label: "Ruhepuls", inputText: "keine Daten", deltaYr: 0, weight: 0.10, available: false });
+  }
+
+  // E) HRV delta (RMSSD, log-linear norm from Lifelines/Nunan)
+  const rmssd = profile.hrvRmssd || account?.healthData?.rmssd;
+  if (rmssd && rmssd > 0) {
+    const expectedLn = 4.3 - 0.022 * chronoAge;
+    const hrvDelta = clamp(-15 * (Math.log(rmssd) - expectedLn), -6, 6);
+    components.push({
+      key: "hrv", label: "HRV (RMSSD)",
+      inputText: `${Math.round(rmssd)} ms`,
+      deltaYr: hrvDelta, weight: 0.10, available: true,
+    });
+  } else {
+    components.push({ key: "hrv", label: "HRV (RMSSD)", inputText: "keine Daten", deltaYr: 0, weight: 0.10, available: false });
+  }
+
+  // F) Body composition delta (WHR)
+  const whr = profile.waistHipRatio;
+  if (whr) {
+    const target = sex === "female" ? 0.85 : 0.90;
+    const whrDelta = clamp(10 * (whr - target), -2, 3);
+    components.push({
+      key: "body", label: "Körperkomposition",
+      inputText: `WHR ${whr.toFixed(2)}`,
+      deltaYr: whrDelta, weight: 0.05, available: true,
+    });
+  } else {
+    components.push({ key: "body", label: "Körperkomposition", inputText: "keine Daten", deltaYr: 0, weight: 0.05, available: false });
+  }
+
+  // Renormalize weights over available components
+  const totalAvailWeight = components.filter(c => c.available).reduce((s, c) => s + c.weight, 0) || 1;
+  components.forEach(c => { c.effectiveWeight = c.available ? (c.weight / totalAvailWeight) : 0; });
+  components.forEach(c => { c.contributionYr = c.deltaYr * c.effectiveWeight; });
+
+  const netDelta = components.reduce((s, c) => s + c.contributionYr, 0);
+  const fitnessAge = clamp(chronoAge + netDelta, chronoAge - 15, chronoAge + 15);
+  const missingTierA = components.filter(c => !c.available && ["vo2max"].includes(c.key)).length;
+  const confidence = clamp(2 + 3 * missingTierA + components.filter(c => !c.available).length * 0.5, 2, 8);
+
+  return { chronoAge, fitnessAge: Math.round(fitnessAge), netDelta, components, confidence };
+}
+
+/**
+ * Render the fitness-age component breakdown card for transparency.
+ */
+function renderFitnessAgeBreakdown(account) {
+  const el = document.getElementById("fitness-age-breakdown");
+  if (!el) return;
+  const bd = computeFitnessAgeBreakdown(account);
+  if (!bd) { el.hidden = true; return; }
+  el.hidden = false;
+
+  const fmtYr = (v) => (v >= 0 ? "+" : "") + v.toFixed(1);
+  const fmtContrib = (v) => (v >= 0 ? "+" : "") + v.toFixed(1);
+  const color = (v) => v <= -1 ? "#4CAF82" : v < 1 ? "var(--muted)" : v < 3 ? "#E5A93D" : "#d86a6a";
+  const sign = bd.netDelta < 0 ? "jünger" : bd.netDelta > 0 ? "älter" : "Ø";
+
+  const rows = bd.components
+    .slice()
+    .sort((a, b) => Math.abs(b.contributionYr) - Math.abs(a.contributionYr))
+    .map(c => {
+      const avail = c.available;
+      const wPct = Math.round(c.effectiveWeight * 100);
+      return `<div class="fa-bd-row ${avail ? "" : "fa-bd-missing"}">
+        <div class="fa-bd-label">${c.label}</div>
+        <div class="fa-bd-input">${c.inputText}</div>
+        <div class="fa-bd-delta" style="color:${avail ? color(c.deltaYr) : "var(--muted)"}">${avail ? fmtYr(c.deltaYr) + " J" : "—"}</div>
+        <div class="fa-bd-weight">${wPct}%</div>
+        <div class="fa-bd-contrib" style="color:${avail ? color(c.contributionYr) : "var(--muted)"}">${avail ? fmtContrib(c.contributionYr) + " J" : "—"}</div>
+      </div>`;
+    }).join("");
+
+  el.innerHTML = `
+    <div class="fa-bd-head">
+      <span class="fa-bd-title">Wie dein Fitness-Alter zustande kommt</span>
+      <span class="fa-bd-net">Netto ${fmtYr(bd.netDelta)} J ${sign} · ±${bd.confidence.toFixed(0)} J Unsicherheit</span>
+    </div>
+    <div class="fa-bd-table">
+      <div class="fa-bd-row fa-bd-header">
+        <div class="fa-bd-label">Faktor</div>
+        <div class="fa-bd-input">Messwert</div>
+        <div class="fa-bd-delta">Δ J</div>
+        <div class="fa-bd-weight">Gewicht</div>
+        <div class="fa-bd-contrib">Beitrag</div>
+      </div>
+      ${rows}
+    </div>
+    <p class="fa-bd-foot">Quellen: Nes 2013 (HUNT), Kodama 2009 (JAMA), Lifelines HRV, WHOOP Healthspan 2024. Gewichte werden bei fehlenden Daten automatisch neu verteilt.</p>
+  `;
+}
+
 function estimateFitnessAge(vo2max, sex, chronologicalAge) {
   // Whoop-inspired multi-factor Fitness Age:
   // VO2max accounts for ~50% of score, activity scoring ~30%, resting HR ~20%
@@ -15382,6 +15554,9 @@ function renderFitnessAgeHighlight(account) {
 
   // Aging-trend analysis: compare fitness-age slope with natural 1:1 aging
   renderAgingTrendAnalysis(account, fitnessAge, chronoAge);
+
+  // Transparent multi-factor breakdown (WHOOP-style)
+  renderFitnessAgeBreakdown(account);
 }
 
 /**
