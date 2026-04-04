@@ -1979,6 +1979,11 @@ body.profile-view-settings .profile-settings-card.is-active {
   .records-header,
   .records-row {
     font-size: 11px;
+    grid-template-columns: 1.2fr 1fr 1fr;
+  }
+  .records-header span:nth-child(4),
+  .records-row span:nth-child(4) {
+    display: none;
   }
   .year-compare-row {
     grid-template-columns: 40px 1fr auto;
