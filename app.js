@@ -141,9 +141,7 @@ const sessionModalFatEl = document.getElementById("session-modal-fat");
 const accountBarEl = document.getElementById("account-bar");
 const accountLabelEl = document.getElementById("account-label");
 const accountHomeBtn = document.getElementById("account-home-btn");
-const accountCrewBtn = document.getElementById("account-crew-btn");
 const accountProfileBtn = document.getElementById("account-profile-btn");
-const accountSettingsBtn = document.getElementById("account-settings-btn");
 const accountLoginBtn = document.getElementById("account-login-btn");
 const accountRegisterBtn = document.getElementById("account-register-btn");
 const accountLogoutBtn = document.getElementById("account-logout-btn");
@@ -1150,25 +1148,28 @@ stravaProfileImportBtn?.addEventListener("click", () => {
   importStravaHistory();
 });
 
-try {
-  setDefaultRaceDate();
-  initDynamicGoalOptions();
-  initAdvancedSettingsToggle();
-  initScrollFx();
-  initStageReveals();
-  initLanguageSwitcher();
-  initAccountUi();
-  setActiveProfileView("overview");
-  setActiveProfileSettingsView("profile");
-  applyTranslations();
-  loadThresholdDraftFromHiddenInputs();
-  initInlineRaceEvents();
-  renderInlineRaceList();
-  renderPerformanceInsights();
-  setAppView("home");
-} catch (err) {
-  console.error("AImAthlete init failed:", err);
-}
+// Defer init to end of script so all const declarations (e.g. VDOT_TABLE) are initialized
+queueMicrotask(() => {
+  try {
+    setDefaultRaceDate();
+    initDynamicGoalOptions();
+    initAdvancedSettingsToggle();
+    initScrollFx();
+    initStageReveals();
+    initLanguageSwitcher();
+    initAccountUi();
+    setActiveProfileView("overview");
+    setActiveProfileSettingsView("profile");
+    applyTranslations();
+    loadThresholdDraftFromHiddenInputs();
+    initInlineRaceEvents();
+    renderInlineRaceList();
+    renderPerformanceInsights();
+    setAppView("home");
+  } catch (err) {
+    console.error("AImAthlete init failed:", err);
+  }
+});
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -7271,6 +7272,7 @@ function getDashboardRingConfig(account) {
 /* ── Health Metrics (Resting HR, HRV, Sleep, Recovery) ── */
 
 function renderHealthMetrics(account) {
+  if (!account) return;
   const profile = account?.profile || {};
   const acts = account?.activities || [];
   const history = account?.metricHistory || [];

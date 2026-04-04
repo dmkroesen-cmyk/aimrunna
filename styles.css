@@ -1317,6 +1317,7 @@ select {
   margin: -4svh auto 0;
   padding: 0 20px 80px;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 24px;
   position: relative;
   z-index: 10;
