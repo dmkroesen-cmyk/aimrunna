@@ -1623,7 +1623,9 @@ body.profile-view-health .profile-settings-card {
 
 body.profile-view-activities #profile-card-identity,
 body.profile-view-activities #profile-card-plans,
-body.profile-view-activities #profile-card-stats {
+body.profile-view-activities #profile-card-stats,
+body.profile-view-activities #profile-card-predictions,
+body.profile-view-activities #profile-card-fitness-analysis {
   display: none;
 }
 
@@ -3632,6 +3634,9 @@ body.profile-view-settings .profile-settings-card.is-active {
   background: linear-gradient(180deg, rgba(16, 18, 20, 0.97), rgba(8, 9, 11, 0.95));
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.58);
   padding: 14px;
+}
+.account-modal-card > .result-title-row {
+  padding-right: 36px;
 }
 
 .account-auth-tabs {
