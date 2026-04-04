@@ -672,9 +672,8 @@ const I18N = {
     nav_create: "Registrieren",
     section_profile_crew: "Profil & Community",
     profile_tab_overview: "Dashboard",
-    profile_tab_playbook: "Playbook",
+    profile_tab_playbook: "PeakPlan",
     profile_tab_activities: "Aktivitäten",
-    profile_tab_health: "Health",
     profile_tab_settings: "Einstellungen",
     profile_card_title: "Profil",
     profile_create_account: "Account erstellen",
@@ -692,9 +691,10 @@ const I18N = {
     dashboard_config_title: "Ringe konfigurieren",
     dashboard_fitness_age: "Fitness-Alter",
     dashboard_vo2max: "VO2max",
+    dashboard_today: "Heute",
     login_welcome: "Willkommen zurück",
     btn_save: "Speichern",
-    profile_tab_statistics: "Statistik",
+    profile_tab_statistics: "Metrics",
     profile_stats: "Profilstatistik",
     stats_volume_title: "Trainingsvolumen",
     stats_total_distance: "Gesamt",
@@ -827,9 +827,8 @@ const I18N = {
     nav_create: "Create",
     section_profile_crew: "Profile & Community",
     profile_tab_overview: "Dashboard",
-    profile_tab_playbook: "Playbook",
+    profile_tab_playbook: "PeakPlan",
     profile_tab_activities: "Activities",
-    profile_tab_health: "Health",
     profile_tab_settings: "Settings",
     profile_card_title: "Profile",
     profile_create_account: "Create account",
@@ -847,9 +846,10 @@ const I18N = {
     dashboard_config_title: "Configure Rings",
     dashboard_fitness_age: "Fitness Age",
     dashboard_vo2max: "VO2max",
+    dashboard_today: "Today",
     login_welcome: "Welcome back",
     btn_save: "Save",
-    profile_tab_statistics: "Statistics",
+    profile_tab_statistics: "Metrics",
     profile_stats: "Profile Stats",
     stats_volume_title: "Training Volume",
     stats_total_distance: "Total",
@@ -982,9 +982,8 @@ const I18N = {
     nav_create: "作成",
     section_profile_crew: "プロフィール & コミュニティ",
     profile_tab_overview: "ダッシュボード",
-    profile_tab_playbook: "プレイブック",
+    profile_tab_playbook: "PeakPlan",
     profile_tab_activities: "アクティビティ",
-    profile_tab_health: "ヘルス",
     profile_tab_settings: "設定",
     profile_card_title: "プロフィール",
     profile_create_account: "アカウント作成",
@@ -1002,9 +1001,10 @@ const I18N = {
     dashboard_config_title: "リング設定",
     dashboard_fitness_age: "フィットネス年齢",
     dashboard_vo2max: "VO2max",
+    dashboard_today: "今日",
     login_welcome: "おかえりなさい",
     btn_save: "保存",
-    profile_tab_statistics: "統計",
+    profile_tab_statistics: "Metrics",
     profile_stats: "プロフィール統計",
     stats_volume_title: "トレーニング量",
     stats_total_distance: "合計",
@@ -3223,6 +3223,11 @@ async function logoutCurrentAccount() {
   renderAccountUi();
   stravaStatusFetchedForUserId = null;
   setText(connectionState, t("no_sources"));
+  const faHero = document.getElementById("fitness-age-hero-value");
+  if (faHero) faHero.textContent = "--";
+  const faDelta = document.getElementById("fitness-age-hero-delta");
+  if (faDelta) faDelta.textContent = "";
+  document.querySelectorAll(".factor-fill").forEach(f => f.style.width = "0%");
 }
 
 function hydrateConnectedSourcesFromAccount() {
@@ -3395,6 +3400,7 @@ function renderAccountUi() {
   renderFitnessAnalysis(account);
   renderDashboardRings();
   renderDashboardKpis(account);
+  renderFitnessAgeHighlight(account);
   // Show predictions from activity data if no plan is loaded
   if (!latestProfile && account?.activities?.length) {
     const analysis = analyzeActivityHistory(account.activities);
@@ -3638,14 +3644,14 @@ function setActiveAccountSection(section) {
 }
 
 function setActiveProfileView(view) {
-  activeProfileView = ["overview", "playbook", "statistics", "activities", "health", "settings"].includes(view) ? view : "overview";
-  document.body.classList.remove("profile-view-overview", "profile-view-playbook", "profile-view-statistics", "profile-view-activities", "profile-view-health", "profile-view-settings");
+  activeProfileView = ["overview", "playbook", "statistics", "activities", "settings"].includes(view) ? view : "overview";
+  document.body.classList.remove("profile-view-overview", "profile-view-playbook", "profile-view-statistics", "profile-view-activities", "profile-view-settings");
   document.body.classList.add(`profile-view-${activeProfileView}`);
   profileViewTabButtons.forEach((btn) => btn.classList.toggle("is-active", btn.dataset.profileView === activeProfileView));
   if (activeProfileView === "settings") {
     setActiveProfileSettingsView(activeProfileSettingsView || "profile");
   }
-  if (activeProfileView === "overview") { maybeFetchStravaStatus(getCurrentAccount()); renderDashboardRings(); renderDashboardKpis(getCurrentAccount()); }
+  if (activeProfileView === "overview") { maybeFetchStravaStatus(getCurrentAccount()); renderDashboardRings(); renderDashboardKpis(getCurrentAccount()); renderFitnessAgeHighlight(getCurrentAccount()); }
   if (activeProfileView === "statistics") renderStatisticsView(getCurrentAccount());
 
   // Move plan form + results into/out of Playbook host
@@ -3720,7 +3726,7 @@ function setAppView(view) {
     sectionAccountEl?.classList.add("is-visible");
     sectionDataEl?.classList.add("is-visible");
   } else {
-    document.body.classList.remove("profile-view-overview", "profile-view-playbook", "profile-view-statistics", "profile-view-activities", "profile-view-health", "profile-view-settings");
+    document.body.classList.remove("profile-view-overview", "profile-view-playbook", "profile-view-statistics", "profile-view-activities", "profile-view-settings");
     syncPlaybookFormPlacement(); // move form back to landing when leaving profile
   }
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -14662,6 +14668,133 @@ function renderDashboardKpis(account) {
     }
     setText(document.getElementById("kpi-hyrox-vo2"), vo2max?.value ? vo2max.value.toFixed(1) : "–");
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FITNESS AGE HIGHLIGHT
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function renderFitnessAgeHighlight(account) {
+  const profile = account?.profile || {};
+  const acts = account?.activities || [];
+  const heroVal = document.getElementById("fitness-age-hero-value");
+  const heroDelta = document.getElementById("fitness-age-hero-delta");
+  if (!heroVal) return;
+
+  const fitnessAge = estimateFitnessAge(profile, acts);
+  const chronoAge = profile.birthYear ? (new Date().getFullYear() - profile.birthYear) : null;
+
+  // Animate the number
+  heroVal.textContent = fitnessAge != null ? Math.round(fitnessAge) : "--";
+
+  if (chronoAge && fitnessAge != null) {
+    const diff = Math.round(chronoAge - fitnessAge);
+    if (diff > 0) {
+      heroDelta.textContent = `${diff} Jahre jünger als dein Alter`;
+      heroDelta.className = "fitness-age-delta positive";
+    } else if (diff < 0) {
+      heroDelta.textContent = `${Math.abs(diff)} Jahre älter als dein Alter`;
+      heroDelta.className = "fitness-age-delta negative";
+    } else {
+      heroDelta.textContent = "Entspricht deinem Alter";
+      heroDelta.className = "fitness-age-delta neutral";
+    }
+  }
+
+  // Factor bars (show contribution strength)
+  const vo2 = estimateVO2max ? estimateVO2max(profile) : null;
+  const factorVo2 = document.getElementById("factor-vo2max");
+  const factorActivity = document.getElementById("factor-activity");
+  const factorRhr = document.getElementById("factor-rhr");
+
+  if (factorVo2 && vo2) {
+    // VO2max contribution: normalize 30-60 range to 0-100%
+    factorVo2.style.width = Math.min(100, Math.max(0, ((vo2 - 25) / 35) * 100)) + "%";
+  }
+  if (factorActivity && acts.length > 0) {
+    // Activity: based on weekly frequency (target: 5+/week)
+    const fourWeeksAgo = Date.now() - 28 * 86400000;
+    const recentActs = acts.filter(a => new Date(a.date || a.start_date).getTime() > fourWeeksAgo);
+    const weeklyFreq = recentActs.length / 4;
+    factorActivity.style.width = Math.min(100, (weeklyFreq / 5) * 100) + "%";
+  }
+  if (factorRhr && profile.restingHr) {
+    // Resting HR: lower is better, normalize 40-80 to 100-0%
+    factorRhr.style.width = Math.min(100, Math.max(0, ((80 - profile.restingHr) / 40) * 100)) + "%";
+  }
+
+  // Render timeline chart
+  renderFitnessAgeTimeline(account);
+}
+
+function renderFitnessAgeTimeline(account) {
+  const canvas = document.getElementById("fitness-age-timeline");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const history = account?.metricHistory || [];
+  if (history.length < 2) {
+    ctx.fillStyle = "rgba(255,255,255,0.3)";
+    ctx.font = "13px var(--font-main, system-ui)";
+    ctx.textAlign = "center";
+    ctx.fillText("Verlauf wird mit der Zeit aufgebaut", W / 2, H / 2);
+    return;
+  }
+
+  // Extract fitness age values
+  const points = history
+    .filter(h => h.fitnessAge != null)
+    .slice(-90) // last 90 days
+    .map((h, i, arr) => ({
+      x: (i / Math.max(1, arr.length - 1)) * (W - 40) + 20,
+      y: 0,
+      val: h.fitnessAge,
+      date: h.date
+    }));
+
+  if (points.length < 2) return;
+
+  const vals = points.map(p => p.val);
+  const minV = Math.min(...vals) - 2;
+  const maxV = Math.max(...vals) + 2;
+  const range = maxV - minV || 1;
+
+  points.forEach(p => {
+    p.y = H - 20 - ((p.val - minV) / range) * (H - 40);
+  });
+
+  // Gradient fill
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, "rgba(0, 224, 150, 0.3)");
+  grad.addColorStop(1, "rgba(0, 224, 150, 0)");
+
+  ctx.beginPath();
+  ctx.moveTo(points[0].x, H - 20);
+  points.forEach(p => ctx.lineTo(p.x, p.y));
+  ctx.lineTo(points[points.length - 1].x, H - 20);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Line
+  ctx.beginPath();
+  points.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+  ctx.strokeStyle = "#00e096";
+  ctx.lineWidth = 2.5;
+  ctx.lineJoin = "round";
+  ctx.stroke();
+
+  // End dot
+  const last = points[points.length - 1];
+  ctx.beginPath();
+  ctx.arc(last.x, last.y, 4, 0, Math.PI * 2);
+  ctx.fillStyle = "#00e096";
+  ctx.fill();
+  ctx.strokeStyle = "#111";
+  ctx.lineWidth = 2;
+  ctx.stroke();
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

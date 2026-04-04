@@ -482,18 +482,24 @@
           <div class="profile-pane-toolbar">
             <div class="profile-view-tabs" role="tablist" aria-label="Profile sections">
               <button type="button" class="profile-view-tab is-active" data-profile-view="overview" data-i18n="profile_tab_overview">Dashboard</button>
-              <button type="button" class="profile-view-tab" data-profile-view="playbook" data-i18n="profile_tab_playbook">Playbook</button>
-              <button type="button" class="profile-view-tab" data-profile-view="statistics" data-i18n="profile_tab_statistics">Statistik</button>
+              <button type="button" class="profile-view-tab" data-profile-view="playbook" data-i18n="profile_tab_playbook">PeakPlan</button>
+              <button type="button" class="profile-view-tab" data-profile-view="statistics" data-i18n="profile_tab_statistics">Metrics</button>
               <button type="button" class="profile-view-tab" data-profile-view="activities" data-i18n="profile_tab_activities">Aktivitäten</button>
-              <button type="button" class="profile-view-tab" data-profile-view="health" data-i18n="profile_tab_health">Health</button>
               <button type="button" class="profile-view-tab" data-profile-view="settings" data-i18n="profile_tab_settings">Einstellungen</button>
             </div>
+          </div>
+          <!-- ── Metrics Sub-Navigation (extends main nav when Metrics tab is active) ── -->
+          <div class="stats-sub-nav profile-card-statistics" id="stats-sub-nav">
+            <button type="button" class="stats-sub-tab is-active" data-stats-sub="volume">Volumen</button>
+            <button type="button" class="stats-sub-tab" data-stats-sub="performance">Performance</button>
+            <button type="button" class="stats-sub-tab" data-stats-sub="health">Health</button>
+            <button type="button" class="stats-sub-tab" data-stats-sub="load">Belastung</button>
           </div>
           <div class="account-grid">
             <!-- ═══ DASHBOARD RINGS ═══ -->
             <section class="result-card account-card profile-main-card profile-card-overview dashboard-rings-card" id="dashboard-rings">
               <div class="result-title-row">
-                <h4 data-i18n="dashboard_title">Dashboard</h4>
+                <h4 data-i18n="dashboard_title">Heute</h4>
                 <button type="button" class="ghost icon-only dashboard-config-btn" id="dashboard-config-btn" title="Ringe konfigurieren">⚙</button>
               </div>
               <div class="dashboard-rings-container" id="dashboard-rings-container">
@@ -545,6 +551,38 @@
               </div>
             </section>
 
+            <!-- ── Fitness Age Highlight ── -->
+            <div class="profile-card-overview fitness-age-card" id="fitness-age-highlight">
+              <div class="fitness-age-hero">
+                <div class="fitness-age-number-wrap">
+                  <span class="fitness-age-label">Dein Fitness-Alter</span>
+                  <div class="fitness-age-number" id="fitness-age-hero-value">--</div>
+                  <span class="fitness-age-unit">Jahre</span>
+                </div>
+                <div class="fitness-age-delta" id="fitness-age-hero-delta"></div>
+              </div>
+              <div class="fitness-age-chart-wrap">
+                <canvas id="fitness-age-timeline" width="600" height="120"></canvas>
+              </div>
+              <div class="fitness-age-factors" id="fitness-age-factors">
+                <div class="fitness-factor">
+                  <span class="factor-icon">❤️</span>
+                  <span class="factor-label">VO2max</span>
+                  <div class="factor-bar"><div class="factor-fill" id="factor-vo2max" style="width:0%"></div></div>
+                </div>
+                <div class="fitness-factor">
+                  <span class="factor-icon">🏃</span>
+                  <span class="factor-label">Aktivität</span>
+                  <div class="factor-bar"><div class="factor-fill" id="factor-activity" style="width:0%"></div></div>
+                </div>
+                <div class="fitness-factor">
+                  <span class="factor-icon">💓</span>
+                  <span class="factor-label">Ruhe-HF</span>
+                  <div class="factor-bar"><div class="factor-fill" id="factor-rhr" style="width:0%"></div></div>
+                </div>
+              </div>
+            </div>
+
             <!-- ═══ DASHBOARD KPIs ═══ -->
             <section class="result-card account-card profile-main-card profile-card-overview dashboard-kpi-card" id="dashboard-kpi-running">
               <div class="result-title-row">
@@ -555,7 +593,6 @@
                 <div class="kpi-item"><span class="kpi-label">VO2max</span><strong class="kpi-value" id="kpi-run-vo2max">–</strong><small class="kpi-unit">ml/kg/min</small></div>
                 <div class="kpi-item"><span class="kpi-label">Schwelle</span><strong class="kpi-value" id="kpi-run-threshold">–</strong><small class="kpi-unit">min/km</small></div>
                 <div class="kpi-item"><span class="kpi-label">FatMax</span><strong class="kpi-value" id="kpi-run-fatmax">–</strong><small class="kpi-unit">min/km</small></div>
-                <div class="kpi-item"><span class="kpi-label">Fitness-Alter</span><strong class="kpi-value" id="kpi-run-fitness-age">–</strong><small class="kpi-unit">Jahre</small></div>
                 <div class="kpi-item"><span class="kpi-label">Ruhe-HF</span><strong class="kpi-value" id="kpi-resting-hr">–</strong><small class="kpi-unit">bpm</small></div>
                 <div class="kpi-item"><span class="kpi-label">Max HF</span><strong class="kpi-value" id="kpi-max-hr">–</strong><small class="kpi-unit">bpm</small></div>
               </div>
@@ -594,11 +631,6 @@
                 <h4>Prognosen</h4>
               </div>
               <div class="predictions-vitals">
-                <div class="vital-metric vital-vo2max">
-                  <span>VO2max</span>
-                  <strong id="profile-vo2max">-</strong>
-                  <small>ml/kg/min</small>
-                </div>
                 <div class="vital-metric vital-fitness-age">
                   <span>Fitness-Alter</span>
                   <strong id="profile-fitness-age">-</strong>
@@ -654,7 +686,7 @@
             <section class="result-card account-card profile-main-card profile-card-playbook" id="profile-card-plan-creator">
               <div class="result-title-row">
                 <h4>Neuen Plan erstellen</h4>
-                <span class="tag subtle">Playbook</span>
+                <span class="tag subtle">PeakPlan</span>
               </div>
               <div id="playbook-form-host" class="playbook-form-host">
                 <!-- Plan form gets moved here via JS when Playbook tab is active -->
@@ -735,13 +767,6 @@
               </div>
             </section>
 
-            <!-- ── Statistics Sub-Navigation ── -->
-            <div class="stats-sub-nav profile-card-statistics" id="stats-sub-nav">
-              <button type="button" class="stats-sub-tab is-active" data-stats-sub="volume">Volumen</button>
-              <button type="button" class="stats-sub-tab" data-stats-sub="performance">Performance</button>
-              <button type="button" class="stats-sub-tab" data-stats-sub="health">Health</button>
-              <button type="button" class="stats-sub-tab" data-stats-sub="load">Belastung</button>
-            </div>
 
             <!-- ── VOLUME ── -->
             <section class="result-card account-card profile-main-card profile-card-statistics stats-sub-card stats-sub-volume stats-sub-active" id="profile-card-volume-chart">

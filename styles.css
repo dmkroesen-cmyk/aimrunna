@@ -6043,45 +6043,41 @@ button:focus-visible {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   STATISTICS SUB-NAVIGATION
+   STATISTICS SUB-NAVIGATION (extends main nav)
    ═══════════════════════════════════════════════════════════════════════════ */
 
+/* ── Metrics Sub-Navigation (extends main nav) ── */
 .stats-sub-nav {
-  grid-column: 1 / -1;
-  display: flex;
-  gap: 4px;
-  padding: 4px;
+  display: none;
+  justify-content: center;
+  gap: 0;
+  padding: 0;
   background: rgba(255, 255, 255, 0.03);
-  border-radius: var(--radius-md);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  margin-bottom: 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin: 0 0 var(--space-lg);
 }
-
+.profile-view-statistics .stats-sub-nav {
+  display: flex;
+}
 .stats-sub-tab {
-  flex: 1;
-  padding: 10px 16px;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 12px;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.45);
+  font: 600 0.8rem/1 var(--font-main, system-ui, sans-serif);
+  padding: 10px 20px;
   cursor: pointer;
-  transition: all 0.25s ease;
-  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  transition: color 0.2s, box-shadow 0.2s;
+  position: relative;
+  white-space: nowrap;
 }
-
 .stats-sub-tab:hover {
-  color: rgba(255, 255, 255, 0.75);
-  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.7);
 }
-
 .stats-sub-tab.is-active {
-  background: rgba(134, 215, 255, 0.08);
-  border-color: rgba(134, 215, 255, 0.18);
   color: #fff;
-  box-shadow: 0 2px 8px rgba(134, 215, 255, 0.08);
+  box-shadow: inset 0 -2px 0 var(--color-accent, #00e096);
 }
 
 /* Show/hide cards by sub-tab */
@@ -6245,8 +6241,8 @@ button:focus-visible {
 }
 
 @media (max-width: 760px) {
-  .stats-sub-nav { flex-wrap: wrap; }
-  .stats-sub-tab { font-size: 12px; padding: 8px 10px; }
+  .stats-sub-nav { flex-wrap: wrap; justify-content: center; }
+  .stats-sub-tab { font-size: 0.7rem; padding: 8px 14px; }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -6419,3 +6415,165 @@ button:focus-visible {
 .result-card { transition: all 0.3s var(--transition-smooth); }
 .metric { transition: all 0.3s var(--transition-smooth); }
 .deep-metric, .prediction-item { transition: all 0.3s var(--transition-smooth); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   HIDE HEALTH TAB (safety rule)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.profile-view-tab[data-profile-view="health"] { display: none; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MAIN NAV + SUB-NAV CONNECTED FEEL
+   ═══════════════════════════════════════════════════════════════════════════ */
+/* When Metrics tab is active, remove bottom border from main nav */
+.profile-view-statistics .profile-view-tabs {
+  border-bottom-color: transparent;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FITNESS AGE HIGHLIGHT
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.fitness-age-card {
+  background: linear-gradient(135deg, rgba(0, 224, 150, 0.08) 0%, rgba(0, 180, 120, 0.03) 100%);
+  border: 1px solid rgba(0, 224, 150, 0.15);
+  border-radius: var(--radius-lg, 16px);
+  padding: var(--space-xl, 32px);
+  margin-bottom: var(--space-lg, 24px);
+}
+
+.fitness-age-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-lg, 24px);
+}
+
+.fitness-age-number-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.fitness-age-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 4px;
+}
+
+.fitness-age-number {
+  font-size: 4rem;
+  font-weight: 800;
+  line-height: 1;
+  background: linear-gradient(135deg, #00e096, #00c9ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: fitnessPulse 3s ease-in-out infinite;
+}
+
+@keyframes fitnessPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.92; transform: scale(1.02); }
+}
+
+.fitness-age-unit {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+.fitness-age-delta {
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 20px;
+}
+.fitness-age-delta.positive {
+  color: #00e096;
+  background: rgba(0, 224, 150, 0.12);
+}
+.fitness-age-delta.negative {
+  color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.12);
+}
+.fitness-age-delta.neutral {
+  color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.fitness-age-chart-wrap {
+  margin-bottom: var(--space-lg, 24px);
+  border-radius: var(--radius-md, 12px);
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.15);
+  padding: 12px;
+}
+
+.fitness-age-chart-wrap canvas {
+  width: 100%;
+  height: 120px;
+  display: block;
+}
+
+.fitness-age-factors {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fitness-factor {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.fitness-factor .factor-icon {
+  font-size: 1.1rem;
+  width: 28px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.fitness-factor .factor-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+  width: 70px;
+  flex-shrink: 0;
+}
+
+.factor-bar {
+  flex: 1;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.factor-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #00e096, #00c9ff);
+  border-radius: 3px;
+  transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ── Fitness Age Responsive ── */
+@media (max-width: 600px) {
+  .fitness-age-hero {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .fitness-age-number {
+    font-size: 3rem;
+  }
+  .fitness-age-card {
+    padding: var(--space-lg, 24px);
+  }
+}
