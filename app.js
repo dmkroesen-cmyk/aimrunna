@@ -3765,7 +3765,7 @@ function setActiveProfileView(view) {
   if (activeProfileView === "settings") {
     setActiveProfileSettingsView(activeProfileSettingsView || "profile");
   }
-  if (activeProfileView === "overview") { maybeFetchStravaStatus(getCurrentAccount()); renderDashboardRings(); renderDashboardKpis(getCurrentAccount()); renderFitnessAgeHighlight(getCurrentAccount()); }
+  if (activeProfileView === "overview") { maybeFetchStravaStatus(getCurrentAccount()); renderDashboardRings(); renderDashboardKpis(getCurrentAccount()); renderFitnessAgeHighlight(getCurrentAccount()); const _ov = normalizeActivities(getCurrentAccount()?.activities || []); renderLoadChart(_ov); renderConsistencyChart(_ov); }
   if (activeProfileView === "statistics") renderStatisticsView(getCurrentAccount());
   if (activeProfileView === "activities") renderActivityFeed();
   if (activeProfileView === "playbook") populatePlanFormFromSaved(getCurrentAccount());
@@ -15678,6 +15678,37 @@ function renderConsistencyChart(allActivities) {
   }
 
   svg.innerHTML = cells + labels;
+
+  // ── Consistency summary row ──
+  const totalDays = weeks * 7;
+  const dayCounts = [];
+  for (let i = 0; i < totalDays; i++) {
+    const dayStart = now - (totalDays - 1 - i) * msPerDay;
+    const dayEnd = dayStart + msPerDay;
+    dayCounts.push(allActivities.filter(a => {
+      const ts = new Date(a.createdAt || 0).getTime();
+      return ts >= dayStart - msPerDay && ts < dayEnd;
+    }).length);
+  }
+  const totalSessions = dayCounts.reduce((s, c) => s + c, 0);
+  const weeklyAvg = (totalSessions / weeks).toFixed(1);
+  const restDays = dayCounts.filter(c => c === 0).length;
+  const restPerWeek = (restDays / weeks).toFixed(1);
+  // Longest streak of active days
+  let longest = 0, cur = 0;
+  dayCounts.forEach(c => { if (c > 0) { cur++; longest = Math.max(longest, cur); } else cur = 0; });
+  // Consistency score: % of weeks with ≥3 active days
+  let goodWeeks = 0;
+  for (let w = 0; w < weeks; w++) {
+    const active = dayCounts.slice(w * 7, w * 7 + 7).filter(c => c > 0).length;
+    if (active >= 3) goodWeeks++;
+  }
+  const score = Math.round((goodWeeks / weeks) * 100);
+  const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  setText("cons-weekly-avg", weeklyAvg);
+  setText("cons-streak", `${longest} T`);
+  setText("cons-rest-avg", restPerWeek);
+  setText("cons-score", `${score}%`);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

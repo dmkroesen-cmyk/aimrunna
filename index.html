@@ -513,7 +513,6 @@
             <button type="button" class="stats-sub-tab is-active" data-stats-sub="volume">Volumen</button>
             <button type="button" class="stats-sub-tab" data-stats-sub="performance">Performance</button>
             <button type="button" class="stats-sub-tab" data-stats-sub="health">Health</button>
-            <button type="button" class="stats-sub-tab" data-stats-sub="load">Belastung</button>
           </div>
           <div class="account-grid">
             <!-- ═══ DASHBOARD RINGS ═══ -->
@@ -1030,11 +1029,17 @@
               </div>
             </section>
 
-            <!-- ── LOAD / Belastung ── -->
-            <section class="result-card account-card profile-main-card profile-card-statistics stats-sub-card stats-sub-load" id="profile-card-load-chart">
+            <!-- ── LOAD / Belastung (Dashboard) ── -->
+            <section class="result-card account-card profile-main-card profile-card-overview" id="profile-card-load-chart">
               <div class="result-title-row">
                 <h4>Trainingsbelastung</h4>
                 <span class="tag subtle">ACWR</span>
+              </div>
+              <p class="chart-explain">Zeigt, wie hart du trainierst. Die <b style="color:#5B9BD5">akute Last</b> ist dein Schnitt der letzten 7 Tage, die <b style="color:#E5A93D">chronische Last</b> der letzten 28 Tage. Das Verhältnis (ACWR) sollte zwischen 0.8 und 1.3 liegen — das ist der <b style="color:#4CAF82">Sweet Spot</b>. Darüber steigt das Verletzungsrisiko, darunter verlierst du Fitness.</p>
+              <div class="chart-legend">
+                <span class="legend-item"><span class="legend-swatch legend-line" style="background:#5B9BD5"></span>Akute Last (7d)</span>
+                <span class="legend-item"><span class="legend-swatch legend-line-dashed" style="--c:#E5A93D"></span>Chronische Last (28d)</span>
+                <span class="legend-item"><span class="legend-swatch" style="background:rgba(76,175,130,0.25)"></span>Sweet Spot (0.8–1.3)</span>
               </div>
               <div class="stats-chart-wrap">
                 <svg id="stats-load-svg" class="stats-chart-svg" viewBox="0 0 720 220" preserveAspectRatio="xMidYMid meet"></svg>
@@ -1059,12 +1064,26 @@
               </div>
             </section>
 
-            <section class="result-card account-card profile-main-card profile-card-statistics stats-sub-card stats-sub-load" id="profile-card-consistency">
+            <section class="result-card account-card profile-main-card profile-card-overview" id="profile-card-consistency">
               <div class="result-title-row">
                 <h4>Trainings-Konsistenz</h4>
+                <span class="tag subtle">12 Wochen</span>
+              </div>
+              <p class="chart-explain">Jede Zelle = ein Tag. Jede Spalte = eine Kalenderwoche. Helle Zellen = harte Einheit, mittlere = solides Training, dunkle = leicht, leer = Ruhetag. So siehst du Lücken und Rhythmus auf einen Blick.</p>
+              <div class="chart-legend">
+                <span class="legend-item"><span class="legend-swatch" style="background:rgba(76,175,130,0.18)"></span>Ruhetag</span>
+                <span class="legend-item"><span class="legend-swatch" style="background:#2d6b4f"></span>Leicht</span>
+                <span class="legend-item"><span class="legend-swatch" style="background:#4CAF82"></span>Solide</span>
+                <span class="legend-item"><span class="legend-swatch" style="background:#6EE7A7"></span>Hart</span>
               </div>
               <div class="stats-chart-wrap">
                 <svg id="stats-consistency-svg" class="stats-chart-svg" viewBox="0 0 720 180" preserveAspectRatio="xMidYMid meet"></svg>
+              </div>
+              <div class="stats-summary-row" id="consistency-summary-row">
+                <div class="stats-summary-item"><span>Einheiten / Woche ⌀</span><strong id="cons-weekly-avg">–</strong></div>
+                <div class="stats-summary-item"><span>Längste Serie</span><strong id="cons-streak">–</strong></div>
+                <div class="stats-summary-item"><span>Ruhetage / Woche ⌀</span><strong id="cons-rest-avg">–</strong></div>
+                <div class="stats-summary-item"><span>Konsistenz</span><strong id="cons-score">–</strong></div>
               </div>
             </section>
 
