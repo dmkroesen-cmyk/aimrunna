@@ -1342,7 +1342,7 @@ document.getElementById("delete-data-btn")?.addEventListener("click", () => {
   if (!account) return;
   if (confirm("Alle Trainingsdaten unwiderruflich löschen?")) {
     account.activities = [];
-    saveAccounts();
+    persistStore();
     renderProfileStats(account);
     renderStatisticsView(account);
   }
@@ -3264,16 +3264,30 @@ async function logoutCurrentAccount() {
   currentAccountId = null;
   connectedSources.clear();
   connectorButtons.forEach((b) => b.classList.remove("active"));
+  latestProfile = null;
+  latestPlan = null;
+  generatedSessions = [];
   persistStore();
   document.body.classList.remove("is-authenticated");
-  renderAccountUi();
   stravaStatusFetchedForUserId = null;
   setText(connectionState, t("no_sources"));
+
+  // Clear fitness age hero
   const faHero = document.getElementById("fitness-age-hero-value");
   if (faHero) faHero.textContent = "--";
   const faDelta = document.getElementById("fitness-age-hero-delta");
   if (faDelta) faDelta.textContent = "";
+
+  // Clear factor bars
   document.querySelectorAll(".factor-fill").forEach(f => f.style.width = "0%");
+
+  // Clear activity feed
+  const activityFeedContainer = document.getElementById("activity-feed-container");
+  if (activityFeedContainer) activityFeedContainer.innerHTML = "";
+
+  // Reset to home view, then re-render everything
+  setAppView("home");
+  renderAccountUi();
 }
 
 function hydrateConnectedSourcesFromAccount() {
@@ -3707,6 +3721,7 @@ function setActiveProfileView(view) {
   if (activeProfileView === "overview") { maybeFetchStravaStatus(getCurrentAccount()); renderDashboardRings(); renderDashboardKpis(getCurrentAccount()); renderFitnessAgeHighlight(getCurrentAccount()); }
   if (activeProfileView === "statistics") renderStatisticsView(getCurrentAccount());
   if (activeProfileView === "activities") renderActivityFeed();
+  if (activeProfileView === "playbook") populatePlanFormFromSaved(getCurrentAccount());
 
   // Move plan form + results into/out of Playbook host
   syncPlaybookFormPlacement();
@@ -4047,96 +4062,87 @@ function renderActivityFeed() {
   const activities = (account?.activities || []).slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   if (!activities.length) {
-    container.innerHTML = '<div class="strava-feed-empty"><div class="strava-feed-empty-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div><p>Noch keine Aktivitaeten. Verbinde dein Geraet oder importiere Aktivitaeten.</p></div>';
+    container.innerHTML = '<div class="activity-feed-empty">Noch keine Aktivitaeten. Verbinde dein Geraet oder importiere Aktivitaeten.</div>';
     return;
   }
 
-  const actorName = (account.email || "Athlete").split("@")[0];
-  const initials = (actorName[0] || "A").toUpperCase();
+  const displayName = account.displayName || (account.email || "Athlete").split("@")[0];
+  const initials = (displayName[0] || "A").toUpperCase();
   const actorAvatar = account.profileImage || null;
 
   container.innerHTML = activities.map((item) => {
-    const dateStr = formatActivityFeedDate(item.createdAt);
+    const date = new Date(item.createdAt);
+    const dateStr = formatRelativeDate(date);
+    const timeStr = date.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
     const sportLabel = formatActivityFeedSportLabel(item.sportType);
-    const sportIcon = getActivitySportIcon(item.sportType);
-    const isRace = item.kind === "race";
 
     const distKm = item.distanceKm ? Number(item.distanceKm) : null;
     const durationSec = item.movingTimeSec || 0;
     const durationStr = durationSec > 0 ? formatDurationHMS(durationSec) : null;
 
-    // Pace for runs (min/km), speed for cycling (km/h)
-    let paceStr = null;
-    let speedStr = null;
+    let paceOrSpeed = "";
+    let paceLabel = "";
     if (item.sportType === "run" && distKm && durationSec > 0) {
       const paceSecKm = item.paceSecPerKm || (durationSec / distKm);
       const pm = Math.floor(paceSecKm / 60);
       const ps = Math.round(paceSecKm % 60);
-      paceStr = `${pm}:${String(ps).padStart(2, "0")}`;
+      paceOrSpeed = `${pm}:${String(ps).padStart(2, "0")}`;
+      paceLabel = "min/km";
     } else if (item.sportType === "bike" && distKm && durationSec > 0) {
-      speedStr = ((distKm / durationSec) * 3600).toFixed(1);
+      paceOrSpeed = ((distKm / durationSec) * 3600).toFixed(1);
+      paceLabel = "km/h";
     }
 
     const avgHr = item.avgHeartrate || null;
     const elevGain = item.elevationGainM ? Math.round(item.elevationGainM) : null;
     const avgWatts = item.avgWatts || null;
-    const propsCount = Array.isArray(item.propsBy) ? item.propsBy.length : 0;
+    const calories = item.calories ? Math.round(item.calories) : null;
+
+    const title = item.title || `${sportLabel} am ${date.toLocaleDateString("de-DE", { day: "numeric", month: "short" })}`;
 
     let statsHtml = "";
-    if (distKm) statsHtml += `<div class="strava-stat"><span class="strava-stat-value">${distKm.toFixed(1)}</span><span class="strava-stat-label">km</span></div>`;
-    if (durationStr) statsHtml += `<div class="strava-stat"><span class="strava-stat-value">${durationStr}</span><span class="strava-stat-label">Zeit</span></div>`;
-    if (paceStr) statsHtml += `<div class="strava-stat"><span class="strava-stat-value">${paceStr}</span><span class="strava-stat-label">Pace</span></div>`;
-    if (speedStr) statsHtml += `<div class="strava-stat"><span class="strava-stat-value">${speedStr}</span><span class="strava-stat-label">km/h</span></div>`;
-    if (avgWatts) statsHtml += `<div class="strava-stat"><span class="strava-stat-value">${avgWatts}</span><span class="strava-stat-label">Watt</span></div>`;
-    if (avgHr) statsHtml += `<div class="strava-stat"><span class="strava-stat-value">${avgHr}</span><span class="strava-stat-label">bpm</span></div>`;
-    if (elevGain) statsHtml += `<div class="strava-stat"><span class="strava-stat-value">${elevGain}</span><span class="strava-stat-label">hm</span></div>`;
+    if (distKm) statsHtml += `<div class="act-stat"><span class="act-stat-val">${distKm.toFixed(1)}</span><span class="act-stat-label">km</span></div>`;
+    if (durationStr) statsHtml += `<div class="act-stat"><span class="act-stat-val">${durationStr}</span><span class="act-stat-label">Zeit</span></div>`;
+    if (paceOrSpeed) statsHtml += `<div class="act-stat"><span class="act-stat-val">${paceOrSpeed}</span><span class="act-stat-label">${escapeHtml(paceLabel)}</span></div>`;
+    if (avgHr) statsHtml += `<div class="act-stat"><span class="act-stat-val">${avgHr}</span><span class="act-stat-label">bpm</span></div>`;
+    if (elevGain) statsHtml += `<div class="act-stat"><span class="act-stat-val">${elevGain}</span><span class="act-stat-label">Hm</span></div>`;
+    if (avgWatts) statsHtml += `<div class="act-stat"><span class="act-stat-val">${avgWatts}</span><span class="act-stat-label">W</span></div>`;
+    if (calories) statsHtml += `<div class="act-stat"><span class="act-stat-val">${calories}</span><span class="act-stat-label">kcal</span></div>`;
 
     return `
-      <article class="strava-activity-card" data-activity-id="${escapeHtml(item.id)}" data-activity-owner="${escapeHtml(account.email)}">
-        <div class="strava-card-header">
-          <div class="strava-card-avatar ${actorAvatar ? "has-image" : ""}" style="${actorAvatar ? `background-image:url('${actorAvatar}')` : ""}">${escapeHtml(initials)}</div>
-          <div class="strava-card-meta">
-            <span class="strava-card-name">${escapeHtml(actorName)}</span>
-            <span class="strava-card-time">${escapeHtml(dateStr)}</span>
+      <article class="activity-card" data-activity-id="${escapeHtml(item.id)}" data-activity-owner="${escapeHtml(account.email)}">
+        <div class="activity-card-head">
+          <div class="activity-card-avatar ${actorAvatar ? "has-image" : ""}" style="${actorAvatar ? `background-image:url('${actorAvatar}')` : ""}">${escapeHtml(initials)}</div>
+          <div class="activity-card-meta">
+            <span class="activity-card-name">${escapeHtml(displayName)}</span>
+            <span class="activity-card-date">${escapeHtml(dateStr)} · ${escapeHtml(timeStr)}</span>
           </div>
-          <span class="strava-card-type ${isRace ? "is-race" : ""}">${sportIcon} ${escapeHtml(isRace ? "Race" : sportLabel)}</span>
+          <span class="activity-card-type">${escapeHtml(sportLabel)}</span>
         </div>
-        <h3 class="strava-card-title">${escapeHtml(item.title || "Aktivitaet")}</h3>
-        ${item.note ? `<p class="strava-card-note">${escapeHtml(item.note)}</p>` : ""}
-        ${statsHtml ? `<div class="strava-card-stats">${statsHtml}</div>` : ""}
-        <div class="strava-card-actions">
-          <button type="button" class="strava-action-props ${propsCount > 0 ? "has-props" : ""}" data-feed-props-owner="${escapeHtml(account.email)}" data-feed-props-activity="${escapeHtml(item.id)}">
-            <svg class="strava-props-icon" viewBox="0 0 20 20" width="14" height="14"><path d="M10 1.5l2.4 5.2 5.6.5-4.2 3.7 1.3 5.6L10 13.8l-5.1 2.7 1.3-5.6L2 7.2l5.6-.5z" fill="currentColor"/></svg>
-            Props${propsCount > 0 ? ` (${propsCount})` : ""}
-          </button>
-        </div>
+        <h3 class="activity-card-title">${escapeHtml(title)}</h3>
+        ${statsHtml ? `<div class="activity-card-stats">${statsHtml}</div>` : ""}
       </article>
     `;
   }).join("");
 
-  // Bind props buttons
-  container.querySelectorAll("[data-feed-props-activity]").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const ownerEmail = btn.getAttribute("data-feed-props-owner");
-      const activityId = btn.getAttribute("data-feed-props-activity");
-      const viewer = getCurrentAccount();
-      if (!viewer || !ownerEmail || !activityId) return;
-      togglePropsOnActivity(ownerEmail, activityId, viewer.email);
-      persistStore();
-      renderActivityFeed();
-    });
-  });
-
   // Bind card click to open detail
-  container.querySelectorAll(".strava-activity-card[data-activity-id]").forEach((card) => {
+  container.querySelectorAll(".activity-card[data-activity-id]").forEach((card) => {
     card.addEventListener("click", (e) => {
-      if (e.target.closest("[data-feed-props-activity]")) return;
       const activityId = card.dataset.activityId;
       const ownerEmail = card.dataset.activityOwner;
       if (activityId) openActivityDetail(ownerEmail, activityId);
     });
   });
+}
+
+function formatRelativeDate(date) {
+  const now = new Date();
+  const diffMs = now - date;
+  const diffDays = Math.floor(diffMs / 86400000);
+  if (diffDays === 0 && date.toDateString() === now.toDateString()) return "Heute";
+  if (diffDays <= 1 && date.toDateString() !== now.toDateString()) return "Gestern";
+  if (diffDays < 7) return `vor ${diffDays} Tagen`;
+  return date.toLocaleDateString("de-DE", { day: "numeric", month: "long", year: "numeric" });
 }
 
 function formatActivityFeedDate(iso) {
@@ -4311,34 +4317,66 @@ function renderHomeFeed(account) {
 function buildActivityCardHtml({ item, actorEmail, actorAvatar, actorPoints = 0, viewerEmail = "", showPropsAction = false }) {
   const actorName = String(actorEmail || "Athlete").split("@")[0];
   const initials = (actorName[0] || "A").toUpperCase();
-  const created = formatRelativeTime(item.createdAt);
-  const isRace = item.kind === "race";
+  const date = new Date(item.createdAt);
+  const dateStr = formatRelativeDate(date);
+  const timeStr = date.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+  const sportLabel = formatActivityFeedSportLabel(item.sportType);
+
+  const distKm = item.distanceKm ? Number(item.distanceKm) : null;
+  const durationSec = item.movingTimeSec || 0;
+  const durationStr = durationSec > 0 ? formatDurationHMS(durationSec) : null;
+
+  let paceOrSpeed = "";
+  let paceLabel = "";
+  if (item.sportType === "run" && distKm && durationSec > 0) {
+    const paceSecKm = item.paceSecPerKm || (durationSec / distKm);
+    const pm = Math.floor(paceSecKm / 60);
+    const ps = Math.round(paceSecKm % 60);
+    paceOrSpeed = `${pm}:${String(ps).padStart(2, "0")}`;
+    paceLabel = "min/km";
+  } else if (item.sportType === "bike" && distKm && durationSec > 0) {
+    paceOrSpeed = ((distKm / durationSec) * 3600).toFixed(1);
+    paceLabel = "km/h";
+  }
+
+  const avgHr = item.avgHeartrate || null;
+  const elevGain = item.elevationGainM ? Math.round(item.elevationGainM) : null;
+  const avgWatts = item.avgWatts || null;
+  const calories = item.calories ? Math.round(item.calories) : null;
+  const title = item.title || `${sportLabel} am ${date.toLocaleDateString("de-DE", { day: "numeric", month: "short" })}`;
+
+  let statsHtml = "";
+  if (distKm) statsHtml += `<div class="act-stat"><span class="act-stat-val">${distKm.toFixed(1)}</span><span class="act-stat-label">km</span></div>`;
+  if (durationStr) statsHtml += `<div class="act-stat"><span class="act-stat-val">${durationStr}</span><span class="act-stat-label">Zeit</span></div>`;
+  if (paceOrSpeed) statsHtml += `<div class="act-stat"><span class="act-stat-val">${paceOrSpeed}</span><span class="act-stat-label">${escapeHtml(paceLabel)}</span></div>`;
+  if (avgHr) statsHtml += `<div class="act-stat"><span class="act-stat-val">${avgHr}</span><span class="act-stat-label">bpm</span></div>`;
+  if (elevGain) statsHtml += `<div class="act-stat"><span class="act-stat-val">${elevGain}</span><span class="act-stat-label">Hm</span></div>`;
+  if (avgWatts) statsHtml += `<div class="act-stat"><span class="act-stat-val">${avgWatts}</span><span class="act-stat-label">W</span></div>`;
+  if (calories) statsHtml += `<div class="act-stat"><span class="act-stat-val">${calories}</span><span class="act-stat-label">kcal</span></div>`;
+
   const propsCount = Array.isArray(item.propsBy) ? item.propsBy.length : 0;
   const hasPropd = viewerEmail && Array.isArray(item.propsBy) && item.propsBy.includes(viewerEmail);
-  const distanceMeta = item.distanceKm ? ` • ${Number(item.distanceKm).toFixed(1)} km` : "";
-  const sportMeta = item.sportType ? ` • ${formatSocialSportLabel(item.sportType)}` : "";
+
+  let propsHtml = "";
+  if (showPropsAction && viewerEmail && viewerEmail !== actorEmail) {
+    propsHtml = `<div class="activity-card-actions"><button type="button" class="activity-card-props-btn ${hasPropd ? "is-active" : ""}" data-props-owner="${escapeHtml(actorEmail)}" data-props-activity="${escapeHtml(item.id)}"><svg viewBox="0 0 20 20" width="14" height="14"><path d="M10 1.5l2.4 5.2 5.6.5-4.2 3.7 1.3 5.6L10 13.8l-5.1 2.7 1.3-5.6L2 7.2l5.6-.5z" fill="currentColor"/></svg> Props${propsCount > 0 ? ` (${propsCount})` : ""}</button></div>`;
+  } else if (propsCount > 0) {
+    propsHtml = `<div class="activity-card-actions"><span class="activity-card-props-count"><svg viewBox="0 0 20 20" width="12" height="12"><path d="M10 1.5l2.4 5.2 5.6.5-4.2 3.7 1.3 5.6L10 13.8l-5.1 2.7 1.3-5.6L2 7.2l5.6-.5z" fill="currentColor"/></svg> ${propsCount}</span></div>`;
+  }
+
   return `
     <article class="activity-card" data-activity-id="${escapeHtml(item.id)}" data-activity-owner="${escapeHtml(actorEmail)}">
       <div class="activity-card-head">
-        <div class="activity-card-user">
-          <div class="activity-avatar ${actorAvatar ? "has-image" : ""}" style="${actorAvatar ? `background-image:url('${actorAvatar}')` : ""}">${escapeHtml(initials)}</div>
-          <div>
-            <strong>${escapeHtml(actorName)}</strong>
-            <small>${escapeHtml(created)}</small>
-          </div>
+        <div class="activity-card-avatar ${actorAvatar ? "has-image" : ""}" style="${actorAvatar ? `background-image:url('${actorAvatar}')` : ""}">${escapeHtml(initials)}</div>
+        <div class="activity-card-meta">
+          <span class="activity-card-name">${escapeHtml(actorName)}</span>
+          <span class="activity-card-date">${escapeHtml(dateStr)} · ${escapeHtml(timeStr)}</span>
         </div>
-        <span class="activity-kind-badge ${isRace ? "race" : ""}">${isRace ? "race." : escapeHtml(t("label_training"))}</span>
+        <span class="activity-card-type">${escapeHtml(sportLabel)}</span>
       </div>
-      <div class="activity-card-body">
-        <div class="activity-card-title">${escapeHtml(item.title)}</div>
-        <div class="activity-points">${actorPoints} ${escapeHtml(t("unit_points"))}${sportMeta}${distanceMeta}</div>
-        ${item.note ? `<div class="activity-card-note">${escapeHtml(item.note)}</div>` : ""}
-        ${item.imageDataUrl ? `<img class="activity-card-image" src="${item.imageDataUrl}" alt="Activity image" loading="lazy" />` : ""}
-        <div class="activity-card-foot">
-          <div class="activity-points">${propsCount} ${escapeHtml(t("label_props").toLowerCase())}</div>
-          ${showPropsAction && viewerEmail && viewerEmail !== actorEmail ? `<button type="button" class="props-btn ${hasPropd ? "is-active" : ""}" data-props-owner="${escapeHtml(actorEmail)}" data-props-activity="${escapeHtml(item.id)}"><span class="props-icon"><svg class="props-svg" viewBox="0 0 20 20" width="16" height="16"><path d="M10 1.5l2.4 5.2 5.6.5-4.2 3.7 1.3 5.6L10 13.8l-5.1 2.7 1.3-5.6L2 7.2l5.6-.5z" fill="currentColor"/></svg></span> ${propsCount || escapeHtml(t("label_props"))}</button>` : `<span class="props-btn" style="pointer-events:none;opacity:0.6"><span class="props-icon"><svg class="props-svg" viewBox="0 0 20 20" width="16" height="16"><path d="M10 1.5l2.4 5.2 5.6.5-4.2 3.7 1.3 5.6L10 13.8l-5.1 2.7 1.3-5.6L2 7.2l5.6-.5z" fill="currentColor"/></svg></span> ${propsCount}</span>`}
-        </div>
-      </div>
+      <h3 class="activity-card-title">${escapeHtml(title)}</h3>
+      ${statsHtml ? `<div class="activity-card-stats">${statsHtml}</div>` : ""}
+      ${propsHtml}
     </article>
   `;
 }
@@ -4741,6 +4779,7 @@ function renderStatisticsView(account) {
   renderPersonalRecords(activities);
   renderYearCompare(activities);
   renderMetricTimeSeries(account);
+  renderHealthMetrics(account);
   renderIntensityDistribution(activities);
   renderPaceDistribution(activities);
   renderPowerDistribution(activities);
@@ -7146,6 +7185,130 @@ function calculateRecoveryScore(account) {
 function getDashboardRingConfig(account) {
   const defaults = { readiness: true, strain: true, recovery: true, hrv: false, sleep: false, steps: false, "fitness-age": false, vo2max: false };
   return account?.settings?.dashboardRings || defaults;
+}
+
+/* ── Health Metrics (Resting HR, HRV, Sleep, Recovery) ── */
+
+function renderHealthMetrics(account) {
+  const profile = account?.profile || {};
+  const acts = account?.activities || [];
+  const history = account?.metricHistory || [];
+
+  // Resting HR
+  const rhrEl = document.getElementById("health-rhr-value");
+  if (rhrEl) {
+    const rhr = profile.restingHr || account?.settings?.inputData?.restingHr;
+    rhrEl.textContent = rhr || "--";
+  }
+
+  // RHR chart
+  renderHealthTrendChart("health-rhr-chart", history, "restingHr", {
+    color: "#E05252",
+    label: "Ruhe-HF",
+    unit: "bpm",
+    fallbackValue: profile.restingHr
+  });
+
+  // HRV
+  const hrvEl = document.getElementById("health-hrv-value");
+  if (hrvEl) {
+    const hrv = history.length > 0 ? history[history.length - 1]?.hrv : null;
+    hrvEl.textContent = hrv || "--";
+  }
+
+  renderHealthTrendChart("health-hrv-chart", history, "hrv", {
+    color: "#8E7CC3",
+    label: "HRV",
+    unit: "ms",
+    fallbackValue: null
+  });
+
+  // Sleep
+  const sleepEl = document.getElementById("health-sleep-value");
+  if (sleepEl) {
+    const lastSleep = history.length > 0 ? history[history.length - 1]?.sleepHours : null;
+    sleepEl.textContent = lastSleep ? lastSleep.toFixed(1) : "--";
+  }
+
+  renderHealthTrendChart("health-sleep-chart", history, "sleepHours", {
+    color: "#5B9BD5",
+    label: "Schlaf",
+    unit: "h",
+    fallbackValue: null
+  });
+
+  // Recovery
+  const recoveryEl = document.getElementById("health-recovery-value");
+  if (recoveryEl) {
+    const recovery = calculateRecoveryScore(account);
+    const score = recovery?.score;
+    recoveryEl.textContent = score != null ? Math.round(score) : "--";
+    if (score != null) {
+      if (score >= 67) recoveryEl.style.color = "#4CAF82";
+      else if (score >= 34) recoveryEl.style.color = "#E5A93D";
+      else recoveryEl.style.color = "#E05252";
+    }
+  }
+
+  renderHealthTrendChart("health-recovery-chart", history, "recovery", {
+    color: "#4CAF82",
+    label: "Recovery",
+    unit: "%",
+    fallbackValue: null
+  });
+
+  // 7-day averages
+  const avg7Rhr = document.getElementById("health-rhr-avg7");
+  if (avg7Rhr && history.length > 0) {
+    const last7 = history.slice(-7).filter(h => h.restingHr).map(h => h.restingHr);
+    avg7Rhr.textContent = last7.length > 0 ? Math.round(last7.reduce((a, b) => a + b, 0) / last7.length) + " bpm" : "--";
+  }
+
+  const avg7Sleep = document.getElementById("health-sleep-avg7");
+  if (avg7Sleep && history.length > 0) {
+    const last7 = history.slice(-7).filter(h => h.sleepHours).map(h => h.sleepHours);
+    avg7Sleep.textContent = last7.length > 0 ? (last7.reduce((a, b) => a + b, 0) / last7.length).toFixed(1) + " h" : "--";
+  }
+}
+
+function renderHealthTrendChart(containerId, history, key, opts) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+
+  const data = history.filter(h => h[key] != null).slice(-30);
+
+  if (data.length < 2) {
+    el.innerHTML = '<div class="health-chart-empty">Daten werden mit der Zeit erfasst</div>';
+    return;
+  }
+
+  const W = 400, H = 80;
+  const vals = data.map(d => d[key]);
+  const minV = Math.min(...vals) * 0.95;
+  const maxV = Math.max(...vals) * 1.05;
+  const range = maxV - minV || 1;
+
+  const points = data.map((d, i) => ({
+    x: (i / (data.length - 1)) * (W - 20) + 10,
+    y: H - 10 - ((d[key] - minV) / range) * (H - 20)
+  }));
+
+  const pathD = points.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
+  const areaD = `M${points[0].x},${H} ${pathD} L${points[points.length - 1].x},${H} Z`;
+
+  el.innerHTML = `
+    <svg viewBox="0 0 ${W} ${H}" class="health-trend-svg">
+      <defs>
+        <linearGradient id="grad-${containerId}" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${opts.color}" stop-opacity="0.2"/>
+          <stop offset="100%" stop-color="${opts.color}" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <path d="${areaD}" fill="url(#grad-${containerId})"/>
+      <path d="${pathD}" fill="none" stroke="${opts.color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="${points[points.length - 1].x}" cy="${points[points.length - 1].y}" r="3" fill="${opts.color}"/>
+    </svg>
+  `;
 }
 
 function saveDashboardRingConfig(config) {

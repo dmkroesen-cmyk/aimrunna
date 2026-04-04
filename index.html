@@ -843,7 +843,7 @@
               </div>
             </section>
 
-            <section class="result-card account-card profile-main-card profile-card-statistics stats-sub-card stats-sub-performance" id="profile-card-pace-trend">
+            <section class="result-card account-card profile-main-card profile-card-statistics stats-sub-card stats-sub-volume stats-sub-active" id="profile-card-pace-trend">
               <div class="result-title-row">
                 <h4 data-i18n="stats_pace_trend">Pace-Entwicklung</h4>
                 <span class="tag subtle" id="stats-pace-trend-tag">min/km</span>
@@ -867,7 +867,7 @@
               </div>
             </section>
 
-            <section class="result-card account-card profile-main-card profile-card-statistics stats-sub-card stats-sub-performance" id="profile-card-records">
+            <section class="result-card account-card profile-main-card profile-card-statistics stats-sub-card stats-sub-volume stats-sub-active" id="profile-card-records">
               <div class="result-title-row">
                 <h4 data-i18n="stats_personal_records">Persönliche Rekorde</h4>
               </div>
@@ -949,6 +949,64 @@
             </section>
 
             <!-- ── HEALTH ── -->
+
+            <!-- ── Resting Heart Rate Trend ── -->
+            <section class="result-card account-card profile-main-card profile-card-statistics stats-sub-card stats-sub-health" id="health-rhr-card">
+              <div class="result-title-row">
+                <h4>Ruheherzfrequenz</h4>
+                <div class="health-metric-current" id="health-rhr-current">
+                  <span class="health-metric-value" id="health-rhr-value">--</span>
+                  <span class="health-metric-unit">bpm</span>
+                </div>
+              </div>
+              <div class="health-chart-container" id="health-rhr-chart"></div>
+              <div class="health-metric-range">
+                <span class="range-label">7-Tage-Durchschnitt</span>
+                <span class="range-value" id="health-rhr-avg7">--</span>
+              </div>
+            </section>
+
+            <!-- ── HRV Status ── -->
+            <section class="result-card account-card profile-main-card profile-card-statistics stats-sub-card stats-sub-health" id="health-hrv-card">
+              <div class="result-title-row">
+                <h4>HRV</h4>
+                <div class="health-metric-current">
+                  <span class="health-metric-value" id="health-hrv-value">--</span>
+                  <span class="health-metric-unit">ms</span>
+                </div>
+              </div>
+              <div class="health-chart-container" id="health-hrv-chart"></div>
+              <p class="health-insight" id="health-hrv-insight">Verbinde ein Ger&auml;t (WHOOP, Garmin) f&uuml;r HRV-Daten.</p>
+            </section>
+
+            <!-- ── Sleep ── -->
+            <section class="result-card account-card profile-main-card profile-card-statistics stats-sub-card stats-sub-health" id="health-sleep-card">
+              <div class="result-title-row">
+                <h4>Schlaf</h4>
+                <div class="health-metric-current">
+                  <span class="health-metric-value" id="health-sleep-value">--</span>
+                  <span class="health-metric-unit">Stunden</span>
+                </div>
+              </div>
+              <div class="health-chart-container" id="health-sleep-chart"></div>
+              <div class="health-metric-range">
+                <span class="range-label">7-Tage-Durchschnitt</span>
+                <span class="range-value" id="health-sleep-avg7">--</span>
+              </div>
+            </section>
+
+            <!-- ── Recovery Trend ── -->
+            <section class="result-card account-card profile-main-card profile-card-statistics stats-sub-card stats-sub-health" id="health-recovery-card">
+              <div class="result-title-row">
+                <h4>Recovery</h4>
+                <div class="health-metric-current">
+                  <span class="health-metric-value" id="health-recovery-value">--</span>
+                  <span class="health-metric-unit">%</span>
+                </div>
+              </div>
+              <div class="health-chart-container" id="health-recovery-chart"></div>
+            </section>
+
             <!-- Metric Time Series (Readiness, Strain, Recovery, etc.) -->
             <section class="result-card account-card profile-main-card profile-card-statistics stats-sub-card stats-sub-health" id="profile-card-metric-timeseries">
               <div class="result-title-row">
@@ -1068,6 +1126,13 @@
                   <span class="settings-nav-copy">
                     <strong>Daten & Export</strong>
                     <small>Export, Import, Löschung</small>
+                  </span>
+                </button>
+                <button type="button" class="profile-settings-nav-btn" data-profile-settings-view="safety">
+                  <span class="settings-nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg></span>
+                  <span class="settings-nav-copy">
+                    <strong>Trust & Safety</strong>
+                    <small>Moderation, Community-Schutz</small>
                   </span>
                 </button>
               </div>
@@ -1644,13 +1709,13 @@
                 </div>
               </div>
               <div id="profile-feed-list" class="activity-feed-list">
-                <div class="empty-copy" data-i18n="empty_profile_feed">Noch keine Aktivitäten gepostet.</div>
+                <div class="empty-copy" data-i18n="empty_profile_feed">Noch keine Aktivitaeten gepostet.</div>
               </div>
             </section>
 
             <section class="profile-main-card profile-card-activities" id="profile-activity-feed-section">
-              <div id="activity-feed-container" class="strava-activity-feed">
-                <div class="empty-copy" data-i18n="empty_activity_feed">Noch keine Aktivitaeten. Verbinde dein Geraet oder importiere Aktivitaeten.</div>
+              <div id="activity-feed-container" class="activity-feed-list">
+                <div class="activity-feed-empty">Noch keine Aktivitaeten. Verbinde dein Geraet oder importiere Aktivitaeten.</div>
               </div>
             </section>
           </div>

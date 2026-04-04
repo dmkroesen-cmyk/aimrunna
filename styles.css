@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
 :root {
   --bg: #050506;
   --text: #f3f4f6;
@@ -21,6 +23,29 @@
   --transition-smooth: cubic-bezier(0.16, 1, 0.3, 1);
   --global-header-mask-height: 60px;
   --global-header-line-top: 60px;
+
+  /* Surface hierarchy - never pure black */
+  --bg-base: #0A0A0A;
+  --bg-card: #111111;
+  --bg-raised: #1A1A1A;
+  --bg-hover: #1E1E1E;
+
+  /* Text hierarchy - never pure white */
+  --text-primary: rgba(255, 255, 255, 0.87);
+  --text-secondary: rgba(255, 255, 255, 0.60);
+  --text-tertiary: rgba(255, 255, 255, 0.38);
+
+  /* Borders */
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.10);
+
+  /* Semantic */
+  --color-green: #4CAF82;
+  --color-amber: #E5A93D;
+  --color-red: #E05252;
+
+  /* Typography */
+  --font-main: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 * {
@@ -36,7 +61,7 @@ html,
 body {
   margin: 0;
   min-height: 100%;
-  background: radial-gradient(circle at 20% -10%, #0f1215 0%, transparent 44%), var(--bg);
+  background: radial-gradient(circle at 20% -10%, #0f1215 0%, transparent 44%), var(--bg-base, #0A0A0A);
   color: var(--text);
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   scroll-behavior: smooth;
@@ -428,30 +453,30 @@ body.is-authenticated .account-dot {
 .profile-view-tab {
   border: 0;
   background: transparent;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--text-tertiary);
   height: 38px;
-  padding: 0 20px;
+  padding: 12px 20px;
   border-radius: 10px;
   cursor: pointer;
-  font-size: 13.5px;
+  font-size: 0.8rem;
   white-space: nowrap;
   flex-shrink: 0;
   font-weight: 500;
-  letter-spacing: 0.005em;
+  letter-spacing: 0.02em;
   transition: color 0.2s ease, background 0.25s var(--transition-smooth), box-shadow 0.25s;
   font-family: inherit;
 }
 
 .profile-view-tab:hover {
-  color: rgba(255, 255, 255, 0.92);
-  background: rgba(255, 255, 255, 0.07);
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .profile-view-tab.is-active {
-  color: #fff;
+  color: var(--text-primary);
   font-weight: 600;
-  background: rgba(255, 255, 255, 0.13);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.07);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: none;
 }
 
 /* ── Footer Language Switcher ── */
@@ -1385,18 +1410,19 @@ select {
 }
 
 .result-card {
-  border-radius: 20px;
-  border: 1px solid rgba(255,255,255,0.05);
-  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.008));
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
-  padding: 20px;
-  transition: opacity 220ms ease, transform 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
+  background: var(--bg-card, #111);
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: none;
+  transition: opacity 220ms ease, transform 220ms ease, border-color 220ms ease;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .result-card:hover {
-    border-color: rgba(255, 255, 255, 0.11);
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24);
+    border-color: var(--border-default, rgba(255, 255, 255, 0.10));
+    box-shadow: none;
+    background: var(--bg-raised, #1A1A1A);
   }
 }
 
@@ -1420,10 +1446,11 @@ select {
 
 .result-title-row h4 {
   margin: 0;
-  font-size: 17px;
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.60));
 }
 
 .tag {
@@ -2460,377 +2487,135 @@ body.profile-view-settings .profile-settings-card.is-active {
   font-weight: 700;
 }
 
+/* ── Activity Feed ── */
 .activity-feed-list {
-  margin-top: 10px;
-  display: grid;
-  gap: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .activity-card {
-  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.06);
-  background:
-    radial-gradient(circle at 100% 0%, rgba(255, 255, 255, 0.04), transparent 58%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.018), rgba(255, 255, 255, 0.008));
-  overflow: hidden;
-  transition: border-color 170ms ease, transform 170ms ease, box-shadow 170ms ease, background-color 170ms ease;
+  border-radius: 12px;
+  padding: 20px 24px;
+  cursor: pointer;
+  transition: background 0.2s ease;
 }
-
-@media (hover: hover) and (pointer: fine) {
-  .activity-card:hover {
-    border-color: rgba(255, 255, 255, 0.13);
-    transform: translateY(-1px);
-    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.22);
-  }
+.activity-card:hover {
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .activity-card-head {
-  padding: 10px 12px 8px;
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  align-items: center;
-}
-
-.activity-card-user {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
-.activity-avatar {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.04);
-  background-size: cover;
-  background-position: center;
-  display: grid;
-  place-items: center;
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.activity-avatar.has-image {
-  color: transparent;
-}
-
-.activity-card-user strong {
-  display: block;
-  font-size: 12px;
-}
-
-.activity-card-user small {
-  display: block;
-  color: var(--muted);
-  font-size: 10px;
-}
-
-.activity-kind-badge {
-  height: 24px;
-  padding: 0 8px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.74);
-  display: inline-flex;
-  align-items: center;
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.activity-kind-badge.race {
-  background: #fff;
-  color: #000;
-  border-color: #fff;
-  text-transform: lowercase;
-  font-weight: 700;
-}
-
-.activity-card-body {
-  padding: 0 12px 12px;
-}
-
-.activity-card-title {
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-}
-
-.activity-card-note {
-  margin-top: 6px;
-  color: #d5dbe4;
-  font-size: 12px;
-  line-height: 1.45;
-  white-space: pre-wrap;
-}
-
-.activity-card-image {
-  margin-top: 10px;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  object-fit: cover;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.activity-card-foot {
-  margin-top: 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-}
-
-.props-btn {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.012);
-  color: rgba(255, 255, 255, 0.72);
-  border-radius: 999px;
-  height: 28px;
-  padding: 0 10px;
-  cursor: pointer;
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.props-btn .props-icon {
-  font-size: 14px;
-  line-height: 1;
-}
-
-.props-svg {
-  display: inline-block;
-  vertical-align: middle;
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s;
-}
-
-.props-btn:hover .props-svg {
-  transform: scale(1.15);
-}
-
-.props-btn.is-active .props-svg {
-  color: #000;
-  filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.5));
-}
-
-.props-btn.is-active {
-  color: #000;
-  background: #fff;
-  border-color: #fff;
-}
-
-/* Activity card clickable */
-.activity-card { cursor: pointer; }
-
-/* ── Strava-style Activity Feed ───────────────────────────────── */
-.strava-activity-feed {
-  display: grid;
-  gap: 16px;
-}
-
-.strava-feed-empty {
-  text-align: center;
-  padding: 48px 24px;
-  color: var(--muted, rgba(255,255,255,0.45));
-}
-
-.strava-feed-empty-icon {
-  margin-bottom: 16px;
-  opacity: 0.35;
-}
-
-.strava-feed-empty p {
-  font-size: 13px;
-  line-height: 1.5;
-  max-width: 320px;
-  margin: 0 auto;
-}
-
-.strava-activity-card {
-  border-radius: 16px;
-  border: 1px solid rgba(255,255,255,0.06);
-  background:
-    radial-gradient(ellipse at 100% 0%, rgba(255,255,255,0.03), transparent 60%),
-    linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.005));
-  padding: 0;
-  overflow: hidden;
-  cursor: pointer;
-  transition: border-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .strava-activity-card:hover {
-    border-color: rgba(255,255,255,0.14);
-    transform: translateY(-1px);
-    box-shadow: 0 12px 28px rgba(0,0,0,0.25);
-  }
-}
-
-.strava-card-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 16px 0;
-}
-
-.strava-card-avatar {
+.activity-card-avatar {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  border: 1px solid rgba(255,255,255,0.1);
-  background: rgba(255,255,255,0.04);
+  background: rgba(255, 255, 255, 0.08);
   background-size: cover;
   background-position: center;
-  display: grid;
-  place-items: center;
-  font-size: 13px;
-  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
   flex-shrink: 0;
-  color: rgba(255,255,255,0.7);
 }
 
-.strava-card-avatar.has-image {
+.activity-card-avatar.has-image {
   color: transparent;
 }
 
-.strava-card-meta {
+.activity-card-meta {
   flex: 1;
-  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
 }
 
-.strava-card-name {
-  font-size: 13px;
+.activity-card-name {
   font-weight: 600;
-  letter-spacing: -0.01em;
-  color: rgba(255,255,255,0.92);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.87);
 }
 
-.strava-card-time {
-  font-size: 11px;
-  color: var(--muted, rgba(255,255,255,0.42));
-  letter-spacing: 0.01em;
+.activity-card-date {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.38);
 }
 
-.strava-card-type {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  height: 26px;
-  padding: 0 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.03);
-  color: rgba(255,255,255,0.6);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
+.activity-card-type {
+  font-size: 0.7rem;
+  font-weight: 600;
   text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.45);
+  padding: 4px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
   flex-shrink: 0;
-  white-space: nowrap;
 }
 
-.strava-card-type.is-race {
-  background: #fff;
-  color: #000;
-  border-color: #fff;
-  font-weight: 700;
-}
-
-.strava-card-type svg {
-  opacity: 0.7;
-}
-
-.strava-card-title {
-  padding: 10px 16px 0;
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: -0.025em;
+.activity-card-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.87);
+  margin: 0 0 16px;
   line-height: 1.3;
-  color: rgba(255,255,255,0.95);
 }
 
-.strava-card-note {
-  padding: 4px 16px 0;
-  font-size: 12px;
-  color: rgba(255,255,255,0.45);
-  line-height: 1.45;
-  white-space: pre-wrap;
-}
-
-.strava-card-stats {
+.activity-card-stats {
   display: flex;
-  gap: 0;
-  padding: 14px 16px 0;
-  border-top: 1px solid rgba(255,255,255,0.04);
-  margin-top: 12px;
+  gap: 24px;
+  flex-wrap: wrap;
 }
 
-.strava-stat {
-  flex: 1;
-  text-align: center;
-  position: relative;
-  padding: 0 4px;
+.act-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.strava-stat:not(:last-child)::after {
-  content: "";
-  position: absolute;
-  right: 0;
-  top: 2px;
-  bottom: 2px;
-  width: 1px;
-  background: rgba(255,255,255,0.06);
-}
-
-.strava-stat-value {
-  display: block;
-  font-size: 18px;
+.act-stat-val {
+  font-size: 1.1rem;
   font-weight: 700;
-  letter-spacing: -0.03em;
-  color: rgba(255,255,255,0.95);
-  line-height: 1.2;
+  color: rgba(255, 255, 255, 0.87);
   font-variant-numeric: tabular-nums;
 }
 
-.strava-stat-label {
-  display: block;
-  font-size: 10px;
-  color: var(--muted, rgba(255,255,255,0.4));
+.act-stat-label {
+  font-size: 0.65rem;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-top: 2px;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.38);
+  font-weight: 500;
 }
 
-.strava-card-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 16px 14px;
+/* Activity card actions (props) */
+.activity-card-actions {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
 }
 
-.strava-action-props {
+.activity-card-props-btn {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   height: 30px;
   padding: 0 12px;
   border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.015);
-  color: rgba(255,255,255,0.55);
-  font-size: 11px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.015);
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.7rem;
   font-weight: 500;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -2838,43 +2623,37 @@ body.profile-view-settings .profile-settings-card.is-active {
   transition: all 170ms ease;
 }
 
-.strava-action-props:hover {
-  border-color: rgba(255,255,255,0.16);
-  color: rgba(255,255,255,0.8);
+.activity-card-props-btn:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+  color: rgba(255, 255, 255, 0.8);
 }
 
-.strava-action-props.has-props {
+.activity-card-props-btn.is-active {
   background: #fff;
   color: #000;
   border-color: #fff;
 }
 
-.strava-props-icon {
-  display: inline-block;
-  vertical-align: middle;
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+.activity-card-props-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.45);
 }
 
-.strava-action-props:hover .strava-props-icon {
-  transform: scale(1.15);
+/* Empty state */
+.activity-feed-empty {
+  text-align: center;
+  padding: 48px 24px;
+  color: rgba(255, 255, 255, 0.38);
+  font-size: 0.9rem;
 }
 
-/* Responsive: stack stats on very narrow screens */
-@media (max-width: 420px) {
-  .strava-card-stats {
-    flex-wrap: wrap;
-    gap: 8px 0;
-  }
-  .strava-stat {
-    min-width: 33.33%;
-    flex: 0 0 33.33%;
-  }
-  .strava-stat:not(:last-child)::after {
-    display: none;
-  }
-  .strava-stat-value {
-    font-size: 16px;
-  }
+@media (max-width: 600px) {
+  .activity-card { padding: 16px; }
+  .activity-card-stats { gap: 16px; }
+  .act-stat-val { font-size: 0.95rem; }
 }
 
 /* Activity Detail Modal */
@@ -5964,7 +5743,7 @@ button:focus-visible {
   font-weight: 800;
   letter-spacing: -0.5px;
   line-height: 1;
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .dashboard-ring-secondary .ring-value {
@@ -5972,7 +5751,7 @@ button:focus-visible {
   font-weight: 700;
   letter-spacing: -0.3px;
   line-height: 1;
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .ring-caption {
@@ -5992,10 +5771,10 @@ button:focus-visible {
 /* Quick stats row below rings */
 .dashboard-quick-stats {
   display: flex;
-  gap: 16px;
   justify-content: center;
-  padding: 12px 0 4px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  gap: 32px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-subtle);
 }
 
 .quick-stat {
@@ -6006,17 +5785,18 @@ button:focus-visible {
 }
 
 .quick-stat-value {
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
 }
 
 .quick-stat-label {
-  font-size: 10px;
+  font-size: 0.6rem;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.6px;
-  color: rgba(255, 255, 255, 0.4);
-  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
 }
 
 /* Config panel */
@@ -6524,13 +6304,13 @@ button:focus-visible {
 .kpi-item {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: 2px;
-  padding: 14px 8px;
-  background: rgba(255, 255, 255, 0.025);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: var(--radius-md);
-  text-align: center;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 16px 20px;
+  text-align: left;
   transition: all 0.25s ease;
 }
 
@@ -6540,25 +6320,29 @@ button:focus-visible {
 }
 
 .kpi-label {
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.65rem;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary, rgba(255, 255, 255, 0.38));
+  margin-bottom: 6px;
+  display: block;
 }
 
 .kpi-value {
-  font-size: 24px;
-  font-weight: 800;
-  color: #fff;
-  letter-spacing: -0.5px;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text-primary, rgba(255, 255, 255, 0.87));
+  font-variant-numeric: tabular-nums;
   line-height: 1.1;
 }
 
 .kpi-unit {
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.3);
-  font-weight: 500;
+  font-size: 0.7rem;
+  color: var(--text-tertiary, rgba(255, 255, 255, 0.38));
+  font-weight: 400;
+  margin-top: 4px;
+  display: block;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -6727,7 +6511,7 @@ button:focus-visible {
 }
 
 .fitness-age-number {
-  font-size: 4rem;
+  font-size: 5rem;
   font-weight: 800;
   line-height: 1;
   background: linear-gradient(135deg, #00e096, #00c9ff);
@@ -6900,9 +6684,442 @@ button:focus-visible {
     gap: 12px;
   }
   .fitness-age-number {
+    font-size: 3.5rem;
+  }
+  .fitness-age-card {
+    padding: 20px;
+  }
+}
+
+/* ── Health Metrics ── */
+.health-metric-current {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+.health-metric-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.87);
+  font-variant-numeric: tabular-nums;
+}
+.health-metric-unit {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.38);
+  font-weight: 500;
+}
+.health-chart-container {
+  margin: 16px 0;
+  min-height: 80px;
+}
+.health-trend-svg {
+  width: 100%;
+  height: 80px;
+  display: block;
+}
+.health-chart-empty {
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.25);
+  font-size: 0.8rem;
+}
+.health-metric-range {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.range-label {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.38);
+}
+.range-value {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+  font-variant-numeric: tabular-nums;
+}
+.health-insight {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.3);
+  font-style: italic;
+  margin-top: 8px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PREMIUM DESIGN SYSTEM OVERRIDES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+h1, h2, h3, h4 {
+  color: var(--text-primary, rgba(255, 255, 255, 0.87));
+}
+
+.kpi-value, .act-stat-val, .health-metric-value, .ring-value, .quick-stat-value, .fitness-age-number {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   COMPREHENSIVE MOBILE RESPONSIVE AUDIT FIXES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Global safety: prevent any element from causing horizontal scroll ── */
+img, video, canvas, svg {
+  max-width: 100%;
+}
+
+/* ── Tablet (768px) ── */
+@media (max-width: 768px) {
+  /* Navigation tabs: ensure scrollable on tablets too */
+  .profile-view-tabs-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .profile-view-tabs-wrap::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Sub-nav scrollable */
+  .stats-sub-nav {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .stats-sub-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Zone tables: horizontal scroll wrapper */
+  .zone-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .zone-table {
+    min-width: 400px;
+  }
+}
+
+/* ── Mobile phones (600px) ── */
+@media (max-width: 600px) {
+  /* --- Navigation Tabs --- */
+  .profile-view-tab {
+    font-size: 0.72rem;
+    padding: 0 12px;
+    min-height: 32px;
+  }
+  .profile-view-tabs {
+    gap: 2px;
+    padding: 2px;
+  }
+
+  /* Sub-nav tighter */
+  .stats-sub-tab {
+    font-size: 0.68rem;
+    padding: 8px 12px;
+  }
+
+  /* --- Dashboard Rings --- */
+  .dashboard-rings-container {
+    transform: scale(0.85);
+    transform-origin: center;
+    padding: 20px 0 12px;
+  }
+  .dashboard-ring-primary .ring-value {
+    font-size: 24px;
+  }
+  .dashboard-ring-secondary .ring-value {
+    font-size: 16px;
+  }
+
+  /* Quick stats */
+  .dashboard-quick-stats {
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+    padding-top: 12px;
+  }
+  .quick-stat-value {
+    font-size: 0.85rem;
+  }
+  .quick-stat-label {
+    font-size: 0.55rem;
+  }
+
+  /* --- KPI Grid: 2 columns on mobile --- */
+  .dashboard-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .kpi-item {
+    padding: 12px 14px;
+  }
+  .kpi-value {
+    font-size: 1.3rem;
+  }
+  .kpi-label {
+    font-size: 0.6rem;
+  }
+
+  /* --- Activity Cards --- */
+  .activity-card {
+    border-radius: 10px;
+    margin-left: 0;
+    margin-right: 0;
+  }
+  .activity-card-stats {
+    gap: 14px;
+  }
+  .activity-card-head {
+    gap: 10px;
+  }
+  /* Touch-friendly tap targets */
+  .activity-card-props-btn {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0 14px;
+  }
+  .activity-card-avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  /* --- Settings Page: horizontal scrollable nav on mobile --- */
+  .profile-settings-nav {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 4px;
+    padding-bottom: 8px;
+  }
+  .profile-settings-nav::-webkit-scrollbar {
+    display: none;
+  }
+  .profile-settings-nav-btn {
+    flex-direction: column;
+    align-items: center;
+    min-width: 72px;
+    max-width: 90px;
+    padding: 10px 8px;
+    font-size: 10px;
+    white-space: nowrap;
+    text-align: center;
+    flex-shrink: 0;
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 4px;
+  }
+  .profile-settings-nav-btn .settings-nav-copy small {
+    display: none;
+  }
+  .profile-settings-nav-btn .settings-nav-copy strong {
+    font-size: 10px;
+  }
+  .profile-settings-nav-btn .settings-nav-icon {
+    font-size: 16px;
+    width: auto;
+  }
+
+  /* Settings panels full width */
+  .profile-settings-card {
+    padding: 14px;
+  }
+  .connector-row {
+    padding: 12px;
+    gap: 10px;
+  }
+  .connector-brand {
+    width: 48px;
+    height: 32px;
+  }
+  .connector-brand-name {
+    font-size: 11px;
+  }
+
+  /* --- Health Metrics --- */
+  .health-metric-value {
+    font-size: 1.4rem;
+  }
+
+  /* --- Zone Tables: scroll wrapper --- */
+  .zone-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .zone-table {
+    min-width: 360px;
+  }
+  .zone-intensity-pct {
+    font-size: 20px;
+  }
+
+  /* --- General Card Spacing --- */
+  .result-card,
+  .account-card {
+    padding: 16px;
+    border-radius: 10px;
+  }
+
+  /* Form inputs: touch-friendly sizing */
+  .field input,
+  .field select,
+  .field textarea {
+    min-height: 44px;
+    font-size: 16px; /* prevents iOS zoom on focus */
+  }
+
+  /* Config options in rings card */
+  .config-ring-options {
+    grid-template-columns: 1fr;
+  }
+
+  /* Fitness age factors full width */
+  .fitness-factor .factor-label {
+    width: auto;
+    min-width: 60px;
+  }
+
+  /* Input data rows in settings */
+  .input-data-row {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .input-data-unit {
+    width: auto;
+  }
+
+  /* Birthdate selects stack on very narrow */
+  .birthdate-selects select {
+    padding: 8px 8px;
+    font-size: 0.8rem;
+  }
+
+  /* Touch-friendly buttons across the board */
+  .ghost,
+  .account-btn,
+  .tuning-toggle-btn,
+  button[type="submit"] {
+    min-height: 44px;
+  }
+
+  /* Content shell padding */
+  .content-shell {
+    padding-inline: 12px;
+  }
+}
+
+/* ── Small phones (375px - iPhone SE) ── */
+@media (max-width: 375px) {
+  /* Tabs even tighter */
+  .profile-view-tab {
+    font-size: 0.68rem;
+    padding: 0 10px;
+    min-height: 30px;
+  }
+
+  /* Dashboard rings scale further */
+  .dashboard-rings-container {
+    transform: scale(0.72);
+  }
+  .dashboard-ring-primary .ring-value {
+    font-size: 22px;
+  }
+  .dashboard-ring-secondary .ring-value {
+    font-size: 15px;
+  }
+
+  /* Quick stats tighter */
+  .dashboard-quick-stats {
+    gap: 12px;
+  }
+  .quick-stat-value {
+    font-size: 0.8rem;
+  }
+
+  /* Fitness age smaller */
+  .fitness-age-number {
     font-size: 3rem;
   }
   .fitness-age-card {
-    padding: var(--space-lg, 24px);
+    padding: 16px;
+  }
+  .fitness-age-delta {
+    font-size: 0.8rem;
+    padding: 4px 10px;
+  }
+
+  /* KPI values smaller */
+  .kpi-value {
+    font-size: 1.1rem;
+  }
+  .kpi-item {
+    padding: 10px 12px;
+  }
+
+  /* Activity cards */
+  .activity-card {
+    padding: 14px;
+  }
+  .activity-card-title {
+    font-size: 0.95rem;
+  }
+  .act-stat-val {
+    font-size: 0.85rem;
+  }
+
+  /* Settings nav icons-only on small phones */
+  .profile-settings-nav-btn {
+    min-width: 56px;
+    padding: 8px 6px;
+  }
+  .profile-settings-nav-btn .settings-nav-copy strong {
+    font-size: 9px;
+  }
+
+  /* Health metrics */
+  .health-metric-value {
+    font-size: 1.2rem;
+  }
+
+  /* Connector rows compact */
+  .connector-row {
+    padding: 10px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .connector-brand {
+    width: 40px;
+    height: 28px;
+  }
+
+  /* Sub-nav even smaller */
+  .stats-sub-tab {
+    font-size: 0.6rem;
+    padding: 6px 10px;
+  }
+
+  /* Zone intensity compact */
+  .zone-intensity-pct {
+    font-size: 18px;
+  }
+  .zone-intensity-label {
+    font-size: 10px;
+  }
+
+  /* Landing panel */
+  .landing-panel {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  /* General minimum font size guard */
+  .act-stat-label,
+  .kpi-label,
+  .quick-stat-label,
+  .ring-caption {
+    font-size: max(0.55rem, 10px);
   }
 }
