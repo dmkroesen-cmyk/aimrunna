@@ -169,6 +169,41 @@ body.profile-view-playbook .profile-settings-rail-card,
 body.profile-view-playbook .profile-settings-card {
   display: none !important;
 }
+body.profile-view-playbook #profile-card-plan-creator,
+body.profile-view-playbook #profile-card-plan-results {
+  grid-column: 1 / -1;
+}
+
+/* Plan form inside Playbook — override landing-panel styles */
+.playbook-form-host {
+  margin-top: 0.6rem;
+}
+.playbook-form-host .intake-form {
+  width: 100%;
+}
+.playbook-form-host .landing-actions {
+  margin-top: 1rem;
+}
+.playbook-results-host {
+  margin: 0;
+}
+.playbook-results-host .result-calendar-card {
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+
+/* Hide plan creator + results by default, only show in playbook */
+#profile-card-plan-creator,
+#profile-card-plan-results {
+  display: none !important;
+}
+body.profile-view-playbook #profile-card-plan-creator {
+  display: block !important;
+}
+body.profile-view-playbook #profile-card-plan-results {
+  display: block !important;
+}
 
 .lang-switch {
   position: fixed;

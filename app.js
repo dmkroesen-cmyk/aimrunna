@@ -1731,6 +1731,25 @@ goalRealismForceBtnEl?.addEventListener("click", () => {
 
 glossarySearchEl?.addEventListener("input", renderGlossary);
 glossaryCategoryEl?.addEventListener("change", renderGlossary);
+
+// Playbook duplicate buttons for guide + iCal
+document.getElementById("playbook-glossary")?.addEventListener("click", () => {
+  renderGlossary();
+  if (glossaryModalEl) glossaryModalEl.hidden = false;
+});
+document.getElementById("playbook-export-ical")?.addEventListener("click", () => {
+  if (!generatedSessions.length) return;
+  const ics = buildIcs(generatedSessions);
+  const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "aimrunna-trainingsplan.ics";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+});
 planMissionBriefEl?.addEventListener("click", (event) => {
   if (!event.target.closest?.("[data-mission-toggle]")) return;
   missionBriefExpanded = !missionBriefExpanded;
@@ -3390,8 +3409,46 @@ function setActiveProfileView(view) {
     setActiveProfileSettingsView(activeProfileSettingsView || "account");
   }
   if (activeProfileView === "overview") maybeFetchStravaStatus(getCurrentAccount());
+
+  // Move plan form + results into/out of Playbook host
+  syncPlaybookFormPlacement();
+
   if (activeAppView === "profile") {
     scrollToSectionStart(sectionAccountEl, { mobileOffset: 148, desktopOffset: 136, duration: 360 });
+  }
+}
+
+function syncPlaybookFormPlacement() {
+  const playbookFormHost = document.getElementById("playbook-form-host");
+  const playbookResultsHost = document.getElementById("playbook-results-host");
+  const planForm = document.getElementById("plan-form");
+  const calendarSection = document.querySelector(".section-calendar");
+  const landingPanel = document.querySelector(".landing-panel");
+  const calendarCard = document.querySelector(".result-calendar-card");
+
+  if (!playbookFormHost || !planForm) return;
+
+  if (activeProfileView === "playbook" && getCurrentAccount()) {
+    // Move form into Playbook
+    if (planForm.parentElement !== playbookFormHost) {
+      playbookFormHost.appendChild(planForm);
+    }
+    // Move calendar results into Playbook
+    if (calendarCard && playbookResultsHost && calendarCard.parentElement !== playbookResultsHost) {
+      playbookResultsHost.appendChild(calendarCard);
+    }
+    // Show plan results section if plan exists
+    const resultsSection = document.getElementById("profile-card-plan-results");
+    if (resultsSection) resultsSection.hidden = !generatedSessions.length;
+  } else {
+    // Move form back to landing panel
+    if (landingPanel && planForm.parentElement !== landingPanel) {
+      landingPanel.appendChild(planForm);
+    }
+    // Move calendar results back
+    if (calendarCard && calendarSection && calendarCard.parentElement !== calendarSection) {
+      calendarSection.appendChild(calendarCard);
+    }
   }
 }
 
@@ -3426,6 +3483,7 @@ function setAppView(view) {
     sectionDataEl?.classList.add("is-visible");
   } else {
     document.body.classList.remove("profile-view-overview", "profile-view-playbook", "profile-view-activities", "profile-view-health", "profile-view-settings");
+    syncPlaybookFormPlacement(); // move form back to landing when leaving profile
   }
   window.scrollTo({ top: 0, behavior: "smooth" });
   renderAccountUi();
