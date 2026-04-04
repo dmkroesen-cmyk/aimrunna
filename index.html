@@ -572,7 +572,7 @@
             </section>
 
             <!-- ── Fitness Age Highlight ── -->
-            <div class="profile-card-overview fitness-age-card" id="fitness-age-highlight">
+            <div class="profile-card-overview fitness-age-card fitness-age-card-clickable" id="fitness-age-highlight" role="button" tabindex="0" data-kpi="fitness-age" aria-label="Fitness-Alter Details">
               <div class="fitness-age-hero">
                 <div class="fitness-age-number-wrap">
                   <span class="fitness-age-label">Dein Fitness-Alter</span>
@@ -610,11 +610,11 @@
                 <span class="tag subtle">KPIs</span>
               </div>
               <div class="dashboard-kpi-grid" id="kpi-running-grid">
-                <div class="kpi-item"><span class="kpi-label">VO2max</span><strong class="kpi-value" id="kpi-run-vo2max">–</strong><small class="kpi-unit">ml/kg/min</small></div>
-                <div class="kpi-item"><span class="kpi-label">Schwelle</span><strong class="kpi-value" id="kpi-run-threshold">–</strong><small class="kpi-unit">min/km</small></div>
-                <div class="kpi-item"><span class="kpi-label">FatMax</span><strong class="kpi-value" id="kpi-run-fatmax">–</strong><small class="kpi-unit">min/km</small></div>
-                <div class="kpi-item"><span class="kpi-label">Ruhe-HF</span><strong class="kpi-value" id="kpi-resting-hr">–</strong><small class="kpi-unit">bpm</small></div>
-                <div class="kpi-item"><span class="kpi-label">Max HF</span><strong class="kpi-value" id="kpi-max-hr">–</strong><small class="kpi-unit">bpm</small></div>
+                <button type="button" class="kpi-item kpi-item-clickable" data-kpi="vo2max"><span class="kpi-label">VO2max</span><strong class="kpi-value" id="kpi-run-vo2max">–</strong><small class="kpi-unit">ml/kg/min</small></button>
+                <button type="button" class="kpi-item kpi-item-clickable" data-kpi="threshold-run"><span class="kpi-label">Schwelle</span><strong class="kpi-value" id="kpi-run-threshold">–</strong><small class="kpi-unit">min/km</small></button>
+                <button type="button" class="kpi-item kpi-item-clickable" data-kpi="fatmax-run"><span class="kpi-label">FatMax</span><strong class="kpi-value" id="kpi-run-fatmax">–</strong><small class="kpi-unit">min/km</small></button>
+                <button type="button" class="kpi-item kpi-item-clickable" data-kpi="resting-hr"><span class="kpi-label">Ruhe-HF</span><strong class="kpi-value" id="kpi-resting-hr">–</strong><small class="kpi-unit">bpm</small></button>
+                <button type="button" class="kpi-item kpi-item-clickable" data-kpi="max-hr"><span class="kpi-label">Max HF</span><strong class="kpi-value" id="kpi-max-hr">–</strong><small class="kpi-unit">bpm</small></button>
               </div>
             </section>
 
@@ -624,10 +624,10 @@
                 <span class="tag subtle">KPIs</span>
               </div>
               <div class="dashboard-kpi-grid" id="kpi-cycling-grid">
-                <div class="kpi-item"><span class="kpi-label">FTP</span><strong class="kpi-value" id="kpi-bike-ftp">–</strong><small class="kpi-unit">Watt</small></div>
-                <div class="kpi-item"><span class="kpi-label">W/kg</span><strong class="kpi-value" id="kpi-bike-wkg">–</strong><small class="kpi-unit">W/kg</small></div>
-                <div class="kpi-item"><span class="kpi-label">FatMax</span><strong class="kpi-value" id="kpi-bike-fatmax">–</strong><small class="kpi-unit">Watt</small></div>
-                <div class="kpi-item"><span class="kpi-label">Schwelle HF</span><strong class="kpi-value" id="kpi-bike-lthr">–</strong><small class="kpi-unit">bpm</small></div>
+                <button type="button" class="kpi-item kpi-item-clickable" data-kpi="ftp"><span class="kpi-label">FTP</span><strong class="kpi-value" id="kpi-bike-ftp">–</strong><small class="kpi-unit">Watt</small></button>
+                <button type="button" class="kpi-item kpi-item-clickable" data-kpi="wkg"><span class="kpi-label">W/kg</span><strong class="kpi-value" id="kpi-bike-wkg">–</strong><small class="kpi-unit">W/kg</small></button>
+                <button type="button" class="kpi-item kpi-item-clickable" data-kpi="fatmax-bike"><span class="kpi-label">FatMax</span><strong class="kpi-value" id="kpi-bike-fatmax">–</strong><small class="kpi-unit">Watt</small></button>
+                <button type="button" class="kpi-item kpi-item-clickable" data-kpi="threshold-bike"><span class="kpi-label">Schwelle HF</span><strong class="kpi-value" id="kpi-bike-lthr">–</strong><small class="kpi-unit">bpm</small></button>
               </div>
             </section>
 
@@ -649,13 +649,6 @@
             <section class="result-card account-card profile-main-card profile-card-overview race-predictions-hero" id="profile-card-predictions" hidden>
               <div class="result-title-row">
                 <h4>Prognosen</h4>
-              </div>
-              <div class="predictions-vitals">
-                <div class="vital-metric vital-fitness-age">
-                  <span>Fitness-Alter</span>
-                  <strong id="profile-fitness-age">-</strong>
-                  <small id="profile-fitness-age-delta"></small>
-                </div>
               </div>
               <div class="predictions-dual-view">
                 <div class="predictions-column predictions-current">
@@ -681,7 +674,7 @@
               <div class="predictions-adaptive-status" id="predictions-adaptive-status" hidden></div>
             </section>
 
-            <section class="result-card account-card profile-main-card profile-card-overview" id="profile-card-identity">
+            <section class="result-card account-card profile-main-card profile-card-settings" id="profile-card-identity">
               <div class="result-title-row">
                 <h4 data-i18n="profile_card_title">Profil</h4>
                 <span class="tag subtle" id="account-status-tag" hidden>Guest</span>
@@ -726,7 +719,7 @@
               </div>
             </section>
 
-            <section class="result-card account-card profile-main-card profile-card-overview profile-card-playbook" id="profile-card-plans">
+            <section class="result-card account-card profile-main-card profile-card-playbook" id="profile-card-plans">
               <div class="result-title-row">
                 <h4 data-i18n="saved_plans">Gespeicherte Pläne</h4>
                 <span class="tag subtle" id="saved-plan-count">0</span>
@@ -1074,7 +1067,7 @@
               </div>
             </section>
 
-            <section class="result-card account-card profile-main-card profile-card-overview profile-card-health" id="profile-card-fitness-analysis">
+            <section class="result-card account-card profile-main-card profile-card-health" id="profile-card-fitness-analysis" hidden>
               <div class="result-title-row">
                 <h4>Fitness Analyse</h4>
                 <span class="tag subtle" id="fitness-analysis-source">–</span>
@@ -2351,6 +2344,42 @@
           </div>
         </form>
       </article>
+    </div>
+
+    <!-- ═══ KPI DRILLDOWN MODAL ═══ -->
+    <div class="kpi-modal-backdrop" id="kpi-modal-backdrop" hidden>
+      <div class="kpi-modal" role="dialog" aria-modal="true" aria-labelledby="kpi-modal-title">
+        <button type="button" class="kpi-modal-close" id="kpi-modal-close" aria-label="Schliessen">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+        <div class="kpi-modal-header">
+          <span class="kpi-modal-eyebrow" id="kpi-modal-eyebrow">METRIC</span>
+          <h3 class="kpi-modal-title" id="kpi-modal-title">Titel</h3>
+          <div class="kpi-modal-value-row">
+            <div class="kpi-modal-value" id="kpi-modal-value">--</div>
+            <div class="kpi-modal-unit" id="kpi-modal-unit"></div>
+          </div>
+          <div class="kpi-modal-rating" id="kpi-modal-rating"></div>
+        </div>
+        <div class="kpi-modal-body">
+          <section class="kpi-modal-section" id="kpi-modal-explanation-sec">
+            <h4>Was bedeutet das?</h4>
+            <p id="kpi-modal-explanation"></p>
+          </section>
+          <section class="kpi-modal-section" id="kpi-modal-why-sec">
+            <h4>Warum ist dein Score so?</h4>
+            <p id="kpi-modal-why"></p>
+          </section>
+          <section class="kpi-modal-section" id="kpi-modal-recos-sec">
+            <h4>Wie verbesserst du dich?</h4>
+            <ul id="kpi-modal-recos"></ul>
+          </section>
+          <section class="kpi-modal-section" id="kpi-modal-source-sec">
+            <h4>Berechnungsgrundlage</h4>
+            <p class="kpi-modal-source" id="kpi-modal-source"></p>
+          </section>
+        </div>
+      </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>

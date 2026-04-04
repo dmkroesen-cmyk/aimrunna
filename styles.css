@@ -224,6 +224,7 @@ body.profile-view-playbook .profile-card-overview:not(.profile-card-playbook),
 body.profile-view-playbook .profile-card-activities,
 body.profile-view-playbook .profile-card-health,
 body.profile-view-playbook .profile-card-statistics,
+body.profile-view-playbook .profile-card-settings:not(.profile-card-playbook),
 body.profile-view-playbook .profile-settings-rail-card,
 body.profile-view-playbook .profile-settings-card {
   display: none !important;
@@ -240,6 +241,7 @@ body.profile-view-statistics .profile-card-overview,
 body.profile-view-statistics .profile-card-playbook,
 body.profile-view-statistics .profile-card-activities,
 body.profile-view-statistics .profile-card-health,
+body.profile-view-statistics .profile-card-settings,
 body.profile-view-statistics .profile-settings-rail-card,
 body.profile-view-statistics .profile-settings-card {
   display: none !important;
@@ -250,6 +252,16 @@ body.profile-view-overview .profile-card-statistics,
 body.profile-view-activities .profile-card-statistics,
 body.profile-view-health .profile-card-statistics,
 body.profile-view-settings .profile-card-statistics {
+  display: none !important;
+}
+
+/* Overview (Dashboard) view — only show overview cards */
+body.profile-view-overview .profile-card-playbook:not(.profile-card-overview),
+body.profile-view-overview .profile-card-settings:not(.profile-card-overview),
+body.profile-view-overview .profile-card-activities:not(.profile-card-overview),
+body.profile-view-overview .profile-card-health:not(.profile-card-overview),
+body.profile-view-overview .profile-settings-rail-card,
+body.profile-view-overview .profile-settings-card {
   display: none !important;
 }
 body.profile-view-playbook #profile-card-plan-creator,
@@ -7186,3 +7198,227 @@ img, video, canvas, svg {
   line-height: 1.5;
   max-width: 320px;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   KPI CLICKABLE + DRILLDOWN MODAL
+   ═══════════════════════════════════════════════════════════════════════════ */
+.kpi-item-clickable {
+  border: 0;
+  background: transparent;
+  text-align: left;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: transform 160ms ease, opacity 160ms ease;
+  position: relative;
+}
+.kpi-item-clickable::after {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0);
+  transition: background 160ms ease;
+  pointer-events: none;
+  z-index: -1;
+}
+.kpi-item-clickable:hover::after {
+  background: rgba(255, 255, 255, 0.03);
+}
+.kpi-item-clickable:active {
+  transform: scale(0.97);
+}
+.kpi-item-clickable:focus-visible {
+  outline: 2px solid rgba(76, 175, 130, 0.5);
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
+.fitness-age-card-clickable {
+  cursor: pointer;
+  transition: border-color 160ms ease, transform 160ms ease;
+}
+.fitness-age-card-clickable:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+.fitness-age-card-clickable:active {
+  transform: scale(0.995);
+}
+.fitness-age-card-clickable:focus-visible {
+  outline: 2px solid rgba(76, 175, 130, 0.5);
+  outline-offset: 4px;
+}
+
+/* Modal backdrop + body */
+.kpi-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+  animation: kpiModalFade 200ms ease;
+}
+.kpi-modal-backdrop[hidden] { display: none !important; }
+@keyframes kpiModalFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes kpiModalSlide { from { transform: translateY(24px); opacity: 0.6; } to { transform: translateY(0); opacity: 1; } }
+
+.kpi-modal {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  max-height: 88vh;
+  background: linear-gradient(180deg, #151619, #0E0F11);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 0;
+  border-radius: 24px 24px 0 0;
+  padding: 28px 24px 32px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  box-shadow: 0 -24px 60px rgba(0, 0, 0, 0.6);
+  animation: kpiModalSlide 260ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (min-width: 768px) {
+  .kpi-modal-backdrop { align-items: center; padding: 24px; }
+  .kpi-modal { border-radius: 20px; border-bottom: 1px solid rgba(255,255,255,0.08); max-height: 86vh; }
+}
+
+.kpi-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 0;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 160ms ease, color 160ms ease;
+}
+.kpi-modal-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.kpi-modal-header {
+  padding-right: 40px;
+  margin-bottom: 24px;
+}
+.kpi-modal-eyebrow {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.44);
+  margin-bottom: 8px;
+}
+.kpi-modal-title {
+  margin: 0 0 16px;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.95);
+  letter-spacing: -0.02em;
+}
+.kpi-modal-value-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.kpi-modal-value {
+  font-size: 2.6rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+.kpi-modal-unit {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 500;
+}
+.kpi-modal-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.kpi-modal-rating.rating-excellent { background: rgba(76, 175, 130, 0.15); color: #4CAF82; }
+.kpi-modal-rating.rating-good { background: rgba(91, 155, 213, 0.15); color: #5B9BD5; }
+.kpi-modal-rating.rating-average { background: rgba(229, 169, 61, 0.15); color: #E5A93D; }
+.kpi-modal-rating.rating-below { background: rgba(224, 82, 82, 0.15); color: #E05252; }
+
+.kpi-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.kpi-modal-section {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 20px;
+}
+.kpi-modal-section:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+.kpi-modal-section h4 {
+  margin: 0 0 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.56);
+}
+.kpi-modal-section p,
+.kpi-modal-section li {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.8);
+}
+.kpi-modal-section ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.kpi-modal-section li {
+  padding-left: 20px;
+  position: relative;
+}
+.kpi-modal-section li::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 10px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(76, 175, 130, 0.6);
+}
+.kpi-modal-source {
+  font-size: 0.78rem !important;
+  color: rgba(255, 255, 255, 0.44) !important;
+  font-style: italic;
+}
+
+[hidden] { display: none !important; }

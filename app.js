@@ -15688,3 +15688,290 @@ function populateInputDataDisplay(account) {
 
 // Initialize birthdate dropdowns on load
 initBirthdateDropdowns();
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   KPI DRILLDOWN MODAL — explains metrics, score reasoning, recommendations
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function getKpiDrilldownContent(kpiType) {
+  const account = getCurrentAccount();
+  const profile = account?.profile || {};
+  const inputData = account?.settings?.inputData || {};
+  const activities = account?.activities || [];
+  const calc = typeof calculateActualPerformanceMetrics === "function"
+    ? calculateActualPerformanceMetrics(account) : {};
+  const age = Number(profile.age)
+    || (profile.birthYear ? (new Date().getFullYear() - Number(profile.birthYear)) : null)
+    || (inputData.birthDate?.year ? (new Date().getFullYear() - Number(inputData.birthDate.year)) : null);
+  const sex = profile.sex || inputData.sex || "male";
+  const weight = Number(profile.weight) || Number(inputData.weight) || null;
+  const restingHr = Number(profile.restingHr) || Number(inputData.restingHr) || calc.restingHr || null;
+  const maxHr = Number(profile.maxHr) || Number(inputData.maxHr) || calc.maxHr || null;
+  const vo2max = calc.vo2max || (typeof estimateVO2max === "function" ? estimateVO2max(profile)?.value : null) || Number(inputData.vo2maxEstimate) || null;
+  const ftp = Number(inputData.bikeFtp) || calc.ftp || null;
+
+  const runsLast30 = activities.filter(a => {
+    const d = new Date(a.createdAt || a.date || a.start_date || 0);
+    const sport = (a.sportType || a.type || "").toLowerCase();
+    return /run|lauf/.test(sport) && (Date.now() - d.getTime()) < 30 * 864e5;
+  });
+
+  const content = {
+    "fitness-age": () => {
+      const chronoAge = age;
+      const fitnessAge = typeof estimateFitnessAge === "function" ? estimateFitnessAge(vo2max, sex, chronoAge) : null;
+      const diff = (chronoAge && fitnessAge) ? chronoAge - fitnessAge : null;
+      let rating, ratingText;
+      if (diff == null) { rating = "average"; ratingText = "Profil fehlt"; }
+      else if (diff >= 8) { rating = "excellent"; ratingText = "Herausragend"; }
+      else if (diff >= 3) { rating = "good"; ratingText = "Stark"; }
+      else if (diff >= -2) { rating = "average"; ratingText = "Durchschnitt"; }
+      else { rating = "below"; ratingText = "Ausbaufähig"; }
+      const why = diff == null
+        ? "Wir brauchen dein Alter und einen VO2max-Wert für diese Berechnung. Trage dein Geburtsjahr in den Einstellungen ein oder logge ein paar Läufe mit Pulsdaten."
+        : `Dein VO2max beträgt ${vo2max?.toFixed?.(1) || "--"} ml/kg/min. Verglichen mit der Norm für ${sex === "female" ? "Frauen" : "Männer"} deines Alters (${chronoAge} J.) entspricht das dem Fitness-Niveau eines ${fitnessAge}-Jährigen — ${diff > 0 ? `${diff} Jahre jünger` : diff < 0 ? `${Math.abs(diff)} Jahre älter` : "exakt Durchschnitt"}.`;
+      return {
+        eyebrow: "KONDITION",
+        title: "Dein Fitness-Alter",
+        value: fitnessAge || "--",
+        unit: "Jahre",
+        rating, ratingText,
+        explanation: "Das Fitness-Alter vergleicht deine aerobe Kapazität (VO2max) mit dem Durchschnittswert deiner Altersgruppe. Ein niedrigerer Wert bedeutet: dein Herz-Kreislauf-System ist fitter als deine Altersgenossen.",
+        why,
+        recos: [
+          "Erhöhe dein VO2max durch 1-2 Intervall-Einheiten pro Woche (4×4 min @ 90% HFmax).",
+          "Halte ein konsistentes Grundlagen-Volumen (4-5 Einheiten in Zone 2).",
+          "Reduziere dein Ruhe-HF — das senkt das biologische Alter des Herzens.",
+          "Regelmäßiges Krafttraining (2×/Woche) hält die metabolische Flexibilität hoch."
+        ],
+        source: "Nes et al. 2013 (NTNU) — age-predicted VO2peak tables; Wisløff WorldFitnessLevel nomogram. Berechnet aus deinem aktuellen VO2max vs. altersnormierte Referenzwerte."
+      };
+    },
+    "vo2max": () => {
+      let rating, ratingText;
+      // Norms (approx) for 30yo male: <35 below, 35-42 avg, 42-50 good, >50 excellent
+      const thresholds = sex === "female"
+        ? { below: 28, avg: 35, good: 42, excellent: 48 }
+        : { below: 35, avg: 42, good: 50, excellent: 56 };
+      if (!vo2max) { rating = "average"; ratingText = "Keine Daten"; }
+      else if (vo2max >= thresholds.excellent) { rating = "excellent"; ratingText = "Elite-Niveau"; }
+      else if (vo2max >= thresholds.good) { rating = "good"; ratingText = "Sehr gut"; }
+      else if (vo2max >= thresholds.avg) { rating = "average"; ratingText = "Durchschnitt"; }
+      else { rating = "below"; ratingText = "Ausbaufähig"; }
+      const why = vo2max
+        ? `Berechnet aus deinen letzten Laufaktivitäten (Pace + Herzfrequenz). Dein Wert von ${vo2max.toFixed(1)} ml/kg/min liegt ${vo2max >= thresholds.good ? "über" : "im Bereich"} dem Durchschnitt für deine Altersgruppe.`
+        : "Wir brauchen Lauf- oder Radaktivitäten mit Herzfrequenzdaten, um deinen VO2max zu schätzen.";
+      return {
+        eyebrow: "AEROBE KAPAZITÄT",
+        title: "VO2max",
+        value: vo2max ? vo2max.toFixed(1) : "--",
+        unit: "ml/kg/min",
+        rating, ratingText,
+        explanation: "VO2max ist die maximale Menge Sauerstoff, die dein Körper pro Minute aufnehmen und verwerten kann. Er gilt als der beste Indikator für aerobe Fitness und Langlebigkeit.",
+        why,
+        recos: [
+          "HIIT 1×/Woche: 4×4 min bei 90-95% HFmax mit 3 min Erholung (Norwegian Protocol).",
+          "Tempo-Läufe (20-30 min @ LT2/Schwelle) 1×/Woche.",
+          "Umfang in Zone 2 (60-70% HFmax) hochschrauben — baut mitochondriale Dichte.",
+          "Geduld: messbare VO2max-Zuwächse brauchen 6-12 Wochen."
+        ],
+        source: "Jack Daniels VDOT-Tabelle + Uth-Sørensen-Overgaard (VO2max ≈ 15 × HFmax/HFruhe). Gold-Standard wäre Spiroergometrie im Labor."
+      };
+    },
+    "threshold-run": () => {
+      const thrPace = calc.thresholdPace || null;
+      const fmt = (sec) => sec ? `${Math.floor(sec/60)}:${String(Math.round(sec%60)).padStart(2,"0")}` : "--";
+      return {
+        eyebrow: "LAUFEN",
+        title: "Lactate Threshold Pace",
+        value: fmt(thrPace),
+        unit: "min/km",
+        rating: thrPace ? "good" : "average",
+        ratingText: thrPace ? "Berechnet" : "Keine Daten",
+        explanation: "Die Schwellen-Pace (LT2) ist das schnellste Tempo, das du ca. 60 Minuten halten kannst, ohne dass Laktat stark ansteigt. Sie ist die beste Prognose-Metrik für 10K-Halbmarathon-Zeiten.",
+        why: thrPace ? `Abgeleitet aus deinem aktuellen VDOT (${(calc.vdot||0).toFixed(1)}) — entspricht ca. 88-92% deiner HFmax.` : "Brauche Laufaktivitäten aus den letzten 90 Tagen mit HR-Daten.",
+        recos: [
+          "Schwellen-Intervalle: 2-3 × 10-15 min in Schwellen-Pace mit 3 min Erholung.",
+          "Tempo-Dauerläufe: 20-40 min konstant auf Schwelle.",
+          "Zone 2 Umfang erhöhen baut die Basis für höhere Schwellen-Leistung.",
+          "Teste alle 8-12 Wochen mit einem 10K-Rennen oder 30-min-Zeitfahren."
+        ],
+        source: "Jack Daniels Running Formula — VDOT-basierte Schwellen-Pace-Tabelle."
+      };
+    },
+    "fatmax-run": () => {
+      const fatmaxHr = maxHr ? Math.round(maxHr * 0.63) : null;
+      return {
+        eyebrow: "STOFFWECHSEL",
+        title: "FatMax Zone",
+        value: fatmaxHr || "--",
+        unit: "bpm (Ø 63% HFmax)",
+        rating: "good",
+        ratingText: "Fat Burning Zone",
+        explanation: "FatMax ist die Herzfrequenz-Zone, in der dein Körper die maximale Menge Fett pro Minute verbrennt (typisch 55-72% VO2max ≈ 60-70% HFmax). Wichtig für Grundlagen-Ausdauer und metabolische Flexibilität.",
+        why: fatmaxHr ? `Berechnet aus deiner HFmax von ${maxHr} bpm. In dieser Zone wird 0.5-0.7 g Fett/min oxidiert.` : "Brauche deine HFmax.",
+        recos: [
+          "Lange Dauerläufe (60-120 min) in FatMax-Zone verbessern Fettoxidation.",
+          "Nüchtern-Training 1-2×/Woche morgens vor Frühstück (nur leichte Einheiten).",
+          "Low-Carb-Phasen in Off-Season können FatMax nach oben verschieben.",
+          "Nicht mit Zone 2 verwechseln: FatMax ist oft leicht unter Z2-Obergrenze."
+        ],
+        source: "Achten & Jeukendrup 2003, Int J Sports Med — FatMax tritt bei 62±3% VO2max auf."
+      };
+    },
+    "resting-hr": () => {
+      let rating, ratingText;
+      if (!restingHr) { rating = "average"; ratingText = "Keine Daten"; }
+      else if (restingHr < 50) { rating = "excellent"; ratingText = "Athlet"; }
+      else if (restingHr < 60) { rating = "good"; ratingText = "Trainiert"; }
+      else if (restingHr < 70) { rating = "average"; ratingText = "Normal"; }
+      else { rating = "below"; ratingText = "Erhöht"; }
+      return {
+        eyebrow: "HERZGESUNDHEIT",
+        title: "Ruhe-Herzfrequenz",
+        value: restingHr || "--",
+        unit: "bpm",
+        rating, ratingText,
+        explanation: "Die Ruhe-Herzfrequenz ist ein starker Indikator für kardiovaskuläre Fitness. Niedrigere Werte zeigen ein stärkeres Herz, das pro Schlag mehr Blut pumpt.",
+        why: restingHr ? `Gemessen ${restingHr} bpm. Typische Athleten-Werte liegen bei 40-55, Durchschnitt 60-70.` : "Trage deinen Ruhe-HF-Wert in den Einstellungen ein oder verbinde ein Wearable.",
+        recos: [
+          "Regelmäßiges Ausdauertraining senkt RHF um 5-15 bpm über Monate.",
+          "Ausreichender Schlaf (7-9h) hält RHF niedrig.",
+          "Stress-Management — chronischer Stress erhöht RHF.",
+          "RHF morgens vor Aufstehen messen (genauester Wert)."
+        ],
+        source: "American Heart Association — Ruhe-HF-Referenzwerte."
+      };
+    },
+    "max-hr": () => {
+      const tanaka = age ? Math.round(208 - 0.7 * age) : null;
+      return {
+        eyebrow: "HERZ",
+        title: "Maximale Herzfrequenz",
+        value: maxHr || "--",
+        unit: "bpm",
+        rating: "good",
+        ratingText: "Gemessen",
+        explanation: "Die HFmax ist die höchste Herzfrequenz, die dein Herz erreichen kann. Sie ist weitgehend genetisch bestimmt und sinkt mit dem Alter um ca. 1 Schlag/Jahr.",
+        why: maxHr ? `${maxHr} bpm wurde aus deinen Aktivitäten oder manuell eingetragen. Formel-Schätzung (Tanaka): ${tanaka || "--"} bpm.` : "Abgeleitet oder manuell eingegeben. Für präzise Werte → Maximaltest.",
+        recos: [
+          "Teste HFmax selbst: 3× 3-min All-Out Intervalle bergauf (nach Warm-up).",
+          "HFmax-Formeln sind ±10-15 bpm ungenau — lieber selbst messen.",
+          "Wert bleibt stabil über die Saison, nur minimale Änderungen durch Alter.",
+          "Zonen sollten von deiner gemessenen HFmax oder HRR abgeleitet werden."
+        ],
+        source: "Tanaka et al. 2001 (208 - 0.7 × Alter) — aktueller Goldstandard der Formeln."
+      };
+    },
+    "ftp": () => {
+      const wkg = (ftp && weight) ? (ftp / weight).toFixed(2) : null;
+      let rating, ratingText;
+      if (!wkg) { rating = "average"; ratingText = "Keine Daten"; }
+      else if (wkg >= 4.0) { rating = "excellent"; ratingText = "Elite"; }
+      else if (wkg >= 3.2) { rating = "good"; ratingText = "Trainiert"; }
+      else if (wkg >= 2.5) { rating = "average"; ratingText = "Durchschnitt"; }
+      else { rating = "below"; ratingText = "Einsteiger"; }
+      return {
+        eyebrow: "RADFAHREN",
+        title: "FTP",
+        value: ftp || "--",
+        unit: `Watt${wkg ? ` (${wkg} W/kg)` : ""}`,
+        rating, ratingText,
+        explanation: "Functional Threshold Power ist die höchste Leistung, die du für ca. 60 Minuten halten kannst. Wichtigster Wert für Trainingssteuerung im Radsport.",
+        why: ftp ? `Aus deinen 20-min-Bestleistungen × 0.95 oder manuell gesetzt. W/kg-Wert: ${wkg} — ${wkg >= 3.2 ? "gut trainiert" : "Ausbaupotential"}.` : "Brauche Rad-Aktivitäten mit Power-Daten oder manueller Eintrag.",
+        recos: [
+          "Sweet-Spot-Training: 2-3× 15-20 min @ 88-94% FTP.",
+          "Schwellen-Intervalle: 2-3× 10-12 min @ 95-100% FTP.",
+          "Langfristig: 8-15% FTP-Zuwachs pro Jahr realistisch.",
+          "Alle 6-8 Wochen FTP-Retest (20-min-Test oder Ramp-Test)."
+        ],
+        source: "Coggan & Allen — Training + Racing with a Power Meter. FTP = 20-min-max × 0.95."
+      };
+    },
+    "wkg": () => {
+      const wkg = (ftp && weight) ? (ftp / weight).toFixed(2) : null;
+      return {
+        eyebrow: "RADFAHREN",
+        title: "Watt pro Kilogramm",
+        value: wkg || "--",
+        unit: "W/kg",
+        rating: wkg >= 4 ? "excellent" : wkg >= 3.2 ? "good" : "average",
+        ratingText: wkg >= 4 ? "Cat 1-2" : wkg >= 3.2 ? "Cat 3-4" : "Hobby",
+        explanation: "W/kg ist der wichtigste Vergleichswert im Radsport — besonders bergauf. FTP geteilt durch Körpergewicht.",
+        why: wkg ? `FTP ${ftp}W / ${weight}kg = ${wkg} W/kg` : "Brauche FTP und Gewicht.",
+        recos: [
+          "Zwei Wege zur Verbesserung: FTP steigern ODER Gewicht optimieren.",
+          "Bei Übergewicht: 5% Gewichtsverlust ohne Leistungsverlust = +5% W/kg.",
+          "Bergtraining + Schwellen-Intervalle steigern W/kg am effektivsten.",
+          "Coggan-Kategorien: 2.0 untrained, 2.5 fair, 3.2 good, 4.0 cat 1-2, 5.0+ pro."
+        ],
+        source: "Coggan Power Profiling Chart."
+      };
+    }
+  };
+
+  const fallback = {
+    eyebrow: "METRIC",
+    title: "Details",
+    value: "--",
+    unit: "",
+    rating: "average",
+    ratingText: "Info",
+    explanation: "Für diese Metrik haben wir noch keine Erklärung.",
+    why: "",
+    recos: [],
+    source: ""
+  };
+
+  return (content[kpiType] || (() => fallback))();
+}
+
+function openKpiDrilldown(kpiType) {
+  const data = getKpiDrilldownContent(kpiType);
+  if (!data) return;
+  const backdrop = document.getElementById("kpi-modal-backdrop");
+  if (!backdrop) return;
+
+  document.getElementById("kpi-modal-eyebrow").textContent = data.eyebrow;
+  document.getElementById("kpi-modal-title").textContent = data.title;
+  document.getElementById("kpi-modal-value").textContent = data.value;
+  document.getElementById("kpi-modal-unit").textContent = data.unit;
+  const ratingEl = document.getElementById("kpi-modal-rating");
+  ratingEl.className = `kpi-modal-rating rating-${data.rating}`;
+  ratingEl.textContent = data.ratingText;
+  document.getElementById("kpi-modal-explanation").textContent = data.explanation;
+  document.getElementById("kpi-modal-why").textContent = data.why;
+  const recosEl = document.getElementById("kpi-modal-recos");
+  recosEl.innerHTML = data.recos.map(r => `<li>${r}</li>`).join("");
+  document.getElementById("kpi-modal-recos-sec").hidden = data.recos.length === 0;
+  document.getElementById("kpi-modal-source").textContent = data.source;
+  document.getElementById("kpi-modal-source-sec").hidden = !data.source;
+
+  backdrop.hidden = false;
+  document.body.style.overflow = "hidden";
+}
+
+function closeKpiDrilldown() {
+  const backdrop = document.getElementById("kpi-modal-backdrop");
+  if (backdrop) backdrop.hidden = true;
+  document.body.style.overflow = "";
+}
+
+// Delegate clicks
+document.addEventListener("click", (e) => {
+  const trigger = e.target.closest("[data-kpi]");
+  if (trigger) {
+    openKpiDrilldown(trigger.dataset.kpi);
+    return;
+  }
+  if (e.target.closest("#kpi-modal-close") || e.target.id === "kpi-modal-backdrop") {
+    closeKpiDrilldown();
+  }
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeKpiDrilldown();
+  if ((e.key === "Enter" || e.key === " ") && e.target.hasAttribute && e.target.hasAttribute("data-kpi") && e.target.getAttribute("role") === "button") {
+    e.preventDefault();
+    openKpiDrilldown(e.target.dataset.kpi);
+  }
+});
