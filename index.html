@@ -41,7 +41,6 @@
       </div>
       <button type="button" class="account-btn is-active" id="account-home-btn" data-i18n="nav_home">Home</button>
       <button type="button" class="account-btn" id="account-profile-btn" data-i18n="nav_profile">Profil</button>
-      <button type="button" class="account-btn" id="account-crew-btn" data-i18n="nav_crew">Community</button>
       <button type="button" class="account-btn" id="account-login-btn" data-i18n="nav_login">Login</button>
       <button type="button" class="account-btn" id="account-register-btn" data-i18n="nav_create">Create</button>
       <button type="button" class="account-btn" id="account-logout-btn" hidden>Logout</button>
@@ -375,11 +374,6 @@
                   <div id="shape-goal-guidance" class="shape-goal-guidance" hidden>Gib Startgewicht, Zielgewicht und Zieldatum an.</div>
                 </div>
 
-                <div class="field" id="constraints-field">
-                  <label for="constraints" data-i18n="label_constraints">Einschränkungen / Präferenzen</label>
-                  <textarea name="constraints" id="constraints-input" rows="2" placeholder="z.B. Long Run nur Samstag, kein Laufen bei Knieproblemen, Bike nur Indoor..."></textarea>
-                </div>
-
                 <div class="landing-actions">
                   <button id="planner-submit-btn" type="submit" class="cta cta-race" data-i18n="btn_generate">race.</button>
                 </div>
@@ -436,6 +430,49 @@
           </div>
         </section>
 
+        <section class="surface section-home-feed stage-reveal" id="home-feed-section" hidden>
+          <div class="surface-head">
+            <div>
+              <p class="micro-label">Feed</p>
+              <h3>Neueste Aktivitäten</h3>
+            </div>
+            <div class="inline-actions">
+              <button type="button" class="ghost icon-only" id="home-quick-add-btn" aria-label="Manuelle Aktivität hinzufügen">+</button>
+            </div>
+          </div>
+
+          <div class="home-feed-layout">
+            <div class="home-feed-main">
+              <div id="home-feed-list" class="activity-feed-list">
+                <div class="empty-copy">Noch keine Aktivitäten. Verbinde Strava oder poste dein erstes Training.</div>
+              </div>
+            </div>
+            <aside class="home-feed-sidebar">
+              <section class="result-card home-sidebar-card">
+                <div class="result-title-row">
+                  <h4>Athleten finden</h4>
+                </div>
+                <form id="home-athlete-search-form" class="friend-form crew-add-form">
+                  <input type="search" name="query" placeholder="Name suchen..." />
+                  <button type="submit" class="ghost">Go</button>
+                </form>
+                <div id="home-athlete-search-results" class="friends-list friends-compact">
+                  <div class="empty-copy">Finde andere Athleten und connecte dich.</div>
+                </div>
+              </section>
+              <section class="result-card home-sidebar-card">
+                <div class="result-title-row">
+                  <h4>Connections</h4>
+                  <span class="tag subtle" id="home-friends-count">0</span>
+                </div>
+                <div id="home-friends-list" class="friends-list friends-compact">
+                  <div class="empty-copy">Noch keine Connections.</div>
+                </div>
+              </section>
+            </aside>
+          </div>
+        </section>
+
         <section class="surface section-account stage-reveal" id="crew-section">
           <div class="surface-head">
             <div>
@@ -445,15 +482,15 @@
             <span class="status-dot">Sync Ready</span>
           </div>
 
-          <div class="account-section-tabs" role="tablist" aria-label="Profil und Community">
+          <div class="account-section-tabs" role="tablist" aria-label="Profil" hidden>
             <button type="button" class="account-section-tab is-active" id="account-tab-profile" data-account-section="profile" data-i18n="nav_profile">Profil</button>
-            <button type="button" class="account-section-tab" id="account-tab-crew" data-account-section="crew" data-i18n="nav_crew">Community</button>
           </div>
 
           <div class="account-pane is-active" id="account-pane-profile">
           <div class="profile-pane-toolbar">
             <div class="profile-view-tabs" role="tablist" aria-label="Profile sections">
               <button type="button" class="profile-view-tab is-active" data-profile-view="overview" data-i18n="profile_tab_overview">Überblick</button>
+              <button type="button" class="profile-view-tab" data-profile-view="playbook" data-i18n="profile_tab_playbook">Playbook</button>
               <button type="button" class="profile-view-tab" data-profile-view="activities" data-i18n="profile_tab_activities">Aktivitäten</button>
               <button type="button" class="profile-view-tab" data-profile-view="health" data-i18n="profile_tab_health">Gesundheit</button>
               <button type="button" class="profile-view-tab" data-profile-view="settings" data-i18n="profile_tab_settings">Einstellungen</button>
@@ -522,7 +559,7 @@
               </div>
             </section>
 
-            <section class="result-card account-card profile-main-card profile-card-overview" id="profile-card-plans">
+            <section class="result-card account-card profile-main-card profile-card-overview profile-card-playbook" id="profile-card-plans">
               <div class="result-title-row">
                 <h4 data-i18n="saved_plans">Gespeicherte Pläne</h4>
                 <span class="tag subtle" id="saved-plan-count">0</span>

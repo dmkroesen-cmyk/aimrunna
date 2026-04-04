@@ -672,6 +672,7 @@ const I18N = {
     nav_create: "Registrieren",
     section_profile_crew: "Profil & Community",
     profile_tab_overview: "Überblick",
+    profile_tab_playbook: "Playbook",
     profile_tab_activities: "Aktivitäten",
     profile_tab_health: "Gesundheit",
     profile_tab_settings: "Einstellungen",
@@ -796,6 +797,7 @@ const I18N = {
     nav_create: "Create",
     section_profile_crew: "Profile & Community",
     profile_tab_overview: "Overview",
+    profile_tab_playbook: "Playbook",
     profile_tab_activities: "Activities",
     profile_tab_health: "Health",
     profile_tab_settings: "Settings",
@@ -920,6 +922,7 @@ const I18N = {
     nav_create: "作成",
     section_profile_crew: "プロフィール & コミュニティ",
     profile_tab_overview: "概要",
+    profile_tab_playbook: "プレイブック",
     profile_tab_activities: "アクティビティ",
     profile_tab_health: "ヘルス",
     profile_tab_settings: "設定",
@@ -1172,10 +1175,7 @@ accountProfileBtn?.addEventListener("click", () => {
   setAppView("profile");
   setActiveAccountSection("profile");
 });
-accountCrewBtn?.addEventListener("click", () => {
-  setAppView("crew");
-  setActiveAccountSection("crew");
-});
+// Community button removed — feed is now on Home when logged in
 accountSectionTabButtons.forEach((btn) =>
   btn.addEventListener("click", () => {
     const section = btn.dataset.accountSection || "profile";
@@ -1250,6 +1250,54 @@ accountSearchFormEl?.addEventListener("submit", (event) => {
   renderAccountSearchResults(query);
 });
 
+// Home feed athlete search
+document.getElementById("home-athlete-search-form")?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const query = String(new FormData(event.target).get("query") || "").trim().toLowerCase();
+  const resultsEl = document.getElementById("home-athlete-search-results");
+  if (!resultsEl) return;
+  const account = getCurrentAccount();
+  if (!account) return;
+  if (!query) {
+    resultsEl.innerHTML = `<div class="empty-copy">Finde andere Athleten und connecte dich.</div>`;
+    return;
+  }
+  const results = (appStore?.accounts || [])
+    .filter((a) => a.email !== account.email)
+    .filter((a) => {
+      const name = a.email.split("@")[0].toLowerCase();
+      const displayName = (a.displayName || "").toLowerCase();
+      return name.includes(query) || displayName.includes(query) || a.email.toLowerCase().includes(query);
+    })
+    .slice(0, 12);
+  if (!results.length) {
+    resultsEl.innerHTML = `<div class="empty-copy">Keine Athleten gefunden.</div>`;
+    return;
+  }
+  resultsEl.innerHTML = results.map((a) => {
+    const isConnected = Boolean(account.friends?.includes(a.email));
+    const name = a.email.split("@")[0];
+    return `<div class="account-search-item"><div class="account-search-row"><div><strong>${escapeHtml(name)}</strong><small>${escapeHtml(a.email)}</small></div><div class="account-search-actions"><button type="button" class="ghost" data-home-connect-email="${escapeHtml(a.email)}" ${isConnected ? "disabled" : ""}>${isConnected ? "Connected" : "Connecten"}</button></div></div></div>`;
+  }).join("");
+  resultsEl.querySelectorAll("[data-home-connect-email]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const email = btn.getAttribute("data-home-connect-email");
+      const result = addFriendByEmail(account, email);
+      if (result.ok) persistStore();
+      renderAccountUi();
+    });
+  });
+});
+
+// Home feed quick-add button
+document.getElementById("home-quick-add-btn")?.addEventListener("click", () => {
+  if (!getCurrentAccount()) {
+    openAccountModal("login");
+    return;
+  }
+  openActivityComposeModal();
+});
+
 accountTabButtons.forEach((btn) =>
   btn.addEventListener("click", () => openAccountModal(btn.dataset.authMode || "login"))
 );
@@ -1266,6 +1314,7 @@ accountFormEl?.addEventListener("submit", async (event) => {
     const result = await (authMode === "register" ? registerAccount(email, password) : loginAccount(email, password));
     setText(accountFormStatusEl, result.message);
     if (result.ok) {
+      setAppView("home"); // go to Home feed after login
       renderAccountUi();
       syncConnectorButtons();
       updateConnectionStateCopy();
@@ -1699,6 +1748,11 @@ planOverviewLegendEl?.addEventListener("click", (event) => {
 
 exportIcalBtn.addEventListener("click", () => {
   if (!generatedSessions.length) return;
+  if (!getCurrentAccount()) {
+    openAccountModal("register");
+    setText(accountFormStatusEl, "Erstelle einen Account, um deinen Plan herunterzuladen.");
+    return;
+  }
   const ics = buildIcs(generatedSessions);
   const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
   const url = URL.createObjectURL(blob);
@@ -3122,6 +3176,7 @@ function renderAccountUi() {
   renderProfileFeed(account);
   renderCrewFeed(account);
   renderCrewRanking(account);
+  renderHomeFeed(account);
   renderFitnessAnalysis(account);
   // Show predictions from activity data if no plan is loaded
   if (!latestProfile && account?.activities?.length) {
@@ -3327,8 +3382,8 @@ function setActiveAccountSection(section) {
 }
 
 function setActiveProfileView(view) {
-  activeProfileView = ["overview", "activities", "health", "settings"].includes(view) ? view : "overview";
-  document.body.classList.remove("profile-view-overview", "profile-view-activities", "profile-view-health", "profile-view-settings");
+  activeProfileView = ["overview", "playbook", "activities", "health", "settings"].includes(view) ? view : "overview";
+  document.body.classList.remove("profile-view-overview", "profile-view-playbook", "profile-view-activities", "profile-view-health", "profile-view-settings");
   document.body.classList.add(`profile-view-${activeProfileView}`);
   profileViewTabButtons.forEach((btn) => btn.classList.toggle("is-active", btn.dataset.profileView === activeProfileView));
   if (activeProfileView === "settings") {
@@ -3351,27 +3406,28 @@ function setActiveProfileSettingsView(view) {
 }
 
 function setAppView(view) {
-  activeAppView = ["home", "profile", "crew"].includes(view) ? view : "home";
+  activeAppView = ["home", "profile"].includes(view) ? view : "home";
   document.body.classList.remove("app-view-home", "app-view-profile", "app-view-crew");
   document.body.classList.add(`app-view-${activeAppView}`);
 
+  const isAuth = Boolean(getCurrentAccount());
+  // When logged in and on Home, show feed instead of landing page
+  document.body.classList.toggle("home-feed-mode", isAuth && activeAppView === "home");
+
   accountHomeBtn?.classList.toggle("is-active", activeAppView === "home");
   accountProfileBtn?.classList.toggle("is-active", activeAppView === "profile");
-  accountCrewBtn?.classList.toggle("is-active", activeAppView === "crew");
+
+  const homeFeedSection = document.getElementById("home-feed-section");
+  if (homeFeedSection) homeFeedSection.hidden = !(isAuth && activeAppView === "home");
 
   if (activeAppView === "profile") {
     setActiveProfileView(activeProfileView);
     sectionAccountEl?.classList.add("is-visible");
     sectionDataEl?.classList.add("is-visible");
   } else {
-    document.body.classList.remove("profile-view-overview", "profile-view-activities", "profile-view-health", "profile-view-settings");
+    document.body.classList.remove("profile-view-overview", "profile-view-playbook", "profile-view-activities", "profile-view-health", "profile-view-settings");
   }
-  if (activeAppView === "crew") {
-    sectionAccountEl?.classList.add("is-visible");
-    scrollToSectionStart(sectionAccountEl, { mobileOffset: 150, desktopOffset: 114, duration: 520 });
-  } else {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
+  window.scrollTo({ top: 0, behavior: "smooth" });
   renderAccountUi();
 }
 
@@ -3699,6 +3755,62 @@ function renderCrewRanking(account) {
       </div>`
     )
     .join("");
+}
+
+function renderHomeFeed(account) {
+  const homeFeedListEl = document.getElementById("home-feed-list");
+  const homeFriendsListEl = document.getElementById("home-friends-list");
+  const homeFriendsCountEl = document.getElementById("home-friends-count");
+  if (!homeFeedListEl) return;
+  if (!account) {
+    homeFeedListEl.innerHTML = `<div class="empty-copy">Logge dich ein, um deinen Feed zu sehen.</div>`;
+    return;
+  }
+  // Combine own + friend activities
+  const friendEmails = account.friends || [];
+  const ownItems = (account.activities || []).map((item) => ({ item, actorEmail: account.email, actorAvatar: account.profileImage || null }));
+  const friendItems = (appStore.accounts || [])
+    .filter((a) => friendEmails.includes(a.email))
+    .flatMap((a) => (a.activities || []).map((item) => ({ item, actorEmail: a.email, actorAvatar: a.profileImage || null })));
+  const allItems = [...ownItems, ...friendItems]
+    .sort((a, b) => new Date(b.item.createdAt) - new Date(a.item.createdAt))
+    .slice(0, 60);
+
+  if (!allItems.length) {
+    homeFeedListEl.innerHTML = `<div class="empty-copy">Noch keine Aktivitäten. Verbinde Strava oder poste dein erstes Training.</div>`;
+  } else {
+    homeFeedListEl.innerHTML = allItems.map((entry) => buildActivityCardHtml({
+      ...entry,
+      actorPoints: activityPoints(entry.item),
+      viewerEmail: account.email,
+      showPropsAction: entry.actorEmail !== account.email,
+    })).join("");
+    // Props button handlers
+    homeFeedListEl.querySelectorAll(".props-btn[data-props-owner]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const ownerEmail = btn.getAttribute("data-props-owner");
+        const activityId = btn.getAttribute("data-props-activity");
+        const viewer = getCurrentAccount();
+        if (!viewer) return;
+        togglePropsOnActivity(ownerEmail, activityId, viewer.email);
+        persistStore();
+        renderAccountUi();
+      });
+    });
+  }
+
+  // Render friends sidebar
+  if (homeFriendsListEl) {
+    if (!friendEmails.length) {
+      homeFriendsListEl.innerHTML = `<div class="empty-copy">Noch keine Connections.</div>`;
+    } else {
+      homeFriendsListEl.innerHTML = friendEmails.map((email) => {
+        const name = email.split("@")[0];
+        return `<div class="friend-item"><strong>${escapeHtml(name)}</strong><small>${escapeHtml(email)}</small></div>`;
+      }).join("");
+    }
+    if (homeFriendsCountEl) homeFriendsCountEl.textContent = String(friendEmails.length);
+  }
 }
 
 function buildActivityCardHtml({ item, actorEmail, actorAvatar, actorPoints = 0, viewerEmail = "", showPropsAction = false }) {
@@ -4043,6 +4155,12 @@ function syncProfileComposerVisibility() {
   }
 }
 
+function openActivityComposeModal() {
+  profileComposerExpanded = true;
+  if (activityComposeModalEl) activityComposeModalEl.hidden = false;
+  syncProfileComposerVisibility();
+}
+
 function closeActivityComposeModal() {
   profileComposerExpanded = false;
   syncProfileComposerVisibility();
@@ -4132,7 +4250,16 @@ function initDynamicGoalOptions() {
     const suggested = defaultGoalTimeFor(disciplineSelect.value, quickGoalDistanceSelect.value);
     if (suggested && quickGoalTimeInput) quickGoalTimeInput.value = suggested;
   });
-  planModeSelect?.addEventListener("change", syncPlanModeUI);
+  planModeSelect?.addEventListener("change", () => {
+    if (planModeSelect.value === "pro" && !getCurrentAccount()) {
+      planModeSelect.value = "quick";
+      syncPlanModeUI();
+      openAccountModal("register");
+      setText(accountFormStatusEl, "Erstelle einen Account, um den Pro-Modus zu nutzen.");
+      return;
+    }
+    syncPlanModeUI();
+  });
 
   sexSelect?.addEventListener("change", syncCycleBasedTrainingAvailability);
   cycleTrainingCheckbox?.addEventListener("change", () => {
@@ -4180,8 +4307,6 @@ function syncPlanModeUI() {
   }
   if (tuningToggleRowEl) tuningToggleRowEl.hidden = isQuick;
   if (tuningPanelHostEl && isQuick) tuningPanelHostEl.hidden = true;
-  const constraintsFieldEl = document.getElementById("constraints-field");
-  if (constraintsFieldEl) constraintsFieldEl.hidden = isQuick;
 
   if (quickGoalDistanceSelect) quickGoalDistanceSelect.disabled = !isQuick;
   if (quickGoalTimeInput) quickGoalTimeInput.disabled = !isQuick;

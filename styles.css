@@ -102,6 +102,74 @@ body.app-view-crew .content-shell {
   margin-top: 68px;
 }
 
+/* Logged-in Home Feed mode — hide landing page, show feed */
+body.home-feed-mode .scroll-stage,
+body.home-feed-mode .section-calendar,
+body.home-feed-mode .section-data {
+  display: none;
+}
+body.home-feed-mode .section-home-feed {
+  display: block;
+  margin-top: 80px;
+}
+body.home-feed-mode .content-shell {
+  margin-top: 68px;
+}
+
+/* Home Feed Layout */
+.section-home-feed {
+  padding: 0 var(--gutter, 1.2rem);
+}
+.home-feed-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 2rem;
+  margin-top: 1.2rem;
+}
+.home-feed-main {
+  min-width: 0;
+}
+.home-feed-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+.home-sidebar-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 1.2rem;
+}
+.home-sidebar-card .result-title-row h4 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.home-sidebar-card .friend-form {
+  margin-top: 0.8rem;
+}
+
+@media (max-width: 800px) {
+  .home-feed-layout {
+    grid-template-columns: 1fr;
+  }
+  .home-feed-sidebar {
+    order: -1;
+  }
+}
+
+/* Playbook profile view */
+body.profile-view-playbook .profile-card-playbook {
+  display: block !important;
+}
+body.profile-view-playbook .profile-card-overview:not(.profile-card-playbook),
+body.profile-view-playbook .profile-card-activities,
+body.profile-view-playbook .profile-card-health,
+body.profile-view-playbook .profile-settings-rail-card,
+body.profile-view-playbook .profile-settings-card {
+  display: none !important;
+}
+
 .lang-switch {
   position: fixed;
   top: 14px;
