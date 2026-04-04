@@ -1414,7 +1414,7 @@ document.getElementById("home-athlete-search-form")?.addEventListener("submit", 
   const results = (appStore?.accounts || [])
     .filter((a) => a.email !== account.email)
     .filter((a) => {
-      const name = a.email.split("@")[0].toLowerCase();
+      const name = (a.email ? a.email.split("@")[0] : a.displayName || "Athlete").toLowerCase();
       const displayName = (a.displayName || "").toLowerCase();
       return name.includes(query) || displayName.includes(query) || a.email.toLowerCase().includes(query);
     })
@@ -1425,7 +1425,7 @@ document.getElementById("home-athlete-search-form")?.addEventListener("submit", 
   }
   resultsEl.innerHTML = results.map((a) => {
     const isConnected = Boolean(account.friends?.includes(a.email));
-    const name = a.email.split("@")[0];
+    const name = (a.email ? a.email.split("@")[0] : a.displayName || "Athlete");
     return `<div class="account-search-item"><div class="account-search-row"><div><strong>${escapeHtml(name)}</strong><small>${escapeHtml(a.email)}</small></div><div class="account-search-actions"><button type="button" class="ghost" data-home-connect-email="${escapeHtml(a.email)}" ${isConnected ? "disabled" : ""}>${isConnected ? "Connected" : "Connecten"}</button></div></div></div>`;
   }).join("");
   resultsEl.querySelectorAll("[data-home-connect-email]").forEach((btn) => {
@@ -3239,7 +3239,7 @@ function exportCurrentAccountData() {
       null,
       2
     ),
-    filename: `aimathlete-account-export-${slugify(account.email.split("@")[0] || "user")}.json`,
+    filename: `aimathlete-account-export-${slugify((account.email ? account.email.split("@")[0] : account.displayName || "user") || "user")}.json`,
     mimeType: "application/json;charset=utf-8",
   });
   return { ok: true, message: "Export erstellt." };
@@ -3432,7 +3432,7 @@ function renderAccountUi() {
   document.body.classList.toggle("is-authenticated", isAuth);
   if (accountPillEl) accountPillEl.hidden = !isAuth;
 
-  if (accountLabelEl) accountLabelEl.textContent = isAuth ? account.email.split("@")[0] : t("account_guest");
+  if (accountLabelEl) accountLabelEl.textContent = isAuth ? (account.email ? (account.email ? account.email.split("@")[0] : account.displayName || "user") : account.displayName || "Athlete") : t("account_guest");
   if (accountStatusTagEl) accountStatusTagEl.textContent = isAuth ? t("account_signed_in") : t("account_guest");
   if (accountStatusCopyEl) {
     accountStatusCopyEl.textContent = isAuth
@@ -3655,7 +3655,7 @@ function renderAccountSearchResults(query = "") {
 
   const results = all
     .filter((a) => a.email !== ownEmail)
-    .filter((a) => a.email.toLowerCase().includes(q) || a.email.split("@")[0].toLowerCase().includes(q))
+    .filter((a) => a.email.toLowerCase().includes(q) || (a.email ? a.email.split("@")[0] : a.displayName || "Athlete").toLowerCase().includes(q))
     .slice(0, 12);
 
   if (crewResultCountEl) crewResultCountEl.textContent = String(results.length);
@@ -3672,7 +3672,7 @@ function renderAccountSearchResults(query = "") {
       <div class="account-search-item">
         <div class="account-search-row">
           <div>
-            <strong>${escapeHtml(a.email.split("@")[0])}</strong>
+            <strong>${escapeHtml((a.email ? a.email.split("@")[0] : a.displayName || "Athlete"))}</strong>
             <small>${escapeHtml(a.email)} • ${Array.isArray(a.plans) ? a.plans.length : 0} ${escapeHtml(t("label_plans"))}</small>
           </div>
           <div class="account-search-actions">
@@ -3923,7 +3923,7 @@ function renderProfilePredictions(profile, plan) {
 
   // Adaptive status — user-friendly German labels
   const adaptStatusEl = document.getElementById("predictions-adaptive-status");
-  if (adaptStatusEl && plan.meta?.adaptiveSignals) {
+  if (adaptStatusEl && plan?.meta?.adaptiveSignals) {
     const signals = plan.meta.adaptiveSignals;
     const parts = [];
     const compMap = { excellent: "Sehr gut umgesetzt", good: "Gut umgesetzt", partial: "Teilweise umgesetzt", low: "Wenig umgesetzt" };
@@ -4059,7 +4059,7 @@ function renderActivityFeed() {
   const container = document.getElementById("activity-feed-container");
   if (!container) return;
   const account = getCurrentAccount();
-  const activities = (account?.activities || []).slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const activities = (account?.activities || []).slice().sort((a, b) => new Date(b.createdAt || b.date || b.start_date || 0) - new Date(a.createdAt || a.date || a.start_date || 0));
 
   if (!activities.length) {
     container.innerHTML = '<div class="activity-feed-empty">Noch keine Aktivitaeten. Verbinde dein Geraet oder importiere Aktivitaeten.</div>';
@@ -4071,46 +4071,49 @@ function renderActivityFeed() {
   const actorAvatar = account.profileImage || null;
 
   container.innerHTML = activities.map((item) => {
-    const date = new Date(item.createdAt);
-    const dateStr = formatRelativeDate(date);
-    const timeStr = date.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
-    const sportLabel = formatActivityFeedSportLabel(item.sportType);
+    const dateRaw = item.createdAt || item.date || item.start_date || item.start_date_local;
+    const date = dateRaw ? new Date(dateRaw) : new Date();
+    const dateValid = !isNaN(date.getTime());
+    const dateStr = dateValid ? formatRelativeDate(date) : "";
+    const timeStr = dateValid ? date.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) : "";
+    const sportType = item.sportType || normalizeSportType(item.type, item.sport);
+    const sportLabel = formatActivityFeedSportLabel(sportType);
 
-    const distKm = item.distanceKm ? Number(item.distanceKm) : null;
-    const durationSec = item.movingTimeSec || 0;
+    const distKm = item.distanceKm ? Number(item.distanceKm) : (item.distance ? Number(item.distance) / 1000 : null);
+    const durationSec = item.movingTimeSec || item.moving_time || 0;
     const durationStr = durationSec > 0 ? formatDurationHMS(durationSec) : null;
 
     let paceOrSpeed = "";
     let paceLabel = "";
-    if (item.sportType === "run" && distKm && durationSec > 0) {
+    if (sportType === "run" && distKm && durationSec > 0) {
       const paceSecKm = item.paceSecPerKm || (durationSec / distKm);
       const pm = Math.floor(paceSecKm / 60);
       const ps = Math.round(paceSecKm % 60);
       paceOrSpeed = `${pm}:${String(ps).padStart(2, "0")}`;
       paceLabel = "min/km";
-    } else if (item.sportType === "bike" && distKm && durationSec > 0) {
+    } else if (sportType === "bike" && distKm && durationSec > 0) {
       paceOrSpeed = ((distKm / durationSec) * 3600).toFixed(1);
       paceLabel = "km/h";
     }
 
-    const avgHr = item.avgHeartrate || null;
-    const elevGain = item.elevationGainM ? Math.round(item.elevationGainM) : null;
-    const avgWatts = item.avgWatts || null;
+    const avgHr = item.avgHeartrate || item.average_heartrate || null;
+    const elevGain = (item.elevationGainM || item.total_elevation_gain) ? Math.round(item.elevationGainM || item.total_elevation_gain) : null;
+    const avgWatts = item.avgWatts || item.average_watts || null;
     const calories = item.calories ? Math.round(item.calories) : null;
 
-    const title = item.title || `${sportLabel} am ${date.toLocaleDateString("de-DE", { day: "numeric", month: "short" })}`;
+    const title = item.title || item.name || `${sportLabel} am ${dateValid ? date.toLocaleDateString("de-DE", { day: "numeric", month: "short" }) : "?"}`;
 
     let statsHtml = "";
     if (distKm) statsHtml += `<div class="act-stat"><span class="act-stat-val">${distKm.toFixed(1)}</span><span class="act-stat-label">km</span></div>`;
     if (durationStr) statsHtml += `<div class="act-stat"><span class="act-stat-val">${durationStr}</span><span class="act-stat-label">Zeit</span></div>`;
     if (paceOrSpeed) statsHtml += `<div class="act-stat"><span class="act-stat-val">${paceOrSpeed}</span><span class="act-stat-label">${escapeHtml(paceLabel)}</span></div>`;
-    if (avgHr) statsHtml += `<div class="act-stat"><span class="act-stat-val">${avgHr}</span><span class="act-stat-label">bpm</span></div>`;
-    if (elevGain) statsHtml += `<div class="act-stat"><span class="act-stat-val">${elevGain}</span><span class="act-stat-label">Hm</span></div>`;
-    if (avgWatts) statsHtml += `<div class="act-stat"><span class="act-stat-val">${avgWatts}</span><span class="act-stat-label">W</span></div>`;
-    if (calories) statsHtml += `<div class="act-stat"><span class="act-stat-val">${calories}</span><span class="act-stat-label">kcal</span></div>`;
+    if (avgHr) statsHtml += `<div class="act-stat"><span class="act-stat-val">${Math.round(avgHr)}</span><span class="act-stat-label">bpm</span></div>`;
+    if (elevGain) statsHtml += `<div class="act-stat"><span class="act-stat-val">${Math.round(elevGain)}</span><span class="act-stat-label">Hm</span></div>`;
+    if (avgWatts) statsHtml += `<div class="act-stat"><span class="act-stat-val">${Math.round(avgWatts)}</span><span class="act-stat-label">W</span></div>`;
+    if (calories) statsHtml += `<div class="act-stat"><span class="act-stat-val">${Math.round(calories)}</span><span class="act-stat-label">kcal</span></div>`;
 
     return `
-      <article class="activity-card" data-activity-id="${escapeHtml(item.id)}" data-activity-owner="${escapeHtml(account.email)}">
+      <article class="activity-card" data-activity-id="${escapeHtml(item.id)}" data-activity-owner="${escapeHtml(account?.email || '')}">
         <div class="activity-card-head">
           <div class="activity-card-avatar ${actorAvatar ? "has-image" : ""}" style="${actorAvatar ? `background-image:url('${actorAvatar}')` : ""}">${escapeHtml(initials)}</div>
           <div class="activity-card-meta">
@@ -4169,6 +4172,15 @@ function formatDurationHMS(totalSec) {
   const s = Math.round(totalSec % 60);
   if (h > 0) return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
   return `${m}:${String(s).padStart(2, "0")}`;
+}
+
+function normalizeSportType(type, sport) {
+  const raw = String(type || sport || "").toLowerCase();
+  if (raw.includes("run") || raw === "laufen") return "run";
+  if (raw.includes("ride") || raw.includes("bike") || raw.includes("cycling") || raw === "radfahren") return "bike";
+  if (raw.includes("swim") || raw === "schwimmen") return "swim";
+  if (raw.includes("hyrox")) return "hyrox";
+  return "other";
 }
 
 function formatActivityFeedSportLabel(sportType) {
@@ -4251,7 +4263,7 @@ function renderCrewRanking(account) {
     .map(
       ({ account: rowAcc, stats }, index) => `
       <div class="friend-item">
-        <strong>#${index + 1} ${escapeHtml(rowAcc.email.split("@")[0])}</strong>
+        <strong>#${index + 1} ${escapeHtml(rowAcc.email ? rowAcc.email.split("@")[0] : rowAcc.displayName || "Athlete")}</strong>
         <small>${stats.points} ${escapeHtml(t("unit_points"))} • ${stats.runKm.toFixed(0)}k RUN • ${stats.bikeKm.toFixed(0)}k BIKE • ${stats.races} ${escapeHtml(t("unit_races"))}</small>
       </div>`
     )
@@ -4317,42 +4329,45 @@ function renderHomeFeed(account) {
 function buildActivityCardHtml({ item, actorEmail, actorAvatar, actorPoints = 0, viewerEmail = "", showPropsAction = false }) {
   const actorName = String(actorEmail || "Athlete").split("@")[0];
   const initials = (actorName[0] || "A").toUpperCase();
-  const date = new Date(item.createdAt);
-  const dateStr = formatRelativeDate(date);
-  const timeStr = date.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
-  const sportLabel = formatActivityFeedSportLabel(item.sportType);
+  const dateRaw = item.createdAt || item.date || item.start_date || item.start_date_local;
+  const date = dateRaw ? new Date(dateRaw) : new Date();
+  const dateValid = !isNaN(date.getTime());
+  const dateStr = dateValid ? formatRelativeDate(date) : "";
+  const timeStr = dateValid ? date.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) : "";
+  const sportType = item.sportType || normalizeSportType(item.type, item.sport);
+  const sportLabel = formatActivityFeedSportLabel(sportType);
 
-  const distKm = item.distanceKm ? Number(item.distanceKm) : null;
-  const durationSec = item.movingTimeSec || 0;
+  const distKm = item.distanceKm ? Number(item.distanceKm) : (item.distance ? Number(item.distance) / 1000 : null);
+  const durationSec = item.movingTimeSec || item.moving_time || 0;
   const durationStr = durationSec > 0 ? formatDurationHMS(durationSec) : null;
 
   let paceOrSpeed = "";
   let paceLabel = "";
-  if (item.sportType === "run" && distKm && durationSec > 0) {
+  if (sportType === "run" && distKm && durationSec > 0) {
     const paceSecKm = item.paceSecPerKm || (durationSec / distKm);
     const pm = Math.floor(paceSecKm / 60);
     const ps = Math.round(paceSecKm % 60);
     paceOrSpeed = `${pm}:${String(ps).padStart(2, "0")}`;
     paceLabel = "min/km";
-  } else if (item.sportType === "bike" && distKm && durationSec > 0) {
+  } else if (sportType === "bike" && distKm && durationSec > 0) {
     paceOrSpeed = ((distKm / durationSec) * 3600).toFixed(1);
     paceLabel = "km/h";
   }
 
-  const avgHr = item.avgHeartrate || null;
-  const elevGain = item.elevationGainM ? Math.round(item.elevationGainM) : null;
-  const avgWatts = item.avgWatts || null;
+  const avgHr = item.avgHeartrate || item.average_heartrate || null;
+  const elevGain = (item.elevationGainM || item.total_elevation_gain) ? Math.round(item.elevationGainM || item.total_elevation_gain) : null;
+  const avgWatts = item.avgWatts || item.average_watts || null;
   const calories = item.calories ? Math.round(item.calories) : null;
-  const title = item.title || `${sportLabel} am ${date.toLocaleDateString("de-DE", { day: "numeric", month: "short" })}`;
+  const title = item.title || item.name || `${sportLabel} am ${dateValid ? date.toLocaleDateString("de-DE", { day: "numeric", month: "short" }) : "?"}`;
 
   let statsHtml = "";
   if (distKm) statsHtml += `<div class="act-stat"><span class="act-stat-val">${distKm.toFixed(1)}</span><span class="act-stat-label">km</span></div>`;
   if (durationStr) statsHtml += `<div class="act-stat"><span class="act-stat-val">${durationStr}</span><span class="act-stat-label">Zeit</span></div>`;
   if (paceOrSpeed) statsHtml += `<div class="act-stat"><span class="act-stat-val">${paceOrSpeed}</span><span class="act-stat-label">${escapeHtml(paceLabel)}</span></div>`;
-  if (avgHr) statsHtml += `<div class="act-stat"><span class="act-stat-val">${avgHr}</span><span class="act-stat-label">bpm</span></div>`;
-  if (elevGain) statsHtml += `<div class="act-stat"><span class="act-stat-val">${elevGain}</span><span class="act-stat-label">Hm</span></div>`;
-  if (avgWatts) statsHtml += `<div class="act-stat"><span class="act-stat-val">${avgWatts}</span><span class="act-stat-label">W</span></div>`;
-  if (calories) statsHtml += `<div class="act-stat"><span class="act-stat-val">${calories}</span><span class="act-stat-label">kcal</span></div>`;
+  if (avgHr) statsHtml += `<div class="act-stat"><span class="act-stat-val">${Math.round(avgHr)}</span><span class="act-stat-label">bpm</span></div>`;
+  if (elevGain) statsHtml += `<div class="act-stat"><span class="act-stat-val">${Math.round(elevGain)}</span><span class="act-stat-label">Hm</span></div>`;
+  if (avgWatts) statsHtml += `<div class="act-stat"><span class="act-stat-val">${Math.round(avgWatts)}</span><span class="act-stat-label">W</span></div>`;
+  if (calories) statsHtml += `<div class="act-stat"><span class="act-stat-val">${Math.round(calories)}</span><span class="act-stat-label">kcal</span></div>`;
 
   const propsCount = Array.isArray(item.propsBy) ? item.propsBy.length : 0;
   const hasPropd = viewerEmail && Array.isArray(item.propsBy) && item.propsBy.includes(viewerEmail);
@@ -4769,7 +4784,7 @@ document.getElementById("stats-sub-nav")?.addEventListener("click", (e) => {
 });
 
 function renderStatisticsView(account) {
-  const activities = account?.activities || [];
+  const activities = normalizeActivities(account?.activities || []);
   // Activate current sub-tab cards
   setStatsSubTab(currentStatsSub);
   // Render all charts (they only render if visible/have data)
@@ -4793,7 +4808,7 @@ function renderStatisticsView(account) {
 function filterActivitiesByRange(activities, range) {
   const now = Date.now();
   return activities.filter((a) => {
-    const ts = new Date(a.createdAt || 0).getTime();
+    const ts = new Date(a.createdAt || a.date || a.start_date || 0).getTime();
     if (!Number.isFinite(ts) || !ts) return false;
     if (range === "all") return true;
     if (range === "ytd") {
@@ -6497,6 +6512,59 @@ function estimateSwimCss(swims) {
   return { cssPer100m, formatted: `${min}:${String(sec).padStart(2, "0")}`, confidence: moderate.length >= 5 ? "medium" : "low" };
 }
 
+/**
+ * Normalize an activity object so that both Strava-raw and local-format
+ * activities always have the canonical fields used by charts and metrics.
+ * This is idempotent — already-normalized activities pass through unchanged.
+ */
+function normalizeActivity(a) {
+  if (!a || typeof a !== "object") return a;
+  // createdAt — fallback to date / start_date / start_date_local
+  if (!a.createdAt && (a.date || a.start_date || a.start_date_local)) {
+    a.createdAt = a.date || a.start_date || a.start_date_local;
+  }
+  // sportType — derive from type / sport if missing
+  if (!a.sportType && (a.type || a.sport)) {
+    const raw = String(a.type || a.sport || "").toLowerCase();
+    a.sportType = raw.includes("run") || raw === "laufen"
+      ? "run"
+      : (raw.includes("ride") || raw.includes("bike") || raw.includes("cycling") || raw === "radfahren" ? "bike"
+        : (raw.includes("swim") || raw === "schwimmen" ? "swim" : "other"));
+  }
+  // distanceKm — derive from distance (meters) if missing
+  if ((a.distanceKm == null || a.distanceKm === 0) && a.distance > 0) {
+    a.distanceKm = a.distance / 1000;
+  }
+  // movingTimeSec — derive from moving_time if missing
+  if ((a.movingTimeSec == null || a.movingTimeSec === 0) && a.moving_time > 0) {
+    a.movingTimeSec = a.moving_time;
+  }
+  // elevationGainM — derive from total_elevation_gain if missing
+  if ((a.elevationGainM == null || a.elevationGainM === 0) && a.total_elevation_gain > 0) {
+    a.elevationGainM = a.total_elevation_gain;
+  }
+  // avgHeartrate — derive from average_heartrate if missing
+  if (!a.avgHeartrate && a.average_heartrate > 0) {
+    a.avgHeartrate = a.average_heartrate;
+  }
+  // maxHeartrate — derive from max_heartrate if missing
+  if (!a.maxHeartrate && a.max_heartrate > 0) {
+    a.maxHeartrate = a.max_heartrate;
+  }
+  // avgWatts — derive from average_watts if missing
+  if (!a.avgWatts && a.average_watts > 0) {
+    a.avgWatts = a.average_watts;
+  }
+  return a;
+}
+
+/** Normalize an array of activities in place and return it. */
+function normalizeActivities(activities) {
+  if (!Array.isArray(activities)) return [];
+  activities.forEach(normalizeActivity);
+  return activities;
+}
+
 function estimateTrainingLoad(recentActivities) {
   if (!recentActivities.length) return null;
   const now = Date.now();
@@ -6546,7 +6614,7 @@ function formatPace(secPerKm) {
  */
 function enrichProfileFromActivityData(profile) {
   const account = getCurrentAccount?.() || null;
-  const activities = account?.activities;
+  const activities = normalizeActivities(account?.activities);
   if (!Array.isArray(activities) || !activities.length) return profile;
 
   const analysis = analyzeActivityHistory(activities);
@@ -7184,7 +7252,20 @@ function calculateRecoveryScore(account) {
 
 function getDashboardRingConfig(account) {
   const defaults = { readiness: true, strain: true, recovery: true, hrv: false, sleep: false, steps: false, "fitness-age": false, vo2max: false };
-  return account?.settings?.dashboardRings || defaults;
+  const raw = account?.settings?.dashboardRings;
+  if (!raw) return defaults;
+  // Handle positional format: { center: "readiness", left: "strain", right: "recovery" }
+  if (raw.center || raw.left || raw.right) {
+    const converted = { ...defaults };
+    if (raw.center) converted[raw.center] = true;
+    if (raw.left) converted[raw.left] = true;
+    if (raw.right) converted[raw.right] = true;
+    // Preserve the positional hints so renderDashboardRings can use exact positions
+    converted._left = raw.left || null;
+    converted._right = raw.right || null;
+    return converted;
+  }
+  return raw;
 }
 
 /* ── Health Metrics (Resting HR, HRV, Sleep, Recovery) ── */
@@ -7325,6 +7406,7 @@ function renderDashboardRings() {
   if (!container) return;
 
   const account = getCurrentAccount();
+  normalizeActivities(account?.activities);
   const config = getDashboardRingConfig(account);
 
   // Calculate all metrics
@@ -7359,10 +7441,9 @@ function renderDashboardRings() {
   }
 
   // Readiness is always primary (center)
-  // Pick 2 secondary from config
-  const secondaryTypes = Object.keys(config).filter(k => k !== "readiness" && config[k]);
-  const leftType = secondaryTypes[0] || "strain";
-  const rightType = secondaryTypes[1] || "recovery";
+  // Pick 2 secondary from config — use positional hints if available
+  const leftType = config._left || Object.keys(config).filter(k => !k.startsWith("_") && k !== "readiness" && config[k])[0] || "strain";
+  const rightType = config._right || Object.keys(config).filter(k => !k.startsWith("_") && k !== "readiness" && k !== leftType && config[k])[0] || "recovery";
 
   // Build ring HTML
   const CIRC = 2 * Math.PI * 88; // ≈ 553
@@ -14930,7 +15011,7 @@ function renderPowerZones(activities) {
    ═══════════════════════════════════════════════════════════════════════════ */
 
 function renderDashboardKpis(account) {
-  const activities = account?.activities || [];
+  const activities = normalizeActivities(account?.activities || []);
   const inputData = account?.settings?.inputData || {};
   // Allow rendering even with no activities if we have inputData
   if (!activities.length && !Object.keys(inputData).length) return;
@@ -14988,7 +15069,7 @@ function renderDashboardKpis(account) {
   const effectiveRestingHr = calculatedMetrics.restingHr || profile.restingHr || account?.healthData?.restingHr || inputData.restingHr;
   const effectiveMaxHr = calculatedMetrics.maxHr || profile.maxHr || (runs.length ? Math.max(...runs.map(a => a.maxHeartrate || 0)) : null) || inputData.maxHr;
   setText(document.getElementById("kpi-resting-hr"), effectiveRestingHr || "–");
-  setText(document.getElementById("kpi-max-hr"), effectiveMaxHr && effectiveMaxHr > 0 ? effectiveMaxHr : "–");
+  setText(document.getElementById("kpi-max-hr"), effectiveMaxHr && effectiveMaxHr > 0 ? Math.round(effectiveMaxHr) : "–");
 
   // ─── Cycling KPIs (two-tier: calculated > input) ───
   const calculatedFtp = calculatedMetrics.ftpBike || (analysis?.estimatedFtp?.value ? Math.round(analysis.estimatedFtp.value) : null);
