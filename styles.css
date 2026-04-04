@@ -157,8 +157,33 @@ body.profile-view-playbook .profile-card-playbook {
 body.profile-view-playbook .profile-card-overview:not(.profile-card-playbook),
 body.profile-view-playbook .profile-card-activities,
 body.profile-view-playbook .profile-card-health,
+body.profile-view-playbook .profile-card-statistics,
 body.profile-view-playbook .profile-settings-rail-card,
 body.profile-view-playbook .profile-settings-card {
+  display: none !important;
+}
+
+/* Statistics profile view */
+.profile-card-statistics {
+  display: none !important;
+}
+body.profile-view-statistics .profile-card-statistics {
+  display: block !important;
+}
+body.profile-view-statistics .profile-card-overview,
+body.profile-view-statistics .profile-card-playbook,
+body.profile-view-statistics .profile-card-activities,
+body.profile-view-statistics .profile-card-health,
+body.profile-view-statistics .profile-settings-rail-card,
+body.profile-view-statistics .profile-settings-card {
+  display: none !important;
+}
+
+/* Hide statistics cards from other views */
+body.profile-view-overview .profile-card-statistics,
+body.profile-view-activities .profile-card-statistics,
+body.profile-view-health .profile-card-statistics,
+body.profile-view-settings .profile-card-statistics {
   display: none !important;
 }
 body.profile-view-playbook #profile-card-plan-creator,
@@ -209,7 +234,7 @@ body.profile-view-playbook #profile-card-plan-results {
   justify-content: space-between;
   height: 56px;
   padding: 0 20px 0 80px;
-  background: rgba(5, 5, 6, 0.85);
+  background: rgba(5, 5, 6, 0.96);
   backdrop-filter: blur(16px) saturate(1.4);
   -webkit-backdrop-filter: blur(16px) saturate(1.4);
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
@@ -347,20 +372,28 @@ body.is-authenticated .account-dot {
   position: sticky;
   top: 56px;
   z-index: 12;
-  background: rgba(5, 5, 6, 0.92);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(5, 5, 6, 0.98);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   padding: 8px 0 10px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .profile-view-tabs {
-  display: inline-flex;
+  display: flex;
+  flex-wrap: nowrap;
   gap: 2px;
   border: 0;
   background: rgba(255, 255, 255, 0.03);
   border-radius: 8px;
   padding: 3px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  width: 100%;
+}
+.profile-view-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .profile-view-tab {
@@ -368,10 +401,12 @@ body.is-authenticated .account-dot {
   background: transparent;
   color: rgba(255, 255, 255, 0.5);
   height: 30px;
-  padding: 0 14px;
+  padding: 0 12px;
   border-radius: 6px;
   cursor: pointer;
   font-size: 12px;
+  white-space: nowrap;
+  flex-shrink: 0;
   font-weight: 500;
   letter-spacing: 0.01em;
   transition: color 0.12s, background 0.12s;
@@ -1654,6 +1689,19 @@ body.profile-view-settings .profile-settings-card.is-active {
 .account-stats-card {
   grid-column: span 2;
 }
+.profile-card-statistics {
+  grid-column: 1 / -1;
+}
+#profile-card-sport-split,
+#profile-card-records {
+  grid-column: span 1;
+}
+@media (max-width: 760px) {
+  #profile-card-sport-split,
+  #profile-card-records {
+    grid-column: 1 / -1;
+  }
+}
 
 .result-title-row.compact {
   gap: 8px;
@@ -1702,6 +1750,240 @@ body.profile-view-settings .profile-settings-card.is-active {
   border: 1px solid rgba(255, 255, 255, 0.06);
   background: rgba(255, 255, 255, 0.008);
   padding: 10px;
+}
+
+/* ── Statistics Charts ─────────────────────────────────────────── */
+.stats-range-toggle {
+  display: inline-flex;
+  gap: 2px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 6px;
+  padding: 2px;
+}
+.stats-range-btn {
+  background: transparent;
+  border: none;
+  color: var(--muted-2);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  font-family: inherit;
+}
+.stats-range-btn:hover {
+  color: var(--text);
+}
+.stats-range-btn.is-active {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text);
+}
+
+.stats-volume-chart-wrap {
+  margin-top: 12px;
+}
+.stats-volume-svg,
+.stats-pace-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.stats-volume-legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--muted-2);
+}
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-left: 8px;
+}
+.legend-dot:first-child {
+  margin-left: 0;
+}
+.legend-run { background: #aaf57c; }
+.legend-bike { background: #d0b2ff; }
+.legend-swim { background: #86d7ff; }
+
+.stats-summary-row,
+.stats-pace-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line-soft);
+}
+.stats-summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.stats-summary-item span {
+  font-size: 10px;
+  color: var(--muted-2);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.stats-summary-item strong {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* Sport Split / Donut */
+.stats-sport-split-wrap {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-top: 12px;
+}
+.stats-donut-svg {
+  width: 140px;
+  height: 140px;
+  flex-shrink: 0;
+}
+.stats-sport-breakdown {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sport-break-row {
+  display: grid;
+  grid-template-columns: 10px 1fr auto auto;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+}
+.sport-break-name {
+  color: var(--text);
+  font-weight: 500;
+}
+.sport-break-km {
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+}
+.sport-break-pct {
+  color: var(--muted-2);
+  font-size: 11px;
+  width: 32px;
+  text-align: right;
+}
+
+/* Pace trend */
+.stats-pace-chart-wrap {
+  margin-top: 12px;
+}
+.stats-pace-summary {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+/* Personal Records Table */
+.stats-records-table {
+  margin-top: 10px;
+}
+.records-header,
+.records-row {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr 1fr;
+  gap: 8px;
+  padding: 8px 0;
+  font-size: 13px;
+  align-items: center;
+}
+.records-header {
+  border-bottom: 1px solid var(--line);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-2);
+  font-weight: 600;
+}
+.records-row {
+  border-bottom: 1px solid var(--line-soft);
+  color: var(--text);
+}
+.records-row span:first-child {
+  font-weight: 600;
+}
+
+/* Year Comparison */
+.stats-year-compare-wrap {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.year-compare-row {
+  display: grid;
+  grid-template-columns: 48px 1fr auto auto;
+  gap: 10px;
+  align-items: center;
+  font-size: 13px;
+}
+.year-label {
+  font-weight: 700;
+  color: var(--text);
+}
+.year-bar-wrap {
+  height: 18px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.year-bar {
+  height: 100%;
+  display: flex;
+  border-radius: 4px;
+  overflow: hidden;
+  transition: width 0.6s ease;
+}
+.year-bar-seg {
+  height: 100%;
+  min-width: 0;
+}
+.year-total {
+  font-weight: 600;
+  color: var(--text);
+  width: 72px;
+  text-align: right;
+}
+.year-count {
+  color: var(--muted-2);
+  font-size: 11px;
+  width: 48px;
+  text-align: right;
+}
+
+@media (max-width: 600px) {
+  .stats-sport-split-wrap {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .stats-summary-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .stats-pace-summary {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .records-header,
+  .records-row {
+    font-size: 11px;
+  }
+  .year-compare-row {
+    grid-template-columns: 40px 1fr auto;
+  }
+  .year-count {
+    display: none;
+  }
 }
 
 .account-card .card-copy {
@@ -3516,7 +3798,7 @@ body.profile-view-settings .profile-settings-card.is-active {
 .footer-links {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 4px 12px;
   justify-content: flex-end;
 }
 
@@ -4201,11 +4483,11 @@ body.has-output .section-data { border-color: rgba(255, 255, 255, 0.1); }
   }
 
   .profile-pane-toolbar {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    align-items: center;
     margin-bottom: 12px;
     position: sticky;
-    top: 148px;
+    top: 56px;
     z-index: 15;
     padding-top: 6px;
     padding-bottom: 6px;
@@ -4216,19 +4498,25 @@ body.has-output .section-data { border-color: rgba(255, 255, 255, 0.1); }
 
   .profile-view-tabs {
     width: 100%;
-    justify-content: stretch;
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 4px;
-    padding: 0;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 2px;
+    padding: 3px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .profile-view-tabs::-webkit-scrollbar {
+    display: none;
   }
 
   .profile-view-tab {
-    width: 100%;
+    flex-shrink: 0;
     min-height: 30px;
-    padding: 0 4px;
+    padding: 0 10px;
     letter-spacing: 0.01em;
     text-align: center;
+    font-size: 12px;
     font-size: 11px;
     text-transform: none;
     line-height: 1.1;
@@ -4347,7 +4635,7 @@ body.has-output .section-data { border-color: rgba(255, 255, 255, 0.1); }
   .footer-links {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 0;
+    gap: 2px 8px;
     padding-top: 6px;
     border-top: 1px solid rgba(255,255,255,0.06);
   }

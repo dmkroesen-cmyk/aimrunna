@@ -682,7 +682,23 @@ const I18N = {
     profile_avatar: "Profilbild",
     saved_plans: "Gespeicherte Pläne",
     empty_saved_plans: "Noch keine gespeicherten Pläne.",
+    profile_tab_statistics: "Statistik",
     profile_stats: "Profilstatistik",
+    stats_volume_title: "Trainingsvolumen",
+    stats_total_distance: "Gesamt",
+    stats_avg_weekly: "Ø/Woche",
+    stats_activities_count: "Aktivitäten",
+    stats_longest_run: "Längster Lauf",
+    stats_sport_split: "Sportverteilung",
+    stats_pace_trend: "Pace-Entwicklung",
+    stats_current_pace: "Aktuelle Pace",
+    stats_best_pace: "Bestzeit Pace",
+    stats_trend: "Trend",
+    stats_personal_records: "Persönliche Rekorde",
+    stats_no_records: "Starte Aktivitäten, um deine Rekorde zu tracken.",
+    stats_year_compare: "Jahresvergleich",
+    stats_no_data: "Noch keine Daten vorhanden.",
+    stats_need_more_data: "Mehr Daten benötigt für Trendanalyse.",
     profile_period_today: "Heute",
     profile_period_12m: "Letzte 12 Monate",
     profile_period_all: "Gesamt",
@@ -807,7 +823,23 @@ const I18N = {
     profile_avatar: "Profile photo",
     saved_plans: "Saved plans",
     empty_saved_plans: "No saved plans yet.",
+    profile_tab_statistics: "Statistics",
     profile_stats: "Profile Stats",
+    stats_volume_title: "Training Volume",
+    stats_total_distance: "Total",
+    stats_avg_weekly: "Avg/Week",
+    stats_activities_count: "Activities",
+    stats_longest_run: "Longest Run",
+    stats_sport_split: "Sport Distribution",
+    stats_pace_trend: "Pace Trend",
+    stats_current_pace: "Current Pace",
+    stats_best_pace: "Best Pace",
+    stats_trend: "Trend",
+    stats_personal_records: "Personal Records",
+    stats_no_records: "Start activities to track your records.",
+    stats_year_compare: "Year Comparison",
+    stats_no_data: "No data available yet.",
+    stats_need_more_data: "More data needed for trend analysis.",
     profile_period_today: "Today",
     profile_period_12m: "Last 12 months",
     profile_period_all: "All time",
@@ -932,7 +964,23 @@ const I18N = {
     profile_avatar: "プロフィール画像",
     saved_plans: "保存済みプラン",
     empty_saved_plans: "保存済みプランはまだありません。",
+    profile_tab_statistics: "統計",
     profile_stats: "プロフィール統計",
+    stats_volume_title: "トレーニング量",
+    stats_total_distance: "合計",
+    stats_avg_weekly: "週平均",
+    stats_activities_count: "アクティビティ",
+    stats_longest_run: "最長ラン",
+    stats_sport_split: "スポーツ比率",
+    stats_pace_trend: "ペース推移",
+    stats_current_pace: "現在のペース",
+    stats_best_pace: "ベストペース",
+    stats_trend: "トレンド",
+    stats_personal_records: "自己ベスト",
+    stats_no_records: "記録を追跡するにはアクティビティを開始してください。",
+    stats_year_compare: "年間比較",
+    stats_no_data: "データがまだありません。",
+    stats_need_more_data: "トレンド分析にはもっとデータが必要です。",
     profile_period_today: "今日",
     profile_period_12m: "過去12か月",
     profile_period_all: "累計",
@@ -3401,14 +3449,15 @@ function setActiveAccountSection(section) {
 }
 
 function setActiveProfileView(view) {
-  activeProfileView = ["overview", "playbook", "activities", "health", "settings"].includes(view) ? view : "overview";
-  document.body.classList.remove("profile-view-overview", "profile-view-playbook", "profile-view-activities", "profile-view-health", "profile-view-settings");
+  activeProfileView = ["overview", "playbook", "statistics", "activities", "health", "settings"].includes(view) ? view : "overview";
+  document.body.classList.remove("profile-view-overview", "profile-view-playbook", "profile-view-statistics", "profile-view-activities", "profile-view-health", "profile-view-settings");
   document.body.classList.add(`profile-view-${activeProfileView}`);
   profileViewTabButtons.forEach((btn) => btn.classList.toggle("is-active", btn.dataset.profileView === activeProfileView));
   if (activeProfileView === "settings") {
     setActiveProfileSettingsView(activeProfileSettingsView || "account");
   }
   if (activeProfileView === "overview") maybeFetchStravaStatus(getCurrentAccount());
+  if (activeProfileView === "statistics") renderStatisticsView(getCurrentAccount());
 
   // Move plan form + results into/out of Playbook host
   syncPlaybookFormPlacement();
@@ -3482,7 +3531,7 @@ function setAppView(view) {
     sectionAccountEl?.classList.add("is-visible");
     sectionDataEl?.classList.add("is-visible");
   } else {
-    document.body.classList.remove("profile-view-overview", "profile-view-playbook", "profile-view-activities", "profile-view-health", "profile-view-settings");
+    document.body.classList.remove("profile-view-overview", "profile-view-playbook", "profile-view-statistics", "profile-view-activities", "profile-view-health", "profile-view-settings");
     syncPlaybookFormPlacement(); // move form back to landing when leaving profile
   }
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -4246,6 +4295,384 @@ function formatRelativeTime(iso) {
   const days = Math.round(h / 24);
   return `vor ${days} d`;
 }
+
+/* ── Statistics View ────────────────────────────────────────────── */
+let currentStatsRange = "12m";
+
+function renderStatisticsView(account) {
+  const activities = account?.activities || [];
+  renderVolumeChart(activities, currentStatsRange);
+  renderSportSplit(activities, currentStatsRange);
+  renderPaceTrend(activities);
+  renderPersonalRecords(activities);
+  renderYearCompare(activities);
+}
+
+function filterActivitiesByRange(activities, range) {
+  const now = Date.now();
+  return activities.filter((a) => {
+    const ts = new Date(a.createdAt || 0).getTime();
+    if (!Number.isFinite(ts) || !ts) return false;
+    if (range === "all") return true;
+    if (range === "ytd") {
+      const jan1 = new Date(new Date().getFullYear(), 0, 1).getTime();
+      return ts >= jan1;
+    }
+    if (range === "12m") {
+      const ago = new Date();
+      ago.setMonth(ago.getMonth() - 12);
+      return ts >= ago.getTime();
+    }
+    return true;
+  });
+}
+
+function renderVolumeChart(allActivities, range) {
+  const svg = document.getElementById("stats-volume-svg");
+  if (!svg) return;
+
+  const activities = filterActivitiesByRange(allActivities, range);
+
+  // Group by month
+  const months = {};
+  activities.forEach((a) => {
+    const d = new Date(a.createdAt);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    if (!months[key]) months[key] = { run: 0, bike: 0, swim: 0, label: "" };
+    const km = Number(a.distanceKm) || 0;
+    if (a.sportType === "run") months[key].run += km;
+    else if (a.sportType === "bike") months[key].bike += km;
+    else if (a.sportType === "swim") months[key].swim += km;
+  });
+
+  // Generate continuous month range
+  const sortedKeys = Object.keys(months).sort();
+  let allMonths = [];
+  if (sortedKeys.length) {
+    const start = new Date(sortedKeys[0] + "-01");
+    const end = new Date(sortedKeys[sortedKeys.length - 1] + "-01");
+    const cur = new Date(start);
+    while (cur <= end) {
+      const key = `${cur.getFullYear()}-${String(cur.getMonth() + 1).padStart(2, "0")}`;
+      const shortLabel = cur.toLocaleString("default", { month: "short" });
+      allMonths.push({ key, label: shortLabel, ...(months[key] || { run: 0, bike: 0, swim: 0 }) });
+      cur.setMonth(cur.getMonth() + 1);
+    }
+  }
+  if (!allMonths.length) {
+    // Generate last 6 months as empty
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      allMonths.push({ key: "", label: d.toLocaleString("default", { month: "short" }), run: 0, bike: 0, swim: 0 });
+    }
+  }
+
+  // Limit to last 12 months max for readability
+  if (allMonths.length > 12) allMonths = allMonths.slice(-12);
+
+  const rawMax = Math.max(0, ...allMonths.map((m) => m.run + m.bike + m.swim));
+  const maxKm = rawMax > 0 ? rawMax : 100; // Use 100 as default scale for empty state
+  const W = 720, H = 200, padL = 40, padR = 10, padT = 10, padB = 28;
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
+  const barW = Math.min(40, (chartW / allMonths.length) * 0.7);
+  const gap = (chartW - barW * allMonths.length) / (allMonths.length + 1);
+
+  let svgContent = "";
+
+  // Y-axis grid lines
+  for (let i = 0; i <= 4; i++) {
+    const y = padT + chartH - (chartH / 4) * i;
+    const val = Math.round((maxKm / 4) * i);
+    svgContent += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>`;
+    svgContent += `<text x="${padL - 6}" y="${y + 3}" fill="rgba(255,255,255,0.3)" font-size="9" text-anchor="end" font-family="Inter,sans-serif">${val}</text>`;
+  }
+
+  allMonths.forEach((m, i) => {
+    const x = padL + gap + i * (barW + gap);
+    const total = m.run + m.bike + m.swim;
+    const runH = (m.run / maxKm) * chartH;
+    const bikeH = (m.bike / maxKm) * chartH;
+    const swimH = (m.swim / maxKm) * chartH;
+
+    let y = padT + chartH;
+    // Swim (bottom)
+    if (swimH > 0) {
+      y -= swimH;
+      svgContent += `<rect x="${x}" y="${y}" width="${barW}" height="${swimH}" rx="2" fill="#86d7ff" opacity="0.7"/>`;
+    }
+    // Bike (middle)
+    if (bikeH > 0) {
+      y -= bikeH;
+      svgContent += `<rect x="${x}" y="${y}" width="${barW}" height="${bikeH}" rx="2" fill="#d0b2ff" opacity="0.7"/>`;
+    }
+    // Run (top)
+    if (runH > 0) {
+      y -= runH;
+      svgContent += `<rect x="${x}" y="${y}" width="${barW}" height="${runH}" rx="2" fill="#aaf57c" opacity="0.7"/>`;
+    }
+
+    // Month label
+    svgContent += `<text x="${x + barW / 2}" y="${H - 6}" fill="rgba(255,255,255,0.4)" font-size="9" text-anchor="middle" font-family="Inter,sans-serif">${m.label}</text>`;
+
+    // Value on top
+    if (total > 0) {
+      svgContent += `<text x="${x + barW / 2}" y="${y - 4}" fill="rgba(255,255,255,0.5)" font-size="8" text-anchor="middle" font-family="Inter,sans-serif">${Math.round(total)}</text>`;
+    }
+  });
+
+  svg.innerHTML = svgContent;
+
+  // Summary stats
+  const totalKm = activities.reduce((s, a) => s + (Number(a.distanceKm) || 0), 0);
+  const weeks = range === "12m" ? 52 : range === "ytd" ? Math.ceil((Date.now() - new Date(new Date().getFullYear(), 0, 1).getTime()) / 604800000) : Math.max(1, Math.ceil((Date.now() - Math.min(...activities.map((a) => new Date(a.createdAt).getTime()).filter(Boolean))) / 604800000));
+  const avgWeekly = totalKm / Math.max(1, weeks);
+  const longestRun = Math.max(0, ...activities.filter((a) => a.sportType === "run").map((a) => Number(a.distanceKm) || 0));
+
+  setText(document.getElementById("stats-total-km"), `${totalKm.toFixed(1)} km`);
+  setText(document.getElementById("stats-avg-weekly-km"), `${avgWeekly.toFixed(1)} km`);
+  setText(document.getElementById("stats-activity-count"), String(activities.length));
+  setText(document.getElementById("stats-longest-run"), `${longestRun.toFixed(1)} km`);
+}
+
+function renderSportSplit(allActivities, range) {
+  const svg = document.getElementById("stats-donut-svg");
+  const body = document.getElementById("stats-sport-breakdown");
+  if (!svg || !body) return;
+
+  const activities = filterActivitiesByRange(allActivities, range);
+  const run = activities.filter((a) => a.sportType === "run").reduce((s, a) => s + (Number(a.distanceKm) || 0), 0);
+  const bike = activities.filter((a) => a.sportType === "bike").reduce((s, a) => s + (Number(a.distanceKm) || 0), 0);
+  const swim = activities.filter((a) => a.sportType === "swim").reduce((s, a) => s + (Number(a.distanceKm) || 0), 0);
+  const other = activities.filter((a) => !["run", "bike", "swim"].includes(a.sportType)).reduce((s, a) => s + (Number(a.distanceKm) || 0), 0);
+  const total = run + bike + swim + other;
+
+  const sports = [
+    { name: t("label_run_short"), km: run, color: "#aaf57c" },
+    { name: t("label_bike_short"), km: bike, color: "#d0b2ff" },
+    { name: t("label_swim_short"), km: swim, color: "#86d7ff" },
+    { name: "Other", km: other, color: "#7b8592" },
+  ].filter((s) => s.km > 0);
+
+  const cx = 90, cy = 90, r = 70, strokeW = 14;
+  const circumference = 2 * Math.PI * r;
+  let svgContent = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="${strokeW}"/>`;
+
+  if (total > 0) {
+    let offset = 0;
+    sports.forEach((s) => {
+      const pct = s.km / total;
+      const dashLen = pct * circumference;
+      svgContent += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${s.color}" stroke-width="${strokeW}" stroke-dasharray="${dashLen} ${circumference - dashLen}" stroke-dashoffset="${-offset}" transform="rotate(-90 ${cx} ${cy})" stroke-linecap="round" opacity="0.8"/>`;
+      offset += dashLen;
+    });
+    svgContent += `<text x="${cx}" y="${cy - 6}" text-anchor="middle" fill="#f3f4f6" font-size="18" font-weight="700" font-family="Inter,sans-serif">${Math.round(total)}</text>`;
+    svgContent += `<text x="${cx}" y="${cy + 10}" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="10" font-family="Inter,sans-serif">km</text>`;
+  } else {
+    svgContent += `<text x="${cx}" y="${cy + 4}" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="12" font-family="Inter,sans-serif">–</text>`;
+  }
+  svg.innerHTML = svgContent;
+
+  body.innerHTML = sports.map((s) => {
+    const pct = total > 0 ? ((s.km / total) * 100).toFixed(0) : 0;
+    return `<div class="sport-break-row"><span class="legend-dot" style="background:${s.color}"></span><span class="sport-break-name">${s.name}</span><span class="sport-break-km">${s.km.toFixed(1)} km</span><span class="sport-break-pct">${pct}%</span></div>`;
+  }).join("") || `<p class="card-copy">${t("stats_no_data")}</p>`;
+}
+
+function renderPaceTrend(allActivities) {
+  const svg = document.getElementById("stats-pace-svg");
+  if (!svg) return;
+
+  // Filter runs with distance and time
+  const runs = allActivities
+    .filter((a) => a.sportType === "run" && (Number(a.distanceKm) || 0) > 1 && (Number(a.movingTimeSec) || 0) > 0)
+    .map((a) => ({
+      date: new Date(a.createdAt),
+      pace: (Number(a.movingTimeSec) / 60) / Number(a.distanceKm), // min/km
+      km: Number(a.distanceKm),
+    }))
+    .sort((a, b) => a.date - b.date);
+
+  const W = 720, H = 180, padL = 44, padR = 10, padT = 14, padB = 28;
+  let svgContent = "";
+
+  if (runs.length < 2) {
+    svgContent = `<text x="${W / 2}" y="${H / 2}" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="12" font-family="Inter,sans-serif">${t("stats_need_more_data")}</text>`;
+    svg.innerHTML = svgContent;
+    setText(document.getElementById("stats-current-pace"), "–");
+    setText(document.getElementById("stats-best-pace"), "–");
+    setText(document.getElementById("stats-pace-delta"), "–");
+    return;
+  }
+
+  const paces = runs.map((r) => r.pace);
+  const minPace = Math.max(0, Math.min(...paces) - 0.5);
+  const maxPace = Math.max(...paces) + 0.5;
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
+
+  // Grid
+  const paceSteps = 4;
+  for (let i = 0; i <= paceSteps; i++) {
+    const y = padT + (chartH / paceSteps) * i;
+    const val = (minPace + ((maxPace - minPace) / paceSteps) * (paceSteps - i)).toFixed(1);
+    svgContent += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/>`;
+    svgContent += `<text x="${padL - 6}" y="${y + 3}" fill="rgba(255,255,255,0.3)" font-size="9" text-anchor="end" font-family="Inter,sans-serif">${val}</text>`;
+  }
+
+  // Dots + line
+  const pts = runs.map((r, i) => {
+    const x = padL + (i / (runs.length - 1)) * chartW;
+    const y = padT + chartH - ((r.pace - minPace) / (maxPace - minPace)) * chartH;
+    return { x, y, pace: r.pace };
+  });
+
+  // Trend line (moving average 5)
+  const maWindow = Math.min(5, Math.floor(runs.length / 2));
+  if (maWindow >= 2) {
+    const maPoints = [];
+    for (let i = 0; i < pts.length; i++) {
+      const start = Math.max(0, i - Math.floor(maWindow / 2));
+      const end = Math.min(pts.length, i + Math.ceil(maWindow / 2));
+      const avg = pts.slice(start, end).reduce((s, p) => s + p.pace, 0) / (end - start);
+      const y = padT + chartH - ((avg - minPace) / (maxPace - minPace)) * chartH;
+      maPoints.push({ x: pts[i].x, y });
+    }
+    const pathD = maPoints.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+    svgContent += `<path d="${pathD}" fill="none" stroke="#aaf57c" stroke-width="2" opacity="0.6"/>`;
+  }
+
+  // Data dots
+  pts.forEach((p) => {
+    svgContent += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" fill="#aaf57c" opacity="0.5"/>`;
+  });
+
+  svg.innerHTML = svgContent;
+
+  // Summary
+  const formatPace = (p) => { const m = Math.floor(p); const s = Math.round((p - m) * 60); return `${m}:${String(s).padStart(2, "0")}`; };
+  const recent = paces.slice(-5);
+  const currentPace = recent.reduce((s, p) => s + p, 0) / recent.length;
+  const bestPace = Math.min(...paces);
+  const oldPace = paces.slice(0, Math.max(1, Math.ceil(paces.length / 3))).reduce((s, p) => s + p, 0) / Math.max(1, Math.ceil(paces.length / 3));
+  const deltaSec = Math.round((oldPace - currentPace) * 60);
+
+  setText(document.getElementById("stats-current-pace"), `${formatPace(currentPace)} /km`);
+  setText(document.getElementById("stats-best-pace"), `${formatPace(bestPace)} /km`);
+  const deltaEl = document.getElementById("stats-pace-delta");
+  if (deltaEl) {
+    const sign = deltaSec > 0 ? "+" : "";
+    deltaEl.textContent = `${sign}${deltaSec}s`;
+    deltaEl.style.color = deltaSec > 0 ? "#aaf57c" : deltaSec < 0 ? "#ff9c6e" : "inherit";
+  }
+}
+
+function renderPersonalRecords(activities) {
+  const table = document.getElementById("stats-records-table");
+  if (!table) return;
+
+  const runs = activities.filter((a) => a.sportType === "run" && (Number(a.distanceKm) || 0) > 0.5 && (Number(a.movingTimeSec) || 0) > 0);
+  if (!runs.length) {
+    table.innerHTML = `<p class="card-copy">${t("stats_no_records")}</p>`;
+    return;
+  }
+
+  // Find PRs for standard distances
+  const distances = [
+    { label: "5 km", min: 4.5, max: 5.5 },
+    { label: "10 km", min: 9.5, max: 10.5 },
+    { label: "Halbmarathon", min: 20.5, max: 22 },
+    { label: "Marathon", min: 41, max: 43 },
+  ];
+
+  const formatTime = (sec) => {
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = Math.round(sec % 60);
+    return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}` : `${m}:${String(s).padStart(2, "0")}`;
+  };
+
+  const records = distances.map((d) => {
+    const matching = runs.filter((r) => {
+      const km = Number(r.distanceKm);
+      return km >= d.min && km <= d.max;
+    });
+    if (!matching.length) return null;
+    const best = matching.reduce((b, r) => (Number(r.movingTimeSec) < Number(b.movingTimeSec) ? r : b));
+    const pace = (Number(best.movingTimeSec) / 60) / Number(best.distanceKm);
+    const formatPace = (p) => { const m = Math.floor(p); const s = Math.round((p - m) * 60); return `${m}:${String(s).padStart(2, "0")}`; };
+    return { label: d.label, time: formatTime(Number(best.movingTimeSec)), pace: formatPace(pace), date: new Date(best.createdAt).toLocaleDateString() };
+  }).filter(Boolean);
+
+  if (!records.length) {
+    table.innerHTML = `<p class="card-copy">${t("stats_no_records")}</p>`;
+    return;
+  }
+
+  table.innerHTML = `
+    <div class="records-header"><span>Distanz</span><span>Zeit</span><span>Pace</span><span>Datum</span></div>
+    ${records.map((r) => `<div class="records-row"><span>${r.label}</span><span>${r.time}</span><span>${r.pace}/km</span><span>${r.date}</span></div>`).join("")}
+  `;
+}
+
+function renderYearCompare(activities) {
+  const body = document.getElementById("stats-year-compare-body");
+  if (!body) return;
+
+  const years = {};
+  activities.forEach((a) => {
+    const y = new Date(a.createdAt).getFullYear();
+    if (!years[y]) years[y] = { run: 0, bike: 0, swim: 0, count: 0 };
+    years[y].count++;
+    const km = Number(a.distanceKm) || 0;
+    if (a.sportType === "run") years[y].run += km;
+    else if (a.sportType === "bike") years[y].bike += km;
+    else if (a.sportType === "swim") years[y].swim += km;
+  });
+
+  const sortedYears = Object.keys(years).sort().reverse();
+  if (sortedYears.length < 1) {
+    body.innerHTML = `<p class="card-copy">${t("stats_no_data")}</p>`;
+    return;
+  }
+
+  const maxKm = Math.max(1, ...sortedYears.map((y) => years[y].run + years[y].bike + years[y].swim));
+
+  body.innerHTML = sortedYears.map((y) => {
+    const d = years[y];
+    const total = d.run + d.bike + d.swim;
+    const pct = (total / maxKm) * 100;
+    const runPct = total > 0 ? (d.run / total) * 100 : 0;
+    const bikePct = total > 0 ? (d.bike / total) * 100 : 0;
+    const swimPct = total > 0 ? (d.swim / total) * 100 : 0;
+    return `
+      <div class="year-compare-row">
+        <span class="year-label">${y}</span>
+        <div class="year-bar-wrap">
+          <div class="year-bar" style="width:${pct}%">
+            <div class="year-bar-seg" style="width:${runPct}%;background:#aaf57c"></div>
+            <div class="year-bar-seg" style="width:${bikePct}%;background:#d0b2ff"></div>
+            <div class="year-bar-seg" style="width:${swimPct}%;background:#86d7ff"></div>
+          </div>
+        </div>
+        <span class="year-total">${Math.round(total)} km</span>
+        <span class="year-count">${d.count} act.</span>
+      </div>
+    `;
+  }).join("");
+}
+
+// Stats range toggle
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".stats-range-btn");
+  if (!btn) return;
+  const range = btn.dataset.statsRange;
+  if (!range) return;
+  currentStatsRange = range;
+  document.querySelectorAll(".stats-range-btn").forEach((b) => b.classList.toggle("is-active", b === btn));
+  renderStatisticsView(getCurrentAccount());
+});
 
 function readFileAsDataUrl(file) {
   return new Promise((resolve, reject) => {

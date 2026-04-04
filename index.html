@@ -490,6 +490,7 @@
             <div class="profile-view-tabs" role="tablist" aria-label="Profile sections">
               <button type="button" class="profile-view-tab is-active" data-profile-view="overview" data-i18n="profile_tab_overview">Überblick</button>
               <button type="button" class="profile-view-tab" data-profile-view="playbook" data-i18n="profile_tab_playbook">Playbook</button>
+              <button type="button" class="profile-view-tab" data-profile-view="statistics" data-i18n="profile_tab_statistics">Statistik</button>
               <button type="button" class="profile-view-tab" data-profile-view="activities" data-i18n="profile_tab_activities">Aktivitäten</button>
               <button type="button" class="profile-view-tab" data-profile-view="health" data-i18n="profile_tab_health">Gesundheit</button>
               <button type="button" class="profile-view-tab" data-profile-view="settings" data-i18n="profile_tab_settings">Einstellungen</button>
@@ -639,6 +640,98 @@
                     <div class="profile-stat"><span data-i18n="profile_total_points">Total Points</span><strong id="profile-stat-all-points-total">0</strong></div>
                   </div>
                 </section>
+              </div>
+            </section>
+
+            <!-- ── Statistics Tab Cards ── -->
+            <section class="result-card account-card profile-main-card profile-card-statistics" id="profile-card-volume-chart">
+              <div class="result-title-row">
+                <h4 data-i18n="stats_volume_title">Trainingsvolumen</h4>
+                <div class="stats-range-toggle">
+                  <button type="button" class="stats-range-btn is-active" data-stats-range="12m">12M</button>
+                  <button type="button" class="stats-range-btn" data-stats-range="ytd">YTD</button>
+                  <button type="button" class="stats-range-btn" data-stats-range="all">All</button>
+                </div>
+              </div>
+              <div class="stats-volume-chart-wrap">
+                <svg id="stats-volume-svg" class="stats-volume-svg" viewBox="0 0 720 200" preserveAspectRatio="xMidYMid meet"></svg>
+                <div class="stats-volume-legend">
+                  <span class="legend-dot legend-run"></span> <span data-i18n="label_run_short">Lauf</span>
+                  <span class="legend-dot legend-bike"></span> <span data-i18n="label_bike_short">Rad</span>
+                  <span class="legend-dot legend-swim"></span> <span data-i18n="label_swim_short">Swim</span>
+                </div>
+              </div>
+              <div class="stats-summary-row" id="stats-summary-row">
+                <div class="stats-summary-item">
+                  <span data-i18n="stats_total_distance">Gesamt</span>
+                  <strong id="stats-total-km">0 km</strong>
+                </div>
+                <div class="stats-summary-item">
+                  <span data-i18n="stats_avg_weekly">Ø/Woche</span>
+                  <strong id="stats-avg-weekly-km">0 km</strong>
+                </div>
+                <div class="stats-summary-item">
+                  <span data-i18n="stats_activities_count">Aktivitäten</span>
+                  <strong id="stats-activity-count">0</strong>
+                </div>
+                <div class="stats-summary-item">
+                  <span data-i18n="stats_longest_run">Längster Lauf</span>
+                  <strong id="stats-longest-run">0 km</strong>
+                </div>
+              </div>
+            </section>
+
+            <section class="result-card account-card profile-main-card profile-card-statistics" id="profile-card-sport-split">
+              <div class="result-title-row">
+                <h4 data-i18n="stats_sport_split">Sportverteilung</h4>
+              </div>
+              <div class="stats-sport-split-wrap">
+                <svg id="stats-donut-svg" class="stats-donut-svg" viewBox="0 0 180 180"></svg>
+                <div class="stats-sport-breakdown" id="stats-sport-breakdown">
+                  <!-- Populated by JS -->
+                </div>
+              </div>
+            </section>
+
+            <section class="result-card account-card profile-main-card profile-card-statistics" id="profile-card-pace-trend">
+              <div class="result-title-row">
+                <h4 data-i18n="stats_pace_trend">Pace-Entwicklung</h4>
+                <span class="tag subtle" id="stats-pace-trend-tag">min/km</span>
+              </div>
+              <div class="stats-pace-chart-wrap">
+                <svg id="stats-pace-svg" class="stats-pace-svg" viewBox="0 0 720 180" preserveAspectRatio="xMidYMid meet"></svg>
+              </div>
+              <div class="stats-pace-summary" id="stats-pace-summary">
+                <div class="stats-summary-item">
+                  <span data-i18n="stats_current_pace">Aktuelle Pace</span>
+                  <strong id="stats-current-pace">–</strong>
+                </div>
+                <div class="stats-summary-item">
+                  <span data-i18n="stats_best_pace">Bestzeit Pace</span>
+                  <strong id="stats-best-pace">–</strong>
+                </div>
+                <div class="stats-summary-item">
+                  <span data-i18n="stats_trend">Trend</span>
+                  <strong id="stats-pace-delta">–</strong>
+                </div>
+              </div>
+            </section>
+
+            <section class="result-card account-card profile-main-card profile-card-statistics" id="profile-card-records">
+              <div class="result-title-row">
+                <h4 data-i18n="stats_personal_records">Persönliche Rekorde</h4>
+              </div>
+              <div class="stats-records-table" id="stats-records-table">
+                <p class="card-copy" data-i18n="stats_no_records">Starte Aktivitäten, um deine Rekorde zu tracken.</p>
+              </div>
+            </section>
+
+            <section class="result-card account-card profile-main-card profile-card-statistics" id="profile-card-year-compare">
+              <div class="result-title-row">
+                <h4 data-i18n="stats_year_compare">Jahresvergleich</h4>
+              </div>
+              <div class="stats-year-compare-wrap" id="stats-year-compare-body">
+                <p class="card-copy" data-i18n="stats_no_data">Noch keine Daten vorhanden.</p>
               </div>
             </section>
 
@@ -1065,7 +1158,6 @@
             <button type="button" class="footer-link" data-legal-open="agb">AGB</button>
             <button type="button" class="footer-link" data-legal-open="disclaimer">Health Disclaimer</button>
             <button type="button" class="footer-link" data-legal-open="cookies">Cookies</button>
-            <button type="button" class="footer-link" data-legal-open="community">Community</button>
           </div>
         </div>
         <div class="footer-bottom">
@@ -1080,7 +1172,7 @@
               <span class="lang-flag">🇯🇵</span> JP
             </button>
           </nav>
-          <span class="footer-copy">© 2025 AImRUNNA. Alle Rechte vorbehalten.</span>
+          <span class="footer-copy">© 2026 AImRUNNA. Alle Rechte vorbehalten.</span>
         </div>
       </footer>
     </main>
