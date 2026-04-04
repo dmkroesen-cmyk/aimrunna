@@ -2015,12 +2015,225 @@ body.profile-view-settings .profile-settings-card.is-active {
   font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.props-btn .props-icon {
+  font-size: 14px;
+  line-height: 1;
 }
 
 .props-btn.is-active {
   color: #000;
   background: #fff;
   border-color: #fff;
+}
+
+/* Activity card clickable */
+.activity-card { cursor: pointer; }
+
+/* Activity Detail Modal */
+.activity-detail-modal-card {
+  max-width: 640px;
+  width: 94vw;
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: 0;
+}
+
+.activity-detail-header {
+  padding: 20px 20px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.activity-detail-header h3 {
+  font-size: 18px;
+  margin: 0 0 4px;
+}
+
+.activity-detail-header .activity-detail-meta {
+  font-size: 12px;
+  color: rgba(255,255,255,0.5);
+}
+
+.activity-detail-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 1px;
+  background: rgba(255,255,255,0.04);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.activity-detail-stat {
+  padding: 14px 16px;
+  background: rgba(6,7,9,0.96);
+  text-align: center;
+}
+
+.activity-detail-stat .stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.activity-detail-stat .stat-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.45);
+  margin-top: 2px;
+}
+
+.activity-detail-splits {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.activity-detail-splits h4 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.5);
+  margin: 0 0 10px;
+}
+
+.splits-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.splits-table th {
+  text-align: left;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(255,255,255,0.4);
+  padding: 4px 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.splits-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+
+.splits-table .pace-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--accent-fresh, #34d399);
+  min-width: 8px;
+}
+
+.activity-detail-metrics {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.activity-detail-metrics h4 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.5);
+  margin: 0 0 10px;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+}
+
+.metric-item {
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.02);
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.04);
+}
+
+.metric-item .metric-value {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.metric-item .metric-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(255,255,255,0.45);
+}
+
+.activity-detail-comments {
+  padding: 16px 20px;
+}
+
+.activity-detail-comments h4 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.5);
+  margin: 0 0 10px;
+}
+
+.comment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.comment-item {
+  padding: 8px 10px;
+  background: rgba(255,255,255,0.02);
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.comment-item strong {
+  font-size: 12px;
+  margin-right: 6px;
+}
+
+.comment-item small {
+  font-size: 10px;
+  color: rgba(255,255,255,0.35);
+  margin-left: 6px;
+}
+
+.comment-form {
+  display: flex;
+  gap: 8px;
+}
+
+.comment-form input {
+  flex: 1;
+  height: 34px;
+  padding: 0 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 13px;
+}
+
+.comment-form button {
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.1);
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.activity-detail-actions {
+  padding: 12px 20px 20px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
 }
 
 .activity-points {
