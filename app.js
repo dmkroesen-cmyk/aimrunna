@@ -7261,7 +7261,9 @@ function computeFitnessAgeBreakdown(account) {
   const vo2 = vo2Result?.value ?? null;
   if (vo2) {
     const popMean = sex === "female" ? (48 - 0.37 * chronoAge) : (57 - 0.40 * chronoAge);
-    const deltaYr = clamp(-0.2 * (vo2 - popMean), -10, 10);
+    // Calibrated to WHOOP: less aggressive than Garmin (which uses -0.2 and can
+    // show -9 to -11 yr). 0.15 keeps top delta around ±6 yr.
+    const deltaYr = clamp(-0.15 * (vo2 - popMean), -6, 6);
     components.push({
       key: "vo2max", label: "VO2max",
       inputText: `${vo2.toFixed(1)} ml/kg/min (Norm ${popMean.toFixed(0)})`,
@@ -7278,7 +7280,7 @@ function computeFitnessAgeBreakdown(account) {
     const weeklyCount = recent90.length / 13;
     // Map to daily-steps-equivalent: rough proxy, 1 active session ~ 3000 step equiv.
     const stepsEquiv = 4000 + weeklyCount * 600 + weeklyMin * 15;
-    actDelta = clamp(-0.002 * (stepsEquiv - 6000), -5, 3);
+    actDelta = clamp(-0.0015 * (stepsEquiv - 6000), -3, 3);
     components.push({
       key: "activity", label: "Aktivität",
       inputText: `${weeklyCount.toFixed(1)}×/Wo · ${Math.round(weeklyMin)} min/Wo`,
@@ -7306,7 +7308,7 @@ function computeFitnessAgeBreakdown(account) {
   const rhr = profile.restingHr || account?.healthData?.restingHr;
   if (rhr) {
     const popRhr = 65 + 0.03 * chronoAge;
-    const rhrDelta = clamp(0.25 * (rhr - popRhr), -6, 8);
+    const rhrDelta = clamp(0.15 * (rhr - popRhr), -3, 4);
     components.push({
       key: "rhr", label: "Ruhepuls",
       inputText: `${rhr} bpm (Norm ${popRhr.toFixed(0)})`,
@@ -7320,7 +7322,7 @@ function computeFitnessAgeBreakdown(account) {
   const rmssd = profile.hrvRmssd || account?.healthData?.rmssd;
   if (rmssd && rmssd > 0) {
     const expectedLn = 4.3 - 0.022 * chronoAge;
-    const hrvDelta = clamp(-15 * (Math.log(rmssd) - expectedLn), -6, 6);
+    const hrvDelta = clamp(-10 * (Math.log(rmssd) - expectedLn), -3, 3);
     components.push({
       key: "hrv", label: "HRV (RMSSD)",
       inputText: `${Math.round(rmssd)} ms`,
@@ -7350,7 +7352,7 @@ function computeFitnessAgeBreakdown(account) {
   components.forEach(c => { c.contributionYr = c.deltaYr * c.effectiveWeight; });
 
   const netDelta = components.reduce((s, c) => s + c.contributionYr, 0);
-  const fitnessAge = clamp(chronoAge + netDelta, chronoAge - 15, chronoAge + 15);
+  const fitnessAge = clamp(chronoAge + netDelta, chronoAge - 10, chronoAge + 10);
   const missingTierA = components.filter(c => !c.available && ["vo2max"].includes(c.key)).length;
   const confidence = clamp(2 + 3 * missingTierA + components.filter(c => !c.available).length * 0.5, 2, 8);
 
@@ -7368,16 +7370,26 @@ function renderFitnessAgeBreakdown(account) {
   el.hidden = false;
 
   const fmtYr = (v) => (v >= 0 ? "+" : "") + v.toFixed(1);
-  // green <-0.5 | neutral | amber >0.5 | red >2
-  const tone = (v) => v <= -0.5 ? "pos" : v >= 2 ? "neg-strong" : v >= 0.5 ? "neg" : "neu";
+  const tone = (v) => v <= -0.3 ? "pos" : v >= 1.5 ? "neg-strong" : v >= 0.3 ? "neg" : "neu";
 
-  const rows = bd.components
+  const available = bd.components.filter(c => c.available);
+  const sorted = available.slice().sort((a, b) => a.contributionYr - b.contributionYr);
+  const topPositive = sorted[0] && sorted[0].contributionYr < 0 ? sorted[0] : null;
+  const topNegative = sorted[sorted.length - 1] && sorted[sorted.length - 1].contributionYr > 0 ? sorted[sorted.length - 1] : null;
+
+  const pillPos = topPositive
+    ? `<span class="fa-pill fa-pill-pos"><span class="fa-pill-icon">↓</span>${topPositive.label} <b>${fmtYr(topPositive.contributionYr)} J</b></span>`
+    : "";
+  const pillNeg = topNegative
+    ? `<span class="fa-pill fa-pill-neg"><span class="fa-pill-icon">↑</span>${topNegative.label} <b>${fmtYr(topNegative.contributionYr)} J</b></span>`
+    : "";
+
+  const allRows = available
     .slice()
-    .filter(c => c.available)
     .sort((a, b) => Math.abs(b.contributionYr) - Math.abs(a.contributionYr))
     .map(c => `<li class="fa-bd-row">
         <span class="fa-bd-label">${c.label}</span>
-        <span class="fa-bd-bar"><span class="fa-bd-bar-fill tone-${tone(c.contributionYr)}" style="width:${Math.min(100, Math.abs(c.contributionYr) * 20)}%"></span></span>
+        <span class="fa-bd-bar"><span class="fa-bd-bar-fill tone-${tone(c.contributionYr)}" style="width:${Math.min(100, Math.abs(c.contributionYr) * 30)}%"></span></span>
         <span class="fa-bd-contrib tone-${tone(c.contributionYr)}">${fmtYr(c.contributionYr)}</span>
       </li>`).join("");
 
@@ -7385,11 +7397,12 @@ function renderFitnessAgeBreakdown(account) {
   const missingHint = missing.length ? `<div class="fa-bd-missing-hint">Noch ohne Daten: ${missing.join(" · ")}</div>` : "";
 
   el.innerHTML = `
-    <div class="fa-bd-head">
-      <span class="fa-bd-title">Woraus sich dein Fitness-Alter zusammensetzt</span>
-    </div>
-    <ul class="fa-bd-list">${rows}</ul>
-    ${missingHint}
+    <div class="fa-pills">${pillPos}${pillNeg}</div>
+    <details class="fa-bd-details">
+      <summary class="fa-bd-summary">Alle Faktoren anzeigen</summary>
+      <ul class="fa-bd-list">${allRows}</ul>
+      ${missingHint}
+    </details>
   `;
 }
 

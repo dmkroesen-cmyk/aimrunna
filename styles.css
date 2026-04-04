@@ -1558,6 +1558,37 @@ body.app-view-profile:not(.profile-view-settings) .account-grid {
   grid-template-columns: minmax(0, 1fr);
 }
 
+/* Dashboard (Tagesform view): strict vertical stacking, each rubric its own row */
+body.profile-view-overview .account-grid {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px;
+}
+body.profile-view-overview .account-grid > * {
+  grid-column: auto !important;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+/* Belt & suspenders: stats/playbook/settings cards must never leak into Dashboard */
+body.profile-view-overview .profile-card-statistics,
+body.profile-view-overview .stats-sub-card {
+  display: none !important;
+}
+
+/* Dashboard section dividers — hide when next sibling card is hidden */
+.dashboard-section-header:has(+ section[hidden]) { display: none !important; }
+.dashboard-section-header {
+  display: block;
+  margin: 8px 0 -4px;
+  padding: 0 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.35);
+}
+
 body.profile-view-overview #profile-card-identity,
 body.profile-view-overview #profile-card-plans,
 body.profile-view-overview #profile-card-stats,
@@ -7559,6 +7590,62 @@ img, video, canvas, svg {
   border-top: 1px solid rgba(255,255,255,0.06);
   clear: both;
 }
+.fa-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.fa-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px 6px 8px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  background: rgba(255,255,255,0.035);
+  border: 1px solid rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.78);
+}
+.fa-pill b { font-weight: 700; font-variant-numeric: tabular-nums; margin-left: 2px; }
+.fa-pill-icon {
+  width: 16px; height: 16px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  font-size: 11px; font-weight: 700;
+}
+.fa-pill-pos .fa-pill-icon { background: rgba(76,175,130,0.18); color: #4CAF82; }
+.fa-pill-pos b { color: #4CAF82; }
+.fa-pill-neg .fa-pill-icon { background: rgba(229,169,61,0.18); color: #E5A93D; }
+.fa-pill-neg b { color: #E5A93D; }
+
+.fa-bd-details { margin-top: 14px; }
+.fa-bd-summary {
+  cursor: pointer;
+  list-style: none;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.4);
+  padding: 6px 0;
+  transition: color 0.18s;
+  user-select: none;
+}
+.fa-bd-summary::-webkit-details-marker { display: none; }
+.fa-bd-summary::after {
+  content: "▾";
+  margin-left: 6px;
+  display: inline-block;
+  transition: transform 0.2s;
+  font-size: 9px;
+  vertical-align: 1px;
+}
+details[open] .fa-bd-summary::after { transform: rotate(180deg); }
+.fa-bd-summary:hover { color: rgba(255,255,255,0.7); }
+details[open] .fa-bd-summary { color: rgba(255,255,255,0.7); margin-bottom: 10px; }
+
 .fa-bd-head { margin-bottom: 10px; }
 .fa-bd-title {
   display: block;
