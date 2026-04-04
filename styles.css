@@ -1670,8 +1670,24 @@ body.profile-view-settings .profile-settings-card.is-active {
   font-size: 11px;
 }
 
-.saved-plan-item button {
+.saved-plan-actions {
+  display: flex;
+  gap: 8px;
   margin-top: 8px;
+}
+
+.saved-plan-item button {
+  margin-top: 0;
+}
+
+.ghost.danger {
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.2);
+}
+
+.ghost.danger:hover {
+  background: rgba(248, 113, 113, 0.1);
+  border-color: rgba(248, 113, 113, 0.4);
 }
 
 .friend-form {
@@ -2043,19 +2059,62 @@ body.profile-view-settings .profile-settings-card.is-active {
   padding: 0;
 }
 
+.activity-detail-map {
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.map-placeholder {
+  padding: 0;
+  line-height: 0;
+}
+
+.map-placeholder svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
 .activity-detail-header {
   padding: 20px 20px 14px;
   border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
+.activity-detail-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .activity-detail-header h3 {
-  font-size: 18px;
-  margin: 0 0 4px;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+
+.activity-detail-sport-badge {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 3px 10px;
+  border-radius: 99px;
+  border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.6);
+  white-space: nowrap;
 }
 
 .activity-detail-header .activity-detail-meta {
   font-size: 12px;
-  color: rgba(255,255,255,0.5);
+  color: rgba(255,255,255,0.45);
+  margin-top: 6px;
+}
+
+.activity-detail-note {
+  margin: 10px 0 0;
+  font-size: 14px;
+  color: rgba(255,255,255,0.65);
+  line-height: 1.5;
 }
 
 .activity-detail-stats {
@@ -2073,17 +2132,25 @@ body.profile-view-settings .profile-settings-card.is-active {
 }
 
 .activity-detail-stat .stat-value {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 700;
   color: #fff;
+  letter-spacing: -0.02em;
+}
+
+.activity-detail-stat .stat-value .stat-unit {
+  font-size: 12px;
+  font-weight: 400;
+  color: rgba(255,255,255,0.4);
+  letter-spacing: 0;
 }
 
 .activity-detail-stat .stat-label {
-  font-size: 10px;
+  font-size: 9px;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: rgba(255,255,255,0.45);
-  margin-top: 2px;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.35);
+  margin-top: 4px;
 }
 
 .activity-detail-splits {
@@ -2229,11 +2296,76 @@ body.profile-view-settings .profile-settings-card.is-active {
   font-size: 12px;
 }
 
+.hr-zones {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hr-zone-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.hr-zone-label {
+  width: 52px;
+  color: rgba(255,255,255,0.5);
+  font-size: 11px;
+}
+
+.hr-zone-bar-track {
+  flex: 1;
+  height: 8px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.hr-zone-bar {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 400ms ease;
+}
+
+.hr-zone-pct {
+  width: 32px;
+  text-align: right;
+  color: rgba(255,255,255,0.45);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
 .activity-detail-actions {
-  padding: 12px 20px 20px;
+  padding: 16px 20px 24px;
   display: flex;
   gap: 10px;
   align-items: center;
+}
+
+.props-btn-large {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  border-radius: 99px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.03);
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 170ms ease;
+}
+
+.props-btn-large:hover {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.2);
+  transform: scale(1.02);
+}
+
+.props-btn-large .props-icon {
+  font-size: 18px;
 }
 
 .activity-points {

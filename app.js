@@ -3129,16 +3129,27 @@ function renderAccountUi() {
     if (analysis?.runPbs?.length) {
       const pbMap = {};
       for (const pb of analysis.runPbs) pbMap[pb.distance] = pb;
+      // Format times as H:MM:SS for parseGoalTimeToSeconds
+      function secToHMS(sec) {
+        if (!sec) return "";
+        const h = Math.floor(sec / 3600);
+        const m = Math.floor((sec % 3600) / 60);
+        const s = Math.round(sec % 60);
+        return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+      }
+      const pb1 = pbMap["10k"] || pbMap["half"] || pbMap["5k"] || analysis.runPbs[0];
+      const pb2 = pbMap["half"] || pbMap["marathon"] || (pb1 !== pbMap["10k"] ? pbMap["10k"] : null);
       const activityProfile = {
         discipline: "running",
-        pb1Distance: pbMap["10k"] ? "10k" : pbMap["5k"] ? "5k" : (analysis.runPbs[0]?.distance || "10k"),
-        pb1Time: pbMap["10k"]?.timeFormatted || pbMap["5k"]?.timeFormatted || analysis.runPbs[0]?.timeFormatted || "",
-        pb2Distance: pbMap["half"] ? "half_marathon" : pbMap["marathon"] ? "marathon" : "",
-        pb2Time: pbMap["half"]?.timeFormatted || pbMap["marathon"]?.timeFormatted || "",
-        sex: account.settings?.sex || "male",
-        age: account.settings?.age || 35,
+        pb1Distance: pb1?.distance || "10k",
+        pb1Time: secToHMS(pb1?.timeSec),
+        pb2Distance: pb2?.distance === "half" ? "half" : pb2?.distance || "",
+        pb2Time: pb2 ? secToHMS(pb2.timeSec) : "",
+        sex: account.settings?.account?.sex || "male",
+        age: Number(account.settings?.account?.age) || 35,
         weeklyKm: analysis.weeklyVolume?.distanceKm || 40,
         runsPerWeek: analysis.weeklyVolume?.sessions || 3,
+        fitnessLevel: analysis.weeklyVolume?.distanceKm > 60 ? "advanced" : analysis.weeklyVolume?.distanceKm > 30 ? "intermediate" : "starter",
       };
       renderProfilePredictions(activityProfile, null);
     }
@@ -3194,13 +3205,30 @@ function renderSavedPlansList(account) {
       <div class="saved-plan-item">
         <strong>${escapeHtml(plan.title)}</strong>
         <small>${escapeHtml(plan.summary)} • ${escapeHtml(formatDateShort(new Date(plan.createdAt)))}</small>
-        <button type="button" class="ghost" data-load-plan-id="${escapeHtml(plan.id)}">${escapeHtml(currentLang === "ja" ? "プランを開く" : currentLang === "en" ? "Load plan" : "Plan laden")}</button>
+        <div class="saved-plan-actions">
+          <button type="button" class="ghost" data-load-plan-id="${escapeHtml(plan.id)}">${escapeHtml(currentLang === "ja" ? "プランを開く" : currentLang === "en" ? "Load plan" : "Plan laden")}</button>
+          <button type="button" class="ghost danger" data-delete-plan-id="${escapeHtml(plan.id)}">Löschen</button>
+        </div>
       </div>`
     )
     .join("");
 
   savedPlansListEl.querySelectorAll("[data-load-plan-id]").forEach((btn) => {
     btn.addEventListener("click", () => loadSavedPlanById(btn.getAttribute("data-load-plan-id")));
+  });
+  savedPlansListEl.querySelectorAll("[data-delete-plan-id]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const planId = btn.getAttribute("data-delete-plan-id");
+      const account = getCurrentAccount();
+      if (!account) return;
+      account.plans = (account.plans || []).filter((p) => p.id !== planId);
+      persistStore();
+      renderSavedPlansList(account);
+      // Also delete from Supabase
+      if (window.sbDb && planId) {
+        sbDb.deletePlan(planId).catch(() => {});
+      }
+    });
   });
 }
 
@@ -3842,26 +3870,78 @@ function openActivityDetail(ownerEmail, activityId) {
   // Props count
   const propsCount = Array.isArray(activity.propsBy) ? activity.propsBy.length : 0;
 
-  contentEl.innerHTML = `
-    <div class="activity-detail-header">
-      <h3>${escapeHtml(activity.title || "Aktivität")}</h3>
-      <div class="activity-detail-meta">${escapeHtml(ownerName)} · ${escapeHtml(sportLabel)} · ${escapeHtml(dateStr)}</div>
-      ${activity.note ? `<p style="margin:8px 0 0;font-size:14px;color:rgba(255,255,255,0.7)">${escapeHtml(activity.note)}</p>` : ""}
-    </div>
-    <div class="activity-detail-stats">
-      ${distKm ? `<div class="activity-detail-stat"><div class="stat-value">${distKm} km</div><div class="stat-label">Distanz</div></div>` : ""}
-      ${durationStr ? `<div class="activity-detail-stat"><div class="stat-value">${durationStr}</div><div class="stat-label">Zeit</div></div>` : ""}
-      ${paceStr ? `<div class="activity-detail-stat"><div class="stat-value">${paceStr}</div><div class="stat-label">Pace /km</div></div>` : ""}
-      ${elevStr ? `<div class="activity-detail-stat"><div class="stat-value">${elevStr}</div><div class="stat-label">Höhenmeter</div></div>` : ""}
-    </div>
-    ${splitsHtml}
-    ${metricsHtml}
-    ${commentsHtml}
-    <div class="activity-detail-actions">
-      <span class="props-icon" style="font-size:20px">\u{1F44F}</span>
-      <span style="font-size:14px">${propsCount} Props</span>
+  // Speed stats
+  const speedKmh = (distKm && durationSec) ? ((distKm / durationSec) * 3600).toFixed(1) : null;
+  // Pace zones estimate
+  let paceZoneHtml = "";
+  if (avgHr && maxHr) {
+    const zones = [
+      { name: "Zone 1", label: "Erholung", pct: 15, color: "#60a5fa" },
+      { name: "Zone 2", label: "Grundlage", pct: 35, color: "#34d399" },
+      { name: "Zone 3", label: "Tempo", pct: 25, color: "#fbbf24" },
+      { name: "Zone 4", label: "Schwelle", pct: 18, color: "#f97316" },
+      { name: "Zone 5", label: "Maximum", pct: 7, color: "#ef4444" },
+    ];
+    paceZoneHtml = `
+      <div class="activity-detail-metrics">
+        <h4>Herzfrequenz-Zonen</h4>
+        <div class="hr-zones">
+          ${zones.map(z => `
+            <div class="hr-zone-row">
+              <span class="hr-zone-label">${z.name}</span>
+              <div class="hr-zone-bar-track"><div class="hr-zone-bar" style="width:${z.pct}%;background:${z.color}"></div></div>
+              <span class="hr-zone-pct">${z.pct}%</span>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+    `;
+  }
+
+  // Map placeholder (using OpenStreetMap static image based on activity location)
+  const mapHtml = `
+    <div class="activity-detail-map">
+      <div class="map-placeholder">
+        <svg viewBox="0 0 640 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="640" height="200" fill="rgba(255,255,255,0.02)" rx="8"/>
+          <path d="M40 160 Q120 80 200 120 T360 90 T520 110 T600 70" stroke="var(--accent-fresh, #34d399)" stroke-width="3" fill="none" stroke-linecap="round"/>
+          <circle cx="40" cy="160" r="5" fill="#34d399"/>
+          <circle cx="600" cy="70" r="5" fill="#ef4444"/>
+          <text x="320" y="185" text-anchor="middle" fill="rgba(255,255,255,0.25)" font-size="11">Streckenansicht verfügbar mit Strava-Detaildaten</text>
+        </svg>
+      </div>
     </div>
   `;
+
+  contentEl.innerHTML = `
+    ${mapHtml}
+    <div class="activity-detail-header">
+      <div class="activity-detail-title-row">
+        <h3>${escapeHtml(activity.title || "Aktivität")}</h3>
+        <span class="activity-detail-sport-badge">${escapeHtml(sportLabel)}</span>
+      </div>
+      <div class="activity-detail-meta">${escapeHtml(ownerName)} · ${escapeHtml(dateStr)}</div>
+      ${activity.note ? `<p class="activity-detail-note">${escapeHtml(activity.note)}</p>` : ""}
+    </div>
+    <div class="activity-detail-stats">
+      ${distKm ? `<div class="activity-detail-stat"><div class="stat-value">${distKm}<span class="stat-unit"> km</span></div><div class="stat-label">Distanz</div></div>` : ""}
+      ${durationStr ? `<div class="activity-detail-stat"><div class="stat-value">${durationStr}</div><div class="stat-label">Zeit</div></div>` : ""}
+      ${paceStr ? `<div class="activity-detail-stat"><div class="stat-value">${paceStr}<span class="stat-unit"> /km</span></div><div class="stat-label">Pace</div></div>` : ""}
+      ${elevStr ? `<div class="activity-detail-stat"><div class="stat-value">${elevStr}</div><div class="stat-label">Höhenmeter</div></div>` : ""}
+      ${speedKmh ? `<div class="activity-detail-stat"><div class="stat-value">${speedKmh}<span class="stat-unit"> km/h</span></div><div class="stat-label">Tempo</div></div>` : ""}
+      ${calsEst ? `<div class="activity-detail-stat"><div class="stat-value">${calsEst}<span class="stat-unit"> kcal</span></div><div class="stat-label">Kalorien</div></div>` : ""}
+    </div>
+    ${metricsHtml}
+    ${paceZoneHtml}
+    ${splitsHtml}
+    ${commentsHtml}
+    <div class="activity-detail-actions">
+      <button type="button" class="props-btn-large" data-detail-props-id="${escapeHtml(activityId)}">
+        <span class="props-icon">\u{1F44F}</span> ${propsCount} Props
+      </button>
+    </div>
+  `;
+
 
   modal.hidden = false;
 }
