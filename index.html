@@ -130,10 +130,20 @@
 
                   <div id="tuning-panel-host" class="tuning-panel-host" hidden>
                     <div class="advanced-grid tuning-panel-grid" id="tuning-panel-personal" data-tuning-panel="personal" hidden>
-                      <label class="field" id="age-field">
-                        <span data-i18n="field_age_optional">Alter (optional)</span>
-                        <input type="number" name="age" min="14" max="90" step="1" placeholder="z. B. 32" />
-                      </label>
+                      <div class="field" id="birthdate-field">
+                        <span data-i18n="field_birthdate_optional">Geburtsdatum (optional)</span>
+                        <div class="birthdate-selects">
+                          <select name="birthDay" id="plan-birth-day">
+                            <option value="">Tag</option>
+                          </select>
+                          <select name="birthMonth" id="plan-birth-month">
+                            <option value="">Monat</option>
+                          </select>
+                          <select name="birthYear" id="plan-birth-year">
+                            <option value="">Jahr</option>
+                          </select>
+                        </div>
+                      </div>
 
                       <label class="field" id="weight-field">
                         <span data-i18n="field_weight_optional">Gewicht kg (optional)</span>
@@ -177,6 +187,7 @@
                     </div>
 
                     <div class="advanced-grid tuning-panel-grid" id="tuning-panel-performance" data-tuning-panel="performance" hidden>
+                      <p class="tuning-panel-hint">Eingabewerte – deine geschätzten Basiswerte. Werden durch aktuelle Trainingsdaten automatisch aktualisiert.</p>
                       <label class="field is-select" id="level-field">
                         <span data-i18n="field_level">Level</span>
                         <select name="fitnessLevel" required>
@@ -1132,6 +1143,46 @@
                   <span class="connection-state" id="profile-settings-status" aria-live="polite"></span>
                 </div>
               </form>
+            </section>
+
+            <!-- SETTINGS: Eingabedaten (Saved Input Values) -->
+            <section class="result-card account-card profile-settings-card" data-profile-settings-panel="profile" id="settings-input-data">
+              <div class="result-title-row">
+                <h4>Eingabedaten</h4>
+              </div>
+              <p class="settings-panel-desc">Deine manuell eingegebenen Basiswerte. Diese werden durch aktuelle Trainingsdaten automatisch aktualisiert.</p>
+              <div class="form-grid" id="input-data-display">
+                <div class="input-data-row">
+                  <span class="input-data-label">FTP (Rad)</span>
+                  <span class="input-data-value" id="settings-input-ftp">--</span>
+                  <span class="input-data-unit">Watt</span>
+                </div>
+                <div class="input-data-row">
+                  <span class="input-data-label">Schwelle (Lauf)</span>
+                  <span class="input-data-value" id="settings-input-threshold">--</span>
+                  <span class="input-data-unit">min/km</span>
+                </div>
+                <div class="input-data-row">
+                  <span class="input-data-label">VO2max</span>
+                  <span class="input-data-value" id="settings-input-vo2max">--</span>
+                  <span class="input-data-unit">ml/kg/min</span>
+                </div>
+                <div class="input-data-row">
+                  <span class="input-data-label">Max HF</span>
+                  <span class="input-data-value" id="settings-input-maxhr">--</span>
+                  <span class="input-data-unit">bpm</span>
+                </div>
+                <div class="input-data-row">
+                  <span class="input-data-label">Ruhe-HF</span>
+                  <span class="input-data-value" id="settings-input-restinghr">--</span>
+                  <span class="input-data-unit">bpm</span>
+                </div>
+                <div class="input-data-row">
+                  <span class="input-data-label">Gewicht</span>
+                  <span class="input-data-value" id="settings-input-weight">--</span>
+                  <span class="input-data-unit">kg</span>
+                </div>
+              </div>
             </section>
 
             <!-- SETTINGS: Verbindungen -->

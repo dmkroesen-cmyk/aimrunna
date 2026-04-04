@@ -1178,6 +1178,42 @@ form.addEventListener("submit", (event) => {
     if (typeof form.reportValidity === "function" && !form.reportValidity()) return;
     const data = new FormData(form);
     const profile = extractProfile(data);
+
+    // ── Save input data persistently (two-tier system: input vs calculated) ──
+    const account = getCurrentAccount();
+    if (account) {
+      const inputData = {
+        birthDate: {
+          day: data.get("birthDay") || null,
+          month: data.get("birthMonth") || null,
+          year: data.get("birthYear") || null,
+        },
+        ftpBike: parseFloat(data.get("bikeFtp")) || null,
+        thresholdPace: data.get("runThresholdPace") || null,
+        bikeThresholdHr: parseInt(data.get("bikeThresholdHr")) || null,
+        bikeThresholdLactate: parseFloat(String(data.get("bikeThresholdLactate") || "").replace(",", ".")) || null,
+        runThresholdHr: parseInt(data.get("runThresholdHr")) || null,
+        runThresholdLactate: parseFloat(String(data.get("runThresholdLactate") || "").replace(",", ".")) || null,
+        swimCss: data.get("swimCss") || null,
+        maxHr: parseInt(data.get("maxHr")) || null,
+        restingHr: parseInt(data.get("restingHr")) || null,
+        weight: parseFloat(data.get("weightKg")) || null,
+        heightCm: parseFloat(data.get("heightCm")) || null,
+        sex: data.get("sex") || null,
+      };
+      account.settings = account.settings || {};
+      account.settings.inputData = inputData;
+
+      // Also update profile birthYear/month/day for age calculation
+      if (inputData.birthDate.year) {
+        account.profile = account.profile || {};
+        account.profile.birthYear = parseInt(inputData.birthDate.year);
+        if (inputData.birthDate.month) account.profile.birthMonth = parseInt(inputData.birthDate.month);
+        if (inputData.birthDate.day) account.profile.birthDay = parseInt(inputData.birthDate.day);
+      }
+      persistStore();
+    }
+
     const realismCheck = checkGoalRealismBeforePlan(profile);
     if (realismCheck?.block) {
       openGoalRealismModal({
@@ -1571,8 +1607,18 @@ document.getElementById("profile-settings-form")?.addEventListener("submit", (ev
   account.profile.height = fd.get("height") ? Number(fd.get("height")) : null;
   account.profile.restingHr = fd.get("restingHr") ? Number(fd.get("restingHr")) : null;
   account.profile.maxHr = fd.get("maxHr") ? Number(fd.get("maxHr")) : null;
-  // Sport checkboxes
+  // Sync profile values into inputData (two-tier system)
   if (!account.settings) account.settings = {};
+  if (!account.settings.inputData) account.settings.inputData = {};
+  if (account.profile.weight) account.settings.inputData.weight = account.profile.weight;
+  if (account.profile.restingHr) account.settings.inputData.restingHr = account.profile.restingHr;
+  if (account.profile.maxHr) account.settings.inputData.maxHr = account.profile.maxHr;
+  if (account.profile.sex) account.settings.inputData.sex = account.profile.sex;
+  if (account.profile.birthYear) {
+    if (!account.settings.inputData.birthDate) account.settings.inputData.birthDate = {};
+    account.settings.inputData.birthDate.year = String(account.profile.birthYear);
+  }
+  // Sport checkboxes
   if (!account.settings.sports) account.settings.sports = {};
   ["sport-running", "sport-cycling", "sport-swimming", "sport-triathlon", "sport-hyrox", "sport-gym", "sport-yoga", "sport-hiking"].forEach((name) => {
     account.settings.sports[name] = !!fd.get(name);
@@ -3389,6 +3435,9 @@ function renderAccountUi() {
   renderProfileAvatar(account);
   populateSettingsForms(account);
 
+  // Pre-populate plan form from saved input data
+  populatePlanFormFromSaved(account);
+
   renderSavedPlansList(account);
   renderFriendsList(account);
   renderAccountSearchResults(lastAccountSearchQuery);
@@ -3501,6 +3550,9 @@ function populateSettingsForms(account) {
     const cb = document.getElementById(id);
     if (cb && notifs[id] !== undefined) cb.checked = notifs[id];
   });
+
+  // Populate Eingabedaten display in settings
+  populateInputDataDisplay(account);
 }
 
 function setFormValue(formEl, name, value) {
@@ -7962,7 +8014,21 @@ function closeSessionOverlay() {
 function extractProfile(data) {
   const raceDate = new Date(`${data.get("raceDate")}T09:00:00`);
   const sex = String(data.get("sex") || "");
-  const ageRaw = String(data.get("age") || "").trim();
+  const birthDayRaw = String(data.get("birthDay") || "").trim();
+  const birthMonthRaw = String(data.get("birthMonth") || "").trim();
+  const birthYearRaw = String(data.get("birthYear") || "").trim();
+  // Calculate age from birthdate if available
+  let ageRaw = "";
+  if (birthYearRaw) {
+    const now = new Date();
+    let age = now.getFullYear() - Number(birthYearRaw);
+    if (birthMonthRaw) {
+      const bm = Number(birthMonthRaw);
+      const bd = birthDayRaw ? Number(birthDayRaw) : 1;
+      if (now.getMonth() + 1 < bm || (now.getMonth() + 1 === bm && now.getDate() < bd)) age--;
+    }
+    ageRaw = String(age);
+  }
   const weightRaw = String(data.get("weightKg") || "").trim();
   const heightRaw = String(data.get("heightCm") || "").trim();
   const targetWeightRaw = String(data.get("targetWeightKg") || "").trim();
@@ -14568,61 +14634,75 @@ function renderPowerZones(activities) {
 
 function renderDashboardKpis(account) {
   const activities = account?.activities || [];
-  if (!activities.length) return;
+  const inputData = account?.settings?.inputData || {};
+  // Allow rendering even with no activities if we have inputData
+  if (!activities.length && !Object.keys(inputData).length) return;
 
   const recent = activities.filter(a => new Date(a.createdAt || 0).getTime() > Date.now() - 365 * 86400000);
   const runs = recent.filter(a => a.sportType === "run" && a.distanceKm > 0 && a.movingTimeSec > 0);
   const bikes = recent.filter(a => a.sportType === "bike" && a.distanceKm > 0 && a.movingTimeSec > 0);
 
+  // ─── Two-tier: calculated performance metrics override input data ───
+  const calculatedMetrics = typeof calculateActualPerformanceMetrics === "function"
+    ? calculateActualPerformanceMetrics(account) : {};
+
   // ─── Running KPIs ───
-  const analysis = analyzeActivityHistory(activities);
+  const analysis = activities.length ? analyzeActivityHistory(activities) : null;
   const profile = account?.profile || {};
   const vo2max = estimateVO2max(profile);
 
-  setText(document.getElementById("kpi-run-vo2max"), vo2max?.value ? vo2max.value.toFixed(1) : "–");
+  // VO2max: prefer calculated, then estimateVO2max, then input
+  const effectiveVo2 = calculatedMetrics.vo2maxCalculated || (vo2max?.value ? vo2max.value : null) || inputData.vo2maxEstimate;
+  setText(document.getElementById("kpi-run-vo2max"), effectiveVo2 ? Number(effectiveVo2).toFixed(1) : "–");
 
-  // Threshold pace (estimate from best 10k or 5k)
+  // Threshold pace: prefer calculated from activities, then input data
+  let thresholdPaceSet = false;
   if (runs.length) {
     const fiveKs = runs.filter(a => a.distanceKm >= 4.5 && a.distanceKm <= 5.5).sort((a, b) => (a.movingTimeSec / a.distanceKm) - (b.movingTimeSec / b.distanceKm));
     const tenKs = runs.filter(a => a.distanceKm >= 9 && a.distanceKm <= 11).sort((a, b) => (a.movingTimeSec / a.distanceKm) - (b.movingTimeSec / b.distanceKm));
     const bestRef = tenKs[0] || fiveKs[0];
     if (bestRef) {
-      const thresholdPace = (bestRef.movingTimeSec / bestRef.distanceKm) * 1.05; // ~105% of race pace
+      const thresholdPace = (bestRef.movingTimeSec / bestRef.distanceKm) * 1.05;
       const tm = Math.floor(thresholdPace / 60);
       const ts = Math.round(thresholdPace % 60);
       setText(document.getElementById("kpi-run-threshold"), `${tm}:${String(ts).padStart(2, "0")}`);
+      thresholdPaceSet = true;
 
-      // FatMax: ~75% of threshold pace intensity → ~130% of threshold pace (slower)
       const fatmaxPace = thresholdPace * 1.30;
       const fm = Math.floor(fatmaxPace / 60);
       const fs = Math.round(fatmaxPace % 60);
       setText(document.getElementById("kpi-run-fatmax"), `${fm}:${String(fs).padStart(2, "0")}`);
     }
   }
+  // Fallback: use input threshold pace if no calculated value
+  if (!thresholdPaceSet && (calculatedMetrics.thresholdPace || inputData.thresholdPace)) {
+    const tp = calculatedMetrics.thresholdPace || inputData.thresholdPace;
+    setText(document.getElementById("kpi-run-threshold"), tp);
+  }
 
   // Fitness Age
   const chronoAge = profile.birthYear ? (new Date().getFullYear() - profile.birthYear) : null;
-  if (vo2max?.value && chronoAge) {
-    const fAge = estimateFitnessAge(vo2max.value, profile.sex, chronoAge);
+  if (effectiveVo2 && chronoAge) {
+    const fAge = estimateFitnessAge(Number(effectiveVo2), profile.sex, chronoAge);
     setText(document.getElementById("kpi-run-fitness-age"), fAge != null ? fAge : "–");
   }
 
-  // Resting / Max HR
-  const restingHr = profile.restingHr || account?.healthData?.restingHr;
-  const maxHr = profile.maxHr || (runs.length ? Math.max(...runs.map(a => a.maxHeartrate || 0)) : null);
-  setText(document.getElementById("kpi-resting-hr"), restingHr || "–");
-  setText(document.getElementById("kpi-max-hr"), maxHr && maxHr > 0 ? maxHr : "–");
+  // Resting / Max HR: prefer calculated, then profile, then input
+  const effectiveRestingHr = calculatedMetrics.restingHr || profile.restingHr || account?.healthData?.restingHr || inputData.restingHr;
+  const effectiveMaxHr = calculatedMetrics.maxHr || profile.maxHr || (runs.length ? Math.max(...runs.map(a => a.maxHeartrate || 0)) : null) || inputData.maxHr;
+  setText(document.getElementById("kpi-resting-hr"), effectiveRestingHr || "–");
+  setText(document.getElementById("kpi-max-hr"), effectiveMaxHr && effectiveMaxHr > 0 ? effectiveMaxHr : "–");
 
-  // ─── Cycling KPIs ───
+  // ─── Cycling KPIs (two-tier: calculated > input) ───
+  const calculatedFtp = calculatedMetrics.ftpBike || (analysis?.estimatedFtp?.value ? Math.round(analysis.estimatedFtp.value) : null);
+  const effectiveFtp = calculatedFtp || inputData.ftpBike;
+  if (effectiveFtp) {
+    setText(document.getElementById("kpi-bike-ftp"), Math.round(effectiveFtp));
+    const weight = profile.weight || inputData.weight || 75;
+    setText(document.getElementById("kpi-bike-wkg"), (effectiveFtp / weight).toFixed(2));
+    setText(document.getElementById("kpi-bike-fatmax"), Math.round(effectiveFtp * 0.60));
+  }
   if (bikes.length) {
-    const ftp = analysis?.estimatedFtp;
-    if (ftp?.value) {
-      setText(document.getElementById("kpi-bike-ftp"), Math.round(ftp.value));
-      const weight = profile.weight || 75;
-      setText(document.getElementById("kpi-bike-wkg"), (ftp.value / weight).toFixed(2));
-      // FatMax power: ~55-65% of FTP
-      setText(document.getElementById("kpi-bike-fatmax"), Math.round(ftp.value * 0.60));
-    }
     // LTHR from cycling
     const lthr = bikes.filter(a => a.avgHeartrate > 0).sort((a, b) => b.avgWatts - a.avgWatts).slice(0, 3);
     if (lthr.length) {
@@ -15091,3 +15171,139 @@ function syncUiState() {
   // Record daily metric snapshot
   recordDailyMetricSnapshot();
 }
+
+// ══════════════════════════════════════════════════════════════
+// ── Two-tier data system: Input Data vs Calculated Performance ──
+// ══════════════════════════════════════════════════════════════
+
+/**
+ * Initialize birthdate dropdown options (Day, Month, Year).
+ * Call once when the plan form is first rendered.
+ */
+function initBirthdateDropdowns() {
+  const dayEl = document.getElementById("plan-birth-day");
+  const monthEl = document.getElementById("plan-birth-month");
+  const yearEl = document.getElementById("plan-birth-year");
+
+  if (dayEl && dayEl.options.length <= 1) {
+    for (let d = 1; d <= 31; d++) dayEl.add(new Option(d, d));
+  }
+  if (monthEl && monthEl.options.length <= 1) {
+    const months = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+    months.forEach((m, i) => monthEl.add(new Option(m, i + 1)));
+  }
+  if (yearEl && yearEl.options.length <= 1) {
+    for (let y = 2015; y >= 1940; y--) yearEl.add(new Option(y, y));
+  }
+}
+
+/**
+ * Pre-populate plan form fields from saved inputData.
+ */
+function populatePlanFormFromSaved(account) {
+  const id = account?.settings?.inputData;
+  if (!id) return;
+  const f = document.getElementById("plan-form");
+  if (!f) return;
+
+  if (id.birthDate?.day)   { const el = f.querySelector('[name="birthDay"]');   if (el) el.value = id.birthDate.day; }
+  if (id.birthDate?.month) { const el = f.querySelector('[name="birthMonth"]'); if (el) el.value = id.birthDate.month; }
+  if (id.birthDate?.year)  { const el = f.querySelector('[name="birthYear"]');  if (el) el.value = id.birthDate.year; }
+  if (id.ftpBike)              { const el = f.querySelector('[name="bikeFtp"]');            if (el) el.value = id.ftpBike; }
+  if (id.thresholdPace)        { const el = f.querySelector('[name="runThresholdPace"]');   if (el) el.value = id.thresholdPace; }
+  if (id.bikeThresholdHr)      { const el = f.querySelector('[name="bikeThresholdHr"]');    if (el) el.value = id.bikeThresholdHr; }
+  if (id.bikeThresholdLactate) { const el = f.querySelector('[name="bikeThresholdLactate"]'); if (el) el.value = id.bikeThresholdLactate; }
+  if (id.runThresholdHr)       { const el = f.querySelector('[name="runThresholdHr"]');     if (el) el.value = id.runThresholdHr; }
+  if (id.runThresholdLactate)  { const el = f.querySelector('[name="runThresholdLactate"]'); if (el) el.value = id.runThresholdLactate; }
+  if (id.swimCss)              { const el = f.querySelector('[name="swimCss"]');            if (el) el.value = id.swimCss; }
+  if (id.weight)               { const el = f.querySelector('[name="weightKg"]');           if (el) el.value = id.weight; }
+  if (id.heightCm)             { const el = f.querySelector('[name="heightCm"]');           if (el) el.value = id.heightCm; }
+  if (id.sex)                  { const el = f.querySelector('[name="sex"]');                if (el) el.value = id.sex; }
+}
+
+/**
+ * Calculate actual performance metrics from training activities.
+ * Calculated values override input data for display & plan adjustments.
+ */
+function calculateActualPerformanceMetrics(account) {
+  const activities = account?.activities || [];
+  const profile = account?.profile || {};
+  const inputData = account?.settings?.inputData || {};
+  const actual = {};
+
+  const ninetyDaysAgo = Date.now() - 90 * 86400000;
+
+  // ── FTP from cycling activities (best avg watts * 0.95 from last 90 days) ──
+  const recentCycling = activities.filter(a =>
+    (a.sportType === "bike" || a.type === "Ride" || a.sport === "cycling" || a.sport === "Radfahren") &&
+    new Date(a.createdAt || a.date || a.start_date || 0).getTime() > ninetyDaysAgo &&
+    (a.avgWatts || a.average_watts)
+  );
+  if (recentCycling.length > 0) {
+    const bestPower = Math.max(...recentCycling.map(a => a.avgWatts || a.average_watts || 0));
+    if (bestPower > 0) actual.ftpBike = Math.round(bestPower * 0.95);
+  }
+
+  // ── Threshold pace from running activities ──
+  const recentRunning = activities.filter(a =>
+    (a.sportType === "run" || a.type === "Run" || a.sport === "running" || a.sport === "Laufen") &&
+    new Date(a.createdAt || a.date || a.start_date || 0).getTime() > ninetyDaysAgo &&
+    (a.distanceKm > 0 || a.average_speed > 0)
+  );
+  if (recentRunning.length > 0) {
+    // Best pace from runs > 20 min
+    const longRuns = recentRunning.filter(a => (a.movingTimeSec || a.moving_time || a.duration || 0) > 1200 && a.distanceKm > 0);
+    if (longRuns.length > 0) {
+      const bestPaceSec = Math.min(...longRuns.map(a => {
+        const timeSec = a.movingTimeSec || a.moving_time || a.duration || 0;
+        return timeSec / a.distanceKm;
+      }));
+      if (bestPaceSec > 0 && bestPaceSec < 1200) {
+        const thresholdSec = bestPaceSec * 1.05; // 105% of race pace
+        const tm = Math.floor(thresholdSec / 60);
+        const ts = Math.round(thresholdSec % 60);
+        actual.thresholdPace = `${tm}:${String(ts).padStart(2, "0")}`;
+      }
+    }
+  }
+
+  // ── VO2max (use existing estimateVO2max function) ──
+  const vo2 = typeof estimateVO2max === "function" ? estimateVO2max(profile) : null;
+  if (vo2?.value) actual.vo2maxCalculated = Math.round(vo2.value * 10) / 10;
+
+  // ── Max HR from activities ──
+  const maxHrValues = activities.filter(a => a.maxHeartrate > 0).map(a => a.maxHeartrate);
+  const maxHrFromActs = maxHrValues.length ? Math.max(...maxHrValues) : 0;
+  if (maxHrFromActs > 100) actual.maxHr = maxHrFromActs;
+
+  // ── Resting HR from profile or input ──
+  actual.restingHr = profile.restingHr || inputData.restingHr || null;
+
+  return actual;
+}
+
+/**
+ * Get the "effective" metric value: calculated takes precedence over input.
+ */
+function getEffectiveMetric(key, account) {
+  const actual = calculateActualPerformanceMetrics(account);
+  const input = account?.settings?.inputData || {};
+  return actual[key] != null ? actual[key] : input[key];
+}
+
+/**
+ * Populate the Eingabedaten display in settings.
+ */
+function populateInputDataDisplay(account) {
+  const id = account?.settings?.inputData || {};
+  const set = (elId, val) => { const el = document.getElementById(elId); if (el) el.textContent = val || "--"; };
+  set("settings-input-ftp", id.ftpBike);
+  set("settings-input-threshold", id.thresholdPace);
+  set("settings-input-vo2max", id.vo2maxEstimate);
+  set("settings-input-maxhr", id.maxHr);
+  set("settings-input-restinghr", id.restingHr);
+  set("settings-input-weight", id.weight);
+}
+
+// Initialize birthdate dropdowns on load
+initBirthdateDropdowns();

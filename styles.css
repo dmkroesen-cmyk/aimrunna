@@ -6563,6 +6563,61 @@ button:focus-visible {
   transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* ── Birthdate Selects ── */
+.birthdate-selects {
+  display: flex;
+  gap: 8px;
+}
+.birthdate-selects select {
+  flex: 1;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-sm, 8px);
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+/* ── Input Data Display in Settings ── */
+.input-data-row {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.input-data-label {
+  flex: 1;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+.input-data-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  margin-right: 6px;
+}
+.input-data-unit {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.4);
+  width: 50px;
+}
+
+.settings-panel-desc {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: var(--space-md, 16px);
+  line-height: 1.5;
+}
+
+/* ── Tuning Panel Hint ── */
+.tuning-panel-hint {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.35);
+  margin: 0 0 8px;
+  grid-column: 1 / -1;
+  line-height: 1.4;
+}
+
 /* ── Fitness Age Responsive ── */
 @media (max-width: 600px) {
   .fitness-age-hero {
