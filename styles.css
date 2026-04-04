@@ -27,6 +27,11 @@
   box-sizing: border-box;
 }
 
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
 html,
 body {
   margin: 0;
@@ -68,6 +73,11 @@ body::before {
 
 body::after {
   content: none;
+}
+
+body.app-view-profile::before,
+body.app-view-crew::before {
+  display: none;
 }
 
 .section-account,
@@ -389,7 +399,7 @@ body.is-authenticated .account-dot {
   margin: 0 0 24px;
   position: sticky;
   top: 60px;
-  z-index: 12;
+  z-index: 20;
   background: rgba(5, 5, 6, 0.92);
   backdrop-filter: blur(24px) saturate(1.4);
   -webkit-backdrop-filter: blur(24px) saturate(1.4);
@@ -633,6 +643,7 @@ body.is-authenticated .account-dot {
   align-items: center;
   gap: 10px;
   text-decoration: none;
+  color: #fff;
   pointer-events: auto;
   flex-shrink: 0;
 }
@@ -683,10 +694,10 @@ body.is-authenticated .account-dot {
   box-shadow: 0 2px 8px rgba(0,0,0,0.2);
   display: grid;
   place-items: center;
+  color: #fff;
   font-weight: 700;
-  font-size: 14px;
-  letter-spacing: -0.05em;
   font-size: 18px;
+  letter-spacing: -0.05em;
 }
 
 .brand-mark span {
@@ -3557,11 +3568,12 @@ body.profile-view-settings .profile-settings-card.is-active {
   border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.045);
   background: rgba(255, 255, 255, 0.01);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.015);
   display: grid;
   grid-template-rows: auto auto auto 1fr;
   gap: 6px;
   cursor: pointer;
-  transition: border-color 160ms ease, background-color 160ms ease, transform 160ms ease, min-height 180ms ease;
+  transition: border-color 200ms var(--transition-smooth), background-color 200ms ease, transform 200ms var(--transition-smooth), box-shadow 200ms, min-height 200ms ease;
 }
 
 .day-card.is-key {
@@ -3590,7 +3602,9 @@ body.profile-view-settings .profile-settings-card.is-active {
 .day-card.rest { opacity: 0.7; }
 .day-card:hover {
   border-color: rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.014);
+  background: rgba(255, 255, 255, 0.018);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.025);
 }
 
 .day-card.is-expanded {
@@ -4651,12 +4665,11 @@ body.has-output .section-data { border-color: rgba(255, 255, 255, 0.1); }
     margin-bottom: 12px;
     position: sticky;
     top: 48px;
-    z-index: 15;
-    padding-top: 8px;
-    padding-bottom: 8px;
-    background: var(--bg);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    backdrop-filter: blur(12px);
+    z-index: 20;
+    padding: 10px 0;
+    background: #050506;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: none;
   }
 
   .profile-view-tabs {
@@ -4668,8 +4681,8 @@ body.has-output .section-data { border-color: rgba(255, 255, 255, 0.1); }
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    border: 1px solid rgba(255,255,255,0.08);
-    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.06);
     border-radius: 12px;
   }
   .profile-view-tabs::-webkit-scrollbar {
@@ -4682,10 +4695,16 @@ body.has-output .section-data { border-color: rgba(255, 255, 255, 0.1); }
     padding: 0 14px;
     letter-spacing: 0.01em;
     text-align: center;
-    font-size: 12px;
+    font-size: 12.5px;
     text-transform: none;
     line-height: 1.1;
     border-radius: 9px;
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .profile-view-tab.is-active {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.14);
   }
 
   .profile-settings-rail-card {
