@@ -2926,23 +2926,25 @@ body.profile-view-settings .profile-settings-card.is-active {
   border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.05);
   background: linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.008));
-  padding: 14px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+  padding: 14px 16px;
   transition: all 0.25s var(--transition-smooth);
 }
 
 .profile-stat:hover {
-  border-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.09);
   background: linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.012));
   transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.03);
 }
 
 .profile-stat span {
   display: block;
   color: var(--muted-2);
   font-size: 9px;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .profile-stat strong {
@@ -2952,6 +2954,7 @@ body.profile-view-settings .profile-settings-card.is-active {
   font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 1.1;
+  color: #fff;
 }
 
 .empty-copy {
@@ -3107,6 +3110,16 @@ body.profile-view-settings .profile-settings-card.is-active {
   overflow: hidden;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02), inset 0 -24px 60px rgba(0, 0, 0, 0.12);
   min-height: 120px;
+  transition: border-color 200ms ease, transform 200ms var(--transition-smooth), box-shadow 200ms;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .deep-metric:hover,
+  .prediction-item:hover {
+    border-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(-1px);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 6px 20px rgba(0, 0, 0, 0.2);
+  }
 }
 
 .deep-metric span,
@@ -3116,14 +3129,17 @@ body.profile-view-settings .profile-settings-card.is-active {
   font-size: 10px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+  font-weight: 600;
 }
 
 .deep-metric strong,
 .prediction-item strong {
   display: block;
   margin-top: 8px;
-  font-size: 17px;
+  font-size: 18px;
+  font-weight: 700;
   letter-spacing: -0.03em;
+  color: #fff;
 }
 
 .deep-metric small {
