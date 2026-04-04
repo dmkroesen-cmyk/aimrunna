@@ -137,11 +137,11 @@ Nes 2011/2013 (HUNT), Kodama 2009 (JAMA), Lifelines HRV norms, WHOOP Healthspan 
 
 | Component | Weight | Formula (signed years delta, negative=younger) |
 |-----------|--------|-----------------------------------------------|
-| VO2max | 0.40 | `−0.2 × (VO2max − popMean)` where popMean_M = 57−0.40·age, popMean_F = 48−0.37·age |
-| Activity | 0.20 | `−0.002 × (stepsEquiv − 6000)` from weeklyCount×600 + weeklyMin×15 + 4000 base |
-| Sleep | 0.15 | `|h−7.5|×2 − 1.5` clamped [−3,+5] |
+| VO2max | 0.35 | `−0.2 × (VO2max − popMean)` where popMean_M = 57−0.40·age, popMean_F = 48−0.37·age |
+| Activity | 0.25 | `−0.002 × (stepsEquiv − 6000)` from weeklyCount×600 + weeklyMin×15 + 4000 base |
+| Sleep | 0.20 | `|h−7.5|×2 − 1.5` clamped [−3,+5] |
 | RHR | 0.10 | `0.25 × (RHR − (65+0.03·age))` clamped [−6,+8] |
-| HRV (RMSSD) | 0.10 | `−15 × (ln(RMSSD) − (4.3−0.022·age))` clamped [±6] |
+| HRV (RMSSD) | 0.05 | `−15 × (ln(RMSSD) − (4.3−0.022·age))` clamped [±6] — demoted per WHOOP (too genetic) |
 | Body (WHR) | 0.05 | `10 × (WHR − target)`; target 0.85 F / 0.90 M; clamped [−2,+3] |
 
 **Missing inputs:** effective weights renormalized over available components (Σw=1).

@@ -513,6 +513,7 @@
             <button type="button" class="stats-sub-tab is-active" data-stats-sub="volume">Volumen</button>
             <button type="button" class="stats-sub-tab" data-stats-sub="performance">Performance</button>
             <button type="button" class="stats-sub-tab" data-stats-sub="health">Health</button>
+            <button type="button" class="stats-sub-tab" data-stats-sub="load">Belastung</button>
           </div>
           <div class="account-grid">
             <!-- ═══ DASHBOARD RINGS ═══ -->
@@ -1028,6 +1029,12 @@
                 <svg id="metric-ts-svg" viewBox="0 0 720 200" preserveAspectRatio="none" class="stats-chart-svg"></svg>
                 <p class="card-copy metric-ts-empty" id="metric-ts-empty">Metrik-Verlauf wird nach mehreren Tagen sichtbar.</p>
               </div>
+            </section>
+
+            <!-- ── BELASTUNG Deep-Dive (Metrics sub-tab) ── -->
+            <section class="result-card account-card profile-main-card profile-card-statistics stats-sub-card stats-sub-load" id="profile-card-load-deep">
+              <div class="result-title-row"><h4>Trainingsbelastung — Detailanalyse</h4></div>
+              <p class="card-copy">Ausführliche Load-Analyse findest du im Dashboard. Hier kommen bald: Zonen-Verteilung über Zeit, TRIMP-Historie, Monotonie- & Strain-Scores.</p>
             </section>
 
             <!-- ── LOAD / Belastung (Dashboard) ── -->

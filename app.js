@@ -7252,6 +7252,10 @@ function computeFitnessAgeBreakdown(account) {
 
   const components = [];
 
+  // Weights aligned with WHOOP Healthspan 2024 + Kodama 2009 (JAMA):
+  //   VO2max is strongest single predictor (13%/MET mortality reduction),
+  //   but WHOOP balances across 9 inputs. HRV explicitly NOT used by WHOOP for age
+  //   (too genetically individualized) → demoted to 0.05.
   // A) VO2max delta (Garmin/HUNT convention: -0.2 per ml/kg/min above pop mean)
   const vo2Result = typeof estimateVO2max === "function" ? estimateVO2max(profile) : null;
   const vo2 = vo2Result?.value ?? null;
@@ -7261,10 +7265,10 @@ function computeFitnessAgeBreakdown(account) {
     components.push({
       key: "vo2max", label: "VO2max",
       inputText: `${vo2.toFixed(1)} ml/kg/min (Norm ${popMean.toFixed(0)})`,
-      deltaYr, weight: 0.40, available: true,
+      deltaYr, weight: 0.35, available: true,
     });
   } else {
-    components.push({ key: "vo2max", label: "VO2max", inputText: "keine Daten", deltaYr: 0, weight: 0.40, available: false });
+    components.push({ key: "vo2max", label: "VO2max", inputText: "keine Daten", deltaYr: 0, weight: 0.35, available: false });
   }
 
   // B) Activity delta: steps-proxy (sessions+minutes) & zone-2 time
@@ -7278,10 +7282,10 @@ function computeFitnessAgeBreakdown(account) {
     components.push({
       key: "activity", label: "Aktivität",
       inputText: `${weeklyCount.toFixed(1)}×/Wo · ${Math.round(weeklyMin)} min/Wo`,
-      deltaYr: actDelta, weight: 0.20, available: true,
+      deltaYr: actDelta, weight: 0.25, available: true,
     });
   } else {
-    components.push({ key: "activity", label: "Aktivität", inputText: "keine Daten", deltaYr: 0, weight: 0.20, available: false });
+    components.push({ key: "activity", label: "Aktivität", inputText: "keine Daten", deltaYr: 0, weight: 0.25, available: false });
   }
 
   // C) Sleep delta (optional)
@@ -7292,10 +7296,10 @@ function computeFitnessAgeBreakdown(account) {
     components.push({
       key: "sleep", label: "Schlaf",
       inputText: `${sleepHours.toFixed(1)} h/Nacht`,
-      deltaYr: sleepDelta, weight: 0.15, available: true,
+      deltaYr: sleepDelta, weight: 0.20, available: true,
     });
   } else {
-    components.push({ key: "sleep", label: "Schlaf", inputText: "keine Daten", deltaYr: 0, weight: 0.15, available: false });
+    components.push({ key: "sleep", label: "Schlaf", inputText: "keine Daten", deltaYr: 0, weight: 0.20, available: false });
   }
 
   // D) RHR delta
@@ -7320,10 +7324,10 @@ function computeFitnessAgeBreakdown(account) {
     components.push({
       key: "hrv", label: "HRV (RMSSD)",
       inputText: `${Math.round(rmssd)} ms`,
-      deltaYr: hrvDelta, weight: 0.10, available: true,
+      deltaYr: hrvDelta, weight: 0.05, available: true,
     });
   } else {
-    components.push({ key: "hrv", label: "HRV (RMSSD)", inputText: "keine Daten", deltaYr: 0, weight: 0.10, available: false });
+    components.push({ key: "hrv", label: "HRV (RMSSD)", inputText: "keine Daten", deltaYr: 0, weight: 0.05, available: false });
   }
 
   // F) Body composition delta (WHR)
@@ -7364,41 +7368,28 @@ function renderFitnessAgeBreakdown(account) {
   el.hidden = false;
 
   const fmtYr = (v) => (v >= 0 ? "+" : "") + v.toFixed(1);
-  const fmtContrib = (v) => (v >= 0 ? "+" : "") + v.toFixed(1);
-  const color = (v) => v <= -1 ? "#4CAF82" : v < 1 ? "var(--muted)" : v < 3 ? "#E5A93D" : "#d86a6a";
-  const sign = bd.netDelta < 0 ? "jünger" : bd.netDelta > 0 ? "älter" : "Ø";
+  // green <-0.5 | neutral | amber >0.5 | red >2
+  const tone = (v) => v <= -0.5 ? "pos" : v >= 2 ? "neg-strong" : v >= 0.5 ? "neg" : "neu";
 
   const rows = bd.components
     .slice()
+    .filter(c => c.available)
     .sort((a, b) => Math.abs(b.contributionYr) - Math.abs(a.contributionYr))
-    .map(c => {
-      const avail = c.available;
-      const wPct = Math.round(c.effectiveWeight * 100);
-      return `<div class="fa-bd-row ${avail ? "" : "fa-bd-missing"}">
-        <div class="fa-bd-label">${c.label}</div>
-        <div class="fa-bd-input">${c.inputText}</div>
-        <div class="fa-bd-delta" style="color:${avail ? color(c.deltaYr) : "var(--muted)"}">${avail ? fmtYr(c.deltaYr) + " J" : "—"}</div>
-        <div class="fa-bd-weight">${wPct}%</div>
-        <div class="fa-bd-contrib" style="color:${avail ? color(c.contributionYr) : "var(--muted)"}">${avail ? fmtContrib(c.contributionYr) + " J" : "—"}</div>
-      </div>`;
-    }).join("");
+    .map(c => `<li class="fa-bd-row">
+        <span class="fa-bd-label">${c.label}</span>
+        <span class="fa-bd-bar"><span class="fa-bd-bar-fill tone-${tone(c.contributionYr)}" style="width:${Math.min(100, Math.abs(c.contributionYr) * 20)}%"></span></span>
+        <span class="fa-bd-contrib tone-${tone(c.contributionYr)}">${fmtYr(c.contributionYr)}</span>
+      </li>`).join("");
+
+  const missing = bd.components.filter(c => !c.available).map(c => c.label);
+  const missingHint = missing.length ? `<div class="fa-bd-missing-hint">Noch ohne Daten: ${missing.join(" · ")}</div>` : "";
 
   el.innerHTML = `
     <div class="fa-bd-head">
-      <span class="fa-bd-title">Wie dein Fitness-Alter zustande kommt</span>
-      <span class="fa-bd-net">Netto ${fmtYr(bd.netDelta)} J ${sign} · ±${bd.confidence.toFixed(0)} J Unsicherheit</span>
+      <span class="fa-bd-title">Woraus sich dein Fitness-Alter zusammensetzt</span>
     </div>
-    <div class="fa-bd-table">
-      <div class="fa-bd-row fa-bd-header">
-        <div class="fa-bd-label">Faktor</div>
-        <div class="fa-bd-input">Messwert</div>
-        <div class="fa-bd-delta">Δ J</div>
-        <div class="fa-bd-weight">Gewicht</div>
-        <div class="fa-bd-contrib">Beitrag</div>
-      </div>
-      ${rows}
-    </div>
-    <p class="fa-bd-foot">Quellen: Nes 2013 (HUNT), Kodama 2009 (JAMA), Lifelines HRV, WHOOP Healthspan 2024. Gewichte werden bei fehlenden Daten automatisch neu verteilt.</p>
+    <ul class="fa-bd-list">${rows}</ul>
+    ${missingHint}
   `;
 }
 
