@@ -286,7 +286,7 @@ let lastAccountSearchQuery = "";
 let activeAccountSection = "profile";
 let activeAppView = "home";
 let activeProfileView = "overview";
-let activeProfileSettingsView = "account";
+let activeProfileSettingsView = "profile";
 let pendingGoalRealismSuggestion = null;
 let pendingGoalRealismProfile = null;
 let draftRaceEvents = parseRaceEventsJson(raceEventsJsonInputEl?.value);
@@ -324,11 +324,11 @@ const STRAVA_OAUTH_DEV_BASE =
     : `${window.location.protocol}//${window.location.host}`;
 
 const LEGAL_CONTENT = {
-  imprint: `Impressum (Draft, DE)\n\nDiese Seite ist eine Beta-Version von AImRUNNA.\n\nHier eintragen:\n• Anbieter / Firma / Rechtsform\n• Vertretungsberechtigte Person\n• Anschrift\n• Kontakt (E-Mail, Telefon)\n• Registereintrag (falls vorhanden)\n• USt-IdNr. (falls vorhanden)\n• Verantwortlich i.S.d. § 18 MStV (falls relevant)\n\nHinweis: Vor Veröffentlichung mit deutscher/europäischer Rechtsberatung final prüfen.`,
+  imprint: `Impressum (Draft, DE)\n\nDiese Seite ist eine Beta-Version von AImAthlete.\n\nHier eintragen:\n• Anbieter / Firma / Rechtsform\n• Vertretungsberechtigte Person\n• Anschrift\n• Kontakt (E-Mail, Telefon)\n• Registereintrag (falls vorhanden)\n• USt-IdNr. (falls vorhanden)\n• Verantwortlich i.S.d. § 18 MStV (falls relevant)\n\nHinweis: Vor Veröffentlichung mit deutscher/europäischer Rechtsberatung final prüfen.`,
   privacy: `Datenschutzerklärung (Draft)\n\n1. Verantwortlicher\n2. Verarbeitete Daten (Account, Trainingsdaten, Gesundheitsnahe Daten, Geräte-IDs, Logs)\n3. Zwecke (Trainingsplanung, Analyse, Community, Sicherheit)\n4. Rechtsgrundlagen (Art. 6 DSGVO; ggf. Einwilligung)\n5. Datenquellen (Strava, Garmin, WHOOP, manuelle Eingaben)\n6. Empfänger / Auftragsverarbeiter\n7. Speicherdauer\n8. Betroffenenrechte (Auskunft, Löschung, Berichtigung, Export, Widerspruch)\n9. Widerruf von Einwilligungen\n10. Sicherheit / Verschlüsselung\n11. Internationale Datenübermittlungen\n12. Cookies / Tracking\n\nWichtig: Gesundheits-/Fitnessdaten sauber klassifizieren und Rechtsgrundlagen juristisch prüfen.`,
   terms: `Nutzungsbedingungen (Draft)\n\n• Leistungsbeschreibung (Beta, Trainingsplanung, Community, Datenimport)\n• Nutzerkonto / Zugang\n• Pflichten der Nutzer (wahre Angaben, keine rechtswidrigen Inhalte)\n• Verfügbarkeit / Änderungen / Beta-Status\n• Geistiges Eigentum\n• Community-Regeln / Sanktionen / Sperrung\n• Haftungsbegrenzung (rechtlich zulässig)\n• Hinweis: Trainingspläne sind keine medizinische Beratung\n• Kündigung / Account-Löschung\n• Anwendbares Recht / Gerichtsstand (soweit zulässig)\n\nVor Livegang rechtlich prüfen lassen.`,
   agb: `AGB (Draft)\n\nNur erforderlich/sinnvoll, sobald kostenpflichtige Leistungen / Abos / Verträge angeboten werden.\n\nDann typischer Inhalt:\n• Vertragspartner\n• Vertragsschluss\n• Preise / Zahlung / Abrechnung\n• Laufzeit / Kündigung / Verlängerung\n• Widerrufsrechte (Verbraucher)\n• Leistungsumfang / Änderungen\n• Gewährleistung / Haftung\n• Support / Kontakt\n• Datenschutzverweis\n\nAGB bitte nicht aus Standard-Generator blind übernehmen – auf Trainings-/Datenprodukt anpassen und prüfen lassen.`,
-  disclaimer: `Health & Training Disclaimer (Draft)\n\nAImRUNNA liefert Trainingspläne, Analysen und Prognosen zur Orientierung.\n\nKein medizinischer Rat / keine Diagnose:\n• Die Inhalte ersetzen keine ärztliche, physiotherapeutische oder ernährungsmedizinische Beratung.\n• Vor Beginn oder Änderung intensiver Trainingsprogramme gesundheitliche Eignung prüfen lassen.\n• Bei Schmerzen, Schwindel, Atemnot oder anderen Beschwerden Training abbrechen und medizinischen Rat einholen.\n\nEigenverantwortung:\n• Nutzer trainieren auf eigene Verantwortung.\n• Angaben/Prognosen können unvollständig oder fehlerhaft sein (insb. in Beta-Versionen).\n\nWichtig für Beta:\n• Modelle/Projektionen sind Entwicklungsstände und können sich ändern.`,
+  disclaimer: `Health & Training Disclaimer (Draft)\n\nAImAthlete liefert Trainingspläne, Analysen und Prognosen zur Orientierung.\n\nKein medizinischer Rat / keine Diagnose:\n• Die Inhalte ersetzen keine ärztliche, physiotherapeutische oder ernährungsmedizinische Beratung.\n• Vor Beginn oder Änderung intensiver Trainingsprogramme gesundheitliche Eignung prüfen lassen.\n• Bei Schmerzen, Schwindel, Atemnot oder anderen Beschwerden Training abbrechen und medizinischen Rat einholen.\n\nEigenverantwortung:\n• Nutzer trainieren auf eigene Verantwortung.\n• Angaben/Prognosen können unvollständig oder fehlerhaft sein (insb. in Beta-Versionen).\n\nWichtig für Beta:\n• Modelle/Projektionen sind Entwicklungsstände und können sich ändern.`,
   cookies: `Cookies & Tracking (Draft)\n\nEmpfohlen für Public Beta:\n• Technisch notwendige Cookies\n• Präferenz-Cookies (Sprache, Einheiten)\n• Analyse/Telemetry (optional, nur mit Consent)\n• Marketing (optional, später)\n\nUmsetzen:\n• Consent-Banner / Consent-Management\n• Einwilligungen speichern & widerrufbar machen\n• Cookie-Übersicht / Zwecke / Laufzeiten dokumentieren\n\nFür erste Beta möglichst tracking-arm starten.`,
   community: `Community Regeln (Draft)\n\nNicht erlaubt:\n• Hassrede, Belästigung, Drohungen\n• Spam / Betrug / irreführende Inhalte\n• Unerlaubte Gesundheitsversprechen / gefährliche Ratschläge\n• Verletzung von Rechten Dritter\n\nErwünscht:\n• Respektvoller Umgang\n• Konstruktives Feedback\n• Transparenz bei Race-/Training-Posts\n\nModeration:\n• Inhalte melden\n• Temporäre Sperren / Account-Sperren bei Verstößen\n• Wiederholte Verstöße = dauerhafte Sperre möglich`,
   "data-processing": `Datenverarbeitung & Connector-Hinweise (Draft)\n\nZweckbindung (wichtig):\n• Strava/Garmin/WHOOP-Daten werden nur für Trainingsplanung, Leistungsanalyse, Recovery-Einschätzung und Nutzeransichten verarbeitet.\n• Keine Weitergabe an Dritte ohne Rechtsgrundlage / Einwilligung.\n\nTechnik (üblich und machbar):\n• OAuth-Verbindung pro Anbieter\n• Tokens serverseitig speichern (verschlüsselt)\n• Refresh-Tokens rotieren\n• Webhooks/Sync-Jobs nutzen\n• Nutzer kann Verbindungen trennen und Daten löschen/exportieren\n\nHinweis:\n• Pushing Limits und ähnliche Produkte nutzen ebenfalls OAuth-Connects + eigene Auswertungsschicht; dafür ist keine exklusive Partnerschaft mit jedem Anbieter zwingend nötig (abhängig von API-Zugang/Scopes, besonders bei Garmin variabel).`,
@@ -671,7 +671,7 @@ const I18N = {
     nav_login: "Login",
     nav_create: "Registrieren",
     section_profile_crew: "Profil & Community",
-    profile_tab_overview: "Übersicht",
+    profile_tab_overview: "Dashboard",
     profile_tab_playbook: "Playbook",
     profile_tab_activities: "Aktivitäten",
     profile_tab_health: "Health",
@@ -682,6 +682,18 @@ const I18N = {
     profile_avatar: "Profilbild",
     saved_plans: "Gespeicherte Pläne",
     empty_saved_plans: "Noch keine gespeicherten Pläne.",
+    dashboard_title: "Dashboard",
+    dashboard_readiness: "Bereitschaft",
+    dashboard_strain: "Belastung",
+    dashboard_recovery: "Erholung",
+    dashboard_hrv: "HRV",
+    dashboard_sleep: "Schlafqualität",
+    dashboard_steps: "Schritte",
+    dashboard_config_title: "Ringe konfigurieren",
+    dashboard_fitness_age: "Fitness-Alter",
+    dashboard_vo2max: "VO2max",
+    login_welcome: "Willkommen zurück",
+    btn_save: "Speichern",
     profile_tab_statistics: "Statistik",
     profile_stats: "Profilstatistik",
     stats_volume_title: "Trainingsvolumen",
@@ -814,7 +826,7 @@ const I18N = {
     nav_login: "Login",
     nav_create: "Create",
     section_profile_crew: "Profile & Community",
-    profile_tab_overview: "Overview",
+    profile_tab_overview: "Dashboard",
     profile_tab_playbook: "Playbook",
     profile_tab_activities: "Activities",
     profile_tab_health: "Health",
@@ -825,6 +837,18 @@ const I18N = {
     profile_avatar: "Profile photo",
     saved_plans: "Saved plans",
     empty_saved_plans: "No saved plans yet.",
+    dashboard_title: "Dashboard",
+    dashboard_readiness: "Readiness",
+    dashboard_strain: "Strain",
+    dashboard_recovery: "Recovery",
+    dashboard_hrv: "HRV",
+    dashboard_sleep: "Sleep Quality",
+    dashboard_steps: "Steps",
+    dashboard_config_title: "Configure Rings",
+    dashboard_fitness_age: "Fitness Age",
+    dashboard_vo2max: "VO2max",
+    login_welcome: "Welcome back",
+    btn_save: "Save",
     profile_tab_statistics: "Statistics",
     profile_stats: "Profile Stats",
     stats_volume_title: "Training Volume",
@@ -957,7 +981,7 @@ const I18N = {
     nav_login: "ログイン",
     nav_create: "作成",
     section_profile_crew: "プロフィール & コミュニティ",
-    profile_tab_overview: "概要",
+    profile_tab_overview: "ダッシュボード",
     profile_tab_playbook: "プレイブック",
     profile_tab_activities: "アクティビティ",
     profile_tab_health: "ヘルス",
@@ -968,6 +992,18 @@ const I18N = {
     profile_avatar: "プロフィール画像",
     saved_plans: "保存済みプラン",
     empty_saved_plans: "保存済みプランはまだありません。",
+    dashboard_title: "ダッシュボード",
+    dashboard_readiness: "レディネス",
+    dashboard_strain: "負荷",
+    dashboard_recovery: "回復",
+    dashboard_hrv: "HRV",
+    dashboard_sleep: "睡眠品質",
+    dashboard_steps: "歩数",
+    dashboard_config_title: "リング設定",
+    dashboard_fitness_age: "フィットネス年齢",
+    dashboard_vo2max: "VO2max",
+    login_welcome: "おかえりなさい",
+    btn_save: "保存",
     profile_tab_statistics: "統計",
     profile_stats: "プロフィール統計",
     stats_volume_title: "トレーニング量",
@@ -1123,7 +1159,7 @@ try {
   initLanguageSwitcher();
   initAccountUi();
   setActiveProfileView("overview");
-  setActiveProfileSettingsView("account");
+  setActiveProfileSettingsView("profile");
   applyTranslations();
   loadThresholdDraftFromHiddenInputs();
   initInlineRaceEvents();
@@ -1131,7 +1167,7 @@ try {
   renderPerformanceInsights();
   setAppView("home");
 } catch (err) {
-  console.error("AImRUNNA init failed:", err);
+  console.error("AImAthlete init failed:", err);
 }
 
 form.addEventListener("submit", (event) => {
@@ -1261,7 +1297,7 @@ document.getElementById("export-data-btn")?.addEventListener("click", () => {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href = url; a.download = `aimrunna-export-${new Date().toISOString().slice(0,10)}.json`;
+  a.href = url; a.download = `aimathlete-export-${new Date().toISOString().slice(0,10)}.json`;
   document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
 });
 
@@ -1391,6 +1427,7 @@ accountFormEl?.addEventListener("submit", async (event) => {
     const result = await (authMode === "register" ? registerAccount(email, password) : loginAccount(email, password));
     setText(accountFormStatusEl, result.message);
     if (result.ok) {
+      showLoginSuccessAnimation();
       setAppView("home"); // go to Home feed after login
       renderAccountUi();
       syncConnectorButtons();
@@ -1435,6 +1472,11 @@ accountSettingsFormEl?.addEventListener("submit", (event) => {
     units: String(fd.get("units") || "metric"),
     timezone: String(fd.get("timezone") || "Europe/Berlin"),
     emailNotifications: String(fd.get("emailNotifications") || "important"),
+    distanceUnit: String(fd.get("distanceUnit") || "km"),
+    paceFormat: String(fd.get("paceFormat") || "minkm"),
+    elevationUnit: String(fd.get("elevationUnit") || "m"),
+    weightUnit: String(fd.get("weightUnit") || "kg"),
+    weekStart: String(fd.get("weekStart") || "monday"),
   };
   persistStore();
   setText(accountSettingsStatusEl, "Gespeichert.");
@@ -1513,12 +1555,80 @@ deleteAccountBtn?.addEventListener("click", () => {
   if (result.ok) setAppView("home");
 });
 
+// ── BUG 2: Profile settings form submit handler ──
+document.getElementById("profile-settings-form")?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const account = getCurrentAccount();
+  if (!account) return;
+  if (!account.profile) account.profile = {};
+  const form = event.target;
+  const fd = new FormData(form);
+  account.profile.displayName = String(fd.get("displayName") || "");
+  account.profile.bio = String(fd.get("bio") || "");
+  account.profile.sex = String(fd.get("sex") || "male");
+  account.profile.birthYear = fd.get("birthYear") ? Number(fd.get("birthYear")) : null;
+  account.profile.weight = fd.get("weight") ? Number(fd.get("weight")) : null;
+  account.profile.height = fd.get("height") ? Number(fd.get("height")) : null;
+  account.profile.restingHr = fd.get("restingHr") ? Number(fd.get("restingHr")) : null;
+  account.profile.maxHr = fd.get("maxHr") ? Number(fd.get("maxHr")) : null;
+  // Sport checkboxes
+  if (!account.settings) account.settings = {};
+  if (!account.settings.sports) account.settings.sports = {};
+  ["sport-running", "sport-cycling", "sport-swimming", "sport-triathlon", "sport-hyrox", "sport-gym", "sport-yoga", "sport-hiking"].forEach((name) => {
+    account.settings.sports[name] = !!fd.get(name);
+  });
+  persistStore();
+  const statusEl = document.getElementById("profile-settings-status");
+  if (statusEl) setText(statusEl, "Profil gespeichert.");
+});
+
+// ── BUG 4: Data source priority dropdowns ──
+document.getElementById("health-data-source-select")?.addEventListener("change", (e) => {
+  const account = getCurrentAccount();
+  if (!account) return;
+  if (!account.settings) account.settings = {};
+  account.settings.healthDataSource = e.target.value;
+  persistStore();
+});
+
+document.getElementById("activity-data-source-select")?.addEventListener("change", (e) => {
+  const account = getCurrentAccount();
+  if (!account) return;
+  if (!account.settings) account.settings = {};
+  account.settings.activityDataSource = e.target.value;
+  persistStore();
+});
+
+// ── BUG 6: Notification checkbox handlers ──
+["notif-push", "notif-email", "notif-social"].forEach(id => {
+  document.getElementById(id)?.addEventListener("change", (e) => {
+    const account = getCurrentAccount();
+    if (!account) return;
+    if (!account.settings) account.settings = {};
+    if (!account.settings.notifications) account.settings.notifications = {};
+    account.settings.notifications[id] = e.target.checked;
+    persistStore();
+  });
+});
+
+// ── BUG 7: Week description click-to-expand ──
+document.addEventListener("click", (e) => {
+  const desc = e.target.closest(".week-description");
+  if (desc) desc.classList.toggle("is-expanded");
+});
+
 document.querySelectorAll("[data-legal-open]").forEach((btn) => {
   btn.addEventListener("click", () => {
     const key = String(btn.getAttribute("data-legal-open") || "imprint");
-    openLegalModal(key);
+    if (key === "imprint" && !getCurrentAccount()?.settings?.generatedImprint) {
+      openLegalQuestionnaire();
+    } else {
+      openLegalModal(key);
+    }
   });
 });
+
+document.getElementById("open-legal-questionnaire-btn")?.addEventListener("click", openLegalQuestionnaire);
 
 legalNavEl?.addEventListener("click", (event) => {
   const btn = event.target.closest?.("[data-legal-section]");
@@ -1821,7 +1931,7 @@ document.getElementById("playbook-export-ical")?.addEventListener("click", () =>
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "aimrunna-trainingsplan.ics";
+  a.download = "aimathlete-trainingsplan.ics";
   document.body.appendChild(a);
   a.click();
   a.remove();
@@ -1854,7 +1964,7 @@ exportIcalBtn.addEventListener("click", () => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "aimrunna-trainingsplan.ics";
+  a.download = "aimathlete-trainingsplan.ics";
   document.body.appendChild(a);
   a.click();
   a.remove();
@@ -3077,13 +3187,13 @@ function exportCurrentAccountData() {
     content: JSON.stringify(
       {
         exportedAt: new Date().toISOString(),
-        schema: "aimrunna-local-mvp-account-export-v1",
+        schema: "aimathlete-local-mvp-account-export-v1",
         account: safeAccount,
       },
       null,
       2
     ),
-    filename: `aimrunna-account-export-${slugify(account.email.split("@")[0] || "user")}.json`,
+    filename: `aimathlete-account-export-${slugify(account.email.split("@")[0] || "user")}.json`,
     mimeType: "application/json;charset=utf-8",
   });
   return { ok: true, message: "Export erstellt." };
@@ -3245,6 +3355,15 @@ function addFriendByEmail(account, email) {
 function renderAccountUi() {
   const account = getCurrentAccount();
   const isAuth = Boolean(account);
+  if (!isAuth) {
+    // Clear dashboard data for logged-out state
+    const ringsContainer = document.getElementById("dashboard-rings-container");
+    if (ringsContainer) ringsContainer.querySelectorAll(".ring-value").forEach(el => el.textContent = "--");
+    const quickStats = document.getElementById("dashboard-quick-stats");
+    if (quickStats) quickStats.innerHTML = "";
+    // Reset KPI values
+    document.querySelectorAll(".kpi-value").forEach(el => el.textContent = "–");
+  }
   document.body.classList.toggle("is-authenticated", isAuth);
   if (accountPillEl) accountPillEl.hidden = !isAuth;
 
@@ -3274,6 +3393,8 @@ function renderAccountUi() {
   renderCrewRanking(account);
   renderHomeFeed(account);
   renderFitnessAnalysis(account);
+  renderDashboardRings();
+  renderDashboardKpis(account);
   // Show predictions from activity data if no plan is loaded
   if (!latestProfile && account?.activities?.length) {
     const analysis = analyzeActivityHistory(account.activities);
@@ -3335,6 +3456,45 @@ function populateSettingsForms(account) {
   setFormValue(safetySettingsFormEl, "imageModeration", settings.safety.imageModeration);
   setFormValue(safetySettingsFormEl, "riskWarnings", settings.safety.riskWarnings);
   setFormValue(safetySettingsFormEl, "communityGuidelinesAccepted", settings.safety.communityGuidelinesAccepted);
+
+  // BUG 5: Populate new display fields
+  setFormValue(accountSettingsFormEl, "distanceUnit", settings.account.distanceUnit);
+  setFormValue(accountSettingsFormEl, "paceFormat", settings.account.paceFormat);
+  setFormValue(accountSettingsFormEl, "elevationUnit", settings.account.elevationUnit);
+  setFormValue(accountSettingsFormEl, "weightUnit", settings.account.weightUnit);
+  setFormValue(accountSettingsFormEl, "weekStart", settings.account.weekStart);
+
+  // BUG 2: Populate profile settings form
+  const profileForm = document.getElementById("profile-settings-form");
+  if (profileForm && account.profile) {
+    setFormValue(profileForm, "displayName", account.profile.displayName);
+    setFormValue(profileForm, "bio", account.profile.bio);
+    setFormValue(profileForm, "sex", account.profile.sex);
+    setFormValue(profileForm, "birthYear", account.profile.birthYear);
+    setFormValue(profileForm, "weight", account.profile.weight);
+    setFormValue(profileForm, "height", account.profile.height);
+    setFormValue(profileForm, "restingHr", account.profile.restingHr);
+    setFormValue(profileForm, "maxHr", account.profile.maxHr);
+  }
+  // Sport checkboxes
+  const sports = account.settings?.sports || {};
+  ["sport-running", "sport-cycling", "sport-swimming", "sport-triathlon", "sport-hyrox", "sport-gym", "sport-yoga", "sport-hiking"].forEach((name) => {
+    const cb = profileForm?.elements?.[name];
+    if (cb) cb.checked = !!sports[name];
+  });
+
+  // BUG 4: Populate data source selects
+  const healthSrc = document.getElementById("health-data-source-select");
+  if (healthSrc && account?.settings?.healthDataSource) healthSrc.value = account.settings.healthDataSource;
+  const actSrc = document.getElementById("activity-data-source-select");
+  if (actSrc && account?.settings?.activityDataSource) actSrc.value = account.settings.activityDataSource;
+
+  // BUG 6: Restore notification checkbox state
+  const notifs = account.settings?.notifications || {};
+  ["notif-push", "notif-email", "notif-social"].forEach(id => {
+    const cb = document.getElementById(id);
+    if (cb && notifs[id] !== undefined) cb.checked = notifs[id];
+  });
 }
 
 function setFormValue(formEl, name, value) {
@@ -3483,9 +3643,9 @@ function setActiveProfileView(view) {
   document.body.classList.add(`profile-view-${activeProfileView}`);
   profileViewTabButtons.forEach((btn) => btn.classList.toggle("is-active", btn.dataset.profileView === activeProfileView));
   if (activeProfileView === "settings") {
-    setActiveProfileSettingsView(activeProfileSettingsView || "account");
+    setActiveProfileSettingsView(activeProfileSettingsView || "profile");
   }
-  if (activeProfileView === "overview") maybeFetchStravaStatus(getCurrentAccount());
+  if (activeProfileView === "overview") { maybeFetchStravaStatus(getCurrentAccount()); renderDashboardRings(); renderDashboardKpis(getCurrentAccount()); }
   if (activeProfileView === "statistics") renderStatisticsView(getCurrentAccount());
 
   // Move plan form + results into/out of Playbook host
@@ -3531,7 +3691,7 @@ function syncPlaybookFormPlacement() {
 }
 
 function setActiveProfileSettingsView(view) {
-  activeProfileSettingsView = ["account", "privacy", "notifications", "display", "data"].includes(view) ? view : "account";
+  activeProfileSettingsView = ["profile", "connections", "privacy", "notifications", "display", "security", "safety", "data"].includes(view) ? view : "profile";
   profileSettingsNavButtons.forEach((btn) =>
     btn.classList.toggle("is-active", btn.dataset.profileSettingsView === activeProfileSettingsView)
   );
@@ -3977,7 +4137,7 @@ function buildActivityCardHtml({ item, actorEmail, actorAvatar, actorPoints = 0,
         ${item.imageDataUrl ? `<img class="activity-card-image" src="${item.imageDataUrl}" alt="Activity image" loading="lazy" />` : ""}
         <div class="activity-card-foot">
           <div class="activity-points">${propsCount} ${escapeHtml(t("label_props").toLowerCase())}</div>
-          ${showPropsAction && viewerEmail && viewerEmail !== actorEmail ? `<button type="button" class="props-btn ${hasPropd ? "is-active" : ""}" data-props-owner="${escapeHtml(actorEmail)}" data-props-activity="${escapeHtml(item.id)}"><span class="props-icon">\u{1F44F}</span> ${propsCount || escapeHtml(t("label_props"))}</button>` : `<span class="props-btn" style="pointer-events:none;opacity:0.6"><span class="props-icon">\u{1F44F}</span> ${propsCount}</span>`}
+          ${showPropsAction && viewerEmail && viewerEmail !== actorEmail ? `<button type="button" class="props-btn ${hasPropd ? "is-active" : ""}" data-props-owner="${escapeHtml(actorEmail)}" data-props-activity="${escapeHtml(item.id)}"><span class="props-icon"><svg class="props-svg" viewBox="0 0 20 20" width="16" height="16"><path d="M10 1.5l2.4 5.2 5.6.5-4.2 3.7 1.3 5.6L10 13.8l-5.1 2.7 1.3-5.6L2 7.2l5.6-.5z" fill="currentColor"/></svg></span> ${propsCount || escapeHtml(t("label_props"))}</button>` : `<span class="props-btn" style="pointer-events:none;opacity:0.6"><span class="props-icon"><svg class="props-svg" viewBox="0 0 20 20" width="16" height="16"><path d="M10 1.5l2.4 5.2 5.6.5-4.2 3.7 1.3 5.6L10 13.8l-5.1 2.7 1.3-5.6L2 7.2l5.6-.5z" fill="currentColor"/></svg></span> ${propsCount}</span>`}
         </div>
       </div>
     </article>
@@ -4185,7 +4345,7 @@ function openActivityDetail(ownerEmail, activityId) {
     ${commentsHtml}
     <div class="activity-detail-actions">
       <button type="button" class="props-btn-large" data-detail-props-id="${escapeHtml(activityId)}">
-        <span class="props-icon">\u{1F44F}</span> ${propsCount} Props
+        <span class="props-icon"><svg class="props-svg" viewBox="0 0 20 20" width="16" height="16"><path d="M10 1.5l2.4 5.2 5.6.5-4.2 3.7 1.3 5.6L10 13.8l-5.1 2.7 1.3-5.6L2 7.2l5.6-.5z" fill="currentColor"/></svg></span> ${propsCount} Props
       </button>
     </div>
   `;
@@ -4355,13 +4515,41 @@ function computeStreak(activities) {
   return maxStreak;
 }
 
+let currentStatsSub = "volume";
+
+function setStatsSubTab(tab) {
+  currentStatsSub = tab;
+  document.querySelectorAll(".stats-sub-tab").forEach(b => b.classList.toggle("is-active", b.dataset.statsSub === tab));
+  document.querySelectorAll(".stats-sub-card").forEach(c => c.classList.toggle("stats-sub-active", c.classList.contains(`stats-sub-${tab}`)));
+}
+
+// Init sub-tab switching
+document.getElementById("stats-sub-nav")?.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-stats-sub]");
+  if (!btn) return;
+  setStatsSubTab(btn.dataset.statsSub);
+  renderStatisticsView(getCurrentAccount());
+});
+
 function renderStatisticsView(account) {
   const activities = account?.activities || [];
+  // Activate current sub-tab cards
+  setStatsSubTab(currentStatsSub);
+  // Render all charts (they only render if visible/have data)
   renderVolumeChart(activities, currentStatsRange, currentStatsMetric);
   renderSportSplit(activities, currentStatsRange);
   renderPaceTrend(activities);
   renderPersonalRecords(activities);
   renderYearCompare(activities);
+  renderMetricTimeSeries(account);
+  renderIntensityDistribution(activities);
+  renderPaceDistribution(activities);
+  renderPowerDistribution(activities);
+  renderHrZones(activities);
+  renderPaceZones(activities);
+  renderPowerZones(activities);
+  renderLoadChart(activities);
+  renderConsistencyChart(activities);
 }
 
 function filterActivitiesByRange(activities, range) {
@@ -6577,26 +6765,402 @@ function estimateVO2max(profile) {
  *   Female: 20s→40, 30s→37, 40s→34, 50s→31, 60s→28, 70s→25
  */
 function estimateFitnessAge(vo2max, sex, chronologicalAge) {
-  if (!vo2max || vo2max <= 0) return null;
+  // Whoop-inspired multi-factor Fitness Age:
+  // VO2max accounts for ~50% of score, activity scoring ~30%, resting HR ~20%
+  if (!chronologicalAge || chronologicalAge <= 0) return null;
+  const account = getCurrentAccount();
+  const activities = account?.activities || [];
 
-  // Median VO2max by age decade (ACSM/HUNT reference)
-  const maleRef = [[20, 47], [25, 46], [30, 44], [35, 43], [40, 41], [45, 39], [50, 37], [55, 35], [60, 33], [65, 31], [70, 29], [75, 27], [80, 25]];
-  const femaleRef = [[20, 40], [25, 39], [30, 37], [35, 36], [40, 34], [45, 32], [50, 31], [55, 29], [60, 28], [65, 26], [70, 25], [75, 23], [80, 21]];
-  const ref = sex === "female" ? femaleRef : maleRef;
-
-  // Find the age where the reference VO2max matches this person's VO2max
-  // Interpolate between reference points
-  if (vo2max >= ref[0][1]) return Math.max(18, ref[0][0] - Math.round((vo2max - ref[0][1]) * 1.5));
-  if (vo2max <= ref[ref.length - 1][1]) return ref[ref.length - 1][0];
-
-  for (let i = 0; i < ref.length - 1; i++) {
-    if (vo2max <= ref[i][1] && vo2max >= ref[i + 1][1]) {
-      const frac = (ref[i][1] - vo2max) / Math.max(1, ref[i][1] - ref[i + 1][1]);
-      return Math.round(ref[i][0] + frac * (ref[i + 1][0] - ref[i][0]));
+  // 1) VO2max component (0-50 points, lower = younger)
+  let vo2Score = 0;
+  if (vo2max && vo2max > 0) {
+    // ACSM percentile tables — high VO2max = big age reduction
+    const maleRef = [[20,51],[25,49],[30,47],[35,45],[40,43],[45,41],[50,39],[55,37],[60,35],[65,32],[70,30],[75,28],[80,25]];
+    const femaleRef = [[20,44],[25,42],[30,40],[35,38],[40,36],[45,34],[50,32],[55,30],[60,28],[65,26],[70,24],[75,22],[80,20]];
+    const ref = sex === "female" ? femaleRef : maleRef;
+    // Find VO2max-based age
+    let vo2Age = chronologicalAge;
+    if (vo2max >= ref[0][1]) {
+      vo2Age = Math.max(18, ref[0][0] - Math.round((vo2max - ref[0][1]) * 0.8));
+    } else if (vo2max <= ref[ref.length - 1][1]) {
+      vo2Age = ref[ref.length - 1][0];
+    } else {
+      for (let i = 0; i < ref.length - 1; i++) {
+        if (vo2max <= ref[i][1] && vo2max >= ref[i + 1][1]) {
+          const frac = (ref[i][1] - vo2max) / Math.max(1, ref[i][1] - ref[i + 1][1]);
+          vo2Age = Math.round(ref[i][0] + frac * (ref[i + 1][0] - ref[i][0]));
+          break;
+        }
+      }
     }
+    vo2Score = vo2Age - chronologicalAge; // negative = younger, positive = older
   }
 
-  return chronologicalAge || null;
+  // 2) Activity scoring (invisible points, 0–30 adjustment)
+  const now = Date.now();
+  const msPerDay = 86400000;
+  const recent90 = activities.filter(a => {
+    const d = new Date(a.createdAt || 0).getTime();
+    return d > now - 90 * msPerDay;
+  });
+  // Score: frequency, duration variety, intensity
+  const weeklyCount = recent90.length / 13; // avg sessions per week over 90d
+  const totalMinutes = recent90.reduce((s, a) => s + ((a.movingTimeSec || 0) / 60), 0);
+  const weeklyMinutes = totalMinutes / 13;
+  const sportTypes = new Set(recent90.map(a => a.sportType)).size;
+
+  // Activity age adjustment: active people get younger
+  let activityAdj = 0;
+  // Frequency bonus: 3-5x/week is optimal (WHO guidelines: 150-300 min moderate)
+  if (weeklyCount >= 5) activityAdj -= 4;
+  else if (weeklyCount >= 3) activityAdj -= 3;
+  else if (weeklyCount >= 2) activityAdj -= 1.5;
+  else if (weeklyCount >= 1) activityAdj -= 0.5;
+  else activityAdj += 2; // sedentary penalty
+
+  // Volume bonus: 150+ min/week
+  if (weeklyMinutes >= 300) activityAdj -= 3;
+  else if (weeklyMinutes >= 150) activityAdj -= 2;
+  else if (weeklyMinutes >= 75) activityAdj -= 1;
+
+  // Variety bonus: cross-training
+  if (sportTypes >= 3) activityAdj -= 1.5;
+  else if (sportTypes >= 2) activityAdj -= 0.5;
+
+  // Intensity bonus: high-intensity sessions (HR > 160 or pace-based)
+  const highIntensity = recent90.filter(a => (a.avgHeartrate && a.avgHeartrate > 155) || (a.maxHeartrate && a.maxHeartrate > 175)).length;
+  const hiPerWeek = highIntensity / 13;
+  if (hiPerWeek >= 2) activityAdj -= 1.5;
+  else if (hiPerWeek >= 1) activityAdj -= 0.5;
+
+  // Long sessions bonus (endurance)
+  const longSessions = recent90.filter(a => (a.movingTimeSec || 0) > 3600).length;
+  if (longSessions >= 8) activityAdj -= 1;
+
+  // 3) Resting HR component (if available from profile)
+  let hrAdj = 0;
+  const restingHr = account?.profile?.restingHr || account?.healthData?.restingHr;
+  if (restingHr) {
+    if (restingHr < 50) hrAdj = -3;
+    else if (restingHr < 55) hrAdj = -2;
+    else if (restingHr < 60) hrAdj = -1;
+    else if (restingHr > 75) hrAdj = 2;
+    else if (restingHr > 80) hrAdj = 4;
+  }
+
+  // Combine: weighted sum
+  const totalAdj = (vo2Score * 0.5) + (activityAdj * 0.3) + (hrAdj * 0.2);
+  const fitnessAge = Math.round(chronologicalAge + totalAdj);
+
+  // Clamp to reasonable range
+  return Math.max(18, Math.min(chronologicalAge + 15, fitnessAge));
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DASHBOARD RINGS — Calculation + Rendering
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function calculateTrainingReadiness(account) {
+  // Composite score 0-100 based on 4 factors:
+  // ACWR (30%), Consistency (25%), Recovery Time (25%), Freshness (20%)
+  const activities = account?.activities || [];
+  if (!activities.length) return { score: null, label: "--", components: {} };
+
+  const load = estimateTrainingLoad(activities.filter(a => {
+    const d = new Date(a.createdAt || 0).getTime();
+    return d > Date.now() - 90 * 86400000;
+  }));
+
+  // 1) ACWR component (30%) — sweet spot 0.8-1.3
+  let acwrScore = 50;
+  if (load?.acwr != null) {
+    if (load.acwr >= 0.8 && load.acwr <= 1.3) acwrScore = 80 + (1 - Math.abs(load.acwr - 1.05) / 0.25) * 20;
+    else if (load.acwr < 0.8) acwrScore = Math.max(20, load.acwr / 0.8 * 70);
+    else acwrScore = Math.max(10, 100 - (load.acwr - 1.3) * 60);
+  }
+
+  // 2) Consistency (25%) — regular training pattern
+  const now = Date.now();
+  const msPerDay = 86400000;
+  const last28 = activities.filter(a => new Date(a.createdAt || 0).getTime() > now - 28 * msPerDay);
+  const weekBuckets = [0, 0, 0, 0];
+  last28.forEach(a => {
+    const daysAgo = (now - new Date(a.createdAt || 0).getTime()) / msPerDay;
+    const week = Math.min(3, Math.floor(daysAgo / 7));
+    weekBuckets[week]++;
+  });
+  const nonEmptyWeeks = weekBuckets.filter(w => w > 0).length;
+  const avgPerWeek = last28.length / 4;
+  const consistencyScore = Math.min(100, (nonEmptyWeeks / 4) * 60 + Math.min(avgPerWeek / 4, 1) * 40);
+
+  // 3) Recovery time (25%) — hours since last session
+  const sorted = [...activities].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+  const hoursSinceLast = sorted.length ? (now - new Date(sorted[0].createdAt || 0).getTime()) / 3600000 : 999;
+  let recoveryScore = 50;
+  if (hoursSinceLast >= 24 && hoursSinceLast <= 72) recoveryScore = 90;
+  else if (hoursSinceLast >= 12 && hoursSinceLast < 24) recoveryScore = 65;
+  else if (hoursSinceLast < 12) recoveryScore = 35;
+  else if (hoursSinceLast > 72 && hoursSinceLast <= 120) recoveryScore = 75;
+  else recoveryScore = 50; // too long since last session
+
+  // 4) Freshness (20%) — is load trending up or coasting
+  let freshnessScore = 50;
+  if (load) {
+    const freshness = (load.chronicLoad28d || 0) - (load.acuteLoad7d || 0);
+    freshnessScore = freshness > 0 ? Math.min(90, 60 + freshness / 10) : Math.max(20, 60 + freshness / 10);
+  }
+
+  const score = Math.round(acwrScore * 0.30 + consistencyScore * 0.25 + recoveryScore * 0.25 + freshnessScore * 0.20);
+  return {
+    score: Math.max(0, Math.min(100, score)),
+    label: score >= 80 ? "Peak" : score >= 60 ? "Gut" : score >= 40 ? "Moderat" : "Niedrig",
+    components: { acwr: Math.round(acwrScore), consistency: Math.round(consistencyScore), recovery: Math.round(recoveryScore), freshness: Math.round(freshnessScore) }
+  };
+}
+
+function calculateCurrentStrain(account) {
+  // Normalize acute load to 0-100 based on personal chronic load
+  const activities = account?.activities || [];
+  if (!activities.length) return { score: null };
+  const recent = activities.filter(a => new Date(a.createdAt || 0).getTime() > Date.now() - 90 * 86400000);
+  const load = estimateTrainingLoad(recent);
+  if (!load) return { score: null };
+
+  // Strain = acute load as percentage of expected (chronic) load
+  const chronic = load.chronicLoad28d || 1;
+  const strain = Math.round((load.acuteLoad7d / chronic) * 50); // normalized so ~50 = baseline
+  return { score: Math.max(0, Math.min(100, strain)), acuteLoad: load.acuteLoad7d, chronicLoad: chronic, acwr: load.acwr };
+}
+
+function calculateRecoveryScore(account) {
+  // Recovery based on time since last session + session intensity
+  const activities = account?.activities || [];
+  if (!activities.length) return { score: null };
+  const sorted = [...activities].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+  const hoursSince = (Date.now() - new Date(sorted[0].createdAt || 0).getTime()) / 3600000;
+  const lastIntensity = sorted[0].avgHeartrate ? (sorted[0].avgHeartrate / 150) : 0.8;
+  const recoveryHours = 24 + lastIntensity * 12; // harder session = more recovery needed
+  const pct = Math.min(1, hoursSince / recoveryHours);
+  return { score: Math.round(pct * 100), hoursSince: Math.round(hoursSince) };
+}
+
+function getDashboardRingConfig(account) {
+  const defaults = { readiness: true, strain: true, recovery: true, hrv: false, sleep: false, steps: false, "fitness-age": false, vo2max: false };
+  return account?.settings?.dashboardRings || defaults;
+}
+
+function saveDashboardRingConfig(config) {
+  const account = getCurrentAccount();
+  if (!account) return;
+  if (!account.settings) account.settings = {};
+  account.settings.dashboardRings = config;
+  persistStore();
+}
+
+function renderDashboardRings() {
+  const container = document.getElementById("dashboard-rings-container");
+  const quickStats = document.getElementById("dashboard-quick-stats");
+  if (!container) return;
+
+  const account = getCurrentAccount();
+  const config = getDashboardRingConfig(account);
+
+  // Calculate all metrics
+  const readiness = calculateTrainingReadiness(account);
+  const strain = calculateCurrentStrain(account);
+  const recovery = calculateRecoveryScore(account);
+
+  // Determine which rings to show (max 3: primary center + 2 secondary)
+  const activeRings = [];
+  const allMetrics = {
+    readiness: { score: readiness.score, label: readiness.label },
+    strain: { score: strain.score, label: strain.score != null ? strain.score : "--" },
+    recovery: { score: recovery.score, label: recovery.score != null ? `${recovery.score}%` : "--" },
+    hrv: { score: null, label: "--" },
+    sleep: { score: null, label: "--" },
+    steps: { score: null, label: "--" },
+    "fitness-age": { score: null, label: "--" },
+    vo2max: { score: null, label: "--" },
+  };
+
+  // Try to populate HRV, sleep etc from health data if available
+  if (account?.healthData?.hrv) {
+    const hrvVal = account.healthData.hrv;
+    allMetrics.hrv = { score: Math.min(100, Math.round(hrvVal / 1.2)), label: `${Math.round(hrvVal)} ms` };
+  }
+  if (account?.healthData?.sleepScore) {
+    allMetrics.sleep = { score: account.healthData.sleepScore, label: `${account.healthData.sleepScore}%` };
+  }
+  if (account?.healthData?.steps) {
+    const stepPct = Math.min(100, Math.round(account.healthData.steps / 100));
+    allMetrics.steps = { score: stepPct, label: account.healthData.steps.toLocaleString() };
+  }
+
+  // Readiness is always primary (center)
+  // Pick 2 secondary from config
+  const secondaryTypes = Object.keys(config).filter(k => k !== "readiness" && config[k]);
+  const leftType = secondaryTypes[0] || "strain";
+  const rightType = secondaryTypes[1] || "recovery";
+
+  // Build ring HTML
+  const CIRC = 2 * Math.PI * 88; // ≈ 553
+
+  function buildRing(type, isPrimary) {
+    const metric = allMetrics[type] || { score: null, label: "--" };
+    const pct = metric.score != null ? metric.score / 100 : 0;
+    const offset = CIRC * (1 - pct);
+    const cls = isPrimary ? "dashboard-ring-primary" : "dashboard-ring-secondary";
+    const displayVal = metric.score != null ? (type === "readiness" ? metric.score : metric.label) : "--";
+    return `<div class="dashboard-ring ${cls}" data-ring-type="${type}">
+      <svg class="ring-svg" viewBox="0 0 200 200">
+        <circle class="ring-track" cx="100" cy="100" r="88" />
+        <circle class="ring-progress" cx="100" cy="100" r="88" style="stroke-dashoffset:${offset}" />
+      </svg>
+      <div class="ring-label">
+        <strong class="ring-value">${displayVal}</strong>
+        <span class="ring-caption">${t("dashboard_" + type) || type}</span>
+      </div>
+    </div>`;
+  }
+
+  container.innerHTML = buildRing(leftType, false) + buildRing("readiness", true) + buildRing(rightType, false);
+
+  // Quick stats
+  if (quickStats) {
+    const load = estimateTrainingLoad((account?.activities || []).filter(a => new Date(a.createdAt || 0).getTime() > Date.now() - 90 * 86400000));
+    const qStats = [];
+    if (load?.acwr != null) qStats.push({ label: "ACWR", value: load.acwr.toFixed(2) });
+    if (load?.acuteLoad7d != null) qStats.push({ label: "7d Load", value: load.acuteLoad7d });
+    if (load?.chronicLoad28d != null) qStats.push({ label: "28d Avg", value: load.chronicLoad28d });
+    if (readiness.components?.consistency != null) qStats.push({ label: "Konsistenz", value: readiness.components.consistency + "%" });
+    quickStats.innerHTML = qStats.map(s => `<div class="quick-stat"><span class="quick-stat-value">${s.value}</span><span class="quick-stat-label">${s.label}</span></div>`).join("");
+  }
+}
+
+// Dashboard config panel toggle
+document.getElementById("dashboard-config-btn")?.addEventListener("click", () => {
+  const panel = document.getElementById("dashboard-config-panel");
+  if (panel) {
+    panel.hidden = !panel.hidden;
+    if (!panel.hidden) {
+      // Populate checkboxes from config
+      const config = getDashboardRingConfig(getCurrentAccount());
+      panel.querySelectorAll("input[type=checkbox]").forEach(cb => {
+        const ringType = cb.name.replace("ring-", "");
+        cb.checked = !!config[ringType];
+      });
+    }
+  }
+});
+
+document.getElementById("dashboard-config-save")?.addEventListener("click", () => {
+  const panel = document.getElementById("dashboard-config-panel");
+  if (!panel) return;
+  const config = {};
+  panel.querySelectorAll("input[type=checkbox]").forEach(cb => {
+    const ringType = cb.name.replace("ring-", "");
+    config[ringType] = cb.checked;
+  });
+  config.readiness = true; // always on
+  saveDashboardRingConfig(config);
+  panel.hidden = true;
+  renderDashboardRings();
+});
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LOGIN SUCCESS ANIMATION
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function showLoginSuccessAnimation() {
+  const overlay = document.getElementById("login-success-overlay");
+  if (!overlay) return;
+  overlay.hidden = false;
+  // Auto-hide after animation completes (~2.7s)
+  setTimeout(() => {
+    overlay.hidden = true;
+  }, 2700);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LEGAL QUESTIONNAIRE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function openLegalQuestionnaire() {
+  const modal = document.getElementById("legal-questionnaire-modal");
+  if (modal) modal.hidden = false;
+}
+
+function closeLegalQuestionnaire() {
+  const modal = document.getElementById("legal-questionnaire-modal");
+  if (modal) modal.hidden = true;
+}
+
+document.querySelectorAll("[data-close-legal-questionnaire]").forEach(el => {
+  el.addEventListener("click", closeLegalQuestionnaire);
+});
+
+// Connector row toggle
+document.getElementById("strava-connector-toggle")?.addEventListener("click", () => {
+  const detail = document.getElementById("strava-connector-detail");
+  const toggle = document.getElementById("strava-connector-toggle");
+  if (detail) {
+    detail.hidden = !detail.hidden;
+    toggle?.classList.toggle("is-open", !detail.hidden);
+  }
+});
+
+document.getElementById("legal-questionnaire-form")?.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const data = Object.fromEntries(fd.entries());
+  const account = getCurrentAccount();
+  if (account) {
+    if (!account.settings) account.settings = {};
+    account.settings.legalInfo = data;
+    persistStore();
+  }
+  const statusEl = document.getElementById("legal-q-status");
+  if (statusEl) statusEl.textContent = "Gespeichert! Impressum wird generiert...";
+  // Generate imprint from data
+  generateImprintFromData(data);
+  setTimeout(closeLegalQuestionnaire, 1500);
+});
+
+function generateImprintFromData(data) {
+  // Update the imprint legal section with the questionnaire data
+  const account = getCurrentAccount();
+  if (!account) return;
+  if (!account.settings) account.settings = {};
+  const legalForms = { gbr: "GbR", ug: "UG (haftungsbeschränkt)", gmbh: "GmbH", einzelunternehmen: "Einzelunternehmen", other: "" };
+  const formLabel = legalForms[data.legalForm] || data.legalForm;
+  account.settings.generatedImprint = `
+${data.companyName}${formLabel ? " " + formLabel : ""}
+Vertreten durch: ${data.representatives}
+
+${data.street}
+${data.zip} ${data.city}
+${data.country}
+
+Kontakt:
+E-Mail: ${data.contactEmail}
+${data.contactPhone ? "Telefon: " + data.contactPhone : ""}
+
+${data.tradeRegister ? "Registergericht: " + data.tradeRegister : ""}
+${data.vatId ? "USt-IdNr.: " + data.vatId : ""}
+
+Verantwortlich für den Inhalt gemäß § 18 Abs. 2 MStV:
+${data.contentResponsible}
+${data.contentResponsibleAddress || data.street + ", " + data.zip + " " + data.city}
+
+Hosting: ${data.hostingProvider || "–"}
+${data.thirdPartyServices ? "Verwendete Drittdienste: " + data.thirdPartyServices : ""}
+
+Online-Streitbeilegung:
+Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit:
+https://ec.europa.eu/consumers/odr
+Wir sind ${data.odrWillingness === "yes" ? "" : "nicht "}zur Teilnahme an einem Streitbeilegungsverfahren bereit.
+  `.trim();
+  persistStore();
 }
 
 function trainingPacesFromVdot(vdot) {
@@ -8201,13 +8765,16 @@ function buildPlan(profile) {
       )
     );
 
+    const focusStr = bridgeState
+      ? `${weekFocus} • Bridge ${bridgeState.stage === "recover" ? "Recover" : bridgeState.stage === "specific" ? "Specific" : "Rebuild"} -> ${disciplineLabel(bridgeState.next?.discipline)} ${raceEventDistanceLabel(bridgeState.next?.discipline, bridgeState.next?.distance)}`
+      : weekFocus;
+
     weekModels.push({
       weekNumber: weekIndex + 1,
       start: currentWeekStart,
       end: addDays(currentWeekStart, 6),
-      focus: bridgeState
-        ? `${weekFocus} • Bridge ${bridgeState.stage === "recover" ? "Recover" : bridgeState.stage === "specific" ? "Specific" : "Rebuild"} -> ${disciplineLabel(bridgeState.next?.discipline)} ${raceEventDistanceLabel(bridgeState.next?.discipline, bridgeState.next?.distance)}`
-        : weekFocus,
+      focus: focusStr,
+      description: generateWeekDescription(phase, isDeload, isTaper, weekIndex, weeks, profile, weekDays),
       loadKm: weekKm,
         loadHours: periodizedWeekHours,
       days: weekDays,
@@ -8771,6 +9338,96 @@ function cyclingFocusModel(profile) {
   model.vo2Share = clamp(model.vo2Share, 0.1, 0.36);
   model.enduranceShare = clamp(1 - model.thresholdShare - model.vo2Share, 0.2, 0.62);
   return model;
+}
+
+function generateWeekDescription(phase, isDeload, isTaper, weekIndex, totalWeeks, profile, days) {
+  // Analyse what sessions are in this week
+  const sessionTypes = days.map(d => d.type).filter(t => t !== "rest");
+  const hasLong = days.some(d => d.description?.toLowerCase().includes("long") || d.nominalHours > 1.5);
+  const hasThreshold = days.some(d => d.type === "threshold" || d.description?.toLowerCase().includes("tempo") || d.description?.toLowerCase().includes("schwelle"));
+  const hasInterval = days.some(d => d.type === "intervals" || d.type === "vo2max" || d.description?.toLowerCase().includes("intervall"));
+  const hasEasy = days.filter(d => d.type === "easy" || d.type === "recovery").length;
+
+  if (isDeload) {
+    return "Entlastungswoche: Dein Körper braucht Zeit, die Trainingsreize der letzten Wochen zu verarbeiten. " +
+      "Superkompensation findet in der Erholung statt — Mitochondrien vermehren sich, Muskelproteine werden repariert, " +
+      "das Herz-Kreislauf-System konsolidiert Anpassungen. Reduziertes Volumen bei moderater Intensität hält den Bewegungsapparat aktiv, " +
+      "ohne den Erholungsprozess zu stören. Erwarte ein Gefühl von Frische und Leichtigkeit zum Ende der Woche.";
+  }
+
+  if (isTaper) {
+    if (weekIndex === totalWeeks - 1) {
+      return "Race Week: Maximale Frische ist das Ziel. Sehr kurze, knackige Aktivierungen halten das Nervensystem scharf, " +
+        "ohne Glykogenspeicher oder Muskulatur zu belasten. Kohlenhydratspeicher werden aufgeladen (Carb-Loading), " +
+        "Schlaf und Hydration haben höchste Priorität. Am Renntag profitierst du von Wochen systematischen Aufbaus — " +
+        "vertraue dem Training und lauf/fahr nach Gefühl und Plan.";
+    }
+    return "Taper-Phase: Volumen wird gezielt reduziert (30-50%), Intensität bleibt erhalten. " +
+      "Wissenschaftliche Studien zeigen, dass ein 2-3-wöchiger Taper die Leistung um 2-6% steigern kann. " +
+      "Dein Körper baut letzte Anpassungen ein: erhöhte Blutplasmavolumina, optimierte Enzymaktivität, " +
+      "volle Glykogenspeicher. Kurze intensive Einheiten schärfen das Race-Pace-Feeling und halten " +
+      "neuromuskuläre Rekrutierungsmuster aktiv.";
+  }
+
+  switch (phase) {
+    case "onboarding":
+      return "Einstiegsphase: Behutsamer Aufbau der Belastungsverträglichkeit. Sehnen, Bänder und Gelenke brauchen " +
+        "6-8 Wochen, um sich an neue Belastungen anzupassen — deutlich länger als das Herz-Kreislauf-System. " +
+        "Fokus auf Lauftechnik, Trittfrequenz und das Entwickeln einer aeroben Basis. " +
+        "Jede Einheit dient dazu, den Bewegungsapparat an die repetitive Belastung zu gewöhnen und " +
+        "ein nachhaltiges Trainings-Fundament zu schaffen.";
+
+    case "base":
+      if (hasLong && hasThreshold) {
+        return "Aerobe Grundlage + erste Schwellenarbeit: Der lange Lauf entwickelt Fettstoffwechsel-Effizienz, " +
+          "Kapillardichte und mentale Ausdauer. Die Schwelleneinheit trainiert deinen Laktatschwellenwert — " +
+          "die Intensität, ab der Laktat schneller produziert als abgebaut wird. Durch systematisches Training " +
+          "an der Schwelle verschiebst du diesen Punkt nach oben: Du kannst schneller laufen, bevor der Körper übersäuert. " +
+          "Die Easy Runs dazwischen fördern aktive Regeneration und aerobe Grundlagenausdauer.";
+      }
+      if (hasLong) {
+        return "Aerobe Basiswoche: Der Fokus liegt auf dem Aufbau deiner aeroben Kapazität. " +
+          "Langsames Training im Fettstoffwechselbereich (FatMax-Zone) verbessert die Mitochondriendichte, " +
+          "erhöht die Kapillardichte in der Arbeitsmuskulatur und trainiert den Körper, Fett als Energiequelle zu nutzen — " +
+          "entscheidend für Ausdauerleistungen. 80% des Trainings in Zone 1-2 folgt dem bewährten " +
+          "polarisierten Trainingsmodell: viel langsam, wenig schnell, fast nichts dazwischen.";
+      }
+      return "Grundlagenphase: Aufbau der aeroben Basis durch überwiegend lockere Einheiten. " +
+        "Das Herz wird stärker (erhöhtes Schlagvolumen), die Muskulatur bildet mehr Mitochondrien " +
+        "und Kapillaren, und der Fettstoffwechsel wird effizienter. Dies ist die wichtigste Phase — " +
+        "ohne solide Grundlage bringen intensive Einheiten weniger Nutzen und das Verletzungsrisiko steigt.";
+
+    case "build":
+      if (hasInterval && hasThreshold) {
+        return "Aufbauphase mit spezifischer Belastung: VO2max-Intervalle und Schwellenläufe bilden den Kern. " +
+          "Intervalle bei 95-100% VO2max maximieren die Sauerstoffaufnahme — dein Herz pumpt am Limit und " +
+          "die Muskelzellen werden gezwungen, ihre oxidative Kapazität auszubauen. " +
+          "Schwellenarbeit verbessert die Laktattoleranz und die Fähigkeit, hohes Tempo über längere Zeit zu halten. " +
+          "Die Kombination aus beiden Reizen triggert die stärksten Anpassungen im aeroben System.";
+      }
+      if (hasInterval) {
+        return "Intervall-Schwerpunkt: Heute wird die VO2max trainiert — der wichtigste Prädiktor für Ausdauerleistung. " +
+          "Intervalle bei 3-5 Minuten Belastung im roten Bereich zwingen das Herz zu maximalem Schlagvolumen. " +
+          "Der Trainingseffekt: bessere Sauerstoffversorgung der Muskulatur, schnellere Laktatabbau-Rate und " +
+          "eine höhere Leistung an der anaeroben Schwelle. Ausreichende Pause zwischen den Intervallen " +
+          "ist entscheidend — sie ermöglicht volle Rekrutierung bei jeder Wiederholung.";
+      }
+      return "Progressive Aufbauphase: Das Volumen steigt kontrolliert (ca. 5-10% pro Woche), " +
+        "und die Intensität wird schrittweise erhöht. Dein Körper adaptiert an die steigende Belastung " +
+        "durch neuromuskuläre Anpassungen: die Rekrutierung schneller Muskelfasern wird effizienter, " +
+        "die Laufökonomie verbessert sich, und das Bindegewebe wird widerstandsfähiger. " +
+        "Höre auf Ermüdungssignale — Konsistenz ist wichtiger als jede einzelne Einheit.";
+
+    case "peak":
+      return "Spezifische Phase: Training wird rennspezifisch. Tempo-Läufe und Progressionseinheiten " +
+        "simulieren Rennbedingungen und trainieren Pacing, mentale Härte und Durability — " +
+        "die Fähigkeit, Leistung über die Gesamtdistanz aufrechtzuerhalten. Die Laktataufbaurate wird trainiert: " +
+        "kontrolliertes Anlaufen mit negativem Split lehrt deinen Körper, mit steigender Laktatkonzentration " +
+        "umzugehen, ohne einzubrechen. Jede Einheit hat einen klaren Bezug zum Wettkampfziel.";
+
+    default:
+      return "Trainingsaufbau: Systematische Steigerung von Volumen und Intensität für optimale Anpassung.";
+  }
 }
 
 function createWeekSessions({
@@ -10827,6 +11484,7 @@ function renderPlan(plan) {
     node.querySelector(".week-label").textContent = `Woche ${week.weekNumber} • ${formatDateShort(week.start)}-${formatDateShort(week.end)}`;
     node.querySelector(".week-focus").textContent = week.focus;
     node.querySelector(".week-load").textContent = useLoadIndex ? `~${week.loadKm} Load • ~${week.loadHours} h` : `~${week.loadKm} km • ~${week.loadHours} h`;
+    if (week.description) node.querySelector(".week-description").textContent = week.description;
 
     const dayGrid = node.querySelector(".day-grid");
     week.days.forEach((day) => {
@@ -11628,7 +12286,7 @@ function getActualPerformanceSeries(profile, plan) {
   void plan;
   // Live actuals come from Strava/Garmin/WHOOP connector ingestion.
   // Do not reuse plan projections for this section.
-  const liveSeries = window.__AIMRUNNA_LIVE_SERIES__;
+  const liveSeries = window.__AIMATHLETE_LIVE_SERIES__;
   return Array.isArray(liveSeries) && liveSeries.length ? liveSeries : null;
 }
 
@@ -11636,7 +12294,7 @@ function buildIcs(sessions) {
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//AImRUNNA//Training Plan Prototype//DE",
+    "PRODID:-//AImAthlete//Training Plan Prototype//DE",
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
   ];
@@ -11649,7 +12307,7 @@ function buildIcs(sessions) {
     const stamp = toIcsDateTime(new Date());
 
     lines.push("BEGIN:VEVENT");
-    lines.push(`UID:aimrunna-${index}-${toIcsDateTime(start)}@local`);
+    lines.push(`UID:aimathlete-${index}-${toIcsDateTime(start)}@local`);
     lines.push(`DTSTAMP:${stamp}`);
     lines.push(`DTSTART:${toIcsDateTime(start)}`);
     lines.push(`DTEND:${toIcsDateTime(end)}`);
@@ -11713,18 +12371,18 @@ function buildGarminWorkoutPlaceholder(session, profile) {
 function buildZwiftWorkoutFile(session, profile) {
   const title = session.title || "Workout";
   const workoutName = `${labelDistance(profile?.goalDistance || "olympic")} | ${title}`;
-  const description = `${session.details || ""} | Exported by AImRUNNA Prototype`;
+  const description = `${session.details || ""} | Exported by AImAthlete`;
   const tags = zwiftBlocksForSession(session);
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <workout_file>
-  <author>AImRUNNA</author>
+  <author>AImAthlete</author>
   <name>${escapeXml(workoutName)}</name>
   <description>${escapeXml(description)}</description>
   <sportType>bike</sportType>
   <tags>
     <tag name="triathlon"/>
-    <tag name="aimrunna"/>
+    <tag name="aimathlete"/>
   </tags>
   <workout>
 ${tags.map((line) => `    ${line}`).join("\n")}
@@ -13526,9 +14184,777 @@ function initStageReveals() {
   });
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   DISTRIBUTION CHARTS — Intensity, Pace, Power
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function renderIntensityDistribution(allActivities) {
+  const svg = document.getElementById("stats-intensity-svg");
+  const emptyEl = document.getElementById("intensity-dist-empty");
+  if (!svg) return;
+
+  // Group activities by week, classify intensity by HR zones
+  const now = Date.now();
+  const msPerDay = 86400000;
+  const recent = allActivities.filter(a => {
+    const ts = new Date(a.createdAt || 0).getTime();
+    return ts > now - 60 * msPerDay && Number.isFinite(ts);
+  }).sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+
+  if (!recent.length) {
+    svg.innerHTML = "";
+    if (emptyEl) emptyEl.style.display = "";
+    return;
+  }
+  if (emptyEl) emptyEl.style.display = "none";
+
+  // Group by day (last 30 days for readability)
+  const days = {};
+  const last30 = recent.filter(a => new Date(a.createdAt || 0).getTime() > now - 30 * msPerDay);
+  last30.forEach(a => {
+    const d = new Date(a.createdAt).toISOString().slice(0, 10);
+    if (!days[d]) days[d] = { lit: 0, mit: 0, hit: 0 };
+    const durH = (a.movingTimeSec || 0) / 3600;
+    const hr = a.avgHeartrate || 0;
+    const maxHr = a.maxHeartrate || 0;
+    // Classify: LIT < 140bpm, MIT 140-160, HIT > 160
+    if (hr > 160 || maxHr > 175) days[d].hit += durH;
+    else if (hr > 140 || maxHr > 160) days[d].mit += durH;
+    else days[d].lit += durH;
+  });
+
+  const dayKeys = Object.keys(days).sort();
+  if (!dayKeys.length) { svg.innerHTML = ""; return; }
+
+  const W = 720, H = 220, padL = 50, padR = 10, padT = 15, padB = 35;
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
+
+  const maxVal = Math.max(0.5, ...dayKeys.map(k => days[k].lit + days[k].mit + days[k].hit));
+  const barW = Math.max(8, Math.min(30, chartW / dayKeys.length - 3));
+  const gap = (chartW - barW * dayKeys.length) / Math.max(1, dayKeys.length - 1);
+
+  let bars = "";
+  let xLabels = "";
+  const step = Math.max(1, Math.floor(dayKeys.length / 8));
+
+  dayKeys.forEach((key, i) => {
+    const d = days[key];
+    const x = padL + i * (barW + gap);
+    const total = d.lit + d.mit + d.hit;
+    const litH = (d.lit / maxVal) * chartH;
+    const mitH = (d.mit / maxVal) * chartH;
+    const hitH = (d.hit / maxVal) * chartH;
+
+    const baseY = padT + chartH;
+    bars += `<rect class="dist-bar" x="${x}" y="${baseY - litH}" width="${barW}" height="${litH}" fill="#22c55e" rx="2" />`;
+    bars += `<rect class="dist-bar" x="${x}" y="${baseY - litH - mitH}" width="${barW}" height="${mitH}" fill="#f59e0b" rx="2" />`;
+    bars += `<rect class="dist-bar" x="${x}" y="${baseY - litH - mitH - hitH}" width="${barW}" height="${hitH}" fill="#ef4444" rx="2" />`;
+
+    if (i % step === 0 || i === dayKeys.length - 1) {
+      const label = new Date(key).toLocaleDateString("de", { day: "2-digit", month: "2-digit" });
+      xLabels += `<text x="${x + barW / 2}" y="${H - 6}" fill="rgba(255,255,255,0.4)" font-size="10" text-anchor="middle">${label}</text>`;
+    }
+  });
+
+  // Y axis
+  const ySteps = [0, 0.25, 0.5, 0.75, 1].map(f => f * maxVal);
+  const yLabels = ySteps.map(v => {
+    const y = padT + chartH - (v / maxVal) * chartH;
+    const label = v < 1 ? `${Math.round(v * 60)}min` : `${v.toFixed(1)}h`;
+    return `<text x="${padL - 6}" y="${y + 4}" fill="rgba(255,255,255,0.3)" font-size="10" text-anchor="end">${label}</text>
+    <line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="rgba(255,255,255,0.04)" />`;
+  }).join("");
+
+  svg.innerHTML = yLabels + bars + xLabels;
+}
+
+function renderPaceDistribution(allActivities) {
+  const svg = document.getElementById("stats-pace-dist-svg");
+  const emptyEl = document.getElementById("pace-dist-empty");
+  if (!svg) return;
+
+  const runs = allActivities.filter(a => a.sportType === "run" && a.distanceKm > 0.5 && a.movingTimeSec > 0);
+  if (!runs.length) {
+    svg.innerHTML = "";
+    if (emptyEl) emptyEl.style.display = "";
+    return;
+  }
+  if (emptyEl) emptyEl.style.display = "none";
+
+  // Pace bins from >8:30 to <3:00 (in sec/km)
+  const bins = [
+    { label: ">8:30", min: 510, max: 999 },
+    { label: "7:30", min: 450, max: 510 },
+    { label: "6:40", min: 400, max: 450 },
+    { label: "6:00", min: 360, max: 400 },
+    { label: "5:30", min: 330, max: 360 },
+    { label: "5:00", min: 300, max: 330 },
+    { label: "4:35", min: 275, max: 300 },
+    { label: "4:20", min: 260, max: 275 },
+    { label: "4:00", min: 240, max: 260 },
+    { label: "3:45", min: 225, max: 240 },
+    { label: "3:30", min: 210, max: 225 },
+    { label: "3:20", min: 200, max: 210 },
+    { label: "3:10", min: 190, max: 200 },
+    { label: "<3:00", min: 0, max: 190 },
+  ];
+
+  // Distribute time into bins
+  const binTime = new Array(bins.length).fill(0);
+  runs.forEach(a => {
+    const paceSecKm = (a.movingTimeSec / a.distanceKm);
+    const durH = a.movingTimeSec / 3600;
+    for (let i = 0; i < bins.length; i++) {
+      if (paceSecKm >= bins[i].min && paceSecKm < bins[i].max) {
+        binTime[i] += durH;
+        break;
+      }
+    }
+  });
+
+  const W = 720, H = 220, padL = 50, padR = 10, padT = 15, padB = 40;
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
+  const maxVal = Math.max(0.5, ...binTime);
+  const barW = Math.max(8, chartW / bins.length - 4);
+  const gap = (chartW - barW * bins.length) / Math.max(1, bins.length - 1);
+
+  let bars = "";
+  let xLabels = "";
+
+  bins.forEach((bin, i) => {
+    const x = padL + i * (barW + gap);
+    const h = (binTime[i] / maxVal) * chartH;
+    const y = padT + chartH - h;
+    bars += `<rect class="dist-bar" x="${x}" y="${y}" width="${barW}" height="${h}" fill="#22c55e" rx="3" />`;
+    xLabels += `<text x="${x + barW / 2}" y="${H - 6}" fill="rgba(255,255,255,0.4)" font-size="9" text-anchor="middle" transform="rotate(-30 ${x + barW / 2} ${H - 6})">${bin.label}</text>`;
+  });
+
+  // Y axis
+  const ySteps = 5;
+  let yLabels = "";
+  for (let i = 0; i <= ySteps; i++) {
+    const v = (i / ySteps) * maxVal;
+    const y = padT + chartH - (v / maxVal) * chartH;
+    const label = v < 1 ? `${Math.round(v * 60)}min` : `${v.toFixed(1)}h`;
+    yLabels += `<text x="${padL - 6}" y="${y + 4}" fill="rgba(255,255,255,0.3)" font-size="10" text-anchor="end">${label}</text>`;
+    yLabels += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="rgba(255,255,255,0.04)" />`;
+  }
+
+  svg.innerHTML = yLabels + bars + xLabels;
+}
+
+function renderPowerDistribution(allActivities) {
+  const svg = document.getElementById("stats-power-dist-svg");
+  const emptyEl = document.getElementById("power-dist-empty");
+  if (!svg) return;
+
+  const rides = allActivities.filter(a => a.sportType === "bike" && a.avgWatts > 0 && a.movingTimeSec > 0);
+  if (!rides.length) {
+    svg.innerHTML = "";
+    if (emptyEl) emptyEl.style.display = "";
+    return;
+  }
+  if (emptyEl) emptyEl.style.display = "none";
+
+  // Power bins from 80W to 500+W in 20W steps
+  const bins = [];
+  for (let w = 80; w <= 480; w += 20) {
+    bins.push({ label: `${w}`, min: w, max: w + 20 });
+  }
+  bins.push({ label: "500+", min: 500, max: 9999 });
+
+  const binTime = new Array(bins.length).fill(0);
+  rides.forEach(a => {
+    const watts = a.avgWatts;
+    const durH = a.movingTimeSec / 3600;
+    for (let i = 0; i < bins.length; i++) {
+      if (watts >= bins[i].min && watts < bins[i].max) {
+        binTime[i] += durH;
+        break;
+      }
+    }
+  });
+
+  const W = 720, H = 220, padL = 50, padR = 10, padT = 15, padB = 40;
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
+  const maxVal = Math.max(0.5, ...binTime);
+  const barW = Math.max(5, chartW / bins.length - 2);
+  const gap = (chartW - barW * bins.length) / Math.max(1, bins.length - 1);
+
+  let bars = "";
+  let xLabels = "";
+  const step = Math.max(1, Math.floor(bins.length / 10));
+
+  bins.forEach((bin, i) => {
+    const x = padL + i * (barW + gap);
+    const h = (binTime[i] / maxVal) * chartH;
+    const y = padT + chartH - h;
+    bars += `<rect class="dist-bar" x="${x}" y="${y}" width="${barW}" height="${h}" fill="#3b9eff" rx="2" />`;
+    if (i % step === 0 || i === bins.length - 1) {
+      xLabels += `<text x="${x + barW / 2}" y="${H - 6}" fill="rgba(255,255,255,0.4)" font-size="9" text-anchor="middle" transform="rotate(-30 ${x + barW / 2} ${H - 6})">${bin.label}</text>`;
+    }
+  });
+
+  // Y axis
+  let yLabels = "";
+  for (let i = 0; i <= 4; i++) {
+    const v = (i / 4) * maxVal;
+    const y = padT + chartH - (v / maxVal) * chartH;
+    const label = v < 1 ? `${Math.round(v * 60)}min` : `${v.toFixed(1)}h`;
+    yLabels += `<text x="${padL - 6}" y="${y + 4}" fill="rgba(255,255,255,0.3)" font-size="10" text-anchor="end">${label}</text>`;
+    yLabels += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="rgba(255,255,255,0.04)" />`;
+  }
+
+  svg.innerHTML = yLabels + bars + xLabels;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ZONE DISTRIBUTION TABLES — HR, Pace, Power with LIT/MIT/HIT summary
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function formatDurationHMS(totalSec) {
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = Math.round(totalSec % 60);
+  return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
+
+function renderZoneTable(containerId, zones, totalSec) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  if (!totalSec || totalSec < 1) {
+    el.innerHTML = '<p class="card-copy">Noch keine Daten vorhanden.</p>';
+    return;
+  }
+
+  const maxTime = Math.max(...zones.map(z => z.time));
+  let litSec = 0, mitSec = 0, hitSec = 0;
+  zones.forEach(z => {
+    if (z.intensity === "lit") litSec += z.time;
+    else if (z.intensity === "mit") mitSec += z.time;
+    else hitSec += z.time;
+  });
+  const litPct = Math.round((litSec / totalSec) * 100);
+  const mitPct = Math.round((mitSec / totalSec) * 100);
+  const hitPct = 100 - litPct - mitPct;
+
+  const rows = zones.map(z => {
+    const pct = maxTime > 0 ? (z.time / maxTime) * 100 : 0;
+    const color = z.intensity === "lit" ? "#22c55e" : z.intensity === "mit" ? "#f59e0b" : "#ef4444";
+    return `<tr>
+      <td><span class="zone-label">${z.label}</span> <span class="zone-range">${z.range}</span></td>
+      <td class="zone-time">${formatDurationHMS(z.time)}</td>
+      <td class="zone-bar-cell"><div class="zone-bar" style="width:${Math.max(2, pct)}%;background:${color}"></div></td>
+    </tr>`;
+  }).join("");
+
+  el.innerHTML = `
+    <table class="zone-table">
+      <thead><tr><th>Zone</th><th>Zeit</th><th>Verteilung</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="zone-intensity-summary">
+      <div class="zone-intensity-item"><span class="zone-intensity-label" style="color:#22c55e">LIT</span><span class="zone-intensity-pct">${litPct}%</span></div>
+      <div class="zone-intensity-item"><span class="zone-intensity-label" style="color:#f59e0b">MIT</span><span class="zone-intensity-pct">${mitPct}%</span></div>
+      <div class="zone-intensity-item"><span class="zone-intensity-label" style="color:#ef4444">HIT</span><span class="zone-intensity-pct">${hitPct}%</span></div>
+    </div>
+    <div class="zone-intensity-bar">
+      <div class="zone-intensity-bar-seg" style="width:${litPct}%;background:#22c55e"></div>
+      <div class="zone-intensity-bar-seg" style="width:${mitPct}%;background:#f59e0b"></div>
+      <div class="zone-intensity-bar-seg" style="width:${hitPct}%;background:#ef4444"></div>
+    </div>
+  `;
+}
+
+function renderHrZones(activities) {
+  const withHr = activities.filter(a => a.avgHeartrate > 0 && a.movingTimeSec > 0);
+  if (!withHr.length) { renderZoneTable("hr-zones-body", [], 0); return; }
+
+  // Estimate max HR if not set
+  const account = getCurrentAccount();
+  const maxHr = account?.profile?.maxHr || Math.max(185, ...withHr.map(a => a.maxHeartrate || 0));
+  // 5 HR zones based on % of max HR
+  const z = [
+    { pct: [0.50, 0.60], label: "Z1:", range: `bis ${Math.round(maxHr * 0.60)} bpm`, intensity: "lit" },
+    { pct: [0.60, 0.70], label: "Z2:", range: `${Math.round(maxHr * 0.60)} bis ${Math.round(maxHr * 0.70)}`, intensity: "lit" },
+    { pct: [0.70, 0.80], label: "Z3:", range: `${Math.round(maxHr * 0.70)} bis ${Math.round(maxHr * 0.80)}`, intensity: "mit" },
+    { pct: [0.80, 0.90], label: "Z4:", range: `${Math.round(maxHr * 0.80)} bis ${Math.round(maxHr * 0.90)}`, intensity: "hit" },
+    { pct: [0.90, 1.00], label: "Z5:", range: `${Math.round(maxHr * 0.90)}+ bpm`, intensity: "hit" },
+  ];
+
+  const zoneTime = z.map(() => 0);
+  let totalSec = 0;
+  withHr.forEach(a => {
+    const hr = a.avgHeartrate;
+    const dur = a.movingTimeSec;
+    totalSec += dur;
+    const hrPct = hr / maxHr;
+    for (let i = z.length - 1; i >= 0; i--) {
+      if (hrPct >= z[i].pct[0]) { zoneTime[i] += dur; break; }
+    }
+  });
+
+  renderZoneTable("hr-zones-body", z.map((zone, i) => ({ ...zone, time: zoneTime[i] })), totalSec);
+}
+
+function renderPaceZones(activities) {
+  const runs = activities.filter(a => a.sportType === "run" && a.distanceKm > 0.5 && a.movingTimeSec > 60);
+  if (!runs.length) { renderZoneTable("pace-zones-body", [], 0); return; }
+
+  // Pace zones in sec/km
+  const z = [
+    { min: 325, max: 999, label: "Z1:", range: "bis 05:25", intensity: "lit" },
+    { min: 289, max: 325, label: "Z2:", range: "04:49 bis 05:25", intensity: "lit" },
+    { min: 248, max: 289, label: "Z3:", range: "04:08 bis 04:49", intensity: "mit" },
+    { min: 221, max: 248, label: "Z4:", range: "03:41 bis 04:08", intensity: "hit" },
+    { min: 0, max: 221, label: "Z5:", range: "schneller", intensity: "hit" },
+  ];
+
+  const zoneTime = z.map(() => 0);
+  let totalSec = 0;
+  runs.forEach(a => {
+    const pace = a.movingTimeSec / a.distanceKm;
+    const dur = a.movingTimeSec;
+    totalSec += dur;
+    for (let i = 0; i < z.length; i++) {
+      if (pace >= z[i].min) { zoneTime[i] += dur; break; }
+    }
+  });
+
+  renderZoneTable("pace-zones-body", z.map((zone, i) => ({ ...zone, time: zoneTime[i] })), totalSec);
+}
+
+function renderPowerZones(activities) {
+  const rides = activities.filter(a => a.sportType === "bike" && a.avgWatts > 0 && a.movingTimeSec > 0);
+  if (!rides.length) { renderZoneTable("power-zones-body", [], 0); return; }
+
+  // Estimate FTP
+  const account = getCurrentAccount();
+  const ftp = account?.profile?.ftp || Math.round(Math.max(...rides.map(a => a.avgWatts)) * 0.95) || 200;
+  const z = [
+    { min: 0, max: Math.round(ftp * 0.55), label: "Z1:", range: `bis ${Math.round(ftp * 0.55)}w`, intensity: "lit" },
+    { min: Math.round(ftp * 0.55), max: Math.round(ftp * 0.75), label: "Z2:", range: `${Math.round(ftp * 0.55)} bis ${Math.round(ftp * 0.75)}w`, intensity: "lit" },
+    { min: Math.round(ftp * 0.75), max: Math.round(ftp * 0.90), label: "Z3:", range: `${Math.round(ftp * 0.75)} bis ${Math.round(ftp * 0.90)}w`, intensity: "mit" },
+    { min: Math.round(ftp * 0.90), max: Math.round(ftp * 1.05), label: "Z4:", range: `${Math.round(ftp * 0.90)} bis ${Math.round(ftp * 1.05)}w`, intensity: "hit" },
+    { min: Math.round(ftp * 1.05), max: 9999, label: "Z5:", range: `${Math.round(ftp * 1.05)}w+`, intensity: "hit" },
+  ];
+
+  const zoneTime = z.map(() => 0);
+  let totalSec = 0;
+  rides.forEach(a => {
+    const watts = a.avgWatts;
+    const dur = a.movingTimeSec;
+    totalSec += dur;
+    for (let i = z.length - 1; i >= 0; i--) {
+      if (watts >= z[i].min) { zoneTime[i] += dur; break; }
+    }
+  });
+
+  renderZoneTable("power-zones-body", z.map((zone, i) => ({ ...zone, time: zoneTime[i] })), totalSec);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DASHBOARD KPI RENDERING
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function renderDashboardKpis(account) {
+  const activities = account?.activities || [];
+  if (!activities.length) return;
+
+  const recent = activities.filter(a => new Date(a.createdAt || 0).getTime() > Date.now() - 365 * 86400000);
+  const runs = recent.filter(a => a.sportType === "run" && a.distanceKm > 0 && a.movingTimeSec > 0);
+  const bikes = recent.filter(a => a.sportType === "bike" && a.distanceKm > 0 && a.movingTimeSec > 0);
+
+  // ─── Running KPIs ───
+  const analysis = analyzeActivityHistory(activities);
+  const profile = account?.profile || {};
+  const vo2max = estimateVO2max(profile);
+
+  setText(document.getElementById("kpi-run-vo2max"), vo2max?.value ? vo2max.value.toFixed(1) : "–");
+
+  // Threshold pace (estimate from best 10k or 5k)
+  if (runs.length) {
+    const fiveKs = runs.filter(a => a.distanceKm >= 4.5 && a.distanceKm <= 5.5).sort((a, b) => (a.movingTimeSec / a.distanceKm) - (b.movingTimeSec / b.distanceKm));
+    const tenKs = runs.filter(a => a.distanceKm >= 9 && a.distanceKm <= 11).sort((a, b) => (a.movingTimeSec / a.distanceKm) - (b.movingTimeSec / b.distanceKm));
+    const bestRef = tenKs[0] || fiveKs[0];
+    if (bestRef) {
+      const thresholdPace = (bestRef.movingTimeSec / bestRef.distanceKm) * 1.05; // ~105% of race pace
+      const tm = Math.floor(thresholdPace / 60);
+      const ts = Math.round(thresholdPace % 60);
+      setText(document.getElementById("kpi-run-threshold"), `${tm}:${String(ts).padStart(2, "0")}`);
+
+      // FatMax: ~75% of threshold pace intensity → ~130% of threshold pace (slower)
+      const fatmaxPace = thresholdPace * 1.30;
+      const fm = Math.floor(fatmaxPace / 60);
+      const fs = Math.round(fatmaxPace % 60);
+      setText(document.getElementById("kpi-run-fatmax"), `${fm}:${String(fs).padStart(2, "0")}`);
+    }
+  }
+
+  // Fitness Age
+  const chronoAge = profile.birthYear ? (new Date().getFullYear() - profile.birthYear) : null;
+  if (vo2max?.value && chronoAge) {
+    const fAge = estimateFitnessAge(vo2max.value, profile.sex, chronoAge);
+    setText(document.getElementById("kpi-run-fitness-age"), fAge != null ? fAge : "–");
+  }
+
+  // Resting / Max HR
+  const restingHr = profile.restingHr || account?.healthData?.restingHr;
+  const maxHr = profile.maxHr || (runs.length ? Math.max(...runs.map(a => a.maxHeartrate || 0)) : null);
+  setText(document.getElementById("kpi-resting-hr"), restingHr || "–");
+  setText(document.getElementById("kpi-max-hr"), maxHr && maxHr > 0 ? maxHr : "–");
+
+  // ─── Cycling KPIs ───
+  if (bikes.length) {
+    const ftp = analysis?.estimatedFtp;
+    if (ftp?.value) {
+      setText(document.getElementById("kpi-bike-ftp"), Math.round(ftp.value));
+      const weight = profile.weight || 75;
+      setText(document.getElementById("kpi-bike-wkg"), (ftp.value / weight).toFixed(2));
+      // FatMax power: ~55-65% of FTP
+      setText(document.getElementById("kpi-bike-fatmax"), Math.round(ftp.value * 0.60));
+    }
+    // LTHR from cycling
+    const lthr = bikes.filter(a => a.avgHeartrate > 0).sort((a, b) => b.avgWatts - a.avgWatts).slice(0, 3);
+    if (lthr.length) {
+      const avgLthr = Math.round(lthr.reduce((s, a) => s + a.avgHeartrate, 0) / lthr.length);
+      setText(document.getElementById("kpi-bike-lthr"), avgLthr);
+    }
+  }
+
+  // ─── HYROX KPIs ───
+  // Show HYROX card if user has running activities with high intensity
+  const sports = account?.settings?.sports || {};
+  const showHyrox = sports["sport-hyrox"] || activities.some(a => (a.title || "").toLowerCase().includes("hyrox"));
+  const hyroxCard = document.getElementById("dashboard-kpi-hyrox");
+  if (hyroxCard) hyroxCard.hidden = !showHyrox;
+
+  if (showHyrox && runs.length) {
+    // HYROX KPIs: estimated from running data
+    // Run split: avg pace of 1km efforts
+    const oneKms = runs.filter(a => a.distanceKm >= 0.9 && a.distanceKm <= 1.2);
+    if (oneKms.length) {
+      const avgPace = oneKms.reduce((s, a) => s + a.movingTimeSec / a.distanceKm, 0) / oneKms.length;
+      const m = Math.floor(avgPace / 60), s = Math.round(avgPace % 60);
+      setText(document.getElementById("kpi-hyrox-run"), `${m}:${String(s).padStart(2, "0")}`);
+    }
+    // Roxzone, transition, total estimates
+    if (oneKms.length) {
+      const avgRunPace = oneKms.reduce((s, a) => s + a.movingTimeSec / a.distanceKm, 0) / oneKms.length;
+      const estRunTotal = Math.round(avgRunPace * 8); // 8km total running
+      const estStationTime = Math.round(30 * 60); // ~30min stations estimate
+      const estTransition = 15; // ~15sec avg transition
+      const estTotal = estRunTotal + estStationTime + (8 * estTransition);
+      setText(document.getElementById("kpi-hyrox-roxzone"), Math.round(estStationTime / 60));
+      setText(document.getElementById("kpi-hyrox-transition"), estTransition);
+      const totalH = Math.floor(estTotal / 3600);
+      const totalM = Math.floor((estTotal % 3600) / 60);
+      setText(document.getElementById("kpi-hyrox-total"), `${totalH}:${String(totalM).padStart(2, "0")}`);
+    }
+    // Recovery HR: HR drop after max effort
+    const highInt = runs.filter(a => a.maxHeartrate > 170);
+    if (highInt.length) {
+      const avgRecovery = highInt.reduce((s, a) => s + (a.maxHeartrate - (a.avgHeartrate || 150)), 0) / highInt.length;
+      setText(document.getElementById("kpi-hyrox-recovery-hr"), Math.round(avgRecovery));
+    }
+    setText(document.getElementById("kpi-hyrox-vo2"), vo2max?.value ? vo2max.value.toFixed(1) : "–");
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LOAD & CONSISTENCY CHARTS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function renderLoadChart(allActivities) {
+  const svg = document.getElementById("stats-load-svg");
+  if (!svg) return;
+
+  const now = Date.now();
+  const msPerDay = 86400000;
+  const recent = allActivities.filter(a => {
+    const ts = new Date(a.createdAt || 0).getTime();
+    return ts > now - 90 * msPerDay && Number.isFinite(ts);
+  });
+
+  if (recent.length < 3) { svg.innerHTML = ""; return; }
+
+  // Calculate rolling 7d and 28d load for each day in last 60 days
+  const W = 720, H = 220, padL = 50, padR = 10, padT = 15, padB = 30;
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
+  const days = 60;
+  const points7d = [];
+  const points28d = [];
+
+  for (let d = days - 1; d >= 0; d--) {
+    const dayStart = now - d * msPerDay;
+    let load7 = 0, load28 = 0;
+    recent.forEach(a => {
+      const ts = new Date(a.createdAt || 0).getTime();
+      const daysAgo = (dayStart - ts) / msPerDay;
+      if (daysAgo < 0 || daysAgo > 28) return;
+      const durH = (a.movingTimeSec || 0) / 3600;
+      const hrFactor = a.avgHeartrate ? Math.pow(a.avgHeartrate / 150, 1.5) : 1.0;
+      const load = durH * hrFactor * 100;
+      if (daysAgo <= 7) load7 += load;
+      if (daysAgo <= 28) load28 += load;
+    });
+    points7d.push(load7);
+    points28d.push(load28 / 4);
+  }
+
+  const maxLoad = Math.max(50, ...points7d, ...points28d);
+
+  function buildPath(pts, color) {
+    return pts.map((v, i) => {
+      const x = padL + (i / (days - 1)) * chartW;
+      const y = padT + chartH - (v / maxLoad) * chartH;
+      return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(" ");
+  }
+
+  // ACWR sweet spot band (0.8-1.3 of chronic load)
+  let bandSvg = "";
+  points28d.forEach((chronic, i) => {
+    if (i === 0) return;
+    const x = padL + (i / (days - 1)) * chartW;
+    const low = padT + chartH - (chronic * 0.8 / maxLoad) * chartH;
+    const high = padT + chartH - (chronic * 1.3 / maxLoad) * chartH;
+    bandSvg += `<rect x="${x - chartW / days / 2}" y="${high}" width="${chartW / days}" height="${low - high}" fill="rgba(0,241,155,0.06)" />`;
+  });
+
+  // Y axis
+  let yLabels = "";
+  for (let i = 0; i <= 4; i++) {
+    const v = (i / 4) * maxLoad;
+    const y = padT + chartH - (v / maxLoad) * chartH;
+    yLabels += `<text x="${padL - 6}" y="${y + 4}" fill="rgba(255,255,255,0.3)" font-size="10" text-anchor="end">${Math.round(v)}</text>`;
+    yLabels += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="rgba(255,255,255,0.04)" />`;
+  }
+
+  // X axis labels (every 10 days)
+  let xLabels = "";
+  for (let i = 0; i < days; i += 10) {
+    const d = new Date(now - (days - 1 - i) * msPerDay);
+    const x = padL + (i / (days - 1)) * chartW;
+    xLabels += `<text x="${x}" y="${H - 6}" fill="rgba(255,255,255,0.35)" font-size="10" text-anchor="middle">${d.toLocaleDateString("de", { day: "numeric", month: "short" })}</text>`;
+  }
+
+  svg.innerHTML = `
+    ${yLabels}${xLabels}
+    ${bandSvg}
+    <path d="${buildPath(points28d, "#f5c842")}" fill="none" stroke="#f5c842" stroke-width="2" opacity="0.6" stroke-dasharray="6 4" />
+    <path d="${buildPath(points7d, "#3b9eff")}" fill="none" stroke="#3b9eff" stroke-width="2.5" stroke-linecap="round" />
+    <text x="${W - padR}" y="${padT + 12}" fill="#3b9eff" font-size="10" text-anchor="end">Akut (7d)</text>
+    <text x="${W - padR}" y="${padT + 24}" fill="#f5c842" font-size="10" text-anchor="end" opacity="0.6">Chronisch (28d)</text>
+  `;
+
+  // Update summary
+  const load = estimateTrainingLoad(recent);
+  if (load) {
+    setText(document.getElementById("load-acute"), Math.round(load.acuteLoad7d));
+    setText(document.getElementById("load-chronic"), Math.round(load.chronicLoad28d));
+    setText(document.getElementById("load-acwr"), load.acwr != null ? load.acwr.toFixed(2) : "–");
+    const zone = load.acwr >= 0.8 && load.acwr <= 1.3 ? "Sweet Spot ✓" : load.acwr > 1.3 ? "Danger Zone ⚠" : "Untertrainiert";
+    setText(document.getElementById("load-zone"), zone);
+    const zoneEl = document.getElementById("load-zone");
+    if (zoneEl) {
+      zoneEl.style.color = load.acwr >= 0.8 && load.acwr <= 1.3 ? "#00f19b" : load.acwr > 1.3 ? "#ef4444" : "#f5c842";
+    }
+  }
+}
+
+function renderConsistencyChart(allActivities) {
+  const svg = document.getElementById("stats-consistency-svg");
+  if (!svg) return;
+
+  const now = Date.now();
+  const msPerDay = 86400000;
+
+  // Build a heatmap-style chart: last 12 weeks, 7 days each
+  const weeks = 12;
+  const W = 720, H = 180, padL = 40, padR = 10, padT = 15, padB = 28;
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
+  const cellW = chartW / weeks - 2;
+  const cellH = chartH / 7 - 2;
+
+  let cells = "";
+  const dayLabels = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+
+  for (let w = 0; w < weeks; w++) {
+    for (let d = 0; d < 7; d++) {
+      const daysAgo = (weeks - 1 - w) * 7 + (6 - d);
+      const dayStart = now - daysAgo * msPerDay;
+      const dayEnd = dayStart + msPerDay;
+      const count = allActivities.filter(a => {
+        const ts = new Date(a.createdAt || 0).getTime();
+        return ts >= dayStart - msPerDay && ts < dayEnd;
+      }).length;
+
+      const x = padL + w * (cellW + 2);
+      const y = padT + d * (cellH + 2);
+      let fill = "rgba(255,255,255,0.03)";
+      if (count === 1) fill = "rgba(0,241,155,0.25)";
+      else if (count === 2) fill = "rgba(0,241,155,0.50)";
+      else if (count >= 3) fill = "rgba(0,241,155,0.75)";
+
+      cells += `<rect x="${x}" y="${y}" width="${cellW}" height="${cellH}" fill="${fill}" rx="3" />`;
+    }
+  }
+
+  // Day labels
+  let labels = "";
+  dayLabels.forEach((lbl, d) => {
+    const y = padT + d * (cellH + 2) + cellH / 2 + 4;
+    labels += `<text x="${padL - 6}" y="${y}" fill="rgba(255,255,255,0.35)" font-size="9" text-anchor="end">${lbl}</text>`;
+  });
+
+  // Week labels
+  for (let w = 0; w < weeks; w += 2) {
+    const daysAgo = (weeks - 1 - w) * 7;
+    const d = new Date(now - daysAgo * msPerDay);
+    const x = padL + w * (cellW + 2) + cellW / 2;
+    labels += `<text x="${x}" y="${H - 6}" fill="rgba(255,255,255,0.3)" font-size="9" text-anchor="middle">${d.toLocaleDateString("de", { day: "numeric", month: "short" })}</text>`;
+  }
+
+  svg.innerHTML = cells + labels;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   METRIC TIME-SERIES — track dashboard ring values over time
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function recordDailyMetricSnapshot() {
+  // Called once per session — records today's ring values for time-series
+  const account = getCurrentAccount();
+  if (!account?.activities?.length) return;
+  if (!account.metricHistory) account.metricHistory = [];
+
+  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  // Skip if already recorded today
+  if (account.metricHistory.some(h => h.date === today)) return;
+
+  const readiness = calculateTrainingReadiness(account);
+  const strain = calculateCurrentStrain(account);
+  const recovery = calculateRecoveryScore(account);
+
+  account.metricHistory.push({
+    date: today,
+    readiness: readiness.score,
+    strain: strain.score,
+    recovery: recovery.score,
+    fitnessAge: null, // computed on demand from profile context
+  });
+
+  // Keep max 365 days
+  if (account.metricHistory.length > 365) account.metricHistory = account.metricHistory.slice(-365);
+  persistStore();
+}
+
+let currentMetricTs = "readiness";
+
+function renderMetricTimeSeries(account) {
+  const svg = document.getElementById("metric-ts-svg");
+  const emptyEl = document.getElementById("metric-ts-empty");
+  if (!svg) return;
+
+  const history = account?.metricHistory || [];
+  if (history.length < 2) {
+    svg.innerHTML = "";
+    if (emptyEl) emptyEl.style.display = "";
+    return;
+  }
+  if (emptyEl) emptyEl.style.display = "none";
+
+  const data = history.map(h => ({ date: h.date, value: h[currentMetricTs] ?? null })).filter(d => d.value != null);
+  if (data.length < 2) {
+    svg.innerHTML = "";
+    if (emptyEl) emptyEl.style.display = "";
+    return;
+  }
+
+  const W = 720, H = 200, padL = 40, padR = 10, padT = 15, padB = 28;
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
+
+  const maxVal = Math.max(100, ...data.map(d => d.value));
+  const minVal = Math.min(0, ...data.map(d => d.value));
+  const range = maxVal - minVal || 1;
+
+  const colorMap = {
+    readiness: "#00f19b",
+    strain: "#3b9eff",
+    recovery: "#f5c842",
+    "fitness-age": "#00d4aa"
+  };
+  const color = colorMap[currentMetricTs] || "#86d7ff";
+
+  // Build path
+  const points = data.map((d, i) => {
+    const x = padL + (i / (data.length - 1)) * chartW;
+    const y = padT + chartH - ((d.value - minVal) / range) * chartH;
+    return { x, y, date: d.date, value: d.value };
+  });
+
+  const pathD = points.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+
+  // Gradient fill
+  const areaD = pathD + ` L${points[points.length - 1].x.toFixed(1)},${padT + chartH} L${points[0].x.toFixed(1)},${padT + chartH} Z`;
+
+  // Y axis labels
+  const yLabels = [0, 25, 50, 75, 100].map(v => {
+    const y = padT + chartH - ((v - minVal) / range) * chartH;
+    return `<text x="${padL - 6}" y="${y + 4}" fill="rgba(255,255,255,0.3)" font-size="10" text-anchor="end">${v}</text>
+    <line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="rgba(255,255,255,0.04)" />`;
+  }).join("");
+
+  // X axis labels (show every nth)
+  const step = Math.max(1, Math.floor(data.length / 6));
+  const xLabels = data.filter((_, i) => i % step === 0 || i === data.length - 1).map((d, idx) => {
+    const pt = points[data.indexOf(d)];
+    const label = new Date(d.date).toLocaleDateString("de", { day: "numeric", month: "short" });
+    return `<text x="${pt.x}" y="${H - 4}" fill="rgba(255,255,255,0.35)" font-size="10" text-anchor="middle">${label}</text>`;
+  }).join("");
+
+  // Dots for last few points
+  const dotCount = Math.min(7, points.length);
+  const dots = points.slice(-dotCount).map(p =>
+    `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="${color}" opacity="0.8" />`
+  ).join("");
+
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="metric-ts-grad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${color}" stop-opacity="0.2" />
+        <stop offset="100%" stop-color="${color}" stop-opacity="0" />
+      </linearGradient>
+    </defs>
+    ${yLabels}
+    ${xLabels}
+    <path d="${areaD}" fill="url(#metric-ts-grad)" />
+    <path d="${pathD}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+    ${dots}
+  `;
+}
+
+// Metric time-series pill toggles
+document.getElementById("metric-ts-pills")?.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-metric-ts]");
+  if (!btn) return;
+  currentMetricTs = btn.dataset.metricTs;
+  document.querySelectorAll("#metric-ts-pills .stats-pill").forEach(b => b.classList.toggle("is-active", b === btn));
+  renderMetricTimeSeries(getCurrentAccount());
+});
+
 function syncUiState() {
   document.body.classList.toggle("has-data", connectedSources.size > 0);
   if (latestProfile && latestPlan) {
     renderPerformanceInsights(latestProfile, latestPlan);
   }
+  // Record daily metric snapshot
+  recordDailyMetricSnapshot();
 }

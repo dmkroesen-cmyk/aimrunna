@@ -7,9 +7,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="description" content="AImRUNNA – Dein intelligenter Trainingsplan. Laufen, Radfahren, Triathlon, HYROX, Shape." />
+    <meta name="description" content="AImAthlete – Dein intelligenter Trainingsplan. Laufen, Radfahren, Triathlon, HYROX, Shape." />
     <link rel="manifest" href="./manifest.json" />
-    <title>AImRUNNA | Training Platform</title>
+    <title>AImAthlete | Training Platform</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://images.pexels.com" crossorigin />
@@ -31,9 +31,9 @@
     <div class="ambient ambient-glow glow-b" aria-hidden="true"></div>
     <nav class="account-bar" id="account-bar" aria-live="polite">
       <div class="account-bar-left">
-        <a class="nav-brand" id="brand-anchor" href="#" aria-label="AImRUNNA Home">
+        <a class="nav-brand" id="brand-anchor" href="#" aria-label="AImAthlete Home">
           <div class="brand-mark" aria-hidden="true"><span>A</span></div>
-          <strong class="brand-wordmark">AImRUNNA</strong>
+          <strong class="brand-wordmark">AImAthlete</strong>
         </a>
         <div class="nav-divider"></div>
         <button type="button" class="account-btn is-active" id="account-home-btn" data-i18n="nav_home">Home</button>
@@ -481,7 +481,7 @@
           <div class="account-pane is-active" id="account-pane-profile">
           <div class="profile-pane-toolbar">
             <div class="profile-view-tabs" role="tablist" aria-label="Profile sections">
-              <button type="button" class="profile-view-tab is-active" data-profile-view="overview" data-i18n="profile_tab_overview">Übersicht</button>
+              <button type="button" class="profile-view-tab is-active" data-profile-view="overview" data-i18n="profile_tab_overview">Dashboard</button>
               <button type="button" class="profile-view-tab" data-profile-view="playbook" data-i18n="profile_tab_playbook">Playbook</button>
               <button type="button" class="profile-view-tab" data-profile-view="statistics" data-i18n="profile_tab_statistics">Statistik</button>
               <button type="button" class="profile-view-tab" data-profile-view="activities" data-i18n="profile_tab_activities">Aktivitäten</button>
@@ -490,6 +490,105 @@
             </div>
           </div>
           <div class="account-grid">
+            <!-- ═══ DASHBOARD RINGS ═══ -->
+            <section class="result-card account-card profile-main-card profile-card-overview dashboard-rings-card" id="dashboard-rings">
+              <div class="result-title-row">
+                <h4 data-i18n="dashboard_title">Dashboard</h4>
+                <button type="button" class="ghost icon-only dashboard-config-btn" id="dashboard-config-btn" title="Ringe konfigurieren">⚙</button>
+              </div>
+              <div class="dashboard-rings-container" id="dashboard-rings-container">
+                <div class="dashboard-ring dashboard-ring-secondary" data-ring-type="strain">
+                  <svg class="ring-svg" viewBox="0 0 200 200">
+                    <circle class="ring-track" cx="100" cy="100" r="88" />
+                    <circle class="ring-progress" cx="100" cy="100" r="88" />
+                  </svg>
+                  <div class="ring-label">
+                    <strong class="ring-value">--</strong>
+                    <span class="ring-caption" data-i18n="dashboard_strain">Belastung</span>
+                  </div>
+                </div>
+                <div class="dashboard-ring dashboard-ring-primary" data-ring-type="readiness">
+                  <svg class="ring-svg" viewBox="0 0 200 200">
+                    <circle class="ring-track" cx="100" cy="100" r="88" />
+                    <circle class="ring-progress" cx="100" cy="100" r="88" />
+                  </svg>
+                  <div class="ring-label">
+                    <strong class="ring-value">--</strong>
+                    <span class="ring-caption" data-i18n="dashboard_readiness">Bereitschaft</span>
+                  </div>
+                </div>
+                <div class="dashboard-ring dashboard-ring-secondary" data-ring-type="recovery">
+                  <svg class="ring-svg" viewBox="0 0 200 200">
+                    <circle class="ring-track" cx="100" cy="100" r="88" />
+                    <circle class="ring-progress" cx="100" cy="100" r="88" />
+                  </svg>
+                  <div class="ring-label">
+                    <strong class="ring-value">--</strong>
+                    <span class="ring-caption" data-i18n="dashboard_recovery">Erholung</span>
+                  </div>
+                </div>
+              </div>
+              <div class="dashboard-quick-stats" id="dashboard-quick-stats"></div>
+              <div class="dashboard-config-panel" id="dashboard-config-panel" hidden>
+                <p class="config-panel-title" data-i18n="dashboard_config_title">Ringe konfigurieren</p>
+                <div class="config-ring-options">
+                  <label class="config-option"><input type="checkbox" name="ring-readiness" checked disabled /><span>Training Readiness</span></label>
+                  <label class="config-option"><input type="checkbox" name="ring-strain" checked /><span data-i18n="dashboard_strain">Belastung</span></label>
+                  <label class="config-option"><input type="checkbox" name="ring-recovery" checked /><span data-i18n="dashboard_recovery">Erholung</span></label>
+                  <label class="config-option"><input type="checkbox" name="ring-hrv" /><span>HRV</span></label>
+                  <label class="config-option"><input type="checkbox" name="ring-sleep" /><span data-i18n="dashboard_sleep">Schlafqualität</span></label>
+                  <label class="config-option"><input type="checkbox" name="ring-steps" /><span data-i18n="dashboard_steps">Schritte</span></label>
+                  <label class="config-option"><input type="checkbox" name="ring-fitness-age" /><span>Fitness-Alter</span></label>
+                  <label class="config-option"><input type="checkbox" name="ring-vo2max" /><span>VO2max</span></label>
+                </div>
+                <button type="button" class="ghost" id="dashboard-config-save" data-i18n="btn_save">Speichern</button>
+              </div>
+            </section>
+
+            <!-- ═══ DASHBOARD KPIs ═══ -->
+            <section class="result-card account-card profile-main-card profile-card-overview dashboard-kpi-card" id="dashboard-kpi-running">
+              <div class="result-title-row">
+                <h4>Laufen</h4>
+                <span class="tag subtle">KPIs</span>
+              </div>
+              <div class="dashboard-kpi-grid" id="kpi-running-grid">
+                <div class="kpi-item"><span class="kpi-label">VO2max</span><strong class="kpi-value" id="kpi-run-vo2max">–</strong><small class="kpi-unit">ml/kg/min</small></div>
+                <div class="kpi-item"><span class="kpi-label">Schwelle</span><strong class="kpi-value" id="kpi-run-threshold">–</strong><small class="kpi-unit">min/km</small></div>
+                <div class="kpi-item"><span class="kpi-label">FatMax</span><strong class="kpi-value" id="kpi-run-fatmax">–</strong><small class="kpi-unit">min/km</small></div>
+                <div class="kpi-item"><span class="kpi-label">Fitness-Alter</span><strong class="kpi-value" id="kpi-run-fitness-age">–</strong><small class="kpi-unit">Jahre</small></div>
+                <div class="kpi-item"><span class="kpi-label">Ruhe-HF</span><strong class="kpi-value" id="kpi-resting-hr">–</strong><small class="kpi-unit">bpm</small></div>
+                <div class="kpi-item"><span class="kpi-label">Max HF</span><strong class="kpi-value" id="kpi-max-hr">–</strong><small class="kpi-unit">bpm</small></div>
+              </div>
+            </section>
+
+            <section class="result-card account-card profile-main-card profile-card-overview dashboard-kpi-card" id="dashboard-kpi-cycling">
+              <div class="result-title-row">
+                <h4>Radfahren</h4>
+                <span class="tag subtle">KPIs</span>
+              </div>
+              <div class="dashboard-kpi-grid" id="kpi-cycling-grid">
+                <div class="kpi-item"><span class="kpi-label">FTP</span><strong class="kpi-value" id="kpi-bike-ftp">–</strong><small class="kpi-unit">Watt</small></div>
+                <div class="kpi-item"><span class="kpi-label">W/kg</span><strong class="kpi-value" id="kpi-bike-wkg">–</strong><small class="kpi-unit">W/kg</small></div>
+                <div class="kpi-item"><span class="kpi-label">FatMax</span><strong class="kpi-value" id="kpi-bike-fatmax">–</strong><small class="kpi-unit">Watt</small></div>
+                <div class="kpi-item"><span class="kpi-label">Schwelle HF</span><strong class="kpi-value" id="kpi-bike-lthr">–</strong><small class="kpi-unit">bpm</small></div>
+              </div>
+            </section>
+
+            <section class="result-card account-card profile-main-card profile-card-overview dashboard-kpi-card" id="dashboard-kpi-hyrox" hidden>
+              <div class="result-title-row">
+                <h4>HYROX</h4>
+                <span class="tag subtle">KPIs</span>
+              </div>
+              <div class="dashboard-kpi-grid" id="kpi-hyrox-grid">
+                <div class="kpi-item"><span class="kpi-label">Run Split</span><strong class="kpi-value" id="kpi-hyrox-run">–</strong><small class="kpi-unit">min/km</small></div>
+                <div class="kpi-item"><span class="kpi-label">Roxzone</span><strong class="kpi-value" id="kpi-hyrox-roxzone">–</strong><small class="kpi-unit">min</small></div>
+                <div class="kpi-item"><span class="kpi-label">Transition</span><strong class="kpi-value" id="kpi-hyrox-transition">–</strong><small class="kpi-unit">avg sec</small></div>
+                <div class="kpi-item"><span class="kpi-label">Est. Total</span><strong class="kpi-value" id="kpi-hyrox-total">–</strong><small class="kpi-unit">h:mm</small></div>
+                <div class="kpi-item"><span class="kpi-label">Recovery HF</span><strong class="kpi-value" id="kpi-hyrox-recovery-hr">–</strong><small class="kpi-unit">bpm/min</small></div>
+                <div class="kpi-item"><span class="kpi-label">VO2max</span><strong class="kpi-value" id="kpi-hyrox-vo2">–</strong><small class="kpi-unit">ml/kg/min</small></div>
+              </div>
+            </section>
+
             <section class="result-card account-card profile-main-card profile-card-overview race-predictions-hero" id="profile-card-predictions" hidden>
               <div class="result-title-row">
                 <h4>Prognosen</h4>
@@ -585,7 +684,7 @@
               </div>
             </section>
 
-            <section class="result-card account-card account-stats-card profile-main-card profile-card-overview" id="profile-card-stats">
+            <section class="result-card account-card account-stats-card profile-main-card profile-card-statistics" id="profile-card-stats">
               <div class="result-title-row">
                 <h4 data-i18n="profile_stats">Statistik</h4>
                 <span class="tag subtle" id="profile-points-badge">0 Pkt.</span>
@@ -636,8 +735,16 @@
               </div>
             </section>
 
-            <!-- ── Statistics Tab Cards ── -->
-            <section class="result-card account-card profile-main-card profile-card-statistics" id="profile-card-volume-chart">
+            <!-- ── Statistics Sub-Navigation ── -->
+            <div class="stats-sub-nav profile-card-statistics" id="stats-sub-nav">
+              <button type="button" class="stats-sub-tab is-active" data-stats-sub="volume">Volumen</button>
+              <button type="button" class="stats-sub-tab" data-stats-sub="performance">Performance</button>
+              <button type="button" class="stats-sub-tab" data-stats-sub="health">Health</button>
+              <button type="button" class="stats-sub-tab" data-stats-sub="load">Belastung</button>
+            </div>
+
+            <!-- ── VOLUME ── -->
+            <section class="result-card account-card profile-main-card profile-card-statistics stats-sub-card stats-sub-volume stats-sub-active" id="profile-card-volume-chart">
               <div class="result-title-row">
                 <h4 data-i18n="stats_volume_title">Trainingsvolumen</h4>
                 <div class="stats-toggles-wrap">
@@ -688,7 +795,7 @@
               </div>
             </section>
 
-            <section class="result-card account-card profile-main-card profile-card-statistics" id="profile-card-sport-split">
+            <section class="result-card account-card profile-main-card profile-card-statistics stats-sub-card stats-sub-volume stats-sub-active" id="profile-card-sport-split">
               <div class="result-title-row">
                 <h4 data-i18n="stats_sport_split">Sportverteilung</h4>
               </div>
@@ -700,7 +807,7 @@
               </div>
             </section>
 
-            <section class="result-card account-card profile-main-card profile-card-statistics" id="profile-card-pace-trend">
+            <section class="result-card account-card profile-main-card profile-card-statistics stats-sub-card stats-sub-performance" id="profile-card-pace-trend">
               <div class="result-title-row">
                 <h4 data-i18n="stats_pace_trend">Pace-Entwicklung</h4>
                 <span class="tag subtle" id="stats-pace-trend-tag">min/km</span>
@@ -724,7 +831,7 @@
               </div>
             </section>
 
-            <section class="result-card account-card profile-main-card profile-card-statistics" id="profile-card-records">
+            <section class="result-card account-card profile-main-card profile-card-statistics stats-sub-card stats-sub-performance" id="profile-card-records">
               <div class="result-title-row">
                 <h4 data-i18n="stats_personal_records">Persönliche Rekorde</h4>
               </div>
@@ -733,12 +840,131 @@
               </div>
             </section>
 
-            <section class="result-card account-card profile-main-card profile-card-statistics" id="profile-card-year-compare">
+            <section class="result-card account-card profile-main-card profile-card-statistics stats-sub-card stats-sub-volume stats-sub-active" id="profile-card-year-compare">
               <div class="result-title-row">
                 <h4 data-i18n="stats_year_compare">Jahresvergleich</h4>
               </div>
               <div class="stats-year-compare-wrap" id="stats-year-compare-body">
                 <p class="card-copy" data-i18n="stats_no_data">Noch keine Daten vorhanden.</p>
+              </div>
+            </section>
+
+            <!-- ── PERFORMANCE: Distribution Charts ── -->
+            <section class="result-card account-card profile-main-card profile-card-statistics stats-sub-card stats-sub-performance" id="profile-card-intensity-dist">
+              <div class="result-title-row">
+                <h4>Intensitätsverteilung</h4>
+                <div class="stats-volume-legend">
+                  <span class="legend-dot" style="background:#22c55e"></span> LIT
+                  <span class="legend-dot" style="background:#f59e0b"></span> MIT
+                  <span class="legend-dot" style="background:#ef4444"></span> HIT
+                </div>
+              </div>
+              <div class="stats-chart-wrap">
+                <svg id="stats-intensity-svg" class="stats-chart-svg" viewBox="0 0 720 220" preserveAspectRatio="xMidYMid meet"></svg>
+                <p class="card-copy chart-empty" id="intensity-dist-empty">Importiere Aktivitäten mit Herzfrequenz-Daten für die Intensitätsverteilung.</p>
+              </div>
+            </section>
+
+            <section class="result-card account-card profile-main-card profile-card-statistics stats-sub-card stats-sub-performance" id="profile-card-pace-dist">
+              <div class="result-title-row">
+                <h4>Leistungsverteilung Laufen</h4>
+                <span class="tag subtle">min/km</span>
+              </div>
+              <div class="stats-chart-wrap">
+                <svg id="stats-pace-dist-svg" class="stats-chart-svg" viewBox="0 0 720 220" preserveAspectRatio="xMidYMid meet"></svg>
+                <p class="card-copy chart-empty" id="pace-dist-empty">Importiere Laufaktivitäten für die Pace-Verteilung.</p>
+              </div>
+            </section>
+
+            <section class="result-card account-card profile-main-card profile-card-statistics stats-sub-card stats-sub-performance" id="profile-card-power-dist">
+              <div class="result-title-row">
+                <h4>Leistungsverteilung Rad</h4>
+                <span class="tag subtle">Watt</span>
+              </div>
+              <div class="stats-chart-wrap">
+                <svg id="stats-power-dist-svg" class="stats-chart-svg" viewBox="0 0 720 220" preserveAspectRatio="xMidYMid meet"></svg>
+                <p class="card-copy chart-empty" id="power-dist-empty">Importiere Radaktivitäten mit Leistungsdaten für die Watt-Verteilung.</p>
+              </div>
+            </section>
+
+            <!-- ── PERFORMANCE: Zone Distribution Tables ── -->
+            <section class="result-card account-card profile-main-card profile-card-statistics stats-sub-card stats-sub-performance" id="profile-card-hr-zones">
+              <div class="result-title-row">
+                <h4>Herzfrequenz-Zonen</h4>
+                <span class="tag subtle">bpm</span>
+              </div>
+              <div class="zone-table-wrap" id="hr-zones-body"></div>
+            </section>
+
+            <section class="result-card account-card profile-main-card profile-card-statistics stats-sub-card stats-sub-performance" id="profile-card-pace-zones">
+              <div class="result-title-row">
+                <h4>Lauf-Geschwindigkeit</h4>
+                <span class="tag subtle">min/km</span>
+              </div>
+              <div class="zone-table-wrap" id="pace-zones-body"></div>
+            </section>
+
+            <section class="result-card account-card profile-main-card profile-card-statistics stats-sub-card stats-sub-performance" id="profile-card-power-zones">
+              <div class="result-title-row">
+                <h4>Rad-Leistung</h4>
+                <span class="tag subtle">Watt</span>
+              </div>
+              <div class="zone-table-wrap" id="power-zones-body"></div>
+            </section>
+
+            <!-- ── HEALTH ── -->
+            <!-- Metric Time Series (Readiness, Strain, Recovery, etc.) -->
+            <section class="result-card account-card profile-main-card profile-card-statistics stats-sub-card stats-sub-health" id="profile-card-metric-timeseries">
+              <div class="result-title-row">
+                <h4>Metriken-Verlauf</h4>
+                <div class="stats-toggle-pills" id="metric-ts-pills">
+                  <button type="button" class="stats-pill is-active" data-metric-ts="readiness">Readiness</button>
+                  <button type="button" class="stats-pill" data-metric-ts="strain">Strain</button>
+                  <button type="button" class="stats-pill" data-metric-ts="recovery">Recovery</button>
+                  <button type="button" class="stats-pill" data-metric-ts="fitness-age">Fitness-Alter</button>
+                </div>
+              </div>
+              <div class="stats-chart-wrap" id="metric-ts-body">
+                <svg id="metric-ts-svg" viewBox="0 0 720 200" preserveAspectRatio="none" class="stats-chart-svg"></svg>
+                <p class="card-copy metric-ts-empty" id="metric-ts-empty">Metrik-Verlauf wird nach mehreren Tagen sichtbar.</p>
+              </div>
+            </section>
+
+            <!-- ── LOAD / Belastung ── -->
+            <section class="result-card account-card profile-main-card profile-card-statistics stats-sub-card stats-sub-load" id="profile-card-load-chart">
+              <div class="result-title-row">
+                <h4>Trainingsbelastung</h4>
+                <span class="tag subtle">ACWR</span>
+              </div>
+              <div class="stats-chart-wrap">
+                <svg id="stats-load-svg" class="stats-chart-svg" viewBox="0 0 720 220" preserveAspectRatio="xMidYMid meet"></svg>
+              </div>
+              <div class="stats-summary-row" id="load-summary-row">
+                <div class="stats-summary-item">
+                  <span>Akute Last (7d)</span>
+                  <strong id="load-acute">–</strong>
+                </div>
+                <div class="stats-summary-item">
+                  <span>Chronische Last (28d)</span>
+                  <strong id="load-chronic">–</strong>
+                </div>
+                <div class="stats-summary-item">
+                  <span>ACWR</span>
+                  <strong id="load-acwr">–</strong>
+                </div>
+                <div class="stats-summary-item">
+                  <span>Zone</span>
+                  <strong id="load-zone">–</strong>
+                </div>
+              </div>
+            </section>
+
+            <section class="result-card account-card profile-main-card profile-card-statistics stats-sub-card stats-sub-load" id="profile-card-consistency">
+              <div class="result-title-row">
+                <h4>Trainings-Konsistenz</h4>
+              </div>
+              <div class="stats-chart-wrap">
+                <svg id="stats-consistency-svg" class="stats-chart-svg" viewBox="0 0 720 180" preserveAspectRatio="xMidYMid meet"></svg>
               </div>
             </section>
 
@@ -752,39 +978,53 @@
               </div>
             </section>
 
-            <section class="result-card account-card profile-settings-rail-card">
+            <section class="result-card account-card profile-settings-rail-card profile-card-settings">
               <div class="result-title-row">
                 <h4 data-i18n="profile_tab_settings">Einstellungen</h4>
                 <span class="tag subtle">Beta</span>
               </div>
-              <p class="card-copy settings-rail-copy">Persönliche Profil- und Kontoeinstellungen sowie Privatsphäre für dein eigenes Profil.</p>
+              <p class="card-copy settings-rail-copy">Verwalte dein Profil, Verbindungen, Privatsphäre und Einstellungen.</p>
               <div class="profile-settings-nav" id="profile-settings-nav">
-                <button type="button" class="profile-settings-nav-btn is-active" data-profile-settings-view="account">
-                  <span class="settings-nav-icon">⚙</span>
+                <button type="button" class="profile-settings-nav-btn is-active" data-profile-settings-view="profile">
+                  <span class="settings-nav-icon">👤</span>
+                  <span class="settings-nav-copy">
+                    <strong>Profil</strong>
+                    <small>Persönliche Daten, Bio, Sportarten, Körperwerte</small>
+                  </span>
+                </button>
+                <button type="button" class="profile-settings-nav-btn" data-profile-settings-view="connections">
+                  <span class="settings-nav-icon">🔗</span>
                   <span class="settings-nav-copy">
                     <strong>Verbindungen</strong>
-                    <small>Strava, Garmin, WHOOP, Health</small>
+                    <small>Strava, Garmin, WHOOP, Apple Health</small>
                   </span>
                 </button>
                 <button type="button" class="profile-settings-nav-btn" data-profile-settings-view="privacy">
                   <span class="settings-nav-icon">🔒</span>
                   <span class="settings-nav-copy">
-                    <strong>Privatsphäre</strong>
-                    <small>Sichtbarkeit, Suche, Nachrichten, Karte</small>
+                    <strong>Datenschutz</strong>
+                    <small>Sichtbarkeit, Freigaben, Aktivitäten, Karte</small>
                   </span>
                 </button>
                 <button type="button" class="profile-settings-nav-btn" data-profile-settings-view="notifications">
                   <span class="settings-nav-icon">🔔</span>
                   <span class="settings-nav-copy">
                     <strong>Benachrichtigungen</strong>
-                    <small>Push, E-Mail, Activity Alerts</small>
+                    <small>Push, E-Mail, Training Reminders</small>
                   </span>
                 </button>
                 <button type="button" class="profile-settings-nav-btn" data-profile-settings-view="display">
                   <span class="settings-nav-icon">🎨</span>
                   <span class="settings-nav-copy">
                     <strong>Anzeige & Einheiten</strong>
-                    <small>Theme, Einheiten, Datenansicht</small>
+                    <small>Sprache, Einheiten, Wochenstart</small>
+                  </span>
+                </button>
+                <button type="button" class="profile-settings-nav-btn" data-profile-settings-view="security">
+                  <span class="settings-nav-icon">🛡</span>
+                  <span class="settings-nav-copy">
+                    <strong>Sicherheit</strong>
+                    <small>Passwort, Sessions, Account</small>
                   </span>
                 </button>
                 <button type="button" class="profile-settings-nav-btn" data-profile-settings-view="data">
@@ -797,108 +1037,214 @@
               </div>
             </section>
 
-            <section class="result-card account-card profile-settings-card is-active" data-profile-settings-panel="account">
+            <!-- SETTINGS: Profil -->
+            <section class="result-card account-card profile-settings-card is-active" data-profile-settings-panel="profile">
               <div class="result-title-row">
-                <h4>Verbindungen</h4>
+                <h4>Profil</h4>
                 <span class="tag subtle">Beta</span>
               </div>
-              <p class="card-copy settings-panel-copy">Verwalte verbundene Dienste und Integrationen.</p>
-              <div class="connector-status-card" id="strava-profile-card">
-                <div class="result-title-row">
-                  <h5>Strava Connect</h5>
-                  <span class="tag subtle" id="strava-profile-status-badge">Disconnected</span>
-                </div>
-                <p class="micro-copy" id="strava-profile-status-copy">
-                  Erst Account anlegen oder einloggen, dann Strava verbinden und Historie importieren.
-                </p>
-                <div class="connector-status-meta" id="strava-profile-athlete-meta">
-                  <div class="empty-copy">Noch keine Strava-Verbindung erkannt.</div>
-                </div>
-                <div class="account-inline-actions">
-                  <button type="button" class="ghost" id="strava-profile-connect-btn">Strava verbinden</button>
-                  <button type="button" class="ghost" id="strava-profile-refresh-btn">Status aktualisieren</button>
-                  <button type="button" class="ghost" id="strava-profile-import-btn">Historie importieren</button>
-                  <span class="connection-state" id="strava-profile-fetch-status" aria-live="polite"></span>
-                </div>
-                <p class="micro-copy" id="strava-profile-import-summary" aria-live="polite"></p>
-              </div>
-              <form id="account-settings-form" class="account-form">
+              <p class="card-copy settings-panel-copy">Persönliche Informationen und Sportpräferenzen.</p>
+              <form id="profile-settings-form" class="account-form">
                 <div class="activity-meta-row">
-                  <label class="field is-select">
-                    <span>Sprache</span>
-                    <select name="language">
-                      <option value="de">Deutsch</option>
-                      <option value="en">English</option>
-                      <option value="ja">日本語</option>
-                    </select>
+                  <label class="field">
+                    <span>Anzeigename</span>
+                    <input type="text" name="displayName" placeholder="Dein Name" />
                   </label>
-                  <label class="field is-select">
-                    <span>Einheiten</span>
-                    <select name="units">
-                      <option value="metric">Kilometer / kg</option>
-                      <option value="imperial">Miles / lbs</option>
-                    </select>
+                  <label class="field">
+                    <span>Bio</span>
+                    <input type="text" name="bio" placeholder="Kurzbeschreibung (optional)" maxlength="140" />
                   </label>
                 </div>
                 <div class="activity-meta-row">
                   <label class="field is-select">
-                    <span>Zeitzone</span>
-                    <select name="timezone">
-                      <option value="Europe/Berlin">Europe/Berlin</option>
-                      <option value="Europe/Zurich">Europe/Zurich</option>
-                      <option value="UTC">UTC</option>
-                      <option value="America/New_York">America/New_York</option>
+                    <span>Geschlecht</span>
+                    <select name="sex">
+                      <option value="male">Männlich</option>
+                      <option value="female">Weiblich</option>
+                      <option value="other">Divers</option>
                     </select>
                   </label>
-                  <label class="field is-select">
-                    <span>E-Mail Benachrichtigungen</span>
-                    <select name="emailNotifications">
-                      <option value="all">Alle</option>
-                      <option value="important">Nur wichtige</option>
-                      <option value="none">Aus</option>
-                    </select>
+                  <label class="field">
+                    <span>Geburtsjahr</span>
+                    <input type="number" name="birthYear" placeholder="z.B. 1986" min="1930" max="2010" />
                   </label>
                 </div>
+                <div class="activity-meta-row">
+                  <label class="field">
+                    <span>Gewicht (kg)</span>
+                    <input type="number" name="weight" placeholder="z.B. 75" step="0.1" />
+                  </label>
+                  <label class="field">
+                    <span>Größe (cm)</span>
+                    <input type="number" name="height" placeholder="z.B. 180" />
+                  </label>
+                </div>
+                <div class="activity-meta-row">
+                  <label class="field">
+                    <span>Ruhe-Herzfrequenz</span>
+                    <input type="number" name="restingHr" placeholder="z.B. 52" />
+                  </label>
+                  <label class="field">
+                    <span>Max. Herzfrequenz</span>
+                    <input type="number" name="maxHr" placeholder="z.B. 185" />
+                  </label>
+                </div>
+                <fieldset class="legal-fieldset" style="margin-top:12px">
+                  <legend>Sportarten</legend>
+                  <div class="config-ring-options">
+                    <label class="config-option"><input type="checkbox" name="sport-running" checked /><span>Laufen</span></label>
+                    <label class="config-option"><input type="checkbox" name="sport-cycling" /><span>Radfahren</span></label>
+                    <label class="config-option"><input type="checkbox" name="sport-swimming" /><span>Schwimmen</span></label>
+                    <label class="config-option"><input type="checkbox" name="sport-triathlon" /><span>Triathlon</span></label>
+                    <label class="config-option"><input type="checkbox" name="sport-hyrox" /><span>HYROX</span></label>
+                    <label class="config-option"><input type="checkbox" name="sport-gym" /><span>Krafttraining</span></label>
+                    <label class="config-option"><input type="checkbox" name="sport-yoga" /><span>Yoga / Mobility</span></label>
+                    <label class="config-option"><input type="checkbox" name="sport-hiking" /><span>Wandern</span></label>
+                  </div>
+                </fieldset>
                 <div class="account-inline-actions">
-                  <button type="submit" class="ghost">Einstellungen speichern</button>
-                  <span class="connection-state" id="account-settings-status" aria-live="polite"></span>
+                  <button type="submit" class="ghost">Profil speichern</button>
+                  <span class="connection-state" id="profile-settings-status" aria-live="polite"></span>
                 </div>
               </form>
-              <div class="account-settings-ops">
-                <form id="password-change-form" class="account-form compact-form">
-                  <div class="result-title-row">
-                    <h5>Passwort ändern</h5>
-                    <span class="tag subtle">MVP</span>
-                  </div>
-                  <div class="activity-meta-row">
-                    <label class="field">
-                      <span>Aktuelles Passwort</span>
-                      <input type="password" name="currentPassword" minlength="6" placeholder="••••••••" />
-                    </label>
-                    <label class="field">
-                      <span>Neues Passwort</span>
-                      <input type="password" name="newPassword" minlength="6" placeholder="mind. 6 Zeichen" />
-                    </label>
-                  </div>
-                  <div class="account-inline-actions">
-                    <button type="submit" class="ghost">Passwort speichern</button>
-                    <span class="connection-state" id="password-change-status" aria-live="polite"></span>
-                  </div>
-                </form>
+            </section>
 
-                <div class="account-form compact-form">
-                  <div class="result-title-row">
-                    <h5>Daten & Account</h5>
-                    <span class="tag subtle">MVP</span>
+            <!-- SETTINGS: Verbindungen -->
+            <section class="result-card account-card profile-settings-card" data-profile-settings-panel="connections">
+              <div class="result-title-row">
+                <h4>Verbindungen</h4>
+              </div>
+              <p class="card-copy settings-panel-copy">Verwalte verbundene Dienste und Datenquellen.</p>
+              <div class="connector-list">
+
+                <div class="connector-row" id="strava-profile-card">
+                  <div class="connector-brand"><strong class="connector-brand-name" style="color:#fc4c02;font-style:italic;letter-spacing:-0.5px">STRAVA</strong></div>
+                  <div class="connector-info">
+                    <strong>Strava</strong>
+                    <span class="connector-status-text" id="strava-profile-status-copy">Du bist noch nicht mit Strava verbunden.</span>
+                  </div>
+                  <span class="tag subtle connector-badge" id="strava-profile-status-badge">Disconnected</span>
+                  <button type="button" class="connector-toggle" id="strava-connector-toggle" aria-label="Details">▾</button>
+                </div>
+                <div class="connector-detail" id="strava-connector-detail" hidden>
+                  <div class="connector-status-meta" id="strava-profile-athlete-meta">
+                    <div class="empty-copy">Noch keine Strava-Verbindung erkannt.</div>
                   </div>
                   <div class="account-inline-actions">
-                    <button type="button" class="ghost" id="export-account-data-btn">Daten exportieren (JSON)</button>
-                    <button type="button" class="ghost" id="delete-account-btn">Account löschen</button>
-                    <span class="connection-state" id="account-ops-status" aria-live="polite"></span>
+                    <button type="button" class="ghost" id="strava-profile-connect-btn">Strava verbinden</button>
+                    <button type="button" class="ghost" id="strava-profile-refresh-btn">Status aktualisieren</button>
+                    <button type="button" class="ghost" id="strava-profile-import-btn">Historie importieren</button>
+                    <span class="connection-state" id="strava-profile-fetch-status" aria-live="polite"></span>
                   </div>
-                  <p class="micro-copy">Lokal-MVP: Export und Löschung betreffen aktuell nur diesen Browser (LocalStorage).</p>
+                  <p class="micro-copy" id="strava-profile-import-summary" aria-live="polite"></p>
                 </div>
+
+                <div class="connector-row">
+                  <div class="connector-brand"><strong class="connector-brand-name" style="color:#fff;letter-spacing:1px">WHOOP</strong></div>
+                  <div class="connector-info">
+                    <strong>WHOOP</strong>
+                    <span class="connector-status-text">Du bist noch nicht mit WHOOP verbunden.</span>
+                  </div>
+                  <span class="tag subtle connector-badge">Coming Soon</span>
+                  <button type="button" class="connector-toggle" disabled>▾</button>
+                </div>
+
+                <div class="connector-row">
+                  <div class="connector-brand"><strong class="connector-brand-name" style="color:#007dc5;font-weight:800">GARMIN</strong></div>
+                  <div class="connector-info">
+                    <strong>Garmin Connect</strong>
+                    <span class="connector-status-text">Du bist noch nicht mit Garmin Connect verbunden.</span>
+                  </div>
+                  <span class="tag subtle connector-badge">Coming Soon</span>
+                  <button type="button" class="connector-toggle" disabled>▾</button>
+                </div>
+
+                <div class="connector-row">
+                  <div class="connector-brand"><strong class="connector-brand-name" style="color:#1da1f2;font-weight:800;letter-spacing:-0.5px">wahoo</strong></div>
+                  <div class="connector-info">
+                    <strong>Wahoo</strong>
+                    <span class="connector-status-text">Du bist noch nicht mit Wahoo verbunden.</span>
+                  </div>
+                  <span class="tag subtle connector-badge">Coming Soon</span>
+                  <button type="button" class="connector-toggle" disabled>▾</button>
+                </div>
+
+                <div class="connector-row">
+                  <div class="connector-brand"><strong class="connector-brand-name" style="color:#ff6600;font-weight:900;letter-spacing:1px">Z ZWIFT</strong></div>
+                  <div class="connector-info">
+                    <strong>Zwift</strong>
+                    <span class="connector-status-text">Du bist noch nicht mit Zwift verbunden.</span>
+                  </div>
+                  <span class="tag subtle connector-badge">Coming Soon</span>
+                  <button type="button" class="connector-toggle" disabled>▾</button>
+                </div>
+
+                <div class="connector-row">
+                  <div class="connector-brand"><strong class="connector-brand-name" style="color:#e1251b;font-weight:800;letter-spacing:1px">SUUNTO</strong></div>
+                  <div class="connector-info">
+                    <strong>Suunto</strong>
+                    <span class="connector-status-text">Du bist noch nicht mit Suunto verbunden.</span>
+                  </div>
+                  <span class="tag subtle connector-badge">Coming Soon</span>
+                  <button type="button" class="connector-toggle" disabled>▾</button>
+                </div>
+
+                <div class="connector-row">
+                  <div class="connector-brand"><strong class="connector-brand-name" style="color:#d32f2f;font-weight:800;letter-spacing:0.5px">POLAR</strong></div>
+                  <div class="connector-info">
+                    <strong>Polar Flow</strong>
+                    <span class="connector-status-text">Du bist noch nicht mit Polar Flow verbunden.</span>
+                  </div>
+                  <span class="tag subtle connector-badge">Coming Soon</span>
+                  <button type="button" class="connector-toggle" disabled>▾</button>
+                </div>
+
+                <div class="connector-row">
+                  <div class="connector-brand"><strong class="connector-brand-name" style="color:#ff2d55;font-size:13px">♥ Health</strong></div>
+                  <div class="connector-info">
+                    <strong>Apple Health</strong>
+                    <span class="connector-status-text">Du bist noch nicht mit Apple Health verbunden.</span>
+                  </div>
+                  <span class="tag subtle connector-badge">Coming Soon</span>
+                  <button type="button" class="connector-toggle" disabled>▾</button>
+                </div>
+
               </div>
+
+              <!-- Health Data Source Priority -->
+              <div class="connector-priority-card">
+                <h5>Gesundheitsdaten-Quelle</h5>
+                <p class="micro-copy">Wähle, welche Quelle für Gesundheitsdaten (Schlaf, HRV, Ruhe-Herzfrequenz) im KI-Coach und in der Analyse bevorzugt werden soll. Wenn du mehrere Geräte verbunden hast, wird diese Quelle priorisiert.</p>
+                <label class="field is-select" style="max-width:280px;margin:12px auto 0">
+                  <select name="healthDataSource" id="health-data-source-select">
+                    <option value="auto">Automatisch (beste Quelle)</option>
+                    <option value="whoop">WHOOP</option>
+                    <option value="garmin">Garmin</option>
+                    <option value="apple_health">Apple HealthKit</option>
+                    <option value="polar">Polar</option>
+                    <option value="suunto">Suunto</option>
+                    <option value="strava">Strava</option>
+                  </select>
+                </label>
+              </div>
+
+              <!-- Activity Data Source Priority -->
+              <div class="connector-priority-card">
+                <h5>Aktivitätsdaten-Quelle</h5>
+                <p class="micro-copy">Wähle die primäre Quelle für Aktivitätsdaten (GPS, Pace, Leistung). Bei Duplikaten wird diese Quelle bevorzugt.</p>
+                <label class="field is-select" style="max-width:280px;margin:12px auto 0">
+                  <select name="activityDataSource" id="activity-data-source-select">
+                    <option value="auto">Automatisch (beste Quelle)</option>
+                    <option value="strava">Strava</option>
+                    <option value="garmin">Garmin</option>
+                    <option value="wahoo">Wahoo</option>
+                    <option value="suunto">Suunto</option>
+                    <option value="polar">Polar</option>
+                    <option value="zwift">Zwift</option>
+                  </select>
+                </label>
+              </div>
+
             </section>
 
             <section class="result-card account-card profile-settings-card" data-profile-settings-panel="privacy">
@@ -1007,8 +1353,27 @@
                 <h4>Anzeige & Einheiten</h4>
                 <span class="tag subtle">Beta</span>
               </div>
-              <p class="card-copy settings-panel-copy">Passe die Darstellung deiner Daten an.</p>
-              <div class="account-form compact-form">
+              <p class="card-copy settings-panel-copy">Sprache, Einheiten und Darstellung deiner Daten.</p>
+              <form id="account-settings-form" class="account-form">
+                <div class="activity-meta-row">
+                  <label class="field is-select">
+                    <span>Sprache</span>
+                    <select name="language">
+                      <option value="de">Deutsch</option>
+                      <option value="en">English</option>
+                      <option value="ja">日本語</option>
+                    </select>
+                  </label>
+                  <label class="field is-select">
+                    <span>Zeitzone</span>
+                    <select name="timezone">
+                      <option value="Europe/Berlin">Europe/Berlin</option>
+                      <option value="Europe/Zurich">Europe/Zurich</option>
+                      <option value="UTC">UTC</option>
+                      <option value="America/New_York">America/New_York</option>
+                    </select>
+                  </label>
+                </div>
                 <div class="activity-meta-row">
                   <label class="field is-select">
                     <span>Distanz-Einheit</span>
@@ -1042,13 +1407,77 @@
                     </select>
                   </label>
                 </div>
-                <label class="field is-select">
-                  <span>Wochenstart</span>
-                  <select name="weekStart">
-                    <option value="monday" selected>Montag</option>
-                    <option value="sunday">Sonntag</option>
-                  </select>
-                </label>
+                <div class="activity-meta-row">
+                  <label class="field is-select">
+                    <span>Wochenstart</span>
+                    <select name="weekStart">
+                      <option value="monday" selected>Montag</option>
+                      <option value="sunday">Sonntag</option>
+                    </select>
+                  </label>
+                  <label class="field is-select">
+                    <span>E-Mail Benachrichtigungen</span>
+                    <select name="emailNotifications">
+                      <option value="all">Alle</option>
+                      <option value="important">Nur wichtige</option>
+                      <option value="none">Aus</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="account-inline-actions">
+                  <button type="submit" class="ghost">Einstellungen speichern</button>
+                  <span class="connection-state" id="account-settings-status" aria-live="polite"></span>
+                </div>
+              </form>
+            </section>
+
+            <!-- SETTINGS: Sicherheit -->
+            <section class="result-card account-card profile-settings-card" data-profile-settings-panel="security">
+              <div class="result-title-row">
+                <h4>Sicherheit</h4>
+                <span class="tag subtle">Beta</span>
+              </div>
+              <p class="card-copy settings-panel-copy">Passwort, Sitzungen und Account-Verwaltung.</p>
+              <div class="account-settings-ops">
+                <form id="password-change-form" class="account-form compact-form">
+                  <div class="result-title-row">
+                    <h5>Passwort ändern</h5>
+                  </div>
+                  <div class="activity-meta-row">
+                    <label class="field">
+                      <span>Aktuelles Passwort</span>
+                      <input type="password" name="currentPassword" minlength="6" placeholder="••••••••" />
+                    </label>
+                    <label class="field">
+                      <span>Neues Passwort</span>
+                      <input type="password" name="newPassword" minlength="6" placeholder="mind. 6 Zeichen" />
+                    </label>
+                  </div>
+                  <div class="account-inline-actions">
+                    <button type="submit" class="ghost">Passwort speichern</button>
+                    <span class="connection-state" id="password-change-status" aria-live="polite"></span>
+                  </div>
+                </form>
+                <div class="account-form compact-form">
+                  <div class="result-title-row">
+                    <h5>Aktive Sitzungen</h5>
+                  </div>
+                  <p class="micro-copy">Dieses Gerät ist aktuell angemeldet. Weitere Sitzungen werden in einer zukünftigen Version angezeigt.</p>
+                  <div class="account-inline-actions">
+                    <button type="button" class="ghost" disabled>Alle anderen Sitzungen beenden</button>
+                  </div>
+                </div>
+                <div class="account-form compact-form">
+                  <div class="result-title-row">
+                    <h5>Account</h5>
+                  </div>
+                  <div class="account-inline-actions">
+                    <button type="button" class="ghost" id="export-account-data-btn">Daten exportieren (JSON)</button>
+                    <button type="button" class="ghost danger" id="delete-account-btn">Account löschen</button>
+                    <span class="connection-state" id="account-ops-status" aria-live="polite"></span>
+                  </div>
+                  <p class="micro-copy">Achtung: Account-Löschung ist unwiderruflich und entfernt alle gespeicherten Daten.</p>
+                </div>
               </div>
             </section>
 
@@ -1073,6 +1502,11 @@
                   <h5>Konto-Daten löschen</h5>
                   <p class="micro-copy">Lösche alle gespeicherten Trainingsdaten. Diese Aktion kann nicht rückgängig gemacht werden.</p>
                   <button type="button" class="ghost danger" id="delete-data-btn">Alle Trainingsdaten löschen</button>
+                </div>
+                <div class="account-form compact-form">
+                  <h5>Impressum & Rechtliches</h5>
+                  <p class="micro-copy">Erstelle oder aktualisiere dein Impressum.</p>
+                  <button type="button" class="ghost" id="open-legal-questionnaire-btn">Impressum-Fragebogen öffnen</button>
                 </div>
               </div>
             </section>
@@ -1285,7 +1719,7 @@
       <footer class="site-footer">
         <div class="footer-top">
           <div class="footer-brand">
-            <strong>AImRUNNA</strong>
+            <strong>AImAthlete</strong>
             <span>The premium training platform.</span>
           </div>
           <div class="footer-links">
@@ -1309,7 +1743,7 @@
               <span class="lang-flag">🇯🇵</span> JP
             </button>
           </nav>
-          <span class="footer-copy">© 2026 AImRUNNA. Alle Rechte vorbehalten.</span>
+          <span class="footer-copy">© 2026 AImAthlete. Alle Rechte vorbehalten.</span>
         </div>
       </footer>
     </main>
@@ -1323,6 +1757,7 @@
           </div>
           <div class="week-load"></div>
         </div>
+        <p class="week-description"></p>
         <div class="day-grid"></div>
       </article>
     </template>
@@ -1488,7 +1923,7 @@
       <article class="account-modal-card glossary-modal-card" role="dialog" aria-modal="true" aria-labelledby="glossary-modal-title">
         <button type="button" class="session-modal-close" data-close-glossary-modal aria-label="Close">×</button>
         <div class="session-modal-head">
-          <div class="session-modal-meta">AImRUNNA Guide</div>
+          <div class="session-modal-meta">AImAthlete Guide</div>
           <h4 id="glossary-modal-title">Trainingsbibliothek</h4>
           <p>Kurze Erklärungen zu Begriffen aus Lauf-, Triathlon-, HYROX- und Strength-Training.</p>
         </div>
@@ -1613,7 +2048,7 @@
       <article class="account-modal-card glossary-modal-card legal-modal-card" role="dialog" aria-modal="true" aria-labelledby="legal-modal-title">
         <button type="button" class="session-modal-close" data-close-legal-modal aria-label="Close">×</button>
         <div class="session-modal-head">
-          <div class="session-modal-meta">AImRUNNA Legal & Compliance</div>
+          <div class="session-modal-meta">AImAthlete Legal & Compliance</div>
           <h4 id="legal-modal-title">Public Beta Legal Paket (Draft)</h4>
           <p id="legal-modal-subtitle">Vorlage zur internen Vorbereitung. Vor Launch juristisch prüfen lassen (DE/EU, Gesundheits-/Trainingsbezug).</p>
         </div>
@@ -1632,6 +2067,100 @@
             <div id="legal-content-body" class="analysis">Legal Draft</div>
           </section>
         </div>
+      </article>
+    </div>
+
+    <!-- Login Success Animation Overlay -->
+    <div id="login-success-overlay" class="login-success-overlay" hidden>
+      <div class="login-success-content">
+        <div class="login-success-ring">
+          <svg viewBox="0 0 200 200">
+            <circle class="login-ring-track" cx="100" cy="100" r="88" />
+            <circle class="login-ring-fill" cx="100" cy="100" r="88" />
+          </svg>
+          <div class="login-success-icon">✓</div>
+        </div>
+        <strong class="login-success-brand">AImAthlete</strong>
+        <span class="login-success-msg" data-i18n="login_welcome">Willkommen zurück</span>
+      </div>
+    </div>
+
+    <!-- Legal Questionnaire Modal -->
+    <div id="legal-questionnaire-modal" class="account-modal" hidden>
+      <div class="account-modal-backdrop" data-close-legal-questionnaire></div>
+      <article class="account-modal-card legal-questionnaire-card" role="dialog" aria-modal="true" aria-labelledby="legal-q-title">
+        <button type="button" class="session-modal-close" data-close-legal-questionnaire aria-label="Close">×</button>
+        <div class="result-title-row">
+          <h4 id="legal-q-title">Impressum & Rechtliches</h4>
+          <span class="tag subtle">Pflicht</span>
+        </div>
+        <p class="card-copy">Bitte fülle die folgenden Angaben aus, damit dein Impressum rechtssicher ist (§5 TMG / DDG).</p>
+        <form id="legal-questionnaire-form" class="account-form">
+          <fieldset class="legal-fieldset">
+            <legend>Unternehmen / Betreiber</legend>
+            <label class="field"><span>Firmenname / Rechtsform</span><input type="text" name="companyName" placeholder="z.B. AI'm GBR" required /></label>
+            <div class="activity-meta-row">
+              <label class="field"><span>Vertretungsberechtigte Person(en)</span><input type="text" name="representatives" placeholder="Vor- und Nachname(n)" required /></label>
+              <label class="field"><span>Rechtsform</span>
+                <select name="legalForm">
+                  <option value="gbr">GbR</option>
+                  <option value="ug">UG (haftungsbeschränkt)</option>
+                  <option value="gmbh">GmbH</option>
+                  <option value="einzelunternehmen">Einzelunternehmen</option>
+                  <option value="other">Andere</option>
+                </select>
+              </label>
+            </div>
+          </fieldset>
+          <fieldset class="legal-fieldset">
+            <legend>Adresse</legend>
+            <label class="field"><span>Straße + Hausnummer</span><input type="text" name="street" placeholder="Musterstraße 1" required /></label>
+            <div class="activity-meta-row">
+              <label class="field"><span>PLZ</span><input type="text" name="zip" placeholder="12345" required /></label>
+              <label class="field"><span>Stadt</span><input type="text" name="city" placeholder="Berlin" required /></label>
+            </div>
+            <label class="field"><span>Land</span><input type="text" name="country" value="Deutschland" required /></label>
+          </fieldset>
+          <fieldset class="legal-fieldset">
+            <legend>Kontakt</legend>
+            <div class="activity-meta-row">
+              <label class="field"><span>E-Mail (öffentlich)</span><input type="email" name="contactEmail" placeholder="kontakt@example.com" required /></label>
+              <label class="field"><span>Telefon (optional, empfohlen)</span><input type="tel" name="contactPhone" placeholder="+49 ..." /></label>
+            </div>
+          </fieldset>
+          <fieldset class="legal-fieldset">
+            <legend>Registrierung & Steuern</legend>
+            <div class="activity-meta-row">
+              <label class="field"><span>Handelsregister / Registergericht</span><input type="text" name="tradeRegister" placeholder="z.B. AG Charlottenburg, HRB 12345 (falls vorhanden)" /></label>
+              <label class="field"><span>USt-IdNr. (falls vorhanden)</span><input type="text" name="vatId" placeholder="DE123456789" /></label>
+            </div>
+          </fieldset>
+          <fieldset class="legal-fieldset">
+            <legend>Verantwortlich für Inhalte (§ 18 MStV)</legend>
+            <label class="field"><span>Name der verantwortlichen Person</span><input type="text" name="contentResponsible" placeholder="Vor- und Nachname" required /></label>
+            <label class="field"><span>Adresse (falls abweichend)</span><input type="text" name="contentResponsibleAddress" placeholder="Wie oben, oder andere Adresse" /></label>
+          </fieldset>
+          <fieldset class="legal-fieldset">
+            <legend>Datenschutz</legend>
+            <label class="field"><span>Datenschutzbeauftragter (falls bestellt)</span><input type="text" name="dpo" placeholder="Name oder 'nicht bestellt'" /></label>
+            <label class="field"><span>Hosting-Anbieter</span><input type="text" name="hostingProvider" placeholder="z.B. Vercel, Cloudflare Pages, Hetzner..." required /></label>
+            <label class="field"><span>Verwendete Drittdienste</span><input type="text" name="thirdPartyServices" placeholder="z.B. Strava API, Google Fonts, Supabase..." /></label>
+          </fieldset>
+          <fieldset class="legal-fieldset">
+            <legend>Online-Streitbeilegung</legend>
+            <p class="micro-copy">Gemäß EU-Verordnung Nr. 524/2013: Link zur OS-Plattform: <a href="https://ec.europa.eu/consumers/odr" target="_blank">https://ec.europa.eu/consumers/odr</a></p>
+            <label class="field"><span>Bereitschaft zur Teilnahme?</span>
+              <select name="odrWillingness">
+                <option value="no">Nein – nicht bereit / nicht verpflichtet</option>
+                <option value="yes">Ja</option>
+              </select>
+            </label>
+          </fieldset>
+          <div class="account-inline-actions">
+            <button type="submit" class="cta cta-race">Impressum generieren</button>
+            <span class="connection-state" id="legal-q-status" aria-live="polite"></span>
+          </div>
+        </form>
       </article>
     </div>
 

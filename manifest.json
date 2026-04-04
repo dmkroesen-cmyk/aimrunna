@@ -1,6 +1,6 @@
 {
-  "name": "AImRUNNA",
-  "short_name": "AImRUNNA",
+  "name": "AImAthlete",
+  "short_name": "AImAthlete",
   "description": "Intelligenter Trainingsplan – Laufen, Radfahren, Triathlon, HYROX, Shape",
   "start_url": "/",
   "display": "standalone",
