@@ -29,8 +29,13 @@
     <div class="ambient ambient-noise" aria-hidden="true"></div>
     <div class="ambient ambient-glow glow-a" aria-hidden="true"></div>
     <div class="ambient ambient-glow glow-b" aria-hidden="true"></div>
-    <div class="account-bar" id="account-bar" aria-live="polite">
+    <nav class="account-bar" id="account-bar" aria-live="polite">
       <div class="account-bar-left">
+        <a class="nav-brand" id="brand-anchor" href="#" aria-label="AImRUNNA Home">
+          <div class="brand-mark" aria-hidden="true"><span>A</span></div>
+          <strong class="brand-wordmark">AImRUNNA</strong>
+        </a>
+        <div class="nav-divider"></div>
         <button type="button" class="account-btn is-active" id="account-home-btn" data-i18n="nav_home">Home</button>
         <button type="button" class="account-btn" id="account-profile-btn" data-i18n="nav_profile">Profil</button>
       </div>
@@ -43,19 +48,7 @@
         </div>
         <button type="button" class="account-btn account-btn-logout" id="account-logout-btn" hidden>Logout</button>
       </div>
-    </div>
-
-    <div class="brand-anchor" id="brand-anchor">
-      <div class="brand-row">
-        <div class="brand-mark" aria-hidden="true">
-          <span>A</span>
-        </div>
-        <div class="brand-copy">
-          <strong>AImRUNNA</strong>
-          <small>Planning Prototype · Beta</small>
-        </div>
-      </div>
-    </div>
+    </nav>
 
     <main class="site-shell">
       <section class="scroll-stage" id="scroll-stage">
@@ -488,11 +481,11 @@
           <div class="account-pane is-active" id="account-pane-profile">
           <div class="profile-pane-toolbar">
             <div class="profile-view-tabs" role="tablist" aria-label="Profile sections">
-              <button type="button" class="profile-view-tab is-active" data-profile-view="overview" data-i18n="profile_tab_overview">Überblick</button>
+              <button type="button" class="profile-view-tab is-active" data-profile-view="overview" data-i18n="profile_tab_overview">Übersicht</button>
               <button type="button" class="profile-view-tab" data-profile-view="playbook" data-i18n="profile_tab_playbook">Playbook</button>
               <button type="button" class="profile-view-tab" data-profile-view="statistics" data-i18n="profile_tab_statistics">Statistik</button>
               <button type="button" class="profile-view-tab" data-profile-view="activities" data-i18n="profile_tab_activities">Aktivitäten</button>
-              <button type="button" class="profile-view-tab" data-profile-view="health" data-i18n="profile_tab_health">Gesundheit</button>
+              <button type="button" class="profile-view-tab" data-profile-view="health" data-i18n="profile_tab_health">Health</button>
               <button type="button" class="profile-view-tab" data-profile-view="settings" data-i18n="profile_tab_settings">Einstellungen</button>
             </div>
           </div>
@@ -647,10 +640,16 @@
             <section class="result-card account-card profile-main-card profile-card-statistics" id="profile-card-volume-chart">
               <div class="result-title-row">
                 <h4 data-i18n="stats_volume_title">Trainingsvolumen</h4>
-                <div class="stats-range-toggle">
-                  <button type="button" class="stats-range-btn is-active" data-stats-range="12m">12M</button>
-                  <button type="button" class="stats-range-btn" data-stats-range="ytd">YTD</button>
-                  <button type="button" class="stats-range-btn" data-stats-range="all">All</button>
+                <div class="stats-toggles-wrap">
+                  <div class="stats-metric-toggle">
+                    <button type="button" class="stats-metric-btn is-active" data-stats-metric="km">km</button>
+                    <button type="button" class="stats-metric-btn" data-stats-metric="hours">h</button>
+                  </div>
+                  <div class="stats-range-toggle">
+                    <button type="button" class="stats-range-btn is-active" data-stats-range="12m">12M</button>
+                    <button type="button" class="stats-range-btn" data-stats-range="ytd">YTD</button>
+                    <button type="button" class="stats-range-btn" data-stats-range="all">All</button>
+                  </div>
                 </div>
               </div>
               <div class="stats-volume-chart-wrap">
@@ -661,7 +660,7 @@
                   <span class="legend-dot legend-swim"></span> <span data-i18n="label_swim_short">Swim</span>
                 </div>
               </div>
-              <div class="stats-summary-row" id="stats-summary-row">
+              <div class="stats-summary-row stats-summary-6col" id="stats-summary-row">
                 <div class="stats-summary-item">
                   <span data-i18n="stats_total_distance">Gesamt</span>
                   <strong id="stats-total-km">0 km</strong>
@@ -677,6 +676,14 @@
                 <div class="stats-summary-item">
                   <span data-i18n="stats_longest_run">Längster Lauf</span>
                   <strong id="stats-longest-run">0 km</strong>
+                </div>
+                <div class="stats-summary-item">
+                  <span data-i18n="stats_elevation_gain">Höhenmeter</span>
+                  <strong id="stats-elevation-gain">0 m</strong>
+                </div>
+                <div class="stats-summary-item">
+                  <span data-i18n="stats_longest_streak">Längste Serie</span>
+                  <strong id="stats-longest-streak">0 d</strong>
                 </div>
               </div>
             </section>
@@ -755,8 +762,8 @@
                 <button type="button" class="profile-settings-nav-btn is-active" data-profile-settings-view="account">
                   <span class="settings-nav-icon">⚙</span>
                   <span class="settings-nav-copy">
-                    <strong>Profil & Konto</strong>
-                    <small>Sprache, Einheiten, Strava, Passwort</small>
+                    <strong>Verbindungen</strong>
+                    <small>Strava, Garmin, WHOOP, Health</small>
                   </span>
                 </button>
                 <button type="button" class="profile-settings-nav-btn" data-profile-settings-view="privacy">
@@ -766,15 +773,36 @@
                     <small>Sichtbarkeit, Suche, Nachrichten, Karte</small>
                   </span>
                 </button>
+                <button type="button" class="profile-settings-nav-btn" data-profile-settings-view="notifications">
+                  <span class="settings-nav-icon">🔔</span>
+                  <span class="settings-nav-copy">
+                    <strong>Benachrichtigungen</strong>
+                    <small>Push, E-Mail, Activity Alerts</small>
+                  </span>
+                </button>
+                <button type="button" class="profile-settings-nav-btn" data-profile-settings-view="display">
+                  <span class="settings-nav-icon">🎨</span>
+                  <span class="settings-nav-copy">
+                    <strong>Anzeige & Einheiten</strong>
+                    <small>Theme, Einheiten, Datenansicht</small>
+                  </span>
+                </button>
+                <button type="button" class="profile-settings-nav-btn" data-profile-settings-view="data">
+                  <span class="settings-nav-icon">📊</span>
+                  <span class="settings-nav-copy">
+                    <strong>Daten & Export</strong>
+                    <small>Export, Import, Löschung</small>
+                  </span>
+                </button>
               </div>
             </section>
 
             <section class="result-card account-card profile-settings-card is-active" data-profile-settings-panel="account">
               <div class="result-title-row">
-                <h4>Konto & Verbindungen</h4>
+                <h4>Verbindungen</h4>
                 <span class="tag subtle">Beta</span>
               </div>
-              <p class="card-copy settings-panel-copy">Verwalte Sprache, Einheiten, Benachrichtigungen, Passwort und verbundene Dienste.</p>
+              <p class="card-copy settings-panel-copy">Verwalte verbundene Dienste und Integrationen.</p>
               <div class="connector-status-card" id="strava-profile-card">
                 <div class="result-title-row">
                   <h5>Strava Connect</h5>
@@ -938,6 +966,115 @@
                   <span class="connection-state" id="privacy-settings-status" aria-live="polite"></span>
                 </div>
               </form>
+            </section>
+
+            <section class="result-card account-card profile-settings-card" data-profile-settings-panel="notifications">
+              <div class="result-title-row">
+                <h4>Benachrichtigungen</h4>
+                <span class="tag subtle">Beta</span>
+              </div>
+              <p class="card-copy settings-panel-copy">Steuere wie und wann du benachrichtigt wirst.</p>
+              <div class="account-form compact-form">
+                <div class="field field-checkbox">
+                  <span>Push-Benachrichtigungen</span>
+                  <label class="checkbox-row" for="notif-push">
+                    <input id="notif-push" type="checkbox" checked />
+                    <span class="cycle-toggle-icon" aria-hidden="true"></span>
+                    <span>Aktivitäts-Updates & Erinnerungen</span>
+                  </label>
+                </div>
+                <div class="field field-checkbox">
+                  <span>E-Mail Digest</span>
+                  <label class="checkbox-row" for="notif-email">
+                    <input id="notif-email" type="checkbox" checked />
+                    <span class="cycle-toggle-icon" aria-hidden="true"></span>
+                    <span>Wöchentliche Trainingsübersicht</span>
+                  </label>
+                </div>
+                <div class="field field-checkbox">
+                  <span>Social</span>
+                  <label class="checkbox-row" for="notif-social">
+                    <input id="notif-social" type="checkbox" checked />
+                    <span class="cycle-toggle-icon" aria-hidden="true"></span>
+                    <span>Props, Kommentare, neue Follower</span>
+                  </label>
+                </div>
+              </div>
+            </section>
+
+            <section class="result-card account-card profile-settings-card" data-profile-settings-panel="display">
+              <div class="result-title-row">
+                <h4>Anzeige & Einheiten</h4>
+                <span class="tag subtle">Beta</span>
+              </div>
+              <p class="card-copy settings-panel-copy">Passe die Darstellung deiner Daten an.</p>
+              <div class="account-form compact-form">
+                <div class="activity-meta-row">
+                  <label class="field is-select">
+                    <span>Distanz-Einheit</span>
+                    <select name="distanceUnit">
+                      <option value="km" selected>Kilometer (km)</option>
+                      <option value="mi">Meilen (mi)</option>
+                    </select>
+                  </label>
+                  <label class="field is-select">
+                    <span>Pace-Anzeige</span>
+                    <select name="paceFormat">
+                      <option value="minkm" selected>min/km</option>
+                      <option value="minmi">min/mi</option>
+                      <option value="kmh">km/h</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="activity-meta-row">
+                  <label class="field is-select">
+                    <span>Höhen-Einheit</span>
+                    <select name="elevationUnit">
+                      <option value="m" selected>Meter (m)</option>
+                      <option value="ft">Fuß (ft)</option>
+                    </select>
+                  </label>
+                  <label class="field is-select">
+                    <span>Gewicht</span>
+                    <select name="weightUnit">
+                      <option value="kg" selected>Kilogramm (kg)</option>
+                      <option value="lbs">Pfund (lbs)</option>
+                    </select>
+                  </label>
+                </div>
+                <label class="field is-select">
+                  <span>Wochenstart</span>
+                  <select name="weekStart">
+                    <option value="monday" selected>Montag</option>
+                    <option value="sunday">Sonntag</option>
+                  </select>
+                </label>
+              </div>
+            </section>
+
+            <section class="result-card account-card profile-settings-card" data-profile-settings-panel="data">
+              <div class="result-title-row">
+                <h4>Daten & Export</h4>
+                <span class="tag subtle">Beta</span>
+              </div>
+              <p class="card-copy settings-panel-copy">Exportiere, importiere oder lösche deine Trainingsdaten.</p>
+              <div class="account-settings-ops">
+                <div class="account-form compact-form">
+                  <h5>Daten exportieren</h5>
+                  <p class="micro-copy">Lade alle deine Aktivitäten und Pläne als JSON-Datei herunter.</p>
+                  <button type="button" class="ghost" id="export-data-btn">Alle Daten exportieren</button>
+                </div>
+                <div class="account-form compact-form">
+                  <h5>Daten importieren</h5>
+                  <p class="micro-copy">Importiere Aktivitäten aus einer JSON-Datei.</p>
+                  <button type="button" class="ghost" id="import-data-btn">Daten importieren</button>
+                </div>
+                <div class="account-form compact-form">
+                  <h5>Konto-Daten löschen</h5>
+                  <p class="micro-copy">Lösche alle gespeicherten Trainingsdaten. Diese Aktion kann nicht rückgängig gemacht werden.</p>
+                  <button type="button" class="ghost danger" id="delete-data-btn">Alle Trainingsdaten löschen</button>
+                </div>
+              </div>
             </section>
 
             <section class="result-card account-card profile-settings-card" data-profile-settings-panel="safety">
@@ -1149,7 +1286,7 @@
         <div class="footer-top">
           <div class="footer-brand">
             <strong>AImRUNNA</strong>
-            <span>Training Platform · Beta</span>
+            <span>The premium training platform.</span>
           </div>
           <div class="footer-links">
             <button type="button" class="footer-link" data-legal-open="imprint">Impressum</button>

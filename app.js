@@ -671,10 +671,10 @@ const I18N = {
     nav_login: "Login",
     nav_create: "Registrieren",
     section_profile_crew: "Profil & Community",
-    profile_tab_overview: "Überblick",
+    profile_tab_overview: "Übersicht",
     profile_tab_playbook: "Playbook",
     profile_tab_activities: "Aktivitäten",
-    profile_tab_health: "Gesundheit",
+    profile_tab_health: "Health",
     profile_tab_settings: "Einstellungen",
     profile_card_title: "Profil",
     profile_create_account: "Account erstellen",
@@ -689,6 +689,8 @@ const I18N = {
     stats_avg_weekly: "Ø/Woche",
     stats_activities_count: "Aktivitäten",
     stats_longest_run: "Längster Lauf",
+    stats_elevation_gain: "Höhenmeter",
+    stats_longest_streak: "Längste Serie",
     stats_sport_split: "Sportverteilung",
     stats_pace_trend: "Pace-Entwicklung",
     stats_current_pace: "Aktuelle Pace",
@@ -830,6 +832,8 @@ const I18N = {
     stats_avg_weekly: "Avg/Week",
     stats_activities_count: "Activities",
     stats_longest_run: "Longest Run",
+    stats_elevation_gain: "Elevation",
+    stats_longest_streak: "Longest Streak",
     stats_sport_split: "Sport Distribution",
     stats_pace_trend: "Pace Trend",
     stats_current_pace: "Current Pace",
@@ -971,6 +975,8 @@ const I18N = {
     stats_avg_weekly: "週平均",
     stats_activities_count: "アクティビティ",
     stats_longest_run: "最長ラン",
+    stats_elevation_gain: "獲得標高",
+    stats_longest_streak: "最長連続",
     stats_sport_split: "スポーツ比率",
     stats_pace_trend: "ペース推移",
     stats_current_pace: "現在のペース",
@@ -1246,6 +1252,29 @@ profileSettingsNavButtons.forEach((btn) =>
     setActiveProfileSettingsView(view);
   })
 );
+
+// Data & Export settings
+document.getElementById("export-data-btn")?.addEventListener("click", () => {
+  const account = getCurrentAccount();
+  if (!account) return;
+  const data = { activities: account.activities || [], plans: account.plans || [], settings: account.settings || {} };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = `aimrunna-export-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+});
+
+document.getElementById("delete-data-btn")?.addEventListener("click", () => {
+  const account = getCurrentAccount();
+  if (!account) return;
+  if (confirm("Alle Trainingsdaten unwiderruflich löschen?")) {
+    account.activities = [];
+    saveAccounts();
+    renderProfileStats(account);
+    renderStatisticsView(account);
+  }
+});
 
 profileAvatarInputEl?.addEventListener("change", async () => {
   const account = getCurrentAccount();
@@ -3502,7 +3531,7 @@ function syncPlaybookFormPlacement() {
 }
 
 function setActiveProfileSettingsView(view) {
-  activeProfileSettingsView = ["account", "privacy"].includes(view) ? view : "account";
+  activeProfileSettingsView = ["account", "privacy", "notifications", "display", "data"].includes(view) ? view : "account";
   profileSettingsNavButtons.forEach((btn) =>
     btn.classList.toggle("is-active", btn.dataset.profileSettingsView === activeProfileSettingsView)
   );
@@ -4298,10 +4327,37 @@ function formatRelativeTime(iso) {
 
 /* ── Statistics View ────────────────────────────────────────────── */
 let currentStatsRange = "12m";
+let currentStatsMetric = "km";
+
+function computeStreak(activities) {
+  if (!activities.length) return 0;
+  const daySet = new Set();
+  activities.forEach((a) => {
+    if (a.createdAt) {
+      const d = new Date(a.createdAt);
+      daySet.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`);
+    }
+  });
+  const sorted = [...daySet].sort();
+  if (!sorted.length) return 0;
+  let maxStreak = 1, current = 1;
+  for (let i = 1; i < sorted.length; i++) {
+    const prev = new Date(sorted[i - 1] + "T00:00:00");
+    const cur = new Date(sorted[i] + "T00:00:00");
+    const diff = (cur - prev) / 86400000;
+    if (diff === 1) {
+      current++;
+      if (current > maxStreak) maxStreak = current;
+    } else {
+      current = 1;
+    }
+  }
+  return maxStreak;
+}
 
 function renderStatisticsView(account) {
   const activities = account?.activities || [];
-  renderVolumeChart(activities, currentStatsRange);
+  renderVolumeChart(activities, currentStatsRange, currentStatsMetric);
   renderSportSplit(activities, currentStatsRange);
   renderPaceTrend(activities);
   renderPersonalRecords(activities);
@@ -4327,11 +4383,13 @@ function filterActivitiesByRange(activities, range) {
   });
 }
 
-function renderVolumeChart(allActivities, range) {
+function renderVolumeChart(allActivities, range, metric) {
   const svg = document.getElementById("stats-volume-svg");
   if (!svg) return;
+  metric = metric || currentStatsMetric;
 
   const activities = filterActivitiesByRange(allActivities, range);
+  const useHours = metric === "hours";
 
   // Group by month
   const months = {};
@@ -4339,10 +4397,10 @@ function renderVolumeChart(allActivities, range) {
     const d = new Date(a.createdAt);
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
     if (!months[key]) months[key] = { run: 0, bike: 0, swim: 0, label: "" };
-    const km = Number(a.distanceKm) || 0;
-    if (a.sportType === "run") months[key].run += km;
-    else if (a.sportType === "bike") months[key].bike += km;
-    else if (a.sportType === "swim") months[key].swim += km;
+    const val = useHours ? (Number(a.movingTimeSec) || 0) / 3600 : Number(a.distanceKm) || 0;
+    if (a.sportType === "run") months[key].run += val;
+    else if (a.sportType === "bike") months[key].bike += val;
+    else if (a.sportType === "swim") months[key].swim += val;
   });
 
   // Generate continuous month range
@@ -4372,7 +4430,8 @@ function renderVolumeChart(allActivities, range) {
   if (allMonths.length > 12) allMonths = allMonths.slice(-12);
 
   const rawMax = Math.max(0, ...allMonths.map((m) => m.run + m.bike + m.swim));
-  const maxKm = rawMax > 0 ? rawMax : 100; // Use 100 as default scale for empty state
+  const maxKm = rawMax > 0 ? rawMax : (useHours ? 20 : 100); // Use sensible default scale for empty state
+  const unit = useHours ? "h" : "km";
   const W = 720, H = 200, padL = 40, padR = 10, padT = 10, padB = 28;
   const chartW = W - padL - padR;
   const chartH = H - padT - padB;
@@ -4426,14 +4485,25 @@ function renderVolumeChart(allActivities, range) {
 
   // Summary stats
   const totalKm = activities.reduce((s, a) => s + (Number(a.distanceKm) || 0), 0);
+  const totalHours = activities.reduce((s, a) => s + (Number(a.movingTimeSec) || 0), 0) / 3600;
   const weeks = range === "12m" ? 52 : range === "ytd" ? Math.ceil((Date.now() - new Date(new Date().getFullYear(), 0, 1).getTime()) / 604800000) : Math.max(1, Math.ceil((Date.now() - Math.min(...activities.map((a) => new Date(a.createdAt).getTime()).filter(Boolean))) / 604800000));
-  const avgWeekly = totalKm / Math.max(1, weeks);
-  const longestRun = Math.max(0, ...activities.filter((a) => a.sportType === "run").map((a) => Number(a.distanceKm) || 0));
+  const totalElevation = activities.reduce((s, a) => s + (Number(a.elevationGainM) || 0), 0);
+  const streak = computeStreak(activities);
 
-  setText(document.getElementById("stats-total-km"), `${totalKm.toFixed(1)} km`);
-  setText(document.getElementById("stats-avg-weekly-km"), `${avgWeekly.toFixed(1)} km`);
+  if (useHours) {
+    const avgWeeklyH = totalHours / Math.max(1, weeks);
+    setText(document.getElementById("stats-total-km"), `${totalHours.toFixed(1)} h`);
+    setText(document.getElementById("stats-avg-weekly-km"), `${avgWeeklyH.toFixed(1)} h`);
+  } else {
+    const avgWeekly = totalKm / Math.max(1, weeks);
+    setText(document.getElementById("stats-total-km"), `${totalKm.toFixed(1)} km`);
+    setText(document.getElementById("stats-avg-weekly-km"), `${avgWeekly.toFixed(1)} km`);
+  }
+  const longestRun = Math.max(0, ...activities.filter((a) => a.sportType === "run").map((a) => Number(a.distanceKm) || 0));
   setText(document.getElementById("stats-activity-count"), String(activities.length));
   setText(document.getElementById("stats-longest-run"), `${longestRun.toFixed(1)} km`);
+  setText(document.getElementById("stats-elevation-gain"), `${Math.round(totalElevation)} m`);
+  setText(document.getElementById("stats-longest-streak"), `${streak} d`);
 }
 
 function renderSportSplit(allActivities, range) {
@@ -4671,6 +4741,17 @@ document.addEventListener("click", (e) => {
   if (!range) return;
   currentStatsRange = range;
   document.querySelectorAll(".stats-range-btn").forEach((b) => b.classList.toggle("is-active", b === btn));
+  renderStatisticsView(getCurrentAccount());
+});
+
+// Stats metric toggle (km / hours)
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".stats-metric-btn");
+  if (!btn) return;
+  const metric = btn.dataset.statsMetric;
+  if (!metric) return;
+  currentStatsMetric = metric;
+  document.querySelectorAll(".stats-metric-btn").forEach((b) => b.classList.toggle("is-active", b === btn));
   renderStatisticsView(getCurrentAccount());
 });
 
