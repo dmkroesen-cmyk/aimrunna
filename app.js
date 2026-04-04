@@ -282,9 +282,21 @@ let appStore = null;
 let currentAccountId = null;
 let lastAccountSearchQuery = "";
 let activeAccountSection = "profile";
-let activeAppView = "home";
-let activeProfileView = "overview";
-let activeProfileSettingsView = "profile";
+// Restore UI view state from previous session
+const UI_STATE_KEY = "aimrunna_ui_state_v1";
+const _savedUiState = (() => {
+  try { return JSON.parse(localStorage.getItem(UI_STATE_KEY) || "{}"); } catch { return {}; }
+})();
+let activeAppView = _savedUiState.activeAppView || "home";
+let activeProfileView = _savedUiState.activeProfileView || "overview";
+let activeProfileSettingsView = _savedUiState.activeProfileSettingsView || "profile";
+function persistUiState() {
+  try {
+    localStorage.setItem(UI_STATE_KEY, JSON.stringify({
+      activeAppView, activeProfileView, activeProfileSettingsView,
+    }));
+  } catch {}
+}
 let pendingGoalRealismSuggestion = null;
 let pendingGoalRealismProfile = null;
 let draftRaceEvents = parseRaceEventsJson(raceEventsJsonInputEl?.value);
@@ -3044,7 +3056,24 @@ function loadStore() {
 function persistStore() {
   if (!appStore) return;
   appStore.currentAccountId = currentAccountId;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(appStore));
+  // Stamp settings updates so we can detect "newer-than-cloud" on reload
+  const acc = appStore.accounts.find((a) => a.id === currentAccountId);
+  if (acc && acc.settings) {
+    acc.settings._updatedAt = Date.now();
+  }
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(appStore));
+  } catch (e) {
+    console.warn("persistStore failed:", e);
+  }
+  // Debounced cloud sync of settings so they survive reload even if other
+  // code paths forget to call sbDb.updateProfile explicitly.
+  if (acc && typeof sbDb !== "undefined" && sbDb?.updateProfile) {
+    clearTimeout(persistStore._cloudTimer);
+    persistStore._cloudTimer = setTimeout(() => {
+      sbDb.updateProfile(acc.id, { settings: acc.settings }).catch(() => {});
+    }, 800);
+  }
 }
 
 function getCurrentAccount() {
@@ -3153,13 +3182,23 @@ async function handleSupabaseAuth(session) {
       account.email = profile.email || account.email;
       account.displayName = profile.display_name;
       account.profileImage = profile.profile_image;
-      if (profile.settings) account.settings = { ...defaultAccountSettings(), ...profile.settings };
+      if (profile.settings) {
+        // Merge remote + local settings. If local has a newer _updatedAt timestamp,
+        // local wins — otherwise remote wins. This prevents reloads from wiping
+        // settings that were changed locally but hadn't synced yet.
+        const remote = profile.settings;
+        const local = account.settings || {};
+        const localNewer = (local._updatedAt || 0) > (remote._updatedAt || 0);
+        account.settings = localNewer
+          ? { ...defaultAccountSettings(), ...remote, ...local }
+          : { ...defaultAccountSettings(), ...local, ...remote };
+      }
       if (profile.connected_sources) account.connectedSources = profile.connected_sources;
     }
-    // Load plans from Supabase
-    const plans = await sbDb.getPlans(user.id);
-    if (plans.length) {
-      account.plans = plans.map((p) => ({
+    // Load plans from Supabase — merge with local by ID (local-only plans survive)
+    const remotePlans = await sbDb.getPlans(user.id);
+    if (remotePlans.length) {
+      const remoteMapped = remotePlans.map((p) => ({
         id: p.id,
         createdAt: p.created_at,
         title: p.title,
@@ -3167,6 +3206,12 @@ async function handleSupabaseAuth(session) {
         profile: p.profile,
         plan: p.plan_data,
       }));
+      const byId = new Map();
+      (account.plans || []).forEach((p) => byId.set(p.id, p));
+      remoteMapped.forEach((p) => byId.set(p.id, p)); // remote wins on conflict
+      account.plans = Array.from(byId.values()).sort(
+        (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+      );
     }
     // Load activities from Supabase
     const activities = await sbDb.getActivities(user.id, 60);
@@ -3713,6 +3758,7 @@ function setActiveAccountSection(section) {
 
 function setActiveProfileView(view) {
   activeProfileView = ["overview", "playbook", "statistics", "activities", "settings"].includes(view) ? view : "overview";
+  persistUiState();
   document.body.classList.remove("profile-view-overview", "profile-view-playbook", "profile-view-statistics", "profile-view-activities", "profile-view-settings");
   document.body.classList.add(`profile-view-${activeProfileView}`);
   profileViewTabButtons.forEach((btn) => btn.classList.toggle("is-active", btn.dataset.profileView === activeProfileView));
@@ -3768,6 +3814,7 @@ function syncPlaybookFormPlacement() {
 
 function setActiveProfileSettingsView(view) {
   activeProfileSettingsView = ["profile", "connections", "privacy", "notifications", "display", "security", "safety", "data"].includes(view) ? view : "profile";
+  persistUiState();
   profileSettingsNavButtons.forEach((btn) =>
     btn.classList.toggle("is-active", btn.dataset.profileSettingsView === activeProfileSettingsView)
   );
@@ -3778,6 +3825,7 @@ function setActiveProfileSettingsView(view) {
 
 function setAppView(view) {
   activeAppView = ["home", "profile"].includes(view) ? view : "home";
+  persistUiState();
   document.body.classList.remove("app-view-home", "app-view-profile", "app-view-crew");
   document.body.classList.add(`app-view-${activeAppView}`);
 
@@ -4121,10 +4169,11 @@ function renderActivityFeed() {
             <span class="activity-card-name">${escapeHtml(displayName)}</span>
             <span class="activity-card-date">${escapeHtml(dateStr)} · ${escapeHtml(timeStr)}</span>
           </div>
-          <span class="activity-card-type">${escapeHtml(sportLabel)}</span>
+          <span class="activity-card-type" data-sport="${escapeHtml(sportType)}">${getActivitySportIcon(sportType)}<span>${escapeHtml(sportLabel)}</span></span>
         </div>
         <h3 class="activity-card-title">${escapeHtml(title)}</h3>
         ${statsHtml ? `<div class="activity-card-stats">${statsHtml}</div>` : ""}
+        ${item.polyline ? `<div class="activity-card-map">${renderRouteMapSvg(item, { width: 640, height: 160 })}</div>` : ""}
       </article>
     `;
   }).join("");
@@ -4177,25 +4226,62 @@ function formatDurationHMS(totalSec) {
 
 function normalizeSportType(type, sport) {
   const raw = String(type || sport || "").toLowerCase();
-  if (raw.includes("run") || raw === "laufen") return "run";
-  if (raw.includes("ride") || raw.includes("bike") || raw.includes("cycling") || raw === "radfahren") return "bike";
+  if (raw.includes("run") || raw.includes("lauf") || raw === "jog") return "run";
+  if (raw.includes("trail")) return "trail";
+  if (raw.includes("ride") || raw.includes("bike") || raw.includes("cycling") || raw === "radfahren" || raw.includes("radfahr")) return "bike";
+  if (raw.includes("mountainbike") || raw === "mtb") return "mtb";
   if (raw.includes("swim") || raw === "schwimmen") return "swim";
   if (raw.includes("hyrox")) return "hyrox";
+  if (raw.includes("yoga")) return "yoga";
+  if (raw.includes("pilates")) return "pilates";
+  if (raw.includes("weighttraining") || raw.includes("strength") || raw.includes("kraft") || raw === "gym") return "gym";
+  if (raw.includes("crossfit") || raw.includes("hiit") || raw === "wod") return "crossfit";
+  if (raw.includes("row")) return "row";
+  if (raw.includes("walk") || raw.includes("gehen") || raw.includes("spazier")) return "walk";
+  if (raw.includes("hike") || raw.includes("wander")) return "hike";
+  if (raw.includes("ski") || raw.includes("snowboard")) return "ski";
+  if (raw.includes("climb") || raw.includes("kletter")) return "climb";
+  if (raw.includes("elliptical") || raw.includes("crosstrain")) return "elliptical";
+  if (raw.includes("skate") || raw.includes("inline")) return "skate";
+  if (raw.includes("triath")) return "triathlon";
   return "other";
 }
 
 function formatActivityFeedSportLabel(sportType) {
-  const map = { run: "Laufen", bike: "Radfahren", swim: "Schwimmen", hyrox: "HYROX", other: "Workout" };
+  const map = {
+    run: "Laufen", trail: "Trailrunning", bike: "Radfahren", mtb: "MTB", swim: "Schwimmen",
+    hyrox: "HYROX", yoga: "Yoga", pilates: "Pilates", gym: "Krafttraining",
+    crossfit: "CrossFit", row: "Rudern", walk: "Gehen", hike: "Wandern",
+    ski: "Ski/Snowboard", climb: "Klettern", elliptical: "Crosstrainer",
+    skate: "Skating", triathlon: "Triathlon", other: "Workout",
+  };
   return map[sportType] || "Workout";
 }
 
 function getActivitySportIcon(sportType) {
+  const svg = (paths) => `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
   const icons = {
-    run: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"/><path d="M7 21l3-7 3 1 4-8"/><path d="M17 21l-2-4"/><path d="M10 14l-3 7"/></svg>',
-    bike: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-3 11.5V14l-3-3 4-3 2 3h3"/></svg>',
-    swim: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16c.6.5 1.2 1 2.5 1C7 17 7 15 9.5 15c2.5 0 2.5 2 5 2s2.5-2 5-2c1.3 0 1.9.5 2.5 1"/><path d="M2 20c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2c1.3 0 1.9.5 2.5 1"/><path d="M9.5 15l5-8"/><circle cx="16" cy="5" r="2"/></svg>',
+    run:        '<circle cx="13" cy="4" r="2"/><path d="M7 21l3-7 3 1 4-8"/><path d="M17 21l-2-4"/><path d="M10 14l-3 7"/>',
+    trail:      '<circle cx="13" cy="4" r="2"/><path d="M7 21l3-7 3 1 4-8"/><path d="M3 18l4-3 3 2"/><path d="M14 20l3-2"/>',
+    bike:       '<circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><circle cx="15" cy="5" r="1"/><path d="M12 17.5V14l-3-3 4-3 2 3h3"/>',
+    mtb:        '<circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M12 17.5V14l-3-3 4-3 2 3h3"/><path d="M3 19l-1 2M21 19l1 2"/>',
+    swim:       '<path d="M2 16c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2c1.3 0 1.9.5 2.5 1"/><path d="M2 20c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2c1.3 0 1.9.5 2.5 1"/><path d="M9.5 15l5-8"/><circle cx="16" cy="5" r="2"/>',
+    hyrox:      '<rect x="3" y="8" width="18" height="8" rx="1"/><path d="M7 12h10"/><path d="M5 8V6M19 8V6M5 16v2M19 16v2"/>',
+    yoga:       '<circle cx="12" cy="4" r="2"/><path d="M12 6v6"/><path d="M6 20c2-4 4-6 6-6s4 2 6 6"/><path d="M8 14l-4-2M16 14l4-2"/>',
+    pilates:    '<circle cx="12" cy="5" r="2"/><path d="M12 7v5l-3 4"/><path d="M12 12l3 4"/><path d="M6 20h12"/>',
+    gym:        '<path d="M6 8v8M18 8v8M4 10v4M20 10v4M6 12h12"/>',
+    crossfit:   '<path d="M4 12l4-4M4 12l4 4M20 12l-4-4M20 12l-4 4M4 12h16"/>',
+    row:        '<path d="M3 18l4-2 4 3 4-3 4 2 2-1"/><path d="M12 12l-2-4 4-2 2 4-4 2z"/>',
+    walk:       '<circle cx="13" cy="4" r="2"/><path d="M9 20l3-8 3 2 2-4"/><path d="M7 12l3-4"/>',
+    hike:       '<circle cx="13" cy="4" r="2"/><path d="M9 20l3-8 3 2 2-4"/><path d="M3 20l4-5 3 3"/><path d="M17 20l-2-4"/>',
+    ski:        '<path d="M4 20L20 4"/><path d="M6 18l14-14"/><circle cx="16" cy="4" r="1"/>',
+    climb:      '<circle cx="14" cy="4" r="2"/><path d="M14 6v5l-4 3 2 6"/><path d="M14 11l3 2 1 4"/><path d="M6 16l3-2"/>',
+    elliptical: '<ellipse cx="12" cy="17" rx="8" ry="3"/><path d="M8 17l2-8 4 1 2 7"/><circle cx="12" cy="6" r="2"/>',
+    skate:      '<circle cx="6" cy="18" r="2"/><circle cx="12" cy="18" r="2"/><circle cx="18" cy="18" r="2"/><path d="M4 14h16l-1 4H5z"/>',
+    triathlon:  '<path d="M3 18h4M17 18h4"/><circle cx="11" cy="5" r="1.5"/><path d="M11 7v4l-2 3 3 2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="18" r="2"/>',
+    other:      '<path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>',
   };
-  return icons[sportType] || '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>';
+  return svg(icons[sportType] || icons.other);
 }
 
 function renderCrewFeed(account) {
@@ -4392,6 +4478,7 @@ function buildActivityCardHtml({ item, actorEmail, actorAvatar, actorPoints = 0,
       </div>
       <h3 class="activity-card-title">${escapeHtml(title)}</h3>
       ${statsHtml ? `<div class="activity-card-stats">${statsHtml}</div>` : ""}
+      ${item.polyline ? `<div class="activity-card-map">${renderRouteMapSvg(item, { width: 640, height: 160 })}</div>` : ""}
       ${propsHtml}
     </article>
   `;
@@ -4559,20 +4646,20 @@ function openActivityDetail(ownerEmail, activityId) {
     `;
   }
 
-  // Map placeholder (using OpenStreetMap static image based on activity location)
-  const mapHtml = `
-    <div class="activity-detail-map">
-      <div class="map-placeholder">
-        <svg viewBox="0 0 640 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect width="640" height="200" fill="rgba(255,255,255,0.02)" rx="8"/>
-          <path d="M40 160 Q120 80 200 120 T360 90 T520 110 T600 70" stroke="var(--accent-fresh, #34d399)" stroke-width="3" fill="none" stroke-linecap="round"/>
-          <circle cx="40" cy="160" r="5" fill="#34d399"/>
-          <circle cx="600" cy="70" r="5" fill="#ef4444"/>
-          <text x="320" y="185" text-anchor="middle" fill="rgba(255,255,255,0.25)" font-size="11">Streckenansicht verfügbar mit Strava-Detaildaten</text>
-        </svg>
-      </div>
-    </div>
-  `;
+  // Actual route map if polyline available, else placeholder
+  const mapHtml = activity.polyline
+    ? `<div class="activity-detail-map">${renderRouteMapSvg(activity, { width: 640, height: 220, strokeWidth: 3 })}</div>`
+    : `<div class="activity-detail-map">
+        <div class="map-placeholder">
+          <svg viewBox="0 0 640 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="640" height="200" fill="rgba(255,255,255,0.02)" rx="8"/>
+            <path d="M40 160 Q120 80 200 120 T360 90 T520 110 T600 70" stroke="var(--accent-fresh, #34d399)" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <circle cx="40" cy="160" r="5" fill="#34d399"/>
+            <circle cx="600" cy="70" r="5" fill="#ef4444"/>
+            <text x="320" y="185" text-anchor="middle" fill="rgba(255,255,255,0.25)" font-size="11">Routendaten nicht verfügbar</text>
+          </svg>
+        </div>
+      </div>`;
 
   contentEl.innerHTML = `
     ${mapHtml}
@@ -6339,9 +6426,81 @@ function mapStravaActivityToLocalFeed(activity) {
     avgCadence,
     paceSecPerKm,
     speedKmh,
+    // Route map data: encoded polyline from Strava (summary_polyline is the simplified version)
+    polyline: activity.map?.summary_polyline || activity.map?.polyline || activity.summary_polyline || null,
+    startLatLng: Array.isArray(activity.start_latlng) ? activity.start_latlng : null,
+    endLatLng: Array.isArray(activity.end_latlng) ? activity.end_latlng : null,
     imageDataUrl: null,
     propsBy: [],
   };
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ROUTE MAP RENDERING — decode Strava polyline + draw as inline SVG
+   No external tile service required; purely client-side.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+// Google polyline algorithm decoder (public format spec)
+function decodePolyline(encoded) {
+  if (!encoded || typeof encoded !== "string") return [];
+  const points = [];
+  let index = 0, lat = 0, lng = 0;
+  while (index < encoded.length) {
+    let shift = 0, result = 0, b;
+    do {
+      b = encoded.charCodeAt(index++) - 63;
+      result |= (b & 0x1f) << shift;
+      shift += 5;
+    } while (b >= 0x20);
+    lat += (result & 1) ? ~(result >> 1) : (result >> 1);
+    shift = 0; result = 0;
+    do {
+      b = encoded.charCodeAt(index++) - 63;
+      result |= (b & 0x1f) << shift;
+      shift += 5;
+    } while (b >= 0x20);
+    lng += (result & 1) ? ~(result >> 1) : (result >> 1);
+    points.push([lat * 1e-5, lng * 1e-5]);
+  }
+  return points;
+}
+
+function renderRouteMapSvg(activity, opts = {}) {
+  const { width = 320, height = 140, stroke = "#E5A93D", strokeWidth = 2.5 } = opts;
+  const pts = decodePolyline(activity?.polyline);
+  if (!pts.length) return "";
+  // Mercator-ish projection for small areas (equirectangular with lat scale)
+  const lats = pts.map(p => p[0]);
+  const lngs = pts.map(p => p[1]);
+  const minLat = Math.min(...lats), maxLat = Math.max(...lats);
+  const minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
+  const midLat = (minLat + maxLat) / 2;
+  const latScale = 1;
+  const lngScale = Math.cos(midLat * Math.PI / 180);
+  const dx = (maxLng - minLng) * lngScale || 0.001;
+  const dy = (maxLat - minLat) * latScale || 0.001;
+  const pad = 6;
+  const w = width - 2 * pad, h = height - 2 * pad;
+  const scale = Math.min(w / dx, h / dy);
+  const offX = pad + (w - dx * scale) / 2;
+  const offY = pad + (h - dy * scale) / 2;
+  const path = pts.map(([la, ln], i) => {
+    const x = offX + (ln - minLng) * lngScale * scale;
+    const y = offY + (maxLat - la) * latScale * scale;
+    return `${i === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(1)}`;
+  }).join("");
+  // Start/end markers
+  const first = pts[0], last = pts[pts.length - 1];
+  const fx = offX + (first[1] - minLng) * lngScale * scale;
+  const fy = offY + (maxLat - first[0]) * latScale * scale;
+  const lx = offX + (last[1] - minLng) * lngScale * scale;
+  const ly = offY + (maxLat - last[0]) * latScale * scale;
+  return `<svg class="route-map" viewBox="0 0 ${width} ${height}" width="100%" height="${height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+    <rect x="0" y="0" width="${width}" height="${height}" fill="#1a1d22" rx="10"/>
+    <path d="${path}" fill="none" stroke="${stroke}" stroke-width="${strokeWidth}" stroke-linejoin="round" stroke-linecap="round" opacity="0.95"/>
+    <circle cx="${fx.toFixed(1)}" cy="${fy.toFixed(1)}" r="3.5" fill="#4CAF82" stroke="#fff" stroke-width="1"/>
+    <circle cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="3.5" fill="#E05252" stroke="#fff" stroke-width="1"/>
+  </svg>`;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -9568,32 +9727,46 @@ function applyAdaptiveAdjustments(plan, profile, currentWeekIdx, compliance, tra
 function analyzeActivityHistoryLight(activities) {
   if (!activities || !activities.length) return null;
   const now = Date.now();
-  const recent = activities.filter(a => (now - new Date(a.date || a.start_date).getTime()) < 90 * 86400000);
+  // Support both Strava raw (date/start_date/distance/moving_time) and
+  // normalized (createdAt/distanceKm/movingTimeSec) field conventions.
+  const actDate = (a) => new Date(a.createdAt || a.date || a.start_date || 0).getTime();
+  const actKm = (a) => Number(a.distanceKm)
+    || (Number(a.distance) > 100 ? Number(a.distance) / 1000 : Number(a.distance))
+    || Number(a.distance_km) || 0;
+  const actSec = (a) => Number(a.movingTimeSec) || Number(a.moving_time) || Number(a.elapsed_time) || Number(a.duration) || 0;
+  const actType = (a) => String(a.sportType || a.type || a.sport_type || a.sport || "").toLowerCase();
+
+  const recent = activities.filter(a => (now - actDate(a)) < 90 * 86400000);
   if (!recent.length) return null;
 
-  const runs = recent.filter(a => String(a.type || a.sport_type || "").toLowerCase().includes("run"));
+  const runs = recent.filter(a => /run|lauf/.test(actType(a)));
   const runPbs = {};
-  for (const r of runs) {
-    const km = Number(r.distance) / 1000 || Number(r.distance_km) || 0;
-    const sec = Number(r.moving_time) || Number(r.elapsed_time) || 0;
-    if (km >= 4.8 && km <= 5.3 && sec > 0) {
-      if (!runPbs.fiveK || sec < runPbs.fiveK.time) runPbs.fiveK = { time: sec, distance: km };
+  // Effort-aware scoring: for each standard distance, pick the BEST TIME within
+  // acceptable tolerance. Also prefer efforts where distance is very close to target.
+  const trackDist = (key, minKm, maxKm) => {
+    for (const r of runs) {
+      const km = actKm(r); const sec = actSec(r);
+      if (km >= minKm && km <= maxKm && sec > 0) {
+        // Normalize to target distance using Riegel (exponent 1.06) to compare fairly
+        const targetKm = (minKm + maxKm) / 2;
+        const normalizedSec = sec * Math.pow(targetKm / km, 1.06);
+        if (!runPbs[key] || normalizedSec < runPbs[key].time) {
+          runPbs[key] = { time: Math.round(normalizedSec), distance: targetKm, rawTime: sec, rawKm: km, date: actDate(r) };
+        }
+      }
     }
-    if (km >= 9.8 && km <= 10.3 && sec > 0) {
-      if (!runPbs.tenK || sec < runPbs.tenK.time) runPbs.tenK = { time: sec, distance: km };
-    }
-    if (km >= 20.5 && km <= 21.5 && sec > 0) {
-      if (!runPbs.half || sec < runPbs.half.time) runPbs.half = { time: sec, distance: km };
-    }
-    if (km >= 41.5 && km <= 43 && sec > 0) {
-      if (!runPbs.marathon || sec < runPbs.marathon.time) runPbs.marathon = { time: sec, distance: km };
-    }
-  }
+  };
+  trackDist("fiveK",    4.7, 5.4);
+  trackDist("tenK",     9.5, 10.5);
+  trackDist("fifteenK", 14.5, 15.8);
+  trackDist("half",     20.0, 21.8);
+  trackDist("thirty",   29.5, 31.0);
+  trackDist("marathon", 41.0, 43.2);
 
   // Training load (simplified TRIMP)
-  const last7 = recent.filter(a => (now - new Date(a.date || a.start_date).getTime()) < 7 * 86400000);
-  const last28 = recent.filter(a => (now - new Date(a.date || a.start_date).getTime()) < 28 * 86400000);
-  const loadOf = (acts) => acts.reduce((s, a) => s + (Number(a.moving_time) || 0) / 60 * ((Number(a.average_heartrate) || 130) / 180), 0);
+  const last7 = recent.filter(a => (now - actDate(a)) < 7 * 86400000);
+  const last28 = recent.filter(a => (now - actDate(a)) < 28 * 86400000);
+  const loadOf = (acts) => acts.reduce((s, a) => s + actSec(a) / 60 * ((Number(a.average_heartrate || a.avgHeartrate) || 130) / 180), 0);
   const acute = Math.round(loadOf(last7));
   const chronic = Math.round(loadOf(last28) / 4);
 
@@ -13645,10 +13818,27 @@ function extractPbDataForPrediction(profile) {
   const analysis = profile?._activityAnalysis;
   if (analysis?.runPbs) {
     const rp = analysis.runPbs;
-    if (rp.fiveK?.time) results.push({ distKm: 5, timeSec: rp.fiveK.time, source: "strava" });
-    if (rp.tenK?.time) results.push({ distKm: 10, timeSec: rp.tenK.time, source: "strava" });
-    if (rp.half?.time) results.push({ distKm: 21.1, timeSec: rp.half.time, source: "strava" });
-    if (rp.marathon?.time) results.push({ distKm: 42.2, timeSec: rp.marathon.time, source: "strava" });
+    if (rp.fiveK?.time)    results.push({ distKm: 5,    timeSec: rp.fiveK.time,    source: "activity", date: rp.fiveK.date });
+    if (rp.tenK?.time)     results.push({ distKm: 10,   timeSec: rp.tenK.time,     source: "activity", date: rp.tenK.date });
+    if (rp.fifteenK?.time) results.push({ distKm: 15,   timeSec: rp.fifteenK.time, source: "activity", date: rp.fifteenK.date });
+    if (rp.half?.time)     results.push({ distKm: 21.1, timeSec: rp.half.time,     source: "activity", date: rp.half.date });
+    if (rp.thirty?.time)   results.push({ distKm: 30,   timeSec: rp.thirty.time,   source: "activity", date: rp.thirty.date });
+    if (rp.marathon?.time) results.push({ distKm: 42.2, timeSec: rp.marathon.time, source: "activity", date: rp.marathon.date });
+  }
+  // Also pull from account activities directly (catches runs the profile analysis missed)
+  const account = typeof getCurrentAccount === "function" ? getCurrentAccount() : null;
+  const rawActivities = account?.activities || [];
+  if (rawActivities.length) {
+    const analysis2 = analyzeActivityHistoryLight(rawActivities);
+    if (analysis2?.runPbs) {
+      const rp = analysis2.runPbs;
+      if (rp.fiveK?.time)    results.push({ distKm: 5,    timeSec: rp.fiveK.time,    source: "recent", date: rp.fiveK.date });
+      if (rp.tenK?.time)     results.push({ distKm: 10,   timeSec: rp.tenK.time,     source: "recent", date: rp.tenK.date });
+      if (rp.fifteenK?.time) results.push({ distKm: 15,   timeSec: rp.fifteenK.time, source: "recent", date: rp.fifteenK.date });
+      if (rp.half?.time)     results.push({ distKm: 21.1, timeSec: rp.half.time,     source: "recent", date: rp.half.date });
+      if (rp.thirty?.time)   results.push({ distKm: 30,   timeSec: rp.thirty.time,   source: "recent", date: rp.thirty.date });
+      if (rp.marathon?.time) results.push({ distKm: 42.2, timeSec: rp.marathon.time, source: "recent", date: rp.marathon.date });
+    }
   }
   // From manual PBs
   if (profile?.pb1Distance && profile?.pb1Time) {
@@ -15189,6 +15379,75 @@ function renderFitnessAgeHighlight(account) {
 
   // Render timeline chart
   renderFitnessAgeTimeline(account);
+
+  // Aging-trend analysis: compare fitness-age slope with natural 1:1 aging
+  renderAgingTrendAnalysis(account, fitnessAge, chronoAge);
+}
+
+/**
+ * Analyze whether the athlete is aging faster/slower/at-pace based on
+ * fitness-age trajectory over the tracked window.
+ *
+ * Natural aging slope = +1 year fitness-age per +1 year chronological age.
+ * If our observed slope < 1, the athlete is aging slower than normal.
+ */
+function calculateAgingTrend(account) {
+  const history = (account?.metricHistory || [])
+    .filter(h => Number.isFinite(h.fitnessAge))
+    .slice(-180); // last 180 days
+  if (history.length < 14) {
+    return { verdict: "insufficient", message: "Noch zu wenig Daten — in ca. 2 Wochen sehen wir deinen Trend.", slope: null };
+  }
+  // Least-squares slope of fitnessAge over days
+  const first = new Date(history[0].date).getTime();
+  const xs = history.map(h => (new Date(h.date).getTime() - first) / 86400000);
+  const ys = history.map(h => Number(h.fitnessAge));
+  const n = xs.length;
+  const meanX = xs.reduce((a, b) => a + b, 0) / n;
+  const meanY = ys.reduce((a, b) => a + b, 0) / n;
+  let num = 0, den = 0;
+  for (let i = 0; i < n; i++) { num += (xs[i] - meanX) * (ys[i] - meanY); den += (xs[i] - meanX) ** 2; }
+  if (!den) return { verdict: "insufficient", message: "Kein Trend erkennbar.", slope: null };
+  const slopePerDay = num / den;
+  const slopePerYear = slopePerDay * 365.25; // fitness-years added per chrono-year
+  // Natural aging is +1 year/year. Athlete aging slower if slope < 1, faster if > 1
+  const delta = slopePerYear - 1;
+  let verdict, message, tone;
+  if (slopePerYear <= -0.5) {
+    verdict = "reverse"; tone = "positive";
+    message = `Starker Rückwärts-Trend: Dein Fitness-Alter sinkt pro Kalenderjahr um ${Math.abs(slopePerYear).toFixed(1)} Jahre. Du wirst biologisch jünger.`;
+  } else if (slopePerYear < 0.5) {
+    verdict = "slower"; tone = "positive";
+    message = `Du alterst langsamer als die Norm (+${slopePerYear.toFixed(1)} statt +1.0 Jahre/Jahr). Deine Fitness-Investments zahlen sich aus.`;
+  } else if (slopePerYear < 1.3) {
+    verdict = "on-pace"; tone = "neutral";
+    message = `Du alterst auf normalem Tempo (+${slopePerYear.toFixed(1)} Jahre/Jahr). Halten — oder mit mehr Intensität Gas geben.`;
+  } else {
+    verdict = "faster"; tone = "warning";
+    message = `Dein Fitness-Alter steigt schneller als die Zeit (+${slopePerYear.toFixed(1)} Jahre/Jahr). Zeit für mehr Intervall-Einheiten und besseren Schlaf.`;
+  }
+  return { verdict, tone, message, slopePerYear: +slopePerYear.toFixed(2), delta: +delta.toFixed(2), windowDays: xs[xs.length - 1] - xs[0] };
+}
+
+function renderAgingTrendAnalysis(account, fitnessAge, chronoAge) {
+  const host = document.getElementById("aging-trend-analysis");
+  if (!host) return;
+  const trend = calculateAgingTrend(account);
+  const toneColor = trend.tone === "positive" ? "#4CAF82"
+    : trend.tone === "warning" ? "#E5A93D"
+    : trend.tone === "neutral" ? "#5B9BD5"
+    : "rgba(255,255,255,0.5)";
+  const slopeStr = trend.slopePerYear != null ? `${trend.slopePerYear > 0 ? "+" : ""}${trend.slopePerYear} J/J` : "—";
+  host.innerHTML = `
+    <div class="aging-trend-inner">
+      <div class="aging-trend-head">
+        <span class="aging-trend-label">Alterungs-Trend</span>
+        <span class="aging-trend-slope" style="color:${toneColor}">${slopeStr}</span>
+      </div>
+      <p class="aging-trend-msg">${trend.message}</p>
+      ${trend.windowDays ? `<p class="aging-trend-window">Basis: ${Math.round(trend.windowDays)} Tage Verlauf</p>` : ""}
+    </div>
+  `;
 }
 
 function renderFitnessAgeTimeline(account) {
