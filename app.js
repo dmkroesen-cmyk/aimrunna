@@ -676,6 +676,8 @@ const I18N = {
     horizon_one_year: "Season (1 Jahr)",
     horizon_two_year: "LTAD (2 Jahre)",
     nav_home: "Home",
+    nav_training: "Training",
+    nav_peakplan: "peakplan.",
     nav_profile: "Profil",
     nav_crew: "Community",
     nav_login: "Login",
@@ -831,6 +833,8 @@ const I18N = {
     horizon_one_year: "Season (1 year)",
     horizon_two_year: "LTAD (2 years)",
     nav_home: "Home",
+    nav_training: "Training",
+    nav_peakplan: "peakplan.",
     nav_profile: "Profile",
     nav_crew: "Community",
     nav_login: "Login",
@@ -986,6 +990,8 @@ const I18N = {
     horizon_one_year: "シーズン (1年)",
     horizon_two_year: "LTAD (2年)",
     nav_home: "ホーム",
+    nav_training: "トレーニング",
+    nav_peakplan: "peakplan.",
     nav_profile: "プロフィール",
     nav_crew: "コミュニティ",
     nav_login: "ログイン",
@@ -1315,6 +1321,12 @@ accountHomeBtn?.addEventListener("click", () => {
   setActiveAccountSection("profile");
 });
 accountProfileBtn?.addEventListener("click", () => setAppView("home"));
+// PeakPlan (race-styled CTA): jumps straight to the plan creator
+document.getElementById("account-peakplan-btn")?.addEventListener("click", () => {
+  setActiveProfileView("playbook");
+  setAppView("profile");
+  setActiveAccountSection("profile");
+});
 // Community button removed — feed is now on Home when logged in
 accountSectionTabButtons.forEach((btn) =>
   btn.addEventListener("click", () => {
@@ -3829,9 +3841,11 @@ function renderAccountUi() {
   if (accountLogoutBtn) accountLogoutBtn.hidden = !isAuth;
   const athletesHeaderBtn = document.getElementById("athletes-header-btn");
   if (athletesHeaderBtn) athletesHeaderBtn.hidden = !isAuth;
-  // Hide Home / Profil nav when not logged in — they're meaningless on the landing page
+  // Hide Training / peakplan. / Profil nav when not logged in — they're meaningless on the landing page
   if (accountHomeBtn) accountHomeBtn.hidden = !isAuth;
   if (accountProfileBtn) accountProfileBtn.hidden = !isAuth;
+  const peakplanBtn = document.getElementById("account-peakplan-btn");
+  if (peakplanBtn) peakplanBtn.hidden = !isAuth;
   renderAthletesDrawer(account);
   if (accountOpenLoginBtn) accountOpenLoginBtn.hidden = true;
   if (accountOpenRegisterBtn) accountOpenRegisterBtn.hidden = true;
@@ -4239,6 +4253,8 @@ function setActiveProfileView(view) {
   document.body.classList.remove("profile-view-overview", "profile-view-playbook", "profile-view-statistics", "profile-view-activities", "profile-view-settings");
   document.body.classList.add(`profile-view-${activeProfileView}`);
   profileViewTabButtons.forEach((btn) => btn.classList.toggle("is-active", btn.dataset.profileView === activeProfileView));
+  // Keep top-nav Training button state in sync with sub-view changes
+  accountHomeBtn?.classList.toggle("is-active", activeAppView === "profile" && activeProfileView !== "playbook");
   if (activeProfileView === "settings") {
     setActiveProfileSettingsView(activeProfileSettingsView || "profile");
   }
@@ -4311,8 +4327,11 @@ function setAppView(view) {
   document.body.classList.toggle("home-feed-mode", isAuth && activeAppView === "home");
 
   // Swapped: "Home" button active when on workspace (profile view), "Profil" button active when on public/home view
-  accountHomeBtn?.classList.toggle("is-active", activeAppView === "profile");
+  // Training button active when in profile (excluding playbook sub-view)
+  accountHomeBtn?.classList.toggle("is-active", activeAppView === "profile" && activeProfileView !== "playbook");
+  // Profil button active when on home (public profile + feed)
   accountProfileBtn?.classList.toggle("is-active", activeAppView === "home");
+  // peakplan. CTA stays visually the CTA; no active-state swap needed
 
   const homeFeedSection = document.getElementById("home-feed-section");
   if (homeFeedSection) homeFeedSection.hidden = !(isAuth && activeAppView === "home");
