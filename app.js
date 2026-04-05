@@ -1476,7 +1476,7 @@ async function runHomeAthleteSearch(query) {
     const avatar = u.profile_image
       ? `<img src="${escapeHtml(u.profile_image)}" alt="" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">`
       : `<div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;">${escapeHtml((name.charAt(0) || "?").toUpperCase())}</div>`;
-    return `<div class="account-search-item"><div class="account-search-row" style="display:flex;gap:10px;align-items:center;">${avatar}<div style="flex:1;min-width:0;"><strong>${escapeHtml(name)}</strong><small style="display:block;color:#94a3b8;">${escapeHtml(u.email || "")}${u._local ? " · lokal" : ""}</small></div><div class="account-search-actions"><button type="button" class="ghost" data-home-connect-email="${escapeHtml(u.email)}" data-home-connect-id="${escapeHtml(u.id || "")}" ${isConnected ? "disabled" : ""}>${isConnected ? "Verbunden" : "Verbinden"}</button></div></div></div>`;
+    return `<div class="account-search-item"><div class="account-search-row" style="display:flex;gap:10px;align-items:center;">${avatar}<div style="flex:1;min-width:0;"><strong>${escapeHtml(name)}</strong>${u._local ? `<small style="display:block;color:#94a3b8;">lokal</small>` : ""}</div><div class="account-search-actions"><button type="button" class="ghost" data-home-connect-email="${escapeHtml(u.email)}" data-home-connect-id="${escapeHtml(u.id || "")}" ${isConnected ? "disabled" : ""}>${isConnected ? "Verbunden" : "Verbinden"}</button></div></div></div>`;
   }).join("");
 
   resultsEl.querySelectorAll("[data-home-connect-email]").forEach((btn) => {
@@ -3911,7 +3911,7 @@ function renderSearchRows(list, friendships, opts = {}) {
           ${avatar}
           <div style="flex:1;min-width:0;">
             <strong>${escapeHtml(name)}</strong>
-            <small style="display:block;color:#94a3b8;">${escapeHtml(u.email || "")}${!isRemote ? " · lokal" : ""}</small>
+            ${!isRemote ? `<small style="display:block;color:#94a3b8;">lokal</small>` : ""}
           </div>
           <div class="account-search-actions">
             <button type="button" class="ghost"
