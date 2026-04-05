@@ -1937,6 +1937,13 @@ body.profile-view-settings .profile-pane-toolbar {
   display: flex !important;
 }
 
+/* Hide the profile sub-tab row when the peakplan view is active —
+   the plan-hero is self-contained and the sub-tabs (Dashboard/Metrics/
+   Aktivitäten) don't belong on the plan creator canvas. */
+body.profile-view-playbook .profile-pane-toolbar {
+  display: none !important;
+}
+
 body.profile-view-settings .account-grid {
   grid-template-columns: 300px minmax(0, 1fr);
   gap: 14px;
