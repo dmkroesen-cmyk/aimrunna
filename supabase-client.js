@@ -224,29 +224,46 @@ const sbDb = {
     return data;
   },
 
-  /** Search public profiles by name or email (ilike) */
+  /** Search users by name or email (ilike) via profiles_public view (anon + authenticated readable) */
   async searchUsers(query, limit = 20) {
     const q = String(query || "").trim();
     if (!q) return [];
     const pattern = `%${q.replace(/[%_]/g, "").slice(0, 60)}%`;
-    // Note: RLS policy "Public profiles are readable" allows read when settings->privacy->profileVisibility = 'public'
+    // Use profiles_public view: readable by anon AND authenticated (no RLS blockade)
     const { data, error } = await sb
-      .from("profiles")
-      .select("id, email, display_name, profile_image, settings")
+      .from("profiles_public")
+      .select("id, email, display_name, profile_image")
       .or(`display_name.ilike.${pattern},email.ilike.${pattern}`)
       .limit(limit);
-    if (error) { console.warn("[sbDb.searchUsers]", error); return []; }
+    if (error) {
+      console.warn("[sbDb.searchUsers] profiles_public failed, fallback to profiles:", error?.message || error);
+      // Fallback to direct profiles query (requires authenticated session)
+      const fb = await sb.from("profiles")
+        .select("id, email, display_name, profile_image")
+        .or(`display_name.ilike.${pattern},email.ilike.${pattern}`)
+        .limit(limit);
+      if (fb.error) { console.warn("[sbDb.searchUsers] fallback failed:", fb.error); return []; }
+      return fb.data || [];
+    }
     return data || [];
   },
 
-  /** List public profiles (directory) */
+  /** List recent public profiles (directory) via profiles_public view */
   async listPublicProfiles(limit = 50) {
     const { data, error } = await sb
-      .from("profiles")
+      .from("profiles_public")
       .select("id, email, display_name, profile_image, created_at")
       .order("created_at", { ascending: false })
       .limit(limit);
-    if (error) { console.warn("[sbDb.listPublicProfiles]", error); return []; }
+    if (error) {
+      console.warn("[sbDb.listPublicProfiles] profiles_public failed, fallback:", error?.message || error);
+      const fb = await sb.from("profiles")
+        .select("id, email, display_name, profile_image, created_at")
+        .order("created_at", { ascending: false })
+        .limit(limit);
+      if (fb.error) { console.warn("[sbDb.listPublicProfiles] fallback failed:", fb.error); return []; }
+      return fb.data || [];
+    }
     return data || [];
   },
 
