@@ -4999,9 +4999,10 @@ function openActivityDetail(ownerEmail, activityId) {
     `;
   }
 
-  // Actual route map if polyline available, else placeholder
+  // Interactive Leaflet map with OSM tiles if polyline available, else SVG placeholder
+  const leafletMapId = `leaflet-map-${activityId}`;
   const mapHtml = activity.polyline
-    ? `<div class="activity-detail-map">${renderRouteMapSvg(activity, { width: 640, height: 220, strokeWidth: 3 })}</div>`
+    ? `<div class="activity-detail-map"><div id="${leafletMapId}" class="activity-detail-leaflet" style="width:100%;height:280px;border-radius:12px;overflow:hidden;background:#0a0a0a;"></div></div>`
     : `<div class="activity-detail-map">
         <div class="map-placeholder">
           <svg viewBox="0 0 640 200" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -5045,6 +5046,53 @@ function openActivityDetail(ownerEmail, activityId) {
 
 
   modal.hidden = false;
+
+  // Initialize Leaflet map after DOM insertion
+  if (activity.polyline && window.L) {
+    try { renderLeafletRouteMap(leafletMapId, activity.polyline); } catch (e) { console.warn("[leaflet]", e); }
+  } else if (activity.polyline) {
+    // Leaflet not loaded yet — retry after small delay
+    setTimeout(() => {
+      if (window.L) {
+        try { renderLeafletRouteMap(leafletMapId, activity.polyline); } catch (e) { console.warn("[leaflet retry]", e); }
+      }
+    }, 400);
+  }
+}
+
+// Render an interactive Leaflet map with OSM tiles + route polyline
+function renderLeafletRouteMap(containerId, encodedPolyline) {
+  const el = document.getElementById(containerId);
+  if (!el || !window.L) return;
+  const pts = decodePolyline(encodedPolyline);
+  if (!pts.length) return;
+
+  // Clean up any previous map instance on this element
+  if (el._leafletMap) {
+    el._leafletMap.remove();
+    el._leafletMap = null;
+  }
+
+  const map = L.map(el, { zoomControl: true, attributionControl: true, scrollWheelZoom: false });
+  el._leafletMap = map;
+
+  // Dark-mode friendly tiles (CartoDB Dark Matter — free, OSM-based)
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: "abcd",
+    maxZoom: 19,
+  }).addTo(map);
+
+  const route = L.polyline(pts, { color: "#E5A93D", weight: 4, opacity: 0.95, lineJoin: "round", lineCap: "round" }).addTo(map);
+  // Start + end markers
+  const startIcon = L.divIcon({ className: "route-marker-start", html: '<div style="width:12px;height:12px;border-radius:50%;background:#34d399;border:2px solid #0a0a0a;box-shadow:0 0 0 2px #34d399;"></div>', iconSize: [12,12], iconAnchor:[6,6] });
+  const endIcon = L.divIcon({ className: "route-marker-end", html: '<div style="width:12px;height:12px;border-radius:50%;background:#ef4444;border:2px solid #0a0a0a;box-shadow:0 0 0 2px #ef4444;"></div>', iconSize: [12,12], iconAnchor:[6,6] });
+  L.marker(pts[0], { icon: startIcon }).addTo(map);
+  L.marker(pts[pts.length - 1], { icon: endIcon }).addTo(map);
+
+  map.fitBounds(route.getBounds(), { padding: [20, 20] });
+  // Invalidate size after modal animation completes
+  setTimeout(() => map.invalidateSize(), 200);
 }
 
 function closeActivityDetail() {
