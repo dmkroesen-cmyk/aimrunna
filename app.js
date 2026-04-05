@@ -3556,8 +3556,8 @@ async function handleSupabaseAuth(session) {
         (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
       );
     }
-    // Load activities from Supabase
-    const activities = await sbDb.getActivities(user.id, 60);
+    // Load activities from Supabase (full history, not just 60)
+    const activities = await sbDb.getActivities(user.id, 5000);
     if (activities.length) {
       account.activities = activities.map((a) => {
         const m = a.metrics || {};
@@ -7168,7 +7168,7 @@ function mergeStravaActivitiesIntoLocalAccount(account, activities) {
   if (!mapped.length) return;
   account.activities = [...mapped, ...account.activities]
     .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
-    .slice(0, 300);
+    .slice(0, 5000);
   persistStore();
 }
 
