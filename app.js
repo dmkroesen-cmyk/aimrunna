@@ -1527,6 +1527,104 @@ document.addEventListener("input", (event) => {
   }, 300);
 });
 
+// ── Public profile viewer (any user, click from search) ──
+async function viewUserPublicProfile(user) {
+  if (!user || !user.id) return;
+  // Build modal if missing
+  let modal = document.getElementById("user-profile-viewer-modal");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "user-profile-viewer-modal";
+    modal.setAttribute("role", "dialog");
+    modal.setAttribute("aria-modal", "true");
+    modal.style.cssText = "position:fixed;inset:0;background:rgba(8,12,20,0.78);z-index:10000;display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto;backdrop-filter:blur(6px);";
+    modal.innerHTML = `
+      <div style="background:#0f172a;color:#e2e8f0;border-radius:18px;max-width:640px;width:100%;padding:0;box-shadow:0 20px 60px rgba(0,0,0,0.5);border:1px solid rgba(148,163,184,0.15);overflow:hidden;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid rgba(148,163,184,0.12);">
+          <strong style="font-size:14px;letter-spacing:.02em;color:#94a3b8;">athlet.</strong>
+          <button type="button" id="upv-close" aria-label="Schließen" style="background:transparent;border:none;color:#94a3b8;font-size:24px;line-height:1;cursor:pointer;padding:4px 8px;">×</button>
+        </div>
+        <div id="upv-body" style="padding:22px;"></div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener("click", (e) => { if (e.target === modal) closeUserProfileViewer(); });
+    modal.querySelector("#upv-close").addEventListener("click", closeUserProfileViewer);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && document.getElementById("user-profile-viewer-modal")?.style.display !== "none") closeUserProfileViewer();
+    });
+  }
+  modal.style.display = "flex";
+  document.body.style.overflow = "hidden";
+
+  const body = modal.querySelector("#upv-body");
+  const name = user.display_name || (user.email ? user.email.split("@")[0] : "Athlet");
+  const avatarHtml = user.profile_image
+    ? `<img src="${escapeHtml(user.profile_image)}" alt="" style="width:84px;height:84px;border-radius:50%;object-fit:cover;border:2px solid rgba(148,163,184,0.2);">`
+    : `<div style="width:84px;height:84px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:32px;">${escapeHtml((name.charAt(0) || "?").toUpperCase())}</div>`;
+
+  body.innerHTML = `
+    <div style="display:flex;gap:18px;align-items:center;margin-bottom:20px;">
+      ${avatarHtml}
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:22px;font-weight:700;color:#f1f5f9;">${escapeHtml(name)}</div>
+        <div style="font-size:12px;color:#64748b;margin-top:2px;">${escapeHtml(user.email || "")}</div>
+      </div>
+    </div>
+    <div id="upv-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;">
+      <div style="background:rgba(148,163,184,0.06);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.06em;">Aktivitäten</div><div id="upv-s-count" style="font-size:20px;font-weight:700;margin-top:4px;">…</div></div>
+      <div style="background:rgba(148,163,184,0.06);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.06em;">Distanz</div><div id="upv-s-dist" style="font-size:20px;font-weight:700;margin-top:4px;">…</div></div>
+      <div style="background:rgba(148,163,184,0.06);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.06em;">Zeit</div><div id="upv-s-time" style="font-size:20px;font-weight:700;margin-top:4px;">…</div></div>
+    </div>
+    <div style="font-size:12px;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Zuletzt</div>
+    <div id="upv-activities" style="display:flex;flex-direction:column;gap:8px;"><div style="color:#64748b;font-size:13px;">Lade …</div></div>`;
+
+  // Fetch public activities for this user
+  try {
+    const acts = window.sbDb?.getActivities ? await window.sbDb.getActivities(user.id, 50) : [];
+    const count = acts.length;
+    const distKm = acts.reduce((s, a) => s + Number(a.distance_km || 0), 0);
+    const timeSec = acts.reduce((s, a) => s + Number(a.moving_time_sec || 0), 0);
+    const hours = Math.floor(timeSec / 3600);
+    const mins = Math.floor((timeSec % 3600) / 60);
+    document.getElementById("upv-s-count").textContent = count.toLocaleString("de-DE");
+    document.getElementById("upv-s-dist").textContent = `${distKm.toFixed(0)} km`;
+    document.getElementById("upv-s-time").textContent = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+
+    const list = document.getElementById("upv-activities");
+    if (!count) {
+      list.innerHTML = `<div style="color:#64748b;font-size:13px;">Keine öffentlichen Aktivitäten.</div>`;
+    } else {
+      const sportEmoji = (s) => {
+        const t = String(s || "").toLowerCase();
+        if (t.includes("run")) return "🏃";
+        if (t.includes("bike") || t.includes("ride")) return "🚴";
+        if (t.includes("swim")) return "🏊";
+        return "💪";
+      };
+      list.innerHTML = acts.slice(0, 10).map((a) => {
+        const d = a.created_at ? new Date(a.created_at).toLocaleDateString("de-DE", { day: "2-digit", month: "short", year: "numeric" }) : "";
+        const km = Number(a.distance_km || 0).toFixed(1);
+        const t = Number(a.moving_time_sec || 0);
+        const tStr = t ? `${Math.floor(t/3600) ? Math.floor(t/3600)+"h " : ""}${Math.floor((t%3600)/60)}m` : "";
+        return `<div style="display:flex;gap:10px;align-items:center;padding:10px;background:rgba(148,163,184,0.04);border-radius:8px;"><span style="font-size:20px;">${sportEmoji(a.sport_type)}</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:13px;color:#e2e8f0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(a.title || "Aktivität")}</div><div style="font-size:11px;color:#64748b;">${d}</div></div><div style="text-align:right;font-size:12px;color:#cbd5e1;"><div>${km} km</div>${tStr ? `<div style="color:#64748b;">${tStr}</div>` : ""}</div></div>`;
+      }).join("");
+    }
+  } catch (e) {
+    console.warn("[viewUserPublicProfile] fetch failed:", e?.message || e);
+    document.getElementById("upv-activities").innerHTML = `<div style="color:#ef4444;font-size:13px;">Fehler beim Laden.</div>`;
+    document.getElementById("upv-s-count").textContent = "–";
+    document.getElementById("upv-s-dist").textContent = "–";
+    document.getElementById("upv-s-time").textContent = "–";
+  }
+}
+
+function closeUserProfileViewer() {
+  const modal = document.getElementById("user-profile-viewer-modal");
+  if (modal) modal.style.display = "none";
+  document.body.style.overflow = "";
+}
+window.viewUserPublicProfile = viewUserPublicProfile;
+
 // Home feed athlete search (Supabase-backed + local fallback)
 let _homeSearchSeq = 0;
 async function runHomeAthleteSearch(query) {
@@ -1578,11 +1676,31 @@ async function runHomeAthleteSearch(query) {
     const avatar = u.profile_image
       ? `<img src="${escapeHtml(u.profile_image)}" alt="" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">`
       : `<div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;">${escapeHtml((name.charAt(0) || "?").toUpperCase())}</div>`;
-    return `<div class="account-search-item"><div class="account-search-row" style="display:flex;gap:10px;align-items:center;">${avatar}<div style="flex:1;min-width:0;"><strong>${escapeHtml(name)}</strong>${u._local ? `<small style="display:block;color:#94a3b8;">lokal</small>` : ""}</div><div class="account-search-actions"><button type="button" class="ghost" data-home-connect-email="${escapeHtml(u.email)}" data-home-connect-id="${escapeHtml(u.id || "")}" ${isConnected ? "disabled" : ""}>${isConnected ? "Verbunden" : "Verbinden"}</button></div></div></div>`;
+    const viewAttr = u._local ? "" : `data-view-user-id="${escapeHtml(u.id || "")}" data-view-user-name="${escapeHtml(name)}" data-view-user-email="${escapeHtml(u.email || "")}" data-view-user-avatar="${escapeHtml(u.profile_image || "")}" role="button" tabindex="0" style="cursor:pointer;"`;
+    return `<div class="account-search-item"><div class="account-search-row" ${viewAttr} style="display:flex;gap:10px;align-items:center;${u._local ? "" : "cursor:pointer;"}">${avatar}<div style="flex:1;min-width:0;"><strong>${escapeHtml(name)}</strong>${u._local ? `<small style="display:block;color:#94a3b8;">lokal</small>` : `<small style="display:block;color:#94a3b8;">Profil ansehen →</small>`}</div><div class="account-search-actions"><button type="button" class="ghost" data-home-connect-email="${escapeHtml(u.email)}" data-home-connect-id="${escapeHtml(u.id || "")}" ${isConnected ? "disabled" : ""}>${isConnected ? "Verbunden" : "Verbinden"}</button></div></div></div>`;
   }).join("");
 
+  // Wire "view profile" click on rows (ignore button clicks)
+  resultsEl.querySelectorAll("[data-view-user-id]").forEach((row) => {
+    row.addEventListener("click", (e) => {
+      if (e.target.closest("button")) return; // let Connect button handle itself
+      const uid = row.getAttribute("data-view-user-id");
+      if (!uid) return;
+      viewUserPublicProfile({
+        id: uid,
+        display_name: row.getAttribute("data-view-user-name"),
+        email: row.getAttribute("data-view-user-email"),
+        profile_image: row.getAttribute("data-view-user-avatar") || null,
+      });
+    });
+    row.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); row.click(); }
+    });
+  });
+
   resultsEl.querySelectorAll("[data-home-connect-email]").forEach((btn) => {
-    btn.addEventListener("click", async () => {
+    btn.addEventListener("click", async (e) => {
+      e.stopPropagation();
       const email = btn.getAttribute("data-home-connect-email");
       const friendId = btn.getAttribute("data-home-connect-id");
       // Try remote friend request first
@@ -1725,11 +1843,31 @@ async function runAthletesDrawerSearch(query) {
     const avatar = u.profile_image
       ? `<img class="athletes-drawer-avatar" src="${escapeHtml(u.profile_image)}" alt="">`
       : `<div class="athletes-drawer-avatar is-fallback">${escapeHtml((name.charAt(0) || "?").toUpperCase())}</div>`;
-    return `<div class="athletes-drawer-item">${avatar}<div class="athletes-drawer-meta"><div class="athletes-drawer-name">${escapeHtml(name)}</div><div class="athletes-drawer-sub">${escapeHtml(u.email)}${u._local ? " • lokal" : ""}</div></div><button type="button" class="athletes-drawer-action${isConnected ? " is-connected" : ""}" data-athletes-connect-email="${escapeHtml(u.email)}" data-athletes-connect-id="${escapeHtml(u.id || "")}" ${isConnected ? "disabled" : ""}>${isConnected ? "Verbunden" : "Verbinden"}</button></div>`;
+    const viewAttr = u._local ? "" : `data-view-user-id="${escapeHtml(u.id || "")}" data-view-user-name="${escapeHtml(name)}" data-view-user-email="${escapeHtml(u.email || "")}" data-view-user-avatar="${escapeHtml(u.profile_image || "")}" role="button" tabindex="0"`;
+    return `<div class="athletes-drawer-item" ${viewAttr} style="${u._local ? "" : "cursor:pointer;"}">${avatar}<div class="athletes-drawer-meta"><div class="athletes-drawer-name">${escapeHtml(name)}</div><div class="athletes-drawer-sub">${escapeHtml(u.email)}${u._local ? " • lokal" : ""}</div></div><button type="button" class="athletes-drawer-action${isConnected ? " is-connected" : ""}" data-athletes-connect-email="${escapeHtml(u.email)}" data-athletes-connect-id="${escapeHtml(u.id || "")}" ${isConnected ? "disabled" : ""}>${isConnected ? "Verbunden" : "Verbinden"}</button></div>`;
   }).join("");
 
+  // Wire click-to-view-profile on drawer rows (ignore button clicks)
+  resultsEl.querySelectorAll("[data-view-user-id]").forEach((row) => {
+    row.addEventListener("click", (e) => {
+      if (e.target.closest("button")) return;
+      const uid = row.getAttribute("data-view-user-id");
+      if (!uid) return;
+      viewUserPublicProfile({
+        id: uid,
+        display_name: row.getAttribute("data-view-user-name"),
+        email: row.getAttribute("data-view-user-email"),
+        profile_image: row.getAttribute("data-view-user-avatar") || null,
+      });
+    });
+    row.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); row.click(); }
+    });
+  });
+
   resultsEl.querySelectorAll("[data-athletes-connect-email]").forEach((btn) => {
-    btn.addEventListener("click", async () => {
+    btn.addEventListener("click", async (e) => {
+      e.stopPropagation();
       const email = btn.getAttribute("data-athletes-connect-email");
       const friendId = btn.getAttribute("data-athletes-connect-id");
       if (friendId && !friendId.includes("@") && typeof sendConnectRequest === "function") {
