@@ -3829,6 +3829,9 @@ function renderAccountUi() {
   if (accountLogoutBtn) accountLogoutBtn.hidden = !isAuth;
   const athletesHeaderBtn = document.getElementById("athletes-header-btn");
   if (athletesHeaderBtn) athletesHeaderBtn.hidden = !isAuth;
+  // Hide Home / Profil nav when not logged in — they're meaningless on the landing page
+  if (accountHomeBtn) accountHomeBtn.hidden = !isAuth;
+  if (accountProfileBtn) accountProfileBtn.hidden = !isAuth;
   renderAthletesDrawer(account);
   if (accountOpenLoginBtn) accountOpenLoginBtn.hidden = true;
   if (accountOpenRegisterBtn) accountOpenRegisterBtn.hidden = true;

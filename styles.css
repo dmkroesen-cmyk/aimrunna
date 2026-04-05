@@ -319,7 +319,28 @@ body.profile-view-playbook #profile-card-plan-results {
   grid-column: 1 / -1;
 }
 
-/* Plan form inside Playbook — override landing-panel styles */
+/* Plan form inside Playbook — hero treatment matching the landing page */
+.plan-creator-hero {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 24px 16px 32px;
+  margin: 0 auto;
+  max-width: 860px;
+  width: 100%;
+}
+.plan-creator-hero-head {
+  margin-bottom: 6px;
+}
+.plan-creator-hero-title {
+  margin: 0;
+  font-size: clamp(2rem, 4.8vw, 3.4rem);
+  letter-spacing: -0.055em;
+  line-height: 0.92;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
 .playbook-form-host {
   margin-top: 0.6rem;
 }
