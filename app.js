@@ -378,27 +378,42 @@ const RACE_EVENT_DISCIPLINES = ["running", "triathlon", "cycling", "hyrox"];
 const HERO_IMAGE_SETS = {
   triathlon: [
     { url: "./pics/IMG_5985.jpeg", pos: "40% 86%", size: "132% auto" },
+    { url: "./pics/IMG_7505.jpeg", pos: "50% 76%", size: "cover" },
     { url: "./pics/IMG_7505.jpeg", pos: "52% 84%", size: "118% auto" },
+    { url: "./pics/93124896-5C3F-41E0-9034-3463509696F4.jpeg", pos: "54% 70%", size: "cover" },
     { url: "./pics/93124896-5C3F-41E0-9034-3463509696F4.jpeg", pos: "54% 84%", size: "122% auto" },
+    { url: "./pics/IMG_5985.jpeg", pos: "52% 82%", size: "112% auto" },
   ],
   running: [
+    { url: "./pics/IMG_5985.jpeg", pos: "56% 72%", size: "cover" },
     { url: "./pics/IMG_7505.jpeg", pos: "50% 82%", size: "cover" },
+    { url: "./pics/IMG_7505.jpeg", pos: "52% 83%", size: "118% auto" },
     { url: "./pics/93124896-5C3F-41E0-9034-3463509696F4.jpeg", pos: "53% 86%", size: "122% auto" },
+    { url: "./pics/93124896-5C3F-41E0-9034-3463509696F4.jpeg", pos: "46% 88%", size: "128% auto" },
     { url: "./pics/IMG_5985.jpeg", pos: "44% 78%", size: "cover" },
   ],
   cycling: [
+    { url: "./pics/IMG_5985.jpeg", pos: "46% 82%", size: "cover" },
     { url: "./pics/93124896-5C3F-41E0-9034-3463509696F4.jpeg", pos: "58% 76%", size: "cover" },
+    { url: "./pics/IMG_7505.jpeg", pos: "48% 86%", size: "116% auto" },
     { url: "./pics/IMG_5985.jpeg", pos: "58% 84%", size: "114% auto" },
+    { url: "./pics/93124896-5C3F-41E0-9034-3463509696F4.jpeg", pos: "52% 86%", size: "120% auto" },
     { url: "./pics/IMG_7505.jpeg", pos: "54% 79%", size: "cover" },
   ],
   hyrox: [
+    { url: "./pics/IMG_5985.jpeg", pos: "50% 84%", size: "116% auto" },
     { url: "./pics/IMG_7505.jpeg", pos: "52% 74%", size: "cover" },
+    { url: "./pics/IMG_7505.jpeg", pos: "50% 85%", size: "122% auto" },
     { url: "./pics/93124896-5C3F-41E0-9034-3463509696F4.jpeg", pos: "44% 88%", size: "130% auto" },
+    { url: "./pics/93124896-5C3F-41E0-9034-3463509696F4.jpeg", pos: "50% 80%", size: "cover" },
     { url: "./pics/IMG_5985.jpeg", pos: "46% 79%", size: "cover" },
   ],
   shape: [
+    { url: "./pics/IMG_7505.jpeg", pos: "52% 84%", size: "118% auto" },
     { url: "./pics/IMG_5985.jpeg", pos: "50% 75%", size: "cover" },
+    { url: "./pics/93124896-5C3F-41E0-9034-3463509696F4.jpeg", pos: "48% 88%", size: "128% auto" },
     { url: "./pics/93124896-5C3F-41E0-9034-3463509696F4.jpeg", pos: "54% 85%", size: "120% auto" },
+    { url: "./pics/IMG_5985.jpeg", pos: "50% 81%", size: "cover" },
     { url: "./pics/IMG_7505.jpeg", pos: "46% 78%", size: "cover" },
   ],
 };
