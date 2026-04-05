@@ -517,6 +517,26 @@
             <button type="button" class="stats-sub-tab" data-stats-sub="load">Belastung</button>
           </div>
           <div class="account-grid">
+            <!-- ═══ MEDAL BOARD / TROPHY CASE ═══ -->
+            <section class="result-card account-card profile-main-card profile-card-overview medal-board-card" id="profile-card-medals">
+              <div class="result-title-row medal-board-header">
+                <div>
+                  <h4 class="medal-board-title">Trophy Case</h4>
+                  <p class="medal-board-sub" id="medal-board-sub">Deine Race-Medaillen &amp; Badges</p>
+                </div>
+                <div class="medal-board-actions">
+                  <button type="button" class="ghost small" id="medal-scan-btn" title="Aktivitäten nach Races durchsuchen">🔍 Scannen</button>
+                  <button type="button" class="primary small" id="medal-add-btn">+ Medal</button>
+                </div>
+              </div>
+              <div class="medal-board-badges" id="medal-board-badges"></div>
+              <div class="medal-board-shelves" id="medal-board-shelves">
+                <div class="medal-board-empty" id="medal-board-empty" hidden>
+                  <span>Noch keine Medaillen.</span>
+                  <button type="button" class="ghost small" id="medal-empty-add-btn">Erste Medal hinzufügen</button>
+                </div>
+              </div>
+            </section>
             <!-- ═══ DASHBOARD RINGS ═══ -->
             <section class="result-card account-card profile-main-card profile-card-overview dashboard-rings-card" id="dashboard-rings">
               <div class="result-title-row">
@@ -2511,6 +2531,101 @@
             <h4>Berechnungsgrundlage</h4>
             <p class="kpi-modal-source" id="kpi-modal-source"></p>
           </section>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ MEDAL ADD / DETAIL MODAL ═══ -->
+    <div class="medal-modal-backdrop" id="medal-modal-backdrop" hidden>
+      <div class="medal-modal" role="dialog" aria-modal="true" aria-labelledby="medal-modal-title">
+        <button type="button" class="medal-modal-close" id="medal-modal-close" aria-label="Schliessen">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+        <div class="medal-modal-header">
+          <span class="medal-modal-eyebrow">TROPHY CASE</span>
+          <h3 class="medal-modal-title" id="medal-modal-title">Medal hinzufügen</h3>
+        </div>
+        <form class="medal-modal-form" id="medal-form" autocomplete="off">
+          <div class="medal-form-grid">
+            <label class="medal-form-field medal-form-field-full">
+              <span>Serie</span>
+              <select name="series" id="medal-series-select" required>
+                <option value="marathon_majors">World Marathon Majors</option>
+                <option value="iconic_marathon">Iconic Marathon</option>
+                <option value="ironman">Ironman (Langdistanz)</option>
+                <option value="ironman_703">Ironman 70.3</option>
+                <option value="hyrox">HYROX</option>
+                <option value="ultra">Ultra</option>
+                <option value="gran_fondo">Gran Fondo / Cycling</option>
+                <option value="hybrid">Hybrid / Functional</option>
+                <option value="custom">Custom Event</option>
+              </select>
+            </label>
+            <label class="medal-form-field medal-form-field-full">
+              <span>Event</span>
+              <div class="medal-event-picker">
+                <input type="text" id="medal-event-search" placeholder="Event suchen …" autocomplete="off" />
+                <div class="medal-event-options" id="medal-event-options"></div>
+              </div>
+              <input type="hidden" name="race_catalog_id" id="medal-catalog-id" />
+              <input type="hidden" name="event_code" id="medal-event-code" />
+              <input type="hidden" name="event_name" id="medal-event-name" />
+              <input type="hidden" name="event_city" id="medal-event-city" />
+            </label>
+            <label class="medal-form-field">
+              <span>Datum</span>
+              <input type="date" name="finish_date" id="medal-finish-date" required />
+            </label>
+            <label class="medal-form-field">
+              <span>Zeit (hh:mm:ss)</span>
+              <input type="text" name="finish_time" id="medal-finish-time" placeholder="03:02:14" pattern="^\d{1,2}:\d{2}:\d{2}$" />
+            </label>
+            <label class="medal-form-field">
+              <span>Platzierung (optional)</span>
+              <input type="number" name="finish_position" id="medal-finish-position" min="1" />
+            </label>
+            <label class="medal-form-field">
+              <span>AK-Platz (optional)</span>
+              <input type="number" name="age_group_position" id="medal-ag-position" min="1" />
+            </label>
+            <label class="medal-form-field">
+              <span>Altersklasse</span>
+              <input type="text" name="age_group" id="medal-ag" placeholder="M30-34" />
+            </label>
+            <label class="medal-form-field">
+              <span>Startnummer</span>
+              <input type="text" name="bib_number" id="medal-bib" placeholder="12345" />
+            </label>
+            <label class="medal-form-field medal-form-field-full">
+              <span>Notizen</span>
+              <textarea name="notes" id="medal-notes" rows="2" placeholder="Race-Report, Erinnerung, Lessons ..."></textarea>
+            </label>
+            <label class="medal-form-field medal-form-checkbox medal-form-field-full">
+              <input type="checkbox" name="is_pr" id="medal-is-pr" />
+              <span>Persönliche Bestleistung (PR)</span>
+            </label>
+          </div>
+          <div class="medal-modal-footer">
+            <button type="button" class="ghost" id="medal-form-cancel">Abbrechen</button>
+            <button type="submit" class="primary" id="medal-form-save">Medal speichern</button>
+          </div>
+          <div class="medal-form-status" id="medal-form-status" aria-live="polite"></div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ═══ MEDAL DETECTION CONFIRM MODAL ═══ -->
+    <div class="medal-detect-backdrop" id="medal-detect-backdrop" hidden>
+      <div class="medal-detect-modal" role="dialog" aria-modal="true">
+        <div class="medal-detect-header">
+          <span class="medal-detect-eyebrow">🏅 MEDAL ERKANNT</span>
+          <h3 id="medal-detect-title">Neue Medal erkannt?</h3>
+        </div>
+        <div class="medal-detect-body" id="medal-detect-body"></div>
+        <div class="medal-detect-footer">
+          <button type="button" class="ghost" id="medal-detect-skip">Später</button>
+          <button type="button" class="ghost" id="medal-detect-reject">Nein, falsch</button>
+          <button type="button" class="primary" id="medal-detect-confirm">Bestätigen</button>
         </div>
       </div>
     </div>

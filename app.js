@@ -6908,6 +6908,13 @@ async function importStravaHistory() {
     renderStravaProfileStatus(account);
     setText(stravaProfileFetchStatusEl, `Import fertig: ${totalImported} Aktivitäten importiert.`);
     maybeAdaptPlan();
+    // Auto-detect medals from newly imported activities
+    try {
+      if (window.MedalBoard?.refresh) {
+        await window.MedalBoard.refresh();
+        setTimeout(() => window.MedalBoard?.scanActivitiesQuiet?.(), 800);
+      }
+    } catch (e) { console.warn("[MedalBoard] post-import detection failed:", e); }
   } catch (error) {
     setText(stravaProfileFetchStatusEl, `Import fehlgeschlagen: ${String(error?.message || error)}`);
   } finally {
@@ -18396,4 +18403,740 @@ document.addEventListener("click", (e) => {
   });
 
   console.log("[SOTA] Autoregulation Module loaded · Phase 3+4 · sRPE/HRV/ACWR");
+})();
+
+/* ============================================================
+   MEDAL BOARD / TROPHY CASE MODULE
+   Handles: catalog load, medal CRUD, auto-detection,
+   badge recompute, trophy shelf rendering, flip interactions.
+   ============================================================ */
+(function initMedalBoard() {
+  "use strict";
+
+  // ── State ──
+  const state = {
+    catalog: [],
+    medals: [],
+    badges: [],
+    catalogByKey: new Map(), // `${series}:${event_code}` -> catalog row
+    editingMedalId: null,
+    scanCandidates: [], // auto-detection queue
+  };
+
+  // ── Config ──
+  const SERIES_META = {
+    marathon_majors: { label: "Marathon Majors", expectedCount: 6, events: ["berlin","boston","chicago","london","nyc","tokyo"] },
+    iconic_marathon: { label: "Iconic Marathons", expectedCount: 0 },
+    ironman: { label: "Ironman Langdistanz", expectedCount: 0 },
+    ironman_703: { label: "Ironman 70.3", expectedCount: 0 },
+    hyrox: { label: "HYROX", expectedCount: 0 },
+    ultra: { label: "Ultras", expectedCount: 0 },
+    gran_fondo: { label: "Gran Fondo", expectedCount: 0 },
+    hybrid: { label: "Hybrid / Functional", expectedCount: 0 },
+    custom: { label: "Custom Events", expectedCount: 0 },
+  };
+
+  const SERIES_ORDER = ["marathon_majors","ironman","ironman_703","hyrox","ultra","iconic_marathon","gran_fondo","hybrid","custom"];
+
+  // ── Helpers ──
+  function currentUserId() {
+    try {
+      const acc = (typeof getCurrentAccount === "function") ? getCurrentAccount() : null;
+      return acc?.id || null;
+    } catch { return null; }
+  }
+
+  function formatTime(sec) {
+    if (!sec || sec <= 0) return "—";
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+    if (h > 0) return `${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+    return `${m}:${String(s).padStart(2,"0")}`;
+  }
+
+  function parseTimeToSec(str) {
+    if (!str) return null;
+    const parts = String(str).trim().split(":").map((p) => parseInt(p, 10));
+    if (parts.some(isNaN)) return null;
+    if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+    if (parts.length === 2) return parts[0] * 60 + parts[1];
+    return null;
+  }
+
+  function yearFromDate(d) {
+    if (!d) return null;
+    const dt = (d instanceof Date) ? d : new Date(d);
+    return isNaN(dt) ? null : dt.getFullYear();
+  }
+
+  function daysBetween(d1, d2) {
+    const a = new Date(d1).getTime();
+    const b = new Date(d2).getTime();
+    return Math.abs((a - b) / (1000 * 60 * 60 * 24));
+  }
+
+  // ── Data loading ──
+  async function loadCatalog() {
+    if (!window.sbDb?.getRaceCatalog) return;
+    try {
+      state.catalog = await window.sbDb.getRaceCatalog();
+      state.catalogByKey.clear();
+      state.catalog.forEach((row) => {
+        state.catalogByKey.set(`${row.series}:${row.event_code}`, row);
+      });
+    } catch (e) { console.warn("[MedalBoard] loadCatalog:", e?.message || e); }
+  }
+
+  async function loadMedals() {
+    const userId = currentUserId();
+    if (!userId || !window.sbDb?.getMedals) { state.medals = []; return; }
+    try { state.medals = await window.sbDb.getMedals(userId); }
+    catch (e) { console.warn("[MedalBoard] loadMedals:", e?.message || e); state.medals = []; }
+  }
+
+  async function loadBadges() {
+    const userId = currentUserId();
+    if (!userId || !window.sbDb?.getUserBadges) { state.badges = []; return; }
+    try { state.badges = await window.sbDb.getUserBadges(userId); }
+    catch (e) { console.warn("[MedalBoard] loadBadges:", e?.message || e); state.badges = []; }
+  }
+
+  // ── Badge recompute logic ──
+  function computeBadges(medals) {
+    const badges = [];
+    const byEvent = (s) => new Set(medals.filter((m) => m.series === s && m.event_code).map((m) => m.event_code));
+
+    // Marathon Majors progress
+    const majors = byEvent("marathon_majors");
+    const majorCount = majors.size;
+    if (majorCount === 6) {
+      badges.push({ code: "six_star", name: "Six Star Finisher", tier: "legendary", metadata: { count: 6 } });
+    } else if (majorCount >= 3) {
+      badges.push({ code: "majors_half", name: `Majors ${majorCount}/6`, tier: "rare", metadata: { count: majorCount } });
+    } else if (majorCount >= 1) {
+      badges.push({ code: "majors_started", name: `Majors ${majorCount}/6`, tier: "common", metadata: { count: majorCount } });
+    }
+
+    // Ironman
+    const ims = byEvent("ironman");
+    if (ims.size >= 5) badges.push({ code: "im_five", name: "Ironman × 5", tier: "legendary" });
+    else if (ims.size >= 3) badges.push({ code: "im_triple", name: "Ironman Triple", tier: "epic" });
+    else if (ims.size >= 1) badges.push({ code: "im_finisher", name: "Ironman Finisher", tier: "rare" });
+
+    // HYROX
+    const hyroxMedals = medals.filter((m) => m.series === "hyrox");
+    if (hyroxMedals.length >= 1) {
+      const bestTime = Math.min(...hyroxMedals.filter((m) => m.finish_time_sec).map((m) => m.finish_time_sec), Infinity);
+      if (bestTime < 4200) badges.push({ code: "hyrox_pro", name: "HYROX Pro", tier: "epic", metadata: { best: bestTime } });
+      else badges.push({ code: "hyrox_finisher", name: "HYROX Finisher", tier: "common" });
+    }
+
+    // Ultra Legend
+    const ultras = byEvent("ultra");
+    if (ultras.size >= 5) badges.push({ code: "ultra_legend", name: "Ultra Legend", tier: "legendary" });
+    else if (ultras.size >= 3) badges.push({ code: "ultra_trio", name: "Ultra Trio", tier: "epic" });
+    else if (ultras.size >= 1) badges.push({ code: "ultra_finisher", name: "Ultra Finisher", tier: "rare" });
+
+    // Norwegian Double (Marathon + Ironman within 30 days)
+    const marathons = medals.filter((m) => m.series === "marathon_majors" || m.series === "iconic_marathon");
+    const ironmans = medals.filter((m) => m.series === "ironman");
+    for (const im of ironmans) {
+      const hit = marathons.find((mar) => daysBetween(mar.finish_date, im.finish_date) <= 30);
+      if (hit) { badges.push({ code: "norwegian_double", name: "Norwegian Double", tier: "legendary" }); break; }
+    }
+
+    // Gran Fondo Rider
+    const gfs = byEvent("gran_fondo");
+    if (gfs.size >= 3) badges.push({ code: "gf_veteran", name: "Gran Fondo Veteran", tier: "epic" });
+    else if (gfs.size >= 1) badges.push({ code: "gf_rider", name: "Gran Fondo Rider", tier: "common" });
+
+    // Everesting
+    if (medals.some((m) => m.event_code === "everesting")) {
+      badges.push({ code: "everester", name: "Everester", tier: "legendary" });
+    }
+
+    return badges;
+  }
+
+  async function recomputeBadges() {
+    const userId = currentUserId();
+    if (!userId) return;
+    const fresh = computeBadges(state.medals);
+    state.badges = fresh;
+    try {
+      if (window.sbDb?.replaceUserBadges) await window.sbDb.replaceUserBadges(userId, fresh);
+    } catch (e) { console.warn("[MedalBoard] replaceUserBadges:", e?.message || e); }
+  }
+
+  // ── Auto-detection: match activity → race ──
+  function detectRaceForActivity(activity, catalog) {
+    if (!activity || !activity.created_at) return null;
+    const actDate = new Date(activity.created_at);
+    if (isNaN(actDate)) return null;
+    const actDistKm = Number(activity.distance_km || activity.distanceKm || 0);
+    const actTitle = String(activity.title || "").toLowerCase();
+    const candidates = [];
+
+    for (const race of catalog) {
+      // Distance filter (±5% or ±2km for <50km, ±5km for longer)
+      if (race.distance_km) {
+        const tolerance = race.distance_km >= 50 ? 5 : 2;
+        const distDiff = Math.abs(actDistKm - Number(race.distance_km));
+        if (distDiff > tolerance) continue;
+      } else {
+        // No distance set (e.g., HYROX, CrossFit) → skip distance check
+      }
+
+      let score = 0;
+      // Distance exactness (40)
+      if (race.distance_km) {
+        const rel = Math.abs(actDistKm - race.distance_km) / race.distance_km;
+        score += Math.max(0, 40 * (1 - rel * 10));
+      } else {
+        score += 10;
+      }
+      // Title keyword match (40)
+      const shortName = String(race.short_name || "").toLowerCase();
+      const city = String(race.city || "").toLowerCase();
+      const eventName = String(race.event_name || "").toLowerCase();
+      if (shortName && actTitle.includes(shortName)) score += 40;
+      else if (city && actTitle.includes(city)) score += 30;
+      else if (eventName && actTitle.includes(eventName.split(" ")[0])) score += 20;
+      // Iconic level bump (up to 20)
+      score += (race.iconic_level || 3) * 4;
+
+      if (score >= 50) {
+        candidates.push({ race, score: Math.min(100, Math.round(score)) });
+      }
+    }
+    candidates.sort((a, b) => b.score - a.score);
+    return candidates[0] || null;
+  }
+
+  function detectAllUnmatched(activities) {
+    if (!state.catalog.length) return [];
+    const existingPairs = new Set(
+      state.medals.map((m) => `${m.series}:${m.event_code}:${m.event_year}`)
+    );
+    const candidates = [];
+    for (const act of activities || []) {
+      const match = detectRaceForActivity(act, state.catalog);
+      if (!match) continue;
+      const year = yearFromDate(act.created_at);
+      const key = `${match.race.series}:${match.race.event_code}:${year}`;
+      if (existingPairs.has(key)) continue;
+      // Dedupe by activity
+      if (candidates.some((c) => c.activity.id === act.id)) continue;
+      candidates.push({ activity: act, race: match.race, score: match.score, year });
+    }
+    return candidates.sort((a, b) => b.score - a.score);
+  }
+
+  // ── Rendering ──
+  function render() {
+    renderBadges();
+    renderShelves();
+    renderSubtitle();
+  }
+
+  function renderSubtitle() {
+    const el = document.getElementById("medal-board-sub");
+    if (!el) return;
+    const n = state.medals.length;
+    const bCount = state.badges.length;
+    if (!n && !bCount) { el.textContent = "Deine Race-Medaillen & Badges"; return; }
+    el.textContent = `${n} Medal${n !== 1 ? "s" : ""} · ${bCount} Badge${bCount !== 1 ? "s" : ""}`;
+  }
+
+  function renderBadges() {
+    const host = document.getElementById("medal-board-badges");
+    if (!host) return;
+    host.innerHTML = "";
+    for (const b of state.badges) {
+      const el = document.createElement("span");
+      el.className = `medal-badge medal-badge-tier-${b.tier || "common"}`;
+      el.textContent = b.name;
+      el.title = b.code;
+      host.appendChild(el);
+    }
+  }
+
+  function renderShelves() {
+    const host = document.getElementById("medal-board-shelves");
+    const empty = document.getElementById("medal-board-empty");
+    if (!host) return;
+    // Remove existing shelves (keep empty placeholder)
+    [...host.querySelectorAll(".medal-shelf")].forEach((n) => n.remove());
+
+    // Group medals by series
+    const bySeries = new Map();
+    for (const m of state.medals) {
+      if (!bySeries.has(m.series)) bySeries.set(m.series, []);
+      bySeries.get(m.series).push(m);
+    }
+
+    if (!state.medals.length) {
+      if (empty) empty.hidden = false;
+      return;
+    }
+    if (empty) empty.hidden = true;
+
+    // Render shelves in preferred order
+    const seriesKeys = [...new Set([...SERIES_ORDER, ...bySeries.keys()])];
+    for (const key of seriesKeys) {
+      const medals = bySeries.get(key);
+      // Always render Marathon Majors (even if empty) to show progress slots
+      const meta = SERIES_META[key] || { label: key, expectedCount: 0 };
+      if (!medals && key !== "marathon_majors") continue;
+      const shelf = buildShelfEl(key, meta, medals || []);
+      host.appendChild(shelf);
+    }
+  }
+
+  function buildShelfEl(seriesKey, meta, medals) {
+    const shelf = document.createElement("div");
+    shelf.className = "medal-shelf";
+    shelf.dataset.series = seriesKey;
+
+    // Progress info
+    let progressText = "";
+    if (meta.expectedCount > 0) {
+      const done = new Set(medals.map((m) => m.event_code)).size;
+      progressText = `${done}/${meta.expectedCount}`;
+      if (done === meta.expectedCount) progressText += " ⭐";
+    } else if (medals.length) {
+      progressText = `${medals.length} Finish${medals.length !== 1 ? "es" : ""}`;
+    }
+
+    shelf.innerHTML = `
+      <div class="medal-shelf-head">
+        <h5 class="medal-shelf-title">${escapeHtml(meta.label)}</h5>
+        <span class="medal-shelf-progress">${escapeHtml(progressText)}</span>
+      </div>
+      <div class="medal-shelf-grid"></div>
+    `;
+    const grid = shelf.querySelector(".medal-shelf-grid");
+
+    // For series with fixed event list (Majors), show all 6 slots
+    if (meta.events && meta.events.length) {
+      for (const code of meta.events) {
+        const medal = medals.find((m) => m.event_code === code);
+        if (medal) grid.appendChild(buildMedalCardEl(medal));
+        else grid.appendChild(buildEmptySlotEl(seriesKey, code));
+      }
+    } else {
+      // Sort by date desc, render all
+      const sorted = [...medals].sort((a, b) => new Date(b.finish_date) - new Date(a.finish_date));
+      for (const m of sorted) grid.appendChild(buildMedalCardEl(m));
+    }
+
+    return shelf;
+  }
+
+  function buildMedalCardEl(medal) {
+    const card = document.createElement("div");
+    card.className = "medal-card";
+    card.dataset.medalId = medal.id;
+
+    const cat = medal.catalog || state.catalogByKey.get(`${medal.series}:${medal.event_code}`) || {};
+    const primary = cat.primary_color || "#E5A93D";
+    const secondary = cat.secondary_color || "#000000";
+    const emoji = cat.logo_emoji || "🏅";
+    const shortName = cat.short_name || medal.event_name;
+    const year = medal.event_year || yearFromDate(medal.finish_date) || "";
+
+    const time = formatTime(medal.finish_time_sec);
+    const positionMeta = [];
+    if (medal.finish_position) positionMeta.push(`#${medal.finish_position}`);
+    if (medal.age_group_position && medal.age_group) positionMeta.push(`${medal.age_group} #${medal.age_group_position}`);
+    else if (medal.age_group_position) positionMeta.push(`AG #${medal.age_group_position}`);
+    if (medal.bib_number) positionMeta.push(`#${medal.bib_number}`);
+
+    card.innerHTML = `
+      <div class="medal-card-inner">
+        <div class="medal-card-front">
+          ${medal.is_pr ? `<div class="medal-card-pr">PR</div>` : ""}
+          <div class="medal-disc" style="background: radial-gradient(circle at 35% 30%, ${primary}, ${secondary}); --medal-pri:${primary}; --medal-sec:${secondary};">${emoji}</div>
+          <div class="medal-card-label">${escapeHtml(shortName)}</div>
+          <div class="medal-card-year">${escapeHtml(String(year))}</div>
+        </div>
+        <div class="medal-card-back">
+          <div class="medal-back-title">${escapeHtml(medal.event_name)}</div>
+          <div class="medal-back-stats">
+            <div class="medal-back-time">${escapeHtml(time)}</div>
+            ${positionMeta.length ? `<div class="medal-back-meta">${escapeHtml(positionMeta.join(" · "))}</div>` : ""}
+            <div class="medal-back-meta">${escapeHtml(formatShortDate(medal.finish_date))}</div>
+          </div>
+          <div class="medal-back-actions">
+            ${medal.activity_id ? `<button type="button" class="medal-view-activity-btn" data-activity-id="${medal.activity_id}">Aktivität</button>` : ""}
+            <button type="button" class="medal-delete-btn" data-delete-id="${medal.id}">Löschen</button>
+          </div>
+        </div>
+      </div>
+    `;
+    return card;
+  }
+
+  function buildEmptySlotEl(seriesKey, eventCode) {
+    const cat = state.catalogByKey.get(`${seriesKey}:${eventCode}`);
+    const label = cat?.short_name || eventCode;
+    const card = document.createElement("div");
+    card.className = "medal-card medal-card-empty";
+    card.dataset.prefillSeries = seriesKey;
+    card.dataset.prefillCode = eventCode;
+    card.title = "Klicken um hinzuzufügen";
+    card.innerHTML = `
+      <div class="medal-card-inner">
+        <div class="medal-card-front">
+          <div class="medal-disc">+</div>
+          <div class="medal-card-label">${escapeHtml(label)}</div>
+          <div class="medal-card-year">—</div>
+        </div>
+      </div>
+    `;
+    return card;
+  }
+
+  function formatShortDate(d) {
+    if (!d) return "";
+    const dt = new Date(d);
+    if (isNaN(dt)) return "";
+    return dt.toLocaleDateString("de-DE", { day: "2-digit", month: "short", year: "numeric" });
+  }
+
+  function escapeHtml(str) {
+    return String(str || "").replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[c]));
+  }
+
+  // ── Add-Medal Modal ──
+  function openAddModal(prefill = null) {
+    const backdrop = document.getElementById("medal-modal-backdrop");
+    if (!backdrop) return;
+    const form = document.getElementById("medal-form");
+    form?.reset();
+    state.editingMedalId = null;
+    document.getElementById("medal-modal-title").textContent = "Medal hinzufügen";
+    document.getElementById("medal-form-status").textContent = "";
+    document.getElementById("medal-catalog-id").value = "";
+    document.getElementById("medal-event-code").value = "";
+    document.getElementById("medal-event-name").value = "";
+    document.getElementById("medal-event-city").value = "";
+    document.getElementById("medal-event-search").value = "";
+    closeEventOptions();
+
+    if (prefill) {
+      if (prefill.series) document.getElementById("medal-series-select").value = prefill.series;
+      if (prefill.eventCode) {
+        const cat = state.catalogByKey.get(`${prefill.series}:${prefill.eventCode}`);
+        if (cat) selectCatalogEntry(cat);
+      }
+      if (prefill.date) document.getElementById("medal-finish-date").value = prefill.date;
+      if (prefill.activityId) form.dataset.activityId = prefill.activityId;
+      if (prefill.detectionScore) form.dataset.detectionScore = prefill.detectionScore;
+    } else {
+      delete form.dataset.activityId;
+      delete form.dataset.detectionScore;
+    }
+    renderEventOptions(document.getElementById("medal-series-select").value, "");
+    backdrop.hidden = false;
+  }
+
+  function closeAddModal() {
+    const backdrop = document.getElementById("medal-modal-backdrop");
+    if (backdrop) backdrop.hidden = true;
+  }
+
+  function selectCatalogEntry(cat) {
+    document.getElementById("medal-catalog-id").value = cat.id;
+    document.getElementById("medal-event-code").value = cat.event_code;
+    document.getElementById("medal-event-name").value = cat.event_name;
+    document.getElementById("medal-event-city").value = cat.city || "";
+    document.getElementById("medal-event-search").value = cat.event_name;
+    closeEventOptions();
+  }
+
+  function renderEventOptions(series, query) {
+    const host = document.getElementById("medal-event-options");
+    if (!host) return;
+    const q = String(query || "").toLowerCase().trim();
+    const list = state.catalog
+      .filter((r) => r.series === series)
+      .filter((r) => !q || r.event_name.toLowerCase().includes(q) || (r.city || "").toLowerCase().includes(q))
+      .slice(0, 15);
+    host.innerHTML = "";
+    if (series === "custom") {
+      host.innerHTML = `<div class="medal-event-option-empty">Custom Event – bitte Namen unten eingeben</div>`;
+      return;
+    }
+    if (!list.length) {
+      host.innerHTML = `<div class="medal-event-option-empty">Keine Events gefunden</div>`;
+      return;
+    }
+    for (const row of list) {
+      const opt = document.createElement("div");
+      opt.className = "medal-event-option";
+      opt.innerHTML = `<span>${escapeHtml(row.event_name)}</span><span class="medal-event-option-city">${escapeHtml(row.city || "")}</span>`;
+      opt.addEventListener("click", () => selectCatalogEntry(row));
+      host.appendChild(opt);
+    }
+  }
+
+  function openEventOptions() {
+    document.getElementById("medal-event-options")?.classList.add("is-open");
+  }
+  function closeEventOptions() {
+    document.getElementById("medal-event-options")?.classList.remove("is-open");
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    const form = e.target;
+    const statusEl = document.getElementById("medal-form-status");
+    const userId = currentUserId();
+    if (!userId) { statusEl.textContent = "Bitte zuerst einloggen."; return; }
+
+    const series = form.series.value;
+    const catalogId = form.race_catalog_id.value || null;
+    let eventCode = form.event_code.value || null;
+    let eventName = form.event_name.value || document.getElementById("medal-event-search").value;
+    const eventCity = form.event_city.value || null;
+    const finishDate = form.finish_date.value;
+    const timeStr = document.getElementById("medal-finish-time").value;
+    const finishTimeSec = parseTimeToSec(timeStr);
+    const finishPos = form.finish_position.value ? parseInt(form.finish_position.value, 10) : null;
+    const agPos = form.age_group_position.value ? parseInt(form.age_group_position.value, 10) : null;
+    const ageGroup = form.age_group.value || null;
+    const bib = form.bib_number.value || null;
+    const notes = form.notes.value || null;
+    const isPr = form.is_pr.checked;
+
+    if (!eventName || !finishDate) { statusEl.textContent = "Event und Datum sind Pflicht."; return; }
+    if (series === "custom" && !eventCode) { eventCode = "custom_" + Date.now(); }
+
+    const activityId = form.dataset.activityId || null;
+    const detectionScore = form.dataset.detectionScore ? parseInt(form.dataset.detectionScore, 10) : null;
+
+    try {
+      statusEl.textContent = "Speichere …";
+      await window.sbDb.addMedal(userId, {
+        race_catalog_id: catalogId,
+        series,
+        event_code: eventCode,
+        event_name: eventName,
+        event_city: eventCity,
+        event_year: yearFromDate(finishDate),
+        finish_date: finishDate,
+        finish_time_sec: finishTimeSec,
+        finish_position: finishPos,
+        age_group_position: agPos,
+        age_group: ageGroup,
+        bib_number: bib,
+        notes,
+        is_pr: isPr,
+        activity_id: activityId,
+        detection_score: detectionScore,
+        detection_confirmed: true,
+      });
+      statusEl.textContent = "Gespeichert ✓";
+      await loadMedals();
+      await recomputeBadges();
+      render();
+      setTimeout(closeAddModal, 600);
+    } catch (err) {
+      console.warn("[MedalBoard] addMedal failed:", err);
+      statusEl.textContent = "Fehler: " + (err?.message || "Unbekannt");
+    }
+  }
+
+  async function handleDelete(medalId) {
+    if (!medalId) return;
+    if (!confirm("Medal wirklich löschen?")) return;
+    try {
+      await window.sbDb.deleteMedal(medalId);
+      await loadMedals();
+      await recomputeBadges();
+      render();
+    } catch (e) { console.warn("[MedalBoard] delete failed:", e); alert("Löschen fehlgeschlagen"); }
+  }
+
+  // ── Detection Modal ──
+  function openDetectModal(candidates) {
+    const backdrop = document.getElementById("medal-detect-backdrop");
+    const body = document.getElementById("medal-detect-body");
+    const title = document.getElementById("medal-detect-title");
+    if (!backdrop || !body) return;
+    if (!candidates.length) {
+      alert("Keine neuen Race-Medaillen in deinen Aktivitäten gefunden.");
+      return;
+    }
+    state.scanCandidates = candidates.slice();
+    showNextCandidate();
+    backdrop.hidden = false;
+
+    function showNextCandidate() {
+      if (!state.scanCandidates.length) {
+        backdrop.hidden = true;
+        return;
+      }
+      const c = state.scanCandidates[0];
+      const total = candidates.length;
+      const remaining = state.scanCandidates.length;
+      title.textContent = `Medal erkannt (${total - remaining + 1}/${total})`;
+      body.innerHTML = `
+        <div class="medal-detect-candidate">
+          <div class="medal-disc" style="background: radial-gradient(circle at 35% 30%, ${c.race.primary_color || "#E5A93D"}, ${c.race.secondary_color || "#000"}); width:48px; height:48px; font-size:18px;">${escapeHtml(c.race.logo_emoji || "🏅")}</div>
+          <div class="medal-detect-info">
+            <span class="medal-detect-event">${escapeHtml(c.race.event_name)}</span>
+            <span class="medal-detect-meta">${escapeHtml(formatShortDate(c.activity.created_at))} · ${(c.activity.distance_km || 0).toFixed(1)} km</span>
+            <span class="medal-detect-meta">"${escapeHtml((c.activity.title || "").slice(0, 60))}"</span>
+            <span class="medal-detect-score">Match-Score: ${c.score}%</span>
+          </div>
+        </div>
+      `;
+    }
+
+    document.getElementById("medal-detect-skip").onclick = () => { backdrop.hidden = true; };
+    document.getElementById("medal-detect-reject").onclick = () => { state.scanCandidates.shift(); showNextCandidate(); };
+    document.getElementById("medal-detect-confirm").onclick = () => {
+      const c = state.scanCandidates.shift();
+      if (!c) return;
+      backdrop.hidden = true;
+      openAddModal({
+        series: c.race.series,
+        eventCode: c.race.event_code,
+        date: String(c.activity.created_at).slice(0, 10),
+        activityId: c.activity.id,
+        detectionScore: c.score,
+      });
+    };
+  }
+
+  async function runScan() {
+    const account = (typeof getCurrentAccount === "function") ? getCurrentAccount() : null;
+    const activities = account?.activities || [];
+    if (!activities.length) { alert("Keine Aktivitäten zum Scannen gefunden."); return; }
+    if (!state.catalog.length) await loadCatalog();
+    const candidates = detectAllUnmatched(activities);
+    openDetectModal(candidates);
+  }
+
+  // ── Event binding ──
+  function bindEvents() {
+    document.getElementById("medal-add-btn")?.addEventListener("click", () => openAddModal());
+    document.getElementById("medal-empty-add-btn")?.addEventListener("click", () => openAddModal());
+    document.getElementById("medal-scan-btn")?.addEventListener("click", runScan);
+    document.getElementById("medal-modal-close")?.addEventListener("click", closeAddModal);
+    document.getElementById("medal-form-cancel")?.addEventListener("click", closeAddModal);
+    document.getElementById("medal-modal-backdrop")?.addEventListener("click", (e) => {
+      if (e.target.id === "medal-modal-backdrop") closeAddModal();
+    });
+    document.getElementById("medal-form")?.addEventListener("submit", handleSubmit);
+
+    // Series change → update event options
+    document.getElementById("medal-series-select")?.addEventListener("change", (e) => {
+      document.getElementById("medal-catalog-id").value = "";
+      document.getElementById("medal-event-code").value = "";
+      document.getElementById("medal-event-name").value = "";
+      document.getElementById("medal-event-search").value = "";
+      renderEventOptions(e.target.value, "");
+      openEventOptions();
+    });
+    // Event search
+    document.getElementById("medal-event-search")?.addEventListener("input", (e) => {
+      const series = document.getElementById("medal-series-select").value;
+      // Custom series allows free text
+      if (series === "custom") {
+        document.getElementById("medal-event-name").value = e.target.value;
+      }
+      renderEventOptions(series, e.target.value);
+      openEventOptions();
+    });
+    document.getElementById("medal-event-search")?.addEventListener("focus", () => {
+      const series = document.getElementById("medal-series-select").value;
+      renderEventOptions(series, document.getElementById("medal-event-search").value);
+      openEventOptions();
+    });
+    // Close options on outside click
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest(".medal-event-picker")) closeEventOptions();
+    });
+
+    // Card interactions (delegated)
+    document.getElementById("medal-board-shelves")?.addEventListener("click", (e) => {
+      const delBtn = e.target.closest(".medal-delete-btn");
+      if (delBtn) { e.stopPropagation(); handleDelete(delBtn.dataset.deleteId); return; }
+      const viewBtn = e.target.closest(".medal-view-activity-btn");
+      if (viewBtn) {
+        e.stopPropagation();
+        const actId = viewBtn.dataset.activityId;
+        // Try to open activity detail (if helper exists)
+        if (typeof openActivityDetail === "function") openActivityDetail(actId);
+        return;
+      }
+      const emptyCard = e.target.closest(".medal-card-empty");
+      if (emptyCard) {
+        openAddModal({ series: emptyCard.dataset.prefillSeries, eventCode: emptyCard.dataset.prefillCode });
+        return;
+      }
+      // Mobile tap-to-flip
+      const card = e.target.closest(".medal-card");
+      if (card && !card.classList.contains("medal-card-empty")) {
+        card.classList.toggle("is-flipped");
+      }
+    });
+  }
+
+  // ── Public API ──
+  window.MedalBoard = {
+    async refresh() {
+      await Promise.all([loadCatalog(), loadMedals(), loadBadges()]);
+      render();
+    },
+    async scanActivities() { await runScan(); },
+    async scanActivitiesQuiet(activities) {
+      // Non-intrusive version called after Strava import
+      if (!state.catalog.length) await loadCatalog();
+      const list = activities || (typeof getCurrentAccount === "function" ? getCurrentAccount()?.activities : []) || [];
+      const candidates = detectAllUnmatched(list);
+      if (candidates.length) {
+        // Show a gentle toast-like notification via existing status system
+        console.log(`[MedalBoard] ${candidates.length} potential medal(s) detected`);
+        // Auto-open detect modal if user is on profile overview
+        if (document.body.classList.contains("profile-view-overview") || document.body.classList.contains("app-view-home")) {
+          openDetectModal(candidates);
+        }
+      }
+    },
+    render,
+    openAddModal,
+  };
+
+  // ── Init ──
+  function init() {
+    bindEvents();
+    // Initial load if logged in
+    if (currentUserId()) {
+      window.MedalBoard.refresh();
+    }
+    // Refresh on auth state change
+    if (window.sbAuth?.onAuthStateChange) {
+      try {
+        window.sbAuth.onAuthStateChange((event) => {
+          if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
+            setTimeout(() => window.MedalBoard.refresh(), 400);
+          } else if (event === "SIGNED_OUT") {
+            state.medals = []; state.badges = []; render();
+          }
+        });
+      } catch {}
+    }
+    console.log("[MedalBoard] Trophy Case module loaded");
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
 })();

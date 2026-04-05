@@ -335,6 +335,93 @@ const sbDb = {
     if (error) { console.warn("[sbDb.getFriendsFeed activities]", error); return []; }
     return data || [];
   },
+  // ── Medal Board ──
+  /** Fetch the canonical race catalog (optionally filter by series). */
+  async getRaceCatalog(series = null) {
+    let q = sb.from("race_catalog").select("*").order("iconic_level", { ascending: false }).order("event_name", { ascending: true });
+    if (series) q = q.eq("series", series);
+    const { data, error } = await q;
+    if (error) { console.warn("[sbDb.getRaceCatalog]", error); return []; }
+    return data || [];
+  },
+
+  /** Fetch medals for a user (joined with catalog for color/logo). */
+  async getMedals(userId) {
+    const { data, error } = await sb
+      .from("race_medals")
+      .select(`
+        id, user_id, race_catalog_id, series, event_code, event_name, event_city, event_year,
+        finish_date, finish_time_sec, finish_position, age_group_position, age_group, bib_number,
+        medal_image_url, activity_id, detection_score, detection_confirmed, notes, is_pr, created_at,
+        catalog:race_catalog_id(primary_color, secondary_color, logo_emoji, short_name, iconic_level, distance_label)
+      `)
+      .eq("user_id", userId)
+      .order("finish_date", { ascending: false });
+    if (error) { console.warn("[sbDb.getMedals]", error); return []; }
+    return data || [];
+  },
+
+  /** Insert a new medal. `medal` can include race_catalog_id to link to catalog. */
+  async addMedal(userId, medal) {
+    const row = {
+      user_id: userId,
+      race_catalog_id: medal.race_catalog_id || null,
+      series: medal.series,
+      event_code: medal.event_code || null,
+      event_name: medal.event_name,
+      event_city: medal.event_city || null,
+      event_year: medal.event_year || (medal.finish_date ? new Date(medal.finish_date).getFullYear() : null),
+      finish_date: medal.finish_date,
+      finish_time_sec: medal.finish_time_sec || null,
+      finish_position: medal.finish_position || null,
+      age_group_position: medal.age_group_position || null,
+      age_group: medal.age_group || null,
+      bib_number: medal.bib_number || null,
+      medal_image_url: medal.medal_image_url || null,
+      activity_id: medal.activity_id || null,
+      detection_score: medal.detection_score || null,
+      detection_confirmed: medal.detection_confirmed !== false,
+      notes: medal.notes || null,
+      is_pr: !!medal.is_pr,
+    };
+    const { data, error } = await sb.from("race_medals").insert(row).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async deleteMedal(medalId) {
+    const { error } = await sb.from("race_medals").delete().eq("id", medalId);
+    if (error) throw error;
+  },
+
+  async updateMedal(medalId, updates) {
+    const { data, error } = await sb.from("race_medals").update(updates).eq("id", medalId).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  /** Get cached badges for a user. */
+  async getUserBadges(userId) {
+    const { data, error } = await sb.from("user_badges").select("*").eq("user_id", userId).order("earned_at", { ascending: false });
+    if (error) { console.warn("[sbDb.getUserBadges]", error); return []; }
+    return data || [];
+  },
+
+  /** Replace all badges for a user (called after recompute). */
+  async replaceUserBadges(userId, badges) {
+    await sb.from("user_badges").delete().eq("user_id", userId);
+    if (!badges.length) return [];
+    const rows = badges.map((b) => ({
+      user_id: userId,
+      code: b.code,
+      name: b.name,
+      tier: b.tier || "common",
+      metadata: b.metadata || {},
+    }));
+    const { data, error } = await sb.from("user_badges").insert(rows).select();
+    if (error) { console.warn("[sbDb.replaceUserBadges]", error); return []; }
+    return data || [];
+  },
 };
 
 // Expose globally for app.js
