@@ -7640,14 +7640,30 @@ img, video, canvas, svg {
   border-radius: 12px;
   overflow: hidden;
   background: #1a1d22;
+  max-height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
 }
-.activity-card-map .route-map,
+.activity-card-map:hover { opacity: 0.85; }
+.activity-card-map .route-map {
+  display: block;
+  width: 100%;
+  height: 140px;
+}
 .activity-detail-map .route-map {
   display: block;
   width: 100%;
   height: auto;
+  border-radius: 10px;
 }
-.activity-detail-map .route-map { border-radius: 10px; }
+/* Desktop: more compact card maps */
+@media (min-width: 900px) {
+  .activity-card-map { max-height: 110px; }
+  .activity-card-map .route-map { height: 110px; }
+}
 
 .chart-explain {
   font-size: 12px;
