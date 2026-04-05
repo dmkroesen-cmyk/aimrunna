@@ -1361,18 +1361,93 @@ document.getElementById("delete-data-btn")?.addEventListener("click", () => {
   }
 });
 
-profileAvatarInputEl?.addEventListener("change", async () => {
+async function handleAvatarFileChange(file, statusEl) {
   const account = getCurrentAccount();
   if (!account) {
     openAccountModal("login");
     return;
   }
-  const file = profileAvatarInputEl.files?.[0];
   if (!file) return;
-  const dataUrl = await readFileAsDataUrl(file);
-  account.profileImage = dataUrl;
+  if (statusEl) setText(statusEl, "Komprimiere …");
+  try {
+    const dataUrl = await readFileAsDataUrl(file);
+    account.profileImage = dataUrl;
+    persistStore();
+    renderAccountUi();
+    syncSettingsAvatarPreview();
+    if (statusEl) setText(statusEl, "Speichere …");
+    // Supabase sync — push to profiles table so others see it in search/feed
+    try {
+      const session = await window.sb?.auth?.getSession?.();
+      const userId = session?.data?.session?.user?.id;
+      if (userId && window.sbDb?.updateProfile) {
+        await window.sbDb.updateProfile(userId, { profile_image: dataUrl });
+        if (statusEl) setText(statusEl, "Gespeichert ✓");
+      } else {
+        if (statusEl) setText(statusEl, "Lokal gespeichert (kein Cloud-Login)");
+      }
+    } catch (e) {
+      console.warn("[avatar] Supabase sync failed:", e?.message || e);
+      if (statusEl) setText(statusEl, "Lokal gespeichert (Sync-Fehler)");
+    }
+  } catch (e) {
+    console.warn("[avatar] upload failed:", e);
+    if (statusEl) setText(statusEl, "Fehler beim Upload");
+  }
+}
+
+function syncSettingsAvatarPreview() {
+  const account = getCurrentAccount();
+  const previewEl = document.getElementById("settings-avatar-preview");
+  const removeBtn = document.getElementById("settings-avatar-remove");
+  if (!previewEl) return;
+  const label = (account?.profile?.displayName || account?.displayName || account?.email || "?").charAt(0).toUpperCase();
+  previewEl.textContent = label;
+  if (account?.profileImage) {
+    previewEl.style.backgroundImage = `url('${account.profileImage}')`;
+    previewEl.classList.add("has-image");
+    if (removeBtn) removeBtn.style.display = "inline-block";
+  } else {
+    previewEl.style.backgroundImage = "";
+    previewEl.classList.remove("has-image");
+    if (removeBtn) removeBtn.style.display = "none";
+  }
+}
+
+profileAvatarInputEl?.addEventListener("change", async () => {
+  await handleAvatarFileChange(profileAvatarInputEl.files?.[0], null);
+});
+
+document.getElementById("settings-avatar-input")?.addEventListener("change", async (event) => {
+  const statusEl = document.getElementById("settings-avatar-status");
+  await handleAvatarFileChange(event.target.files?.[0], statusEl);
+});
+
+document.getElementById("settings-avatar-remove")?.addEventListener("click", async () => {
+  const account = getCurrentAccount();
+  if (!account) return;
+  const statusEl = document.getElementById("settings-avatar-status");
+  account.profileImage = null;
   persistStore();
   renderAccountUi();
+  syncSettingsAvatarPreview();
+  if (statusEl) setText(statusEl, "Speichere …");
+  try {
+    const session = await window.sb?.auth?.getSession?.();
+    const userId = session?.data?.session?.user?.id;
+    if (userId && window.sbDb?.updateProfile) {
+      await window.sbDb.updateProfile(userId, { profile_image: null });
+    }
+    if (statusEl) setText(statusEl, "Entfernt ✓");
+  } catch (e) {
+    console.warn("[avatar] remove sync failed:", e?.message || e);
+    if (statusEl) setText(statusEl, "Lokal entfernt");
+  }
+});
+
+// Keep settings avatar preview in sync whenever account UI renders
+document.addEventListener("DOMContentLoaded", () => {
+  setTimeout(syncSettingsAvatarPreview, 100);
 });
 
 activityPostFormEl?.addEventListener("submit", async (event) => {
@@ -4080,6 +4155,8 @@ function renderProfileAvatar(account) {
     profileAvatarPreviewEl.style.backgroundImage = "";
     profileAvatarPreviewEl.classList.remove("has-image");
   }
+  // Also sync the settings-panel avatar preview
+  try { syncSettingsAvatarPreview(); } catch (_) {}
 }
 
 function postActivity(account, { title, note, kind, sportType, distanceKm, imageDataUrl }) {

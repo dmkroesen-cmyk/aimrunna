@@ -1258,6 +1258,21 @@
                 <span class="tag subtle">Beta</span>
               </div>
               <p class="card-copy settings-panel-copy">Persönliche Informationen und Sportpräferenzen.</p>
+              <div class="settings-avatar-block" style="display:flex;gap:16px;align-items:center;margin-bottom:16px;padding:12px;background:rgba(255,255,255,0.02);border-radius:12px;">
+                <label for="settings-avatar-input" class="profile-avatar-upload" style="cursor:pointer;">
+                  <span id="settings-avatar-preview" class="profile-avatar-preview" style="width:72px;height:72px;font-size:28px;">A</span>
+                </label>
+                <div style="flex:1;min-width:0;">
+                  <strong style="display:block;margin-bottom:4px;">Profilbild</strong>
+                  <small style="display:block;color:#94a3b8;margin-bottom:8px;">Klick auf den Avatar oder wähle eine Datei. Wird automatisch auf max. 1600px skaliert.</small>
+                  <div style="display:flex;gap:8px;align-items:center;">
+                    <label for="settings-avatar-input" class="ghost" style="cursor:pointer;padding:6px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);font-size:13px;">Bild auswählen</label>
+                    <button type="button" id="settings-avatar-remove" class="ghost" style="padding:6px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);font-size:13px;display:none;">Entfernen</button>
+                    <span id="settings-avatar-status" class="connection-state" aria-live="polite" style="font-size:12px;"></span>
+                  </div>
+                </div>
+                <input id="settings-avatar-input" type="file" accept="image/*" hidden />
+              </div>
               <form id="profile-settings-form" class="account-form">
                 <div class="activity-meta-row">
                   <label class="field">
