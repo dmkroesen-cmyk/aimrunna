@@ -145,6 +145,7 @@ const sbDb = {
       distance_km: +(a.distance / 1000).toFixed(2),
       moving_time_sec: a.moving_time || null,
       elevation_gain_m: a.total_elevation_gain || null,
+      polyline: a.map?.summary_polyline || a.map?.polyline || a.summary_polyline || null,
       metrics: {
         avg_heartrate: a.average_heartrate || null,
         max_heartrate: a.max_heartrate || null,

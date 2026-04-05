@@ -3376,22 +3376,34 @@ async function handleSupabaseAuth(session) {
     // Load activities from Supabase
     const activities = await sbDb.getActivities(user.id, 60);
     if (activities.length) {
-      account.activities = activities.map((a) => ({
-        id: a.id,
-        source: a.source,
-        sourceExternalId: a.source_external_id,
-        createdAt: a.created_at,
-        title: a.title,
-        note: a.note,
-        kind: a.kind,
-        sportType: a.sport_type,
-        distanceKm: +a.distance_km || 0,
-        movingTimeSec: a.moving_time_sec,
-        elevationGainM: a.elevation_gain_m,
-        imageDataUrl: a.image_url,
-        propsBy: [],
-        ...(a.metrics || {}),
-      }));
+      account.activities = activities.map((a) => {
+        const m = a.metrics || {};
+        return {
+          id: a.id,
+          source: a.source,
+          sourceExternalId: a.source_external_id,
+          createdAt: a.created_at,
+          title: a.title,
+          note: a.note,
+          kind: a.kind,
+          sportType: a.sport_type,
+          distanceKm: +a.distance_km || 0,
+          movingTimeSec: a.moving_time_sec,
+          elevationGainM: a.elevation_gain_m,
+          imageDataUrl: a.image_url,
+          polyline: a.polyline || null,
+          // Translate snake_case metrics back to camelCase the UI expects
+          avgHeartrate: m.avg_heartrate || null,
+          maxHeartrate: m.max_heartrate || null,
+          avgWatts: m.avg_watts || null,
+          maxWatts: m.max_watts || null,
+          weightedAvgWatts: m.weighted_avg_watts || null,
+          sufferScore: m.suffer_score || null,
+          avgCadence: m.avg_cadence || null,
+          propsBy: [],
+          metrics: m, // keep original for detail modal
+        };
+      });
     }
   } catch (e) {
     console.warn("Supabase sync error (non-blocking):", e);
