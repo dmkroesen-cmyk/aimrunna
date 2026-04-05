@@ -10657,6 +10657,87 @@ function createWeekSessions({
     longDuration = `${longDurMin}-${longDurMin + 20} min`;
   }
 
+  // ============================================================
+  // SOTA SESSION ROTATOR (Phase 2a · Methodology V2)
+  // Cycles in Norwegian Double-Threshold, Over-Under, Billat 30/30 & 3/3,
+  // Wisløff 4x4, Hill Sprints 10s, Plyometrics, Progression-LR.
+  // Only active in base/build/specific phases (not Intro/Deload/Taper/RaceWeek).
+  // ============================================================
+  if (!isIntro && !isDeload && !isTaper && !raceWeek) {
+    const rot = weekIndex % 3; // 3-week rotation
+    const shortDist = profile.goalDistance === "5k" || profile.goalDistance === "10k";
+    const longDist = profile.goalDistance === "half" || profile.goalDistance === "marathon";
+    const vVo2max = fp(z.paces.intervalPace); // approx vVO2max pace
+    const ltPace = fp(z.paces.thresholdPace);
+    const ltMinus = fp(z.paces.thresholdPace + 8); // LT1 slightly slower
+    const ltPlus = fp(z.paces.thresholdPace - 8); // LT2 slightly faster
+    const repPace = fp(z.paces.repPace);
+
+    // QUALITY VARIANTS (replaces VO2/Speed session depending on rotation & phase)
+    if (isSpecificPhase(phase) || phase === "build") {
+      if (rot === 0 && doubleThreshold) {
+        // Norwegian Double-Threshold (Ingebrigtsen / Casado)
+        speedTitle = "Norwegian Double-Threshold";
+        speedDetails = `AM (~${Math.round(speedTotalKm*0.55)} km): 2 km WU @ ${easyPace} + 5x6' @ ${ltMinus} (LT1, ~2.0-2.5 mmol, RPE 6-7, 90s Trab) + 1 km CD. | PM (~${Math.round(speedTotalKm*0.45)} km): 2 km WU + 10x1000m @ ${ltPlus} (LT2, ~3.0-3.5 mmol, RPE 7-8, 60s Trab) + 1 km CD. Regel: subjektiv kontrolliert, nie Grinder. Laktat-Target strikt halten, lieber abbrechen als Glas überfüllen.`;
+        speedDuration = "AM 50-55 min / PM 55-65 min";
+      } else if (rot === 0 && !doubleThreshold) {
+        // Over-Under Threshold
+        speedTitle = "Over-Under Threshold";
+        speedDetails = `${speedTotalKm} km: 2 km WU @ ${easyPace} + ${shortDist ? "4" : "5"}x[3' @ ${ltMinus} → 2' @ ${ltPlus}] ohne Pause (= ${shortDist ? "20" : "25"}' am Stück) + 3' Trab + 1x[3'@${ltMinus} → 2'@${ltPlus}] + 2 km CD. Physiologie: Laktat-Shuttle, Puffer-Kapazität, mentale Pacing-Härte. Die "Under"-Phase räumt Laktat ab, "Over" lädt neu.`;
+        speedDuration = "70-80 min";
+      } else if (rot === 1) {
+        // Billat 3/3 VO2max
+        speedTitle = "Billat 3/3 (vVO2max)";
+        const reps = shortDist ? 6 : 5;
+        speedDetails = `${speedTotalKm} km: 2 km WU @ ${easyPace} + Drills 10' + ${reps}x3' @ ${vVo2max} (vVO2max, RPE 9, 3' Trab @ ${easyPace}) + 4x100m Strides @ ${repPace} + 2 km CD. Ziel: T@vVO2max maximieren (Billat 2001). Strikt gleichmäßig, letzte Reps nicht schneller.`;
+        speedDuration = "65-75 min";
+      } else if (rot === 2 && shortDist) {
+        // Wisløff 4x4
+        speedTitle = "Wisløff 4x4";
+        speedDetails = `${speedTotalKm} km: 2 km WU @ ${easyPace} + 4x4' @ 90-95% HRmax (${vVo2max}, RPE 9) mit 3' aktiver Pause @ ${easyPace} (NICHT stehen!) + 2 km CD. Wisløff-Protokoll (2007, NTNU Trondheim): stärkster validierter VO2max-Stimulus, ~0.5 ml/kg/min pro Woche bei Trainierten.`;
+        speedDuration = "55-65 min";
+      } else if (rot === 2 && longDist) {
+        // Billat 30/30
+        speedTitle = "Billat 30/30";
+        const sets = profile.fitnessLevel === "advanced" ? "2x10" : "2x8";
+        speedDetails = `${speedTotalKm} km: 2 km WU @ ${easyPace} + Drills + ${sets}x[30s @ ${vVo2max} / 30s Trab @ ${easyPace}] (5' Satzpause) + 2 km CD. Physiologie: fraktionierte vVO2max-Zeit bei geringerem Laktat, hohe kumulative T@VO2max. Bodenkontakt leicht, nicht drücken.`;
+        speedDuration = "60-70 min";
+      }
+    } else if (phase === "base") {
+      if (rot === 0) {
+        // Hill Sprints 10s (neuromuskulär, alactazid)
+        speedTitle = "Hill Sprints 10s (Neuromuscular)";
+        speedDetails = `${Math.max(6, Math.round(speedTotalKm*0.9))} km: 2 km WU @ ${easyPace} + Drills 10' + 10x10s all-out Hügel (6-8% Steigung, RPE 10) mit 2-3' Gehpause bergab (voll regeneriert, alactazid) + 6x100m Strides + 2 km CD. Regel: niemals "Ausdauer-Hügel", immer maximale Power. ATP-PCr-System, Sehnensteifigkeit, Rekrutierung Typ-II-Fasern.`;
+        speedDuration = "55-65 min";
+      } else if (rot === 2) {
+        // Plyometrics + Strides
+        speedTitle = "Plyometric Block + Strides";
+        speedDetails = `${Math.max(5, Math.round(speedTotalKm*0.8))} km: 2 km WU @ ${easyPace} + Plyometrics (40-60 Bodenkontakte, 3-4 Übungen: Pogo-Jumps 2x15, Bounds 3x20m, Box-Jumps 3x5, Single-Leg Hops 3x10/Seite) + 6x100m Strides @ ${repPace} + 2 km CD. Rønnestad/Beattie: Sehnensteifigkeit + Laufökonomie +2-8%.`;
+        speedDuration = "55-65 min";
+      }
+    }
+
+    // LONG RUN VARIANTS (rotation-based for base/build only, specific bleibt Progressive)
+    if ((phase === "base" || phase === "build") && !beginner) {
+      if (rot === 1 && longRunKmAdj >= 14) {
+        // Progression Long Run (3-phase)
+        longTitle = "Progression Long Run (3-Phase)";
+        const km1 = Math.round(longRunKmAdj * 0.5);
+        const km2 = Math.round(longRunKmAdj * 0.3);
+        const km3 = longRunKmAdj - km1 - km2;
+        longDetails = `${longRunKmAdj} km in 3 Phasen: ${km1} km @ ${easyPace} (Aerobic Base) → ${km2} km @ ${marathonPace} (Marathon-Effort) → ${km3} km @ ${fp(z.paces.thresholdPace + 10)} (Upper Aerobic, RPE 7). Niemals schneller als HM-Pace. Physiologie: kumulative Ermüdungstoleranz, Glykogen-Management, mentale Durability unter steigender Belastung.${longNutHint}`;
+        longDuration = `${longDurMin}-${longDurMin + 25} min`;
+      } else if (rot === 2 && longDist && longRunKmAdj >= 16) {
+        // Fast Finish Long Run
+        longTitle = "Fast-Finish Long Run";
+        const km1 = Math.round(longRunKmAdj * 0.8);
+        const km2 = longRunKmAdj - km1;
+        longDetails = `${longRunKmAdj} km: ${km1} km @ ${easyPace} (${z2Hint}) → ${km2} km @ ${marathonPace}. Fast-Finish lehrt, mit müden Beinen Tempo zu generieren – Schlüssel-Adaption für Marathon/HM. Kontrolliert, nicht forciert.${longNutHint}`;
+        longDuration = `${longDurMin}-${longDurMin + 15} min`;
+      }
+    }
+  }
+
   const days = [
     {
       type: "recovery",
@@ -17347,3 +17428,437 @@ document.addEventListener("click", (e) => {
   setCookieConsent(choice);
   hideCookieBanner();
 });
+
+// ====================================================================
+// SOTA AUTOREGULATION MODULE · Phase 3 + 4 · Methodology V2
+// sRPE-Feedback · HRV/Readiness-Gate · ACWR-Enforcement
+// ====================================================================
+(function sotaAutoregulation() {
+  "use strict";
+  const todayISO = () => new Date().toISOString().slice(0, 10);
+  const clampN = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
+  const safeGetAccount = () => (typeof account !== "undefined" ? account : null);
+
+  function ensureStoreSlot(key, def) {
+    const acc = safeGetAccount();
+    if (!acc) return def;
+    acc.settings = acc.settings || {};
+    if (acc.settings[key] == null) acc.settings[key] = def;
+    return acc.settings[key];
+  }
+
+  // ---------- A) Session-RPE Feedback Store ----------
+  function saveSessionFeedback(entry) {
+    const acc = safeGetAccount();
+    if (!acc) return false;
+    const list = ensureStoreSlot("sessionFeedbacks", []);
+    const row = {
+      date: entry.date || todayISO(),
+      sessionType: entry.sessionType || "general",
+      sessionTitle: entry.sessionTitle || "",
+      sRPE: clampN(Number(entry.sRPE) || 0, 0, 10),
+      durationMin: Math.max(0, Number(entry.durationMin) || 0),
+      feelingScore: clampN(Number(entry.feelingScore) || 3, 1, 5),
+      sorenessLevel: clampN(Number(entry.sorenessLevel) || 0, 0, 5),
+      sleepQuality: clampN(Number(entry.sleepQuality) || 3, 1, 5),
+      notes: String(entry.notes || "").slice(0, 500),
+      tss: Math.round((Number(entry.sRPE) || 0) * (Number(entry.durationMin) || 0) * 1.2),
+      createdAt: new Date().toISOString(),
+    };
+    list.push(row);
+    if (list.length > 365) list.splice(0, list.length - 365);
+    try { if (typeof persistStore === "function") persistStore(); } catch (_) {}
+    return row;
+  }
+
+  function getSessionFeedbacks(days = 28) {
+    const acc = safeGetAccount();
+    if (!acc?.settings?.sessionFeedbacks) return [];
+    const cutoff = Date.now() - days * 86400000;
+    return acc.settings.sessionFeedbacks.filter((r) => new Date(r.date).getTime() >= cutoff);
+  }
+
+  // ---------- B) Daily Readiness Check ----------
+  function saveReadinessCheck(entry) {
+    const acc = safeGetAccount();
+    if (!acc) return false;
+    const list = ensureStoreSlot("readinessLogs", []);
+    const row = {
+      date: entry.date || todayISO(),
+      hrv: entry.hrv != null ? Number(entry.hrv) : null,
+      rhr: entry.rhr != null ? Number(entry.rhr) : null,
+      sleepHours: entry.sleepHours != null ? Number(entry.sleepHours) : null,
+      sleepQuality: clampN(Number(entry.sleepQuality) || 3, 1, 5),
+      soreness: clampN(Number(entry.soreness) || 0, 0, 5),
+      mood: clampN(Number(entry.mood) || 3, 1, 5),
+      stress: clampN(Number(entry.stress) || 2, 0, 5),
+      motivation: clampN(Number(entry.motivation) || 3, 1, 5),
+      createdAt: new Date().toISOString(),
+    };
+    // Deduplicate by date (last write wins)
+    const existingIdx = list.findIndex((r) => r.date === row.date);
+    if (existingIdx >= 0) list[existingIdx] = row; else list.push(row);
+    if (list.length > 180) list.splice(0, list.length - 180);
+    row.score = computeReadinessScore(row, list);
+    if (existingIdx >= 0) list[existingIdx] = row;
+    try { if (typeof persistStore === "function") persistStore(); } catch (_) {}
+    return row;
+  }
+
+  function getReadinessLogs(days = 28) {
+    const acc = safeGetAccount();
+    if (!acc?.settings?.readinessLogs) return [];
+    const cutoff = Date.now() - days * 86400000;
+    return acc.settings.readinessLogs.filter((r) => new Date(r.date).getTime() >= cutoff);
+  }
+
+  // ---------- C) Composite Readiness Score (0-100) ----------
+  // Research: Düking 2021 (HRV-guided), Flatt 2017, WHOOP strain/recovery model
+  // Weights: HRV 30%, RHR 15%, Sleep 25%, Soreness 10%, Mood 10%, Stress 5%, Motivation 5%
+  function computeReadinessScore(today, history) {
+    if (!today) return 50;
+    const hist = Array.isArray(history) ? history : [];
+    const last7 = hist.slice(-8, -1); // exclude today
+
+    // HRV: log-RMSSD 7-day rolling mean (Flatt/Plews)
+    let hrvScore = 50;
+    if (today.hrv && last7.length >= 3) {
+      const hrvs = last7.map((r) => r.hrv).filter((v) => v > 0);
+      if (hrvs.length >= 3) {
+        const logs = hrvs.map((v) => Math.log(v));
+        const mean = logs.reduce((a, b) => a + b, 0) / logs.length;
+        const sd = Math.sqrt(logs.reduce((a, b) => a + (b - mean) ** 2, 0) / logs.length);
+        const z = sd > 0 ? (Math.log(today.hrv) - mean) / sd : 0;
+        hrvScore = clampN(50 + z * 25, 0, 100);
+      } else { hrvScore = 60; }
+    } else if (today.hrv) { hrvScore = 60; }
+
+    // RHR: lower than baseline = better
+    let rhrScore = 50;
+    if (today.rhr && last7.length >= 3) {
+      const rhrs = last7.map((r) => r.rhr).filter((v) => v > 0);
+      if (rhrs.length >= 3) {
+        const mean = rhrs.reduce((a, b) => a + b, 0) / rhrs.length;
+        const delta = today.rhr - mean;
+        rhrScore = clampN(50 - delta * 5, 0, 100); // +1 bpm over baseline = -5
+      } else { rhrScore = 60; }
+    } else if (today.rhr) { rhrScore = 60; }
+
+    // Sleep: target 7.5-9h
+    let sleepScore = 50;
+    if (today.sleepHours != null) {
+      const h = today.sleepHours;
+      if (h >= 8 && h <= 9) sleepScore = 100;
+      else if (h >= 7 && h < 8) sleepScore = 80;
+      else if (h >= 6 && h < 7) sleepScore = 55;
+      else if (h >= 9 && h <= 10) sleepScore = 85;
+      else if (h > 10) sleepScore = 70;
+      else sleepScore = Math.max(20, h * 8);
+    }
+    // blend with subjective sleep quality
+    sleepScore = (sleepScore * 0.6) + ((today.sleepQuality - 1) * 25 * 0.4);
+
+    const sorenessScore = 100 - (today.soreness * 18); // 0 soreness = 100, 5 = 10
+    const moodScore = (today.mood - 1) * 25; // 1->0, 5->100
+    const stressScore = 100 - today.stress * 18;
+    const motivationScore = (today.motivation - 1) * 25;
+
+    const score =
+      hrvScore * 0.30 +
+      rhrScore * 0.15 +
+      sleepScore * 0.25 +
+      sorenessScore * 0.10 +
+      moodScore * 0.10 +
+      stressScore * 0.05 +
+      motivationScore * 0.05;
+
+    return Math.round(clampN(score, 0, 100));
+  }
+
+  function getReadinessZone(score) {
+    if (score >= 75) return { zone: "green", label: "Ready to Push", color: "#10b981", advice: "Qualität freigegeben. Geplante Session durchziehen." };
+    if (score >= 55) return { zone: "yellow", label: "Caution", color: "#f59e0b", advice: "Quality möglich, aber konservativ pacen. Volumen um 10-15% kürzen bei Bedarf." };
+    if (score >= 35) return { zone: "orange", label: "Downgrade", color: "#f97316", advice: "Quality → Threshold / Threshold → Easy. Kein all-out." };
+    return { zone: "red", label: "Recovery", color: "#ef4444", advice: "Easy/Rest empfohlen. Hartes Training verschieben." };
+  }
+
+  // ---------- D) HRV-Gate für Quality-Sessions ----------
+  function getHrvGate(plannedSessionType) {
+    const logs = getReadinessLogs(14);
+    if (!logs.length) return { ok: true, downgrade: null, reason: "Keine Readiness-Daten" };
+    const today = logs[logs.length - 1];
+    if (!today || today.date !== todayISO()) {
+      return { ok: true, downgrade: null, reason: "Heute noch kein Readiness-Check" };
+    }
+    const score = today.score != null ? today.score : computeReadinessScore(today, logs);
+    const zone = getReadinessZone(score);
+    const isQuality = ["quality", "threshold", "longrun"].includes(plannedSessionType);
+    if (!isQuality) return { ok: true, downgrade: null, reason: "Easy-Session, kein Gate", score, zone };
+    if (zone.zone === "red") return { ok: false, downgrade: "recovery", reason: `Readiness ${score}/100 (rot): ${zone.advice}`, score, zone };
+    if (zone.zone === "orange") {
+      const downgradeMap = { quality: "threshold", threshold: "recovery", longrun: "recovery" };
+      return { ok: false, downgrade: downgradeMap[plannedSessionType] || "recovery", reason: `Readiness ${score}/100 (orange): ${zone.advice}`, score, zone };
+    }
+    if (zone.zone === "yellow") return { ok: true, downgrade: null, reason: `Readiness ${score}/100 (gelb): konservativ pacen`, score, zone, caution: true };
+    return { ok: true, downgrade: null, reason: `Readiness ${score}/100 (grün)`, score, zone };
+  }
+
+  // ---------- E) ACWR (Gabbett) & Monotony/Strain (Foster) ----------
+  function buildDailyLoadMap(activities, feedbacks) {
+    const map = new Map();
+    (activities || []).forEach((a) => {
+      const d = new Date(a.startDate || a.date).toISOString().slice(0, 10);
+      const load = Number(a.trainingLoad || a.tss || 0) || estimateLoadFromActivity(a);
+      map.set(d, (map.get(d) || 0) + load);
+    });
+    (feedbacks || []).forEach((f) => {
+      const load = f.tss || (f.sRPE * f.durationMin * 1.2);
+      map.set(f.date, (map.get(f.date) || 0) + load);
+    });
+    return map;
+  }
+
+  function estimateLoadFromActivity(a) {
+    const dur = (Number(a.movingTime) || Number(a.duration) || 0) / 60;
+    const hr = Number(a.avgHeartrate) || 0;
+    const intensity = hr >= 170 ? 8 : hr >= 155 ? 7 : hr >= 140 ? 6 : hr >= 125 ? 5 : hr >= 110 ? 4 : 3;
+    return Math.round(dur * intensity * 1.2);
+  }
+
+  function computeAcwr(activities, feedbacks = []) {
+    const map = buildDailyLoadMap(activities, feedbacks);
+    const now = Date.now();
+    let acute = 0, chronic = 0;
+    for (let i = 0; i < 28; i += 1) {
+      const d = new Date(now - i * 86400000).toISOString().slice(0, 10);
+      const load = map.get(d) || 0;
+      chronic += load;
+      if (i < 7) acute += load;
+    }
+    const acuteAvg = acute / 7;
+    const chronicAvg = chronic / 28;
+    const ratio = chronicAvg > 0 ? acuteAvg / chronicAvg : 0;
+    return { ratio, acute: Math.round(acute), chronic: Math.round(chronic), acuteAvg: Math.round(acuteAvg), chronicAvg: Math.round(chronicAvg) };
+  }
+
+  function computeMonotonyStrain(activities, feedbacks = []) {
+    const map = buildDailyLoadMap(activities, feedbacks);
+    const now = Date.now();
+    const vals = [];
+    for (let i = 0; i < 7; i += 1) {
+      const d = new Date(now - i * 86400000).toISOString().slice(0, 10);
+      vals.push(map.get(d) || 0);
+    }
+    const mean = vals.reduce((a, b) => a + b, 0) / 7;
+    const sd = Math.sqrt(vals.reduce((a, b) => a + (b - mean) ** 2, 0) / 7) || 1;
+    const monotony = mean / sd;
+    const weekLoad = vals.reduce((a, b) => a + b, 0);
+    const strain = monotony * weekLoad;
+    return { monotony: Math.round(monotony * 100) / 100, strain: Math.round(strain), weekLoad: Math.round(weekLoad) };
+  }
+
+  function getAcwrWarning(activities, feedbacks = []) {
+    const acwr = computeAcwr(activities, feedbacks);
+    const ms = computeMonotonyStrain(activities, feedbacks);
+    let level = "ok", msg = `ACWR ${acwr.ratio.toFixed(2)} · sicher (Gabbett Sweet-Spot 0.8-1.3)`;
+    if (acwr.ratio === 0) { level = "info"; msg = "Noch keine Load-Historie"; }
+    else if (acwr.ratio > 1.5) { level = "danger"; msg = `ACWR ${acwr.ratio.toFixed(2)} · Danger Zone (>1.5) – Verletzungsrisiko 2-4× erhöht (Gabbett 2016)`; }
+    else if (acwr.ratio > 1.3) { level = "warn"; msg = `ACWR ${acwr.ratio.toFixed(2)} · Caution (>1.3) – Woche reduzieren oder Intensität senken`; }
+    else if (acwr.ratio < 0.8 && acwr.chronicAvg > 20) { level = "warn"; msg = `ACWR ${acwr.ratio.toFixed(2)} · Detraining-Risiko (<0.8) – Load wieder aufbauen`; }
+    if (ms.monotony > 2.0) { level = level === "ok" ? "warn" : level; msg += ` · Monotony ${ms.monotony} hoch (>2.0, Foster 1998)`; }
+    if (ms.strain > 6000) { level = "danger"; msg += ` · Strain ${ms.strain} kritisch`; }
+    return { level, msg, acwr, monotony: ms.monotony, strain: ms.strain };
+  }
+
+  // ---------- F) sRPE Feedback Modal (lazy-inject) ----------
+  function openSessionFeedbackModal(sessionCtx = {}) {
+    if (document.getElementById("sota-feedback-modal")) return;
+    const overlay = document.createElement("div");
+    overlay.id = "sota-feedback-modal";
+    overlay.style.cssText = "position:fixed;inset:0;background:rgba(15,18,30,.78);backdrop-filter:blur(6px);z-index:9998;display:flex;align-items:center;justify-content:center;padding:20px;";
+    overlay.innerHTML = `
+      <div style="background:#1a1d2e;border:1px solid #2a2f45;border-radius:16px;max-width:440px;width:100%;padding:22px 20px;max-height:92vh;overflow-y:auto;color:#e5e7eb;font-family:system-ui,-apple-system,sans-serif;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <h3 style="margin:0;font-size:17px;font-weight:700;color:#fff;">Session Feedback · sRPE</h3>
+          <button id="sota-fb-close" style="background:transparent;border:0;color:#94a3b8;font-size:22px;cursor:pointer;padding:0 6px;">×</button>
+        </div>
+        <p style="margin:0 0 12px;font-size:12px;color:#94a3b8;">${sessionCtx.sessionTitle || "Wie war die Session?"}</p>
+
+        <label style="display:block;margin-bottom:12px;">
+          <span style="font-size:12px;color:#cbd5e1;">Session-RPE (Borg CR10): <b id="sota-fb-rpe-val" style="color:#fff;">6</b></span>
+          <input type="range" id="sota-fb-rpe" min="0" max="10" step="1" value="6" style="width:100%;margin-top:4px;">
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:#64748b;margin-top:-2px;"><span>0 Nichts</span><span>5 Hart</span><span>10 Max</span></div>
+        </label>
+
+        <label style="display:block;margin-bottom:12px;">
+          <span style="font-size:12px;color:#cbd5e1;">Dauer (min)</span>
+          <input type="number" id="sota-fb-dur" min="0" max="360" value="${sessionCtx.durationMin || 60}" style="width:100%;background:#0f1220;border:1px solid #2a2f45;border-radius:8px;padding:8px 10px;color:#fff;margin-top:4px;">
+        </label>
+
+        <label style="display:block;margin-bottom:12px;">
+          <span style="font-size:12px;color:#cbd5e1;">Wie hat es sich angefühlt? <b id="sota-fb-feel-val" style="color:#fff;">3</b>/5</span>
+          <input type="range" id="sota-fb-feel" min="1" max="5" step="1" value="3" style="width:100%;margin-top:4px;">
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:#64748b;"><span>1 schlecht</span><span>3 ok</span><span>5 super</span></div>
+        </label>
+
+        <label style="display:block;margin-bottom:12px;">
+          <span style="font-size:12px;color:#cbd5e1;">Muskelkater/Soreness: <b id="sota-fb-sore-val" style="color:#fff;">1</b>/5</span>
+          <input type="range" id="sota-fb-sore" min="0" max="5" step="1" value="1" style="width:100%;margin-top:4px;">
+        </label>
+
+        <label style="display:block;margin-bottom:14px;">
+          <span style="font-size:12px;color:#cbd5e1;">Notizen (optional)</span>
+          <textarea id="sota-fb-notes" rows="2" placeholder="z. B. Stich im Knie, Wetter heiß, Magen grummelt…" style="width:100%;background:#0f1220;border:1px solid #2a2f45;border-radius:8px;padding:8px 10px;color:#fff;margin-top:4px;resize:vertical;font-family:inherit;font-size:13px;"></textarea>
+        </label>
+
+        <div style="display:flex;gap:8px;">
+          <button id="sota-fb-save" style="flex:1;background:#3b82f6;color:#fff;border:0;border-radius:10px;padding:11px;font-weight:600;cursor:pointer;">Speichern</button>
+          <button id="sota-fb-cancel" style="background:transparent;color:#94a3b8;border:1px solid #2a2f45;border-radius:10px;padding:11px 14px;cursor:pointer;">Abbrechen</button>
+        </div>
+        <div style="margin-top:10px;font-size:11px;color:#64748b;text-align:center;">TSS ≈ sRPE × Dauer × 1.2</div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    const q = (sel) => overlay.querySelector(sel);
+    q("#sota-fb-rpe").addEventListener("input", (e) => q("#sota-fb-rpe-val").textContent = e.target.value);
+    q("#sota-fb-feel").addEventListener("input", (e) => q("#sota-fb-feel-val").textContent = e.target.value);
+    q("#sota-fb-sore").addEventListener("input", (e) => q("#sota-fb-sore-val").textContent = e.target.value);
+    const close = () => overlay.remove();
+    q("#sota-fb-close").addEventListener("click", close);
+    q("#sota-fb-cancel").addEventListener("click", close);
+    overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
+    q("#sota-fb-save").addEventListener("click", () => {
+      const saved = saveSessionFeedback({
+        date: sessionCtx.date || todayISO(),
+        sessionType: sessionCtx.sessionType || "general",
+        sessionTitle: sessionCtx.sessionTitle || "",
+        sRPE: Number(q("#sota-fb-rpe").value),
+        durationMin: Number(q("#sota-fb-dur").value),
+        feelingScore: Number(q("#sota-fb-feel").value),
+        sorenessLevel: Number(q("#sota-fb-sore").value),
+        notes: q("#sota-fb-notes").value,
+      });
+      close();
+      if (saved) console.log("[SOTA] Session feedback saved · TSS ≈", saved.tss);
+    });
+  }
+
+  // ---------- G) Readiness Check Modal ----------
+  function openReadinessCheckModal() {
+    if (document.getElementById("sota-readiness-modal")) return;
+    const today = todayISO();
+    const existing = (getReadinessLogs(2).find((r) => r.date === today)) || {};
+    const overlay = document.createElement("div");
+    overlay.id = "sota-readiness-modal";
+    overlay.style.cssText = "position:fixed;inset:0;background:rgba(15,18,30,.78);backdrop-filter:blur(6px);z-index:9998;display:flex;align-items:center;justify-content:center;padding:20px;";
+    overlay.innerHTML = `
+      <div style="background:#1a1d2e;border:1px solid #2a2f45;border-radius:16px;max-width:420px;width:100%;padding:22px 20px;max-height:92vh;overflow-y:auto;color:#e5e7eb;font-family:system-ui,-apple-system,sans-serif;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <h3 style="margin:0;font-size:17px;font-weight:700;color:#fff;">Morning Readiness Check</h3>
+          <button id="sota-rd-close" style="background:transparent;border:0;color:#94a3b8;font-size:22px;cursor:pointer;padding:0 6px;">×</button>
+        </div>
+        <p style="margin:0 0 12px;font-size:11px;color:#94a3b8;">HRV-guided Training (Düking 2021) · Composite Score 0-100</p>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+          <label><span style="font-size:11px;color:#cbd5e1;">HRV (RMSSD ms)</span>
+            <input type="number" id="sota-rd-hrv" value="${existing.hrv || ""}" min="10" max="200" placeholder="z.B. 52" style="width:100%;background:#0f1220;border:1px solid #2a2f45;border-radius:8px;padding:7px 9px;color:#fff;margin-top:3px;"></label>
+          <label><span style="font-size:11px;color:#cbd5e1;">Ruhepuls (bpm)</span>
+            <input type="number" id="sota-rd-rhr" value="${existing.rhr || ""}" min="30" max="100" placeholder="z.B. 48" style="width:100%;background:#0f1220;border:1px solid #2a2f45;border-radius:8px;padding:7px 9px;color:#fff;margin-top:3px;"></label>
+        </div>
+
+        <label style="display:block;margin-bottom:10px;"><span style="font-size:11px;color:#cbd5e1;">Schlafdauer (h)</span>
+          <input type="number" id="sota-rd-sleep" step="0.25" value="${existing.sleepHours || ""}" min="0" max="14" placeholder="z.B. 7.5" style="width:100%;background:#0f1220;border:1px solid #2a2f45;border-radius:8px;padding:7px 9px;color:#fff;margin-top:3px;"></label>
+
+        ${[
+          {k:"sleepQuality",label:"Schlafqualität",min:1,max:5,def:3},
+          {k:"soreness",label:"Muskelkater",min:0,max:5,def:1},
+          {k:"mood",label:"Stimmung",min:1,max:5,def:3},
+          {k:"stress",label:"Stress",min:0,max:5,def:2},
+          {k:"motivation",label:"Motivation",min:1,max:5,def:3},
+        ].map((it) => `
+          <label style="display:block;margin-bottom:9px;">
+            <span style="font-size:11px;color:#cbd5e1;">${it.label}: <b id="sota-rd-${it.k}-val" style="color:#fff;">${existing[it.k] != null ? existing[it.k] : it.def}</b>/${it.max}</span>
+            <input type="range" id="sota-rd-${it.k}" min="${it.min}" max="${it.max}" step="1" value="${existing[it.k] != null ? existing[it.k] : it.def}" style="width:100%;margin-top:3px;">
+          </label>
+        `).join("")}
+
+        <div style="display:flex;gap:8px;margin-top:14px;">
+          <button id="sota-rd-save" style="flex:1;background:#10b981;color:#fff;border:0;border-radius:10px;padding:11px;font-weight:600;cursor:pointer;">Speichern & Score</button>
+          <button id="sota-rd-cancel" style="background:transparent;color:#94a3b8;border:1px solid #2a2f45;border-radius:10px;padding:11px 14px;cursor:pointer;">Abbrechen</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    ["sleepQuality","soreness","mood","stress","motivation"].forEach((k) => {
+      const inp = overlay.querySelector(`#sota-rd-${k}`);
+      const val = overlay.querySelector(`#sota-rd-${k}-val`);
+      if (inp && val) inp.addEventListener("input", (e) => val.textContent = e.target.value);
+    });
+    const close = () => overlay.remove();
+    overlay.querySelector("#sota-rd-close").addEventListener("click", close);
+    overlay.querySelector("#sota-rd-cancel").addEventListener("click", close);
+    overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
+    overlay.querySelector("#sota-rd-save").addEventListener("click", () => {
+      const g = (id) => overlay.querySelector(id).value;
+      const saved = saveReadinessCheck({
+        date: todayISO(),
+        hrv: g("#sota-rd-hrv") ? Number(g("#sota-rd-hrv")) : null,
+        rhr: g("#sota-rd-rhr") ? Number(g("#sota-rd-rhr")) : null,
+        sleepHours: g("#sota-rd-sleep") ? Number(g("#sota-rd-sleep")) : null,
+        sleepQuality: Number(g("#sota-rd-sleepQuality")),
+        soreness: Number(g("#sota-rd-soreness")),
+        mood: Number(g("#sota-rd-mood")),
+        stress: Number(g("#sota-rd-stress")),
+        motivation: Number(g("#sota-rd-motivation")),
+      });
+      close();
+      if (saved) {
+        const zone = getReadinessZone(saved.score);
+        // Lightweight toast
+        const toast = document.createElement("div");
+        toast.style.cssText = `position:fixed;top:20px;left:50%;transform:translateX(-50%);background:${zone.color};color:#fff;padding:12px 18px;border-radius:10px;font-weight:600;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.4);font-family:system-ui;`;
+        toast.textContent = `Readiness ${saved.score}/100 · ${zone.label}`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3500);
+      }
+    });
+  }
+
+  // ---------- H) Public API ----------
+  window.AIMA_SOTA = {
+    saveSessionFeedback,
+    getSessionFeedbacks,
+    saveReadinessCheck,
+    getReadinessLogs,
+    computeReadinessScore,
+    getReadinessZone,
+    getHrvGate,
+    computeAcwr,
+    computeMonotonyStrain,
+    getAcwrWarning,
+    openSessionFeedbackModal,
+    openReadinessCheckModal,
+  };
+
+  // ---------- I) Auto-wire buttons via data attribute ----------
+  document.addEventListener("click", (e) => {
+    const fbBtn = e.target.closest("[data-sota-feedback]");
+    if (fbBtn) {
+      e.preventDefault();
+      openSessionFeedbackModal({
+        sessionType: fbBtn.dataset.sessionType,
+        sessionTitle: fbBtn.dataset.sessionTitle,
+        durationMin: Number(fbBtn.dataset.durationMin) || 60,
+        date: fbBtn.dataset.date,
+      });
+      return;
+    }
+    const rdBtn = e.target.closest("[data-sota-readiness]");
+    if (rdBtn) {
+      e.preventDefault();
+      openReadinessCheckModal();
+    }
+  });
+
+  console.log("[SOTA] Autoregulation Module loaded · Phase 3+4 · sRPE/HRV/ACWR");
+})();
