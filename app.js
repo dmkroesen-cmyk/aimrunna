@@ -1308,12 +1308,13 @@ accountRegisterBtn?.addEventListener("click", () => openAccountModal("register")
 accountOpenLoginBtn?.addEventListener("click", () => openAccountModal("login"));
 accountOpenRegisterBtn?.addEventListener("click", () => openAccountModal("register"));
 accountLogoutBtn?.addEventListener("click", logoutCurrentAccount);
-accountHomeBtn?.addEventListener("click", () => setAppView("home"));
-accountProfileBtn?.addEventListener("click", () => {
+// Swapped semantics: "Home" button → workspace (dashboard), "Profil" button → public profile + social feed
+accountHomeBtn?.addEventListener("click", () => {
   setActiveProfileView("overview");
   setAppView("profile");
   setActiveAccountSection("profile");
 });
+accountProfileBtn?.addEventListener("click", () => setAppView("home"));
 // Community button removed — feed is now on Home when logged in
 accountSectionTabButtons.forEach((btn) =>
   btn.addEventListener("click", () => {
@@ -3548,7 +3549,16 @@ function savePlanToLibrary(account, profile, plan) {
   // Sync to Supabase in background
   if (typeof sbDb !== "undefined" && account.id && !account.id.startsWith("acc_")) {
     sbDb.savePlan(account.id, { title, summary, profile: serializedProfile, plan_data: serializedPlan })
-      .then((saved) => { if (saved?.id) item.id = saved.id; })
+      .then((saved) => {
+        if (saved?.id) {
+          item.id = saved.id;
+          // Sync A+B race events → user_target_races (Main Events on profile)
+          const raceEvents = Array.isArray(profile?.raceEvents) ? profile.raceEvents : [];
+          if (raceEvents.length && window.MainEvents?.syncFromPlan) {
+            window.MainEvents.syncFromPlan(account.id, saved.id, raceEvents);
+          }
+        }
+      })
       .catch((e) => console.warn("Plan sync error:", e));
   }
 }
@@ -4138,11 +4148,17 @@ function setAppView(view) {
   // When logged in and on Home, show feed instead of landing page
   document.body.classList.toggle("home-feed-mode", isAuth && activeAppView === "home");
 
-  accountHomeBtn?.classList.toggle("is-active", activeAppView === "home");
-  accountProfileBtn?.classList.toggle("is-active", activeAppView === "profile");
+  // Swapped: "Home" button active when on workspace (profile view), "Profil" button active when on public/home view
+  accountHomeBtn?.classList.toggle("is-active", activeAppView === "profile");
+  accountProfileBtn?.classList.toggle("is-active", activeAppView === "home");
 
   const homeFeedSection = document.getElementById("home-feed-section");
   if (homeFeedSection) homeFeedSection.hidden = !(isAuth && activeAppView === "home");
+  const publicProfileSection = document.getElementById("public-profile-section");
+  if (publicProfileSection) publicProfileSection.hidden = !(isAuth && activeAppView === "home");
+  if (isAuth && activeAppView === "home" && window.PublicProfile?.render) {
+    try { window.PublicProfile.render(); } catch (e) { console.warn("[PublicProfile] render:", e); }
+  }
 
   if (activeAppView === "profile") {
     setActiveProfileView(activeProfileView);
@@ -19132,6 +19148,1034 @@ document.addEventListener("click", (e) => {
       } catch {}
     }
     console.log("[MedalBoard] Trophy Case module loaded");
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();
+
+/* ============================================================
+   PUBLIC PROFILE MODULE
+   Renders: banner, identity, hero stats, dot matrix, sport bars,
+   form score, PR vault, totals ribbon, photo wall.
+   Trophy Case is moved into this container on init.
+   ============================================================ */
+(function initPublicProfile() {
+  "use strict";
+
+  const STATUS_OPTIONS = [
+    { code: "base", label: "Base Building", color: "#4ade80" },
+    { code: "build", label: "Build", color: "#60a5fa" },
+    { code: "peak", label: "Peak Week", color: "#E5A93D" },
+    { code: "race", label: "Race Week", color: "#ef4444" },
+    { code: "recovery", label: "Recovery", color: "#a78bfa" },
+    { code: "injured", label: "Injured", color: "#f87171" },
+    { code: "off", label: "Off-Season", color: "#9ca3af" },
+  ];
+
+  const SPORT_META = {
+    run: { label: "Lauf", color: "#E5A93D", key: "run" },
+    bike: { label: "Rad", color: "#60a5fa", key: "bike" },
+    swim: { label: "Schwimmen", color: "#22d3ee", key: "swim" },
+    strength: { label: "Kraft", color: "#a78bfa", key: "strength" },
+    other: { label: "Andere", color: "#9ca3af", key: "other" },
+  };
+
+  const STANDARD_DISTANCES = [
+    { code: "5k", label: "5K", km: 5, tol: 0.3 },
+    { code: "10k", label: "10K", km: 10, tol: 0.5 },
+    { code: "hm", label: "HM", km: 21.0975, tol: 0.8 },
+    { code: "m", label: "M", km: 42.195, tol: 1.5 },
+  ];
+
+  // ── Helpers ──
+  function account() {
+    try { return (typeof getCurrentAccount === "function") ? getCurrentAccount() : null; }
+    catch { return null; }
+  }
+
+  function activitiesList() {
+    const acc = account();
+    const list = acc?.activities || [];
+    // Normalize (distanceKm / distance_km)
+    return list.map((a) => ({
+      id: a.id,
+      title: a.title || "",
+      created_at: a.created_at || a.date || a.createdAt,
+      distance_km: Number(a.distance_km ?? a.distanceKm ?? 0),
+      moving_time_sec: Number(a.moving_time_sec ?? a.movingTimeSec ?? a.durationSec ?? 0),
+      sport_type: a.sport_type || a.sportType || "other",
+      image_url: a.image_url || a.imageUrl || a.imageDataUrl || null,
+      avg_heartrate: a.avg_heartrate ?? a.avgHeartrate ?? null,
+      polyline: a.polyline || null,
+    }));
+  }
+
+  function escapeHtml(str) {
+    return String(str || "").replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[c]));
+  }
+
+  function resolveName(acc) {
+    if (typeof resolveDisplayName === "function") return resolveDisplayName(acc);
+    return acc?.profile?.displayName || acc?.displayName || (acc?.email ? acc.email.split("@")[0] : "Athlet");
+  }
+
+  function sportOf(a) {
+    const s = String(a.sport_type || "").toLowerCase();
+    if (s.includes("run") || s.includes("lauf")) return "run";
+    if (s.includes("bike") || s.includes("ride") || s.includes("rad") || s.includes("cycl")) return "bike";
+    if (s.includes("swim") || s.includes("schwim")) return "swim";
+    if (s.includes("strength") || s.includes("kraft") || s.includes("weight") || s.includes("hyrox") || s.includes("crossfit")) return "strength";
+    return "other";
+  }
+
+  // ── Status Management ──
+  function currentStatus() {
+    const acc = account();
+    return acc?.profile?.trainingStatus || "base";
+  }
+
+  function statusMeta(code) {
+    return STATUS_OPTIONS.find((s) => s.code === code) || STATUS_OPTIONS[0];
+  }
+
+  async function setStatus(newCode) {
+    const acc = account();
+    if (!acc) return;
+    if (!acc.profile) acc.profile = {};
+    acc.profile.trainingStatus = newCode;
+    try { if (typeof persistStore === "function") persistStore(); } catch {}
+    renderIdentity();
+    // Sync to Supabase
+    try {
+      const session = await window.sb?.auth?.getSession?.();
+      const userId = session?.data?.session?.user?.id;
+      if (userId && window.sbDb?.updateProfile) {
+        await window.sbDb.updateProfile(userId, { training_status: newCode });
+      }
+    } catch (e) { console.warn("[PublicProfile] status sync:", e?.message || e); }
+  }
+
+  // ── Banner ──
+  function renderBanner() {
+    const strip = document.getElementById("pp-banner-strip");
+    if (!strip) return;
+    const activities = activitiesList();
+    const photos = activities.filter((a) => a.image_url).slice(0, 5);
+    strip.innerHTML = "";
+    if (!photos.length) {
+      strip.classList.add("pp-banner-empty");
+      return;
+    }
+    strip.classList.remove("pp-banner-empty");
+    for (const p of photos) {
+      const slot = document.createElement("div");
+      slot.className = "pp-banner-slot";
+      slot.style.backgroundImage = `url("${p.image_url.replace(/"/g, '%22')}")`;
+      strip.appendChild(slot);
+    }
+  }
+
+  // ── Identity ──
+  function renderIdentity() {
+    const acc = account();
+    if (!acc) return;
+    const name = resolveName(acc);
+    const nameEl = document.getElementById("pp-name");
+    if (nameEl) nameEl.textContent = name;
+
+    // Avatar
+    const avatarEl = document.getElementById("pp-avatar");
+    const initEl = document.getElementById("pp-avatar-initial");
+    const img = acc.profile?.profileImage || acc.profileImage;
+    if (avatarEl) {
+      if (img) {
+        avatarEl.style.backgroundImage = `url("${String(img).replace(/"/g, '%22')}")`;
+        avatarEl.classList.add("has-image");
+        if (initEl) initEl.textContent = "";
+      } else {
+        avatarEl.style.backgroundImage = "";
+        avatarEl.classList.remove("has-image");
+        if (initEl) initEl.textContent = (name || "A").trim().charAt(0).toUpperCase();
+      }
+    }
+
+    // Meta: discipline · city · status
+    const metaParts = [];
+    const disc = acc.profile?.discipline;
+    if (disc) metaParts.push(escapeHtml(String(disc)));
+    const city = acc.profile?.city || acc.profile?.location;
+    if (city) metaParts.push(escapeHtml(String(city)));
+    const metaEl = document.getElementById("pp-meta");
+    const stat = statusMeta(currentStatus());
+    const statusHtml = `<span class="pp-meta-status" style="--pp-status-color:${stat.color};">${escapeHtml(stat.label)}</span>`;
+    if (metaEl) metaEl.innerHTML = [...metaParts, statusHtml].join(" · ");
+
+    // Status dot
+    const dot = document.getElementById("pp-status-dot");
+    if (dot) {
+      dot.style.setProperty("--pp-status-color", stat.color);
+      dot.title = stat.label;
+      dot.dataset.status = stat.code;
+    }
+
+    // Identity actions (own view only — currently always treated as own)
+    const actionsEl = document.getElementById("pp-identity-actions");
+    if (actionsEl) actionsEl.hidden = !acc; // show when logged in
+
+    // Banner edit button visibility
+    const bannerEdit = document.getElementById("pp-banner-edit");
+    if (bannerEdit) bannerEdit.hidden = !acc;
+  }
+
+  function openStatusPicker() {
+    const btn = document.getElementById("pp-status-btn");
+    if (!btn) return;
+    // Close any existing popover
+    closeStatusPicker();
+    const pop = document.createElement("div");
+    pop.className = "pp-status-pop";
+    pop.id = "pp-status-pop";
+    const cur = currentStatus();
+    for (const opt of STATUS_OPTIONS) {
+      const row = document.createElement("button");
+      row.type = "button";
+      row.className = "pp-status-pop-row" + (opt.code === cur ? " is-active" : "");
+      row.innerHTML = `<span class="pp-status-pop-dot" style="background:${opt.color};"></span><span>${escapeHtml(opt.label)}</span>`;
+      row.addEventListener("click", () => { setStatus(opt.code); closeStatusPicker(); });
+      pop.appendChild(row);
+    }
+    btn.parentElement.appendChild(pop);
+    // Outside click to close
+    setTimeout(() => document.addEventListener("click", handleOutside), 0);
+    function handleOutside(e) {
+      if (!pop.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
+        closeStatusPicker();
+        document.removeEventListener("click", handleOutside);
+      }
+    }
+  }
+
+  function closeStatusPicker() {
+    document.getElementById("pp-status-pop")?.remove();
+  }
+
+  // ── Hero Stats: Big Number + Dot Matrix + Sport Bars + TSB ──
+  function renderHeroStats() {
+    const acts = activitiesList();
+    const now = new Date();
+    const fourWeeksAgo = new Date(now.getTime() - 28 * 86400000);
+    const recent = acts.filter((a) => {
+      const d = new Date(a.created_at);
+      return !isNaN(d) && d >= fourWeeksAgo && d <= now;
+    });
+
+    // Big Number
+    const countEl = document.getElementById("pp-hero-count-value");
+    if (countEl) countEl.textContent = String(recent.length);
+
+    // Dot Matrix (4 weeks × 7 days)
+    renderDotMatrix(recent, now);
+
+    // Sport Bars
+    renderSportBars(recent);
+
+    // Form Score (TSB - simple heuristic: load balance)
+    renderFormScore(acts);
+  }
+
+  function renderDotMatrix(activities, now) {
+    const host = document.getElementById("pp-dot-matrix");
+    if (!host) return;
+    host.innerHTML = "";
+    // Build 4×7 grid. Row 0 = earliest week, Row 3 = current week. Col 0 = Monday.
+    const startOfWeek = (d) => {
+      const nd = new Date(d); nd.setHours(0, 0, 0, 0);
+      const day = (nd.getDay() + 6) % 7; // Mon=0
+      nd.setDate(nd.getDate() - day);
+      return nd;
+    };
+    const thisMonday = startOfWeek(now);
+    const firstMonday = new Date(thisMonday.getTime() - 3 * 7 * 86400000);
+
+    // Map activities by YYYY-MM-DD
+    const byDay = new Map();
+    for (const a of activities) {
+      const d = new Date(a.created_at);
+      if (isNaN(d)) continue;
+      const key = d.toISOString().slice(0, 10);
+      if (!byDay.has(key)) byDay.set(key, []);
+      byDay.get(key).push(a);
+    }
+
+    for (let w = 0; w < 4; w++) {
+      for (let d = 0; d < 7; d++) {
+        const dayDate = new Date(firstMonday.getTime() + (w * 7 + d) * 86400000);
+        const key = dayDate.toISOString().slice(0, 10);
+        const items = byDay.get(key) || [];
+        const totalSec = items.reduce((s, a) => s + (a.moving_time_sec || 0), 0);
+        // Dominant sport
+        const tally = new Map();
+        for (const a of items) {
+          const s = sportOf(a);
+          tally.set(s, (tally.get(s) || 0) + (a.moving_time_sec || 1));
+        }
+        let dominantSport = "other";
+        let max = 0;
+        for (const [s, v] of tally) if (v > max) { max = v; dominantSport = s; }
+        // Size: 4-14px
+        const minutes = totalSec / 60;
+        const size = items.length
+          ? Math.max(5, Math.min(14, 5 + Math.sqrt(minutes) * 0.9))
+          : 3;
+        const isToday = dayDate.toDateString() === new Date().toDateString();
+        const color = items.length ? SPORT_META[dominantSport].color : "rgba(255,255,255,0.08)";
+        const dot = document.createElement("div");
+        dot.className = "pp-dot" + (isToday ? " is-today" : "") + (items.length ? " is-active" : "");
+        dot.style.setProperty("--dot-size", `${size.toFixed(1)}px`);
+        dot.style.setProperty("--dot-color", color);
+        if (items.length) {
+          dot.title = `${dayDate.toLocaleDateString("de-DE", { weekday: "short", day: "2-digit", month: "2-digit" })} · ${items.length} Aktivität${items.length !== 1 ? "en" : ""} · ${Math.round(minutes)}min`;
+        }
+        host.appendChild(dot);
+      }
+    }
+  }
+
+  function renderSportBars(activities) {
+    const host = document.getElementById("pp-sport-bars");
+    if (!host) return;
+    host.innerHTML = "";
+    const totals = new Map();
+    let grandTotal = 0;
+    for (const a of activities) {
+      const s = sportOf(a);
+      const sec = a.moving_time_sec || 0;
+      totals.set(s, (totals.get(s) || 0) + sec);
+      grandTotal += sec;
+    }
+    // Order: run, bike, swim, strength, other
+    const order = ["run", "bike", "swim", "strength", "other"];
+    const maxTotal = Math.max(...order.map((s) => totals.get(s) || 0), 1);
+    for (const s of order) {
+      const sec = totals.get(s) || 0;
+      if (sec === 0 && s !== "run") continue;
+      const meta = SPORT_META[s];
+      const pct = (sec / maxTotal) * 100;
+      const hours = Math.floor(sec / 3600);
+      const minutes = Math.round((sec % 3600) / 60);
+      const label = hours > 0 ? `${hours}h ${String(minutes).padStart(2, "0")}min` : `${minutes}min`;
+      const row = document.createElement("div");
+      row.className = "pp-sport-row";
+      row.innerHTML = `
+        <span class="pp-sport-icon">${sportSvg(s)}</span>
+        <span class="pp-sport-bar-track"><span class="pp-sport-bar-fill" style="width:${pct.toFixed(1)}%; background:${meta.color};"></span></span>
+        <span class="pp-sport-time">${escapeHtml(label)}</span>
+      `;
+      host.appendChild(row);
+    }
+  }
+
+  function sportSvg(sport) {
+    // Inline SVG icons, no emojis
+    switch (sport) {
+      case "run": return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4" r="2"/><path d="M14 6.5l-3 3-2 5 3 2 2 5"/><path d="M7 10.5l2-2 3 1 2-2"/></svg>`;
+      case "bike": return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M15 6h3l2 5-3.5 6.5M6 17.5l4-8 3 3 3-4.5"/></svg>`;
+      case "swim": return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 17c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2"/><path d="M2 12c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2"/><circle cx="17" cy="6" r="2"/></svg>`;
+      case "strength": return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5v14M18 5v14M3 10v4M21 10v4M6 12h12"/></svg>`;
+      default: return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>`;
+    }
+  }
+
+  function renderFormScore(activities) {
+    const valEl = document.getElementById("pp-form-value");
+    const trendEl = document.getElementById("pp-form-trend");
+    if (!valEl) return;
+    // Simple heuristic: CTL (42d avg load) - ATL (7d avg load) = TSB
+    const now = new Date();
+    const load = (a) => {
+      const sec = a.moving_time_sec || 0;
+      const km = a.distance_km || 0;
+      const hr = a.avg_heartrate || 0;
+      // Rough load score: ~1 point per 1min at moderate effort, scaled by HR if available
+      const base = sec / 60;
+      const hrMult = hr ? Math.max(0.7, Math.min(1.5, hr / 140)) : 1;
+      return base * hrMult * 0.7;
+    };
+    const daysBack = (a) => {
+      const d = new Date(a.created_at);
+      return isNaN(d) ? 999 : (now - d) / 86400000;
+    };
+    let ctl = 0, atl = 0;
+    for (const a of activities) {
+      const d = daysBack(a);
+      const L = load(a);
+      if (d <= 42) ctl += L * (1 - d / 42);
+      if (d <= 7) atl += L * (1 - d / 7);
+    }
+    ctl = ctl / 42;
+    atl = atl / 7;
+    const tsb = Math.round(ctl - atl);
+    const sign = tsb > 0 ? "+" : "";
+    valEl.textContent = `${sign}${tsb}`;
+    if (trendEl) {
+      if (tsb >= 10) trendEl.innerHTML = `<span class="pp-trend-up">ready</span>`;
+      else if (tsb >= -5) trendEl.innerHTML = `<span class="pp-trend-neutral">stable</span>`;
+      else trendEl.innerHTML = `<span class="pp-trend-down">tired</span>`;
+    }
+  }
+
+  // ── PR Vault ──
+  function renderPRVault() {
+    const host = document.getElementById("pp-pr-grid");
+    if (!host) return;
+    host.innerHTML = "";
+    const acts = activitiesList().filter((a) => sportOf(a) === "run" && a.moving_time_sec > 0 && a.distance_km > 0);
+    for (const dist of STANDARD_DISTANCES) {
+      const candidates = acts.filter((a) => Math.abs(a.distance_km - dist.km) <= dist.tol);
+      // Best = min moving_time_sec
+      let best = null;
+      for (const a of candidates) {
+        if (!best || a.moving_time_sec < best.moving_time_sec) best = a;
+      }
+      const card = document.createElement("div");
+      card.className = "pp-pr-card" + (best ? "" : " pp-pr-empty");
+      if (!best) {
+        card.innerHTML = `
+          <div class="pp-pr-label">${dist.label}</div>
+          <div class="pp-pr-time">—</div>
+          <div class="pp-pr-pace"></div>
+          <div class="pp-pr-ctx">noch kein PR</div>
+        `;
+        host.appendChild(card);
+        continue;
+      }
+      const paceSec = best.moving_time_sec / best.distance_km;
+      const paceMin = Math.floor(paceSec / 60);
+      const paceS = Math.round(paceSec % 60);
+      const h = Math.floor(best.moving_time_sec / 3600);
+      const m = Math.floor((best.moving_time_sec % 3600) / 60);
+      const s = best.moving_time_sec % 60;
+      const timeStr = h > 0 ? `${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}` : `${m}:${String(s).padStart(2,"0")}`;
+      const paceStr = `${paceMin}:${String(paceS).padStart(2,"0")}/km`;
+      const bestDate = new Date(best.created_at);
+      const weeksAgo = (Date.now() - bestDate.getTime()) / (1000 * 60 * 60 * 24 * 7);
+      let ctx = "";
+      if (weeksAgo <= 12) ctx = `vor ${Math.floor(weeksAgo)}W`;
+      else ctx = bestDate.toLocaleDateString("de-DE", { month: "short", year: "2-digit" });
+      const freshBadge = weeksAgo <= 12 ? `<span class="pp-pr-fresh">NEU</span>` : "";
+      card.innerHTML = `
+        ${freshBadge}
+        <div class="pp-pr-label">${dist.label}</div>
+        <div class="pp-pr-time">${escapeHtml(timeStr)}</div>
+        <div class="pp-pr-pace">${escapeHtml(paceStr)}</div>
+        <div class="pp-pr-ctx">${escapeHtml(ctx)}</div>
+      `;
+      host.appendChild(card);
+    }
+  }
+
+  // ── Totals Ribbon ──
+  function renderTotals() {
+    const host = document.getElementById("pp-totals-grid");
+    if (!host) return;
+    const acts = activitiesList();
+    const totalKm = acts.reduce((s, a) => s + (a.distance_km || 0), 0);
+    const totalSec = acts.reduce((s, a) => s + (a.moving_time_sec || 0), 0);
+    const totalHours = totalSec / 3600;
+    const count = acts.length;
+    const items = [
+      { value: totalKm.toFixed(0), label: "Kilometer", unit: "km" },
+      { value: totalHours.toFixed(0), label: "Stunden", unit: "h" },
+      { value: String(count), label: "Aktivitäten", unit: "" },
+    ];
+    host.innerHTML = items.map((it) => `
+      <div class="pp-total-cell">
+        <div class="pp-total-value">${escapeHtml(it.value)}<span class="pp-total-unit">${escapeHtml(it.unit)}</span></div>
+        <div class="pp-total-label">${escapeHtml(it.label)}</div>
+      </div>
+    `).join("");
+  }
+
+  // ── Photo Wall ──
+  function renderPhotoWall() {
+    const host = document.getElementById("pp-photo-grid");
+    const empty = document.getElementById("pp-photo-empty");
+    const countEl = document.getElementById("pp-photo-count");
+    if (!host) return;
+    const acts = activitiesList().filter((a) => a.image_url);
+    if (countEl) countEl.textContent = String(acts.length);
+    // Remove existing photo tiles, keep empty state
+    [...host.querySelectorAll(".pp-photo-tile")].forEach((n) => n.remove());
+    if (!acts.length) { if (empty) empty.hidden = false; return; }
+    if (empty) empty.hidden = true;
+    // Show up to 9
+    const tiles = acts.slice(0, 9);
+    // Varied row spans for masonry effect
+    const spans = [2, 1, 1, 1, 2, 1, 1, 1, 2];
+    tiles.forEach((a, i) => {
+      const tile = document.createElement("div");
+      tile.className = "pp-photo-tile";
+      tile.style.gridRow = `span ${spans[i % spans.length]}`;
+      tile.style.backgroundImage = `url("${a.image_url.replace(/"/g, '%22')}")`;
+      tile.dataset.activityId = a.id;
+      const meta = [];
+      if (a.distance_km) meta.push(`${a.distance_km.toFixed(1)} km`);
+      const d = new Date(a.created_at);
+      if (!isNaN(d)) meta.push(d.toLocaleDateString("de-DE", { day: "2-digit", month: "short" }));
+      tile.innerHTML = `<div class="pp-photo-cap">${escapeHtml(meta.join(" · "))}</div>`;
+      tile.addEventListener("click", () => {
+        if (typeof openActivityDetail === "function") openActivityDetail(a.id);
+      });
+      host.appendChild(tile);
+    });
+  }
+
+  // ── Trophy Case relocation ──
+  function relocateTrophyCase() {
+    const host = document.getElementById("pp-trophy-host");
+    const trophy = document.getElementById("profile-card-medals");
+    if (!host || !trophy) return;
+    if (trophy.parentElement !== host) {
+      host.appendChild(trophy);
+      trophy.classList.add("pp-trophy-embedded");
+    }
+  }
+
+  // ── Main render ──
+  function render() {
+    const acc = account();
+    const section = document.getElementById("public-profile-section");
+    if (!section) return;
+    if (!acc) {
+      section.hidden = true;
+      return;
+    }
+    relocateTrophyCase();
+    renderBanner();
+    renderIdentity();
+    if (window.MainEvents?.render) { try { window.MainEvents.render(); } catch (e) { console.warn("[MainEvents] render:", e); } }
+    renderHeroStats();
+    renderPRVault();
+    renderTotals();
+    renderPhotoWall();
+  }
+
+  // ── Event binding ──
+  function bindEvents() {
+    document.getElementById("pp-status-btn")?.addEventListener("click", (e) => { e.stopPropagation(); openStatusPicker(); });
+    document.getElementById("pp-status-dot")?.addEventListener("click", (e) => { e.stopPropagation(); openStatusPicker(); });
+    document.getElementById("pp-banner-edit")?.addEventListener("click", () => {
+      alert("Banner-Edit: kommt in Kürze (Auswahl der Foto-Aktivitäten)");
+    });
+  }
+
+  // ── Public API ──
+  window.PublicProfile = {
+    render,
+    renderIdentity,
+    renderBanner,
+    renderHeroStats,
+    renderPRVault,
+    renderTotals,
+    renderPhotoWall,
+  };
+
+  function init() {
+    bindEvents();
+    relocateTrophyCase();
+    // Render after slight delay so accounts/activities are loaded
+    if (account()) {
+      setTimeout(render, 200);
+    }
+    console.log("[PublicProfile] Public profile module loaded");
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();
+
+// ============================================================
+// MAIN EVENTS (Target Races) — goal races countdown
+// ============================================================
+(function () {
+  "use strict";
+
+  const account = () => (typeof currentAccount !== "undefined" ? currentAccount : window.currentAccount) || null;
+  const $ = (id) => document.getElementById(id);
+
+  let targetRaces = [];
+  let catalogCache = null;
+  let editingId = null;
+  let suggestItems = [];
+  let suggestFocus = -1;
+
+  // ── Utilities ──
+  const SECONDS_PER_DAY = 86400;
+
+  function daysUntil(dateStr) {
+    if (!dateStr) return null;
+    const d = new Date(dateStr + "T00:00:00");
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    return Math.round((d - now) / (1000 * SECONDS_PER_DAY));
+  }
+
+  function formatDateDE(dateStr) {
+    if (!dateStr) return "";
+    const d = new Date(dateStr + "T00:00:00");
+    return d.toLocaleDateString("de-DE", { day: "2-digit", month: "short", year: "numeric" });
+  }
+
+  function parseGoalTime(str) {
+    if (!str) return null;
+    const parts = str.split(":").map((p) => parseInt(p.trim(), 10));
+    if (parts.some(isNaN)) return null;
+    if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+    if (parts.length === 2) return parts[0] * 60 + parts[1];
+    if (parts.length === 1) return parts[0];
+    return null;
+  }
+
+  function formatGoalTime(sec) {
+    if (!sec) return "";
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+    if (h > 0) return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+    return `${m}:${String(s).padStart(2, "0")}`;
+  }
+
+  function daysBucket(days) {
+    if (days == null) return null;
+    if (days < 0) return "past";
+    if (days === 0) return "today";
+    if (days <= 7) return "week";
+    if (days <= 28) return "month";
+    return "future";
+  }
+
+  function iconSVG(path, size = 13) {
+    return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;
+  }
+
+  const ICONS = {
+    pin: iconSVG('<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>'),
+    calendar: iconSVG('<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>'),
+    flag: iconSVG('<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/>'),
+    trophy: iconSVG('<path d="M6 9H4.5a2.5 2.5 0 010-5H6"/><path d="M18 9h1.5a2.5 2.5 0 000-5H18"/><path d="M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22M18 2H6v7a6 6 0 0012 0V2z"/>'),
+  };
+
+  // ── Catalog fetch (cached) ──
+  async function getCatalog() {
+    if (catalogCache) return catalogCache;
+    try {
+      catalogCache = await window.sbDb.getRaceCatalog();
+    } catch (e) {
+      console.warn("[MainEvents] catalog fetch failed:", e);
+      catalogCache = [];
+    }
+    return catalogCache;
+  }
+
+  // ── Loader ──
+  async function loadRaces() {
+    const acc = account();
+    if (!acc) { targetRaces = []; return; }
+    try {
+      targetRaces = await window.sbDb.getTargetRaces(acc.id);
+    } catch (e) {
+      console.warn("[MainEvents] load failed:", e);
+      targetRaces = [];
+    }
+  }
+
+  // ── Renderer ──
+  async function render() {
+    const section = $("pp-main-events");
+    if (!section) return;
+    const acc = account();
+    if (!acc) { section.hidden = true; return; }
+
+    await loadRaces();
+    section.hidden = false;
+
+    // Sort: upcoming first by date, priority as tiebreak
+    const sorted = [...targetRaces].sort((a, b) => {
+      const da = daysUntil(a.race_date);
+      const db = daysUntil(b.race_date);
+      if (da !== db) return da - db;
+      const order = { A: 0, B: 1, C: 2 };
+      return (order[a.priority] || 9) - (order[b.priority] || 9);
+    });
+
+    // Filter out races more than 1 day past
+    const active = sorted.filter((r) => {
+      const d = daysUntil(r.race_date);
+      return d == null || d >= -1;
+    });
+
+    const sub = $("pp-main-sub");
+    if (sub) sub.textContent = active.length ? `${active.length} geplant` : "keine Events";
+
+    const heroHost = $("pp-main-hero");
+    const gridHost = $("pp-main-grid");
+    if (!heroHost || !gridHost) return;
+
+    if (!active.length) {
+      heroHost.innerHTML = "";
+      gridHost.innerHTML = `
+        <div class="pp-main-empty">
+          Noch keine Main Events definiert.<br/>
+          Welches Rennen peakst du als Nächstes?
+          <div><button type="button" class="pp-main-empty-cta" id="pp-main-empty-add">+ Erstes Event hinzufügen</button></div>
+        </div>`;
+      $("pp-main-empty-add")?.addEventListener("click", () => openModal());
+      return;
+    }
+
+    // Hero = highest-priority upcoming A-race, else first in list
+    const heroRace = active.find((r) => r.priority === "A") || active[0];
+    const rest = active.filter((r) => r.id !== heroRace.id);
+
+    heroHost.innerHTML = renderHero(heroRace);
+    const heroDays = daysUntil(heroRace.race_date);
+    const heroBucket = daysBucket(heroDays);
+    if (heroBucket) heroHost.dataset.daysOut = heroBucket; else delete heroHost.dataset.daysOut;
+    heroHost.querySelector(".pp-main-hero-edit")?.addEventListener("click", () => openModal(heroRace.id));
+
+    gridHost.innerHTML = rest.map(renderCard).join("");
+    gridHost.querySelectorAll(".pp-main-card").forEach((el) => {
+      el.addEventListener("click", () => openModal(el.dataset.raceId));
+    });
+  }
+
+  function renderHero(race) {
+    const days = daysUntil(race.race_date);
+    const location = [race.event_city, race.event_country].filter(Boolean).join(", ");
+    const distance = race.distance_label || race.catalog?.distance_label || "";
+    const statusLabels = {
+      planned: "Geplant", registered: "Angemeldet", confirmed: "Slot bestätigt",
+      completed: "Abgeschlossen", dns: "DNS", dnf: "DNF", cancelled: "Abgesagt",
+    };
+    const daysLabel = days === 0 ? "HEUTE" : days === 1 ? "MORGEN" : days < 0 ? "GESTERN" : "TAGE";
+    const daysVal = days === 0 || days === 1 || days === -1 ? "" : Math.abs(days);
+    const priorityTag = race.priority === "A" ? "A · PEAK-RACE" : race.priority === "B" ? "B · TUNE-UP" : "C · FUN";
+    return `
+      <div class="pp-main-hero-days">
+        ${daysVal !== "" ? `<span>${daysVal}</span>` : ""}
+        <span class="pp-main-hero-days-unit">${daysLabel}</span>
+      </div>
+      <div class="pp-main-hero-info">
+        <div class="pp-main-hero-flag">${priorityTag}</div>
+        <h4 class="pp-main-hero-title">${escapeHTML(race.event_name)}</h4>
+        <div class="pp-main-hero-meta">
+          <span>${ICONS.calendar}${formatDateDE(race.race_date)}</span>
+          ${location ? `<span>${ICONS.pin}${escapeHTML(location)}</span>` : ""}
+          ${distance ? `<span>${ICONS.flag}${escapeHTML(distance)}</span>` : ""}
+          ${race.goal_time_sec ? `<span>${ICONS.trophy}Ziel ${formatGoalTime(race.goal_time_sec)}</span>` : ""}
+        </div>
+      </div>
+      <div class="pp-main-hero-actions">
+        <span class="pp-main-status-pill" data-status="${race.status}">${statusLabels[race.status] || race.status}</span>
+        <button type="button" class="pp-main-hero-edit">Bearbeiten</button>
+      </div>
+    `;
+  }
+
+  function renderCard(race) {
+    const days = daysUntil(race.race_date);
+    const bucket = daysBucket(days);
+    const daysOut = bucket ? `data-days-out="${bucket}"` : "";
+    const daysLabel = days === 0 ? "heute" : days === 1 ? "morgen" : days < 0 ? `vor ${Math.abs(days)}T` : "Tage";
+    const daysVal = days === 0 || days === 1 ? "" : Math.abs(days);
+    const location = [race.event_city, race.event_country].filter(Boolean).join(", ");
+    return `
+      <div class="pp-main-card" data-race-id="${race.id}" data-priority="${race.priority}" ${daysOut}>
+        <div class="pp-main-card-days">${daysVal}<small>${daysLabel}</small></div>
+        <div class="pp-main-card-title">${escapeHTML(race.event_name)}</div>
+        <div class="pp-main-card-meta">${formatDateDE(race.race_date)}${location ? ` · ${escapeHTML(location)}` : ""}</div>
+      </div>
+    `;
+  }
+
+  function escapeHTML(s) {
+    if (s == null) return "";
+    return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+
+  // ── Modal: open / close / save / delete ──
+  function openModal(raceId = null) {
+    const backdrop = $("target-modal-backdrop");
+    if (!backdrop) return;
+    editingId = raceId;
+    const title = $("target-modal-title");
+    const deleteBtn = $("target-delete-btn");
+
+    if (raceId) {
+      const race = targetRaces.find((r) => r.id === raceId);
+      if (race) {
+        if (title) title.textContent = "Main Event bearbeiten";
+        $("target-race-id").value = race.id;
+        $("target-event-search").value = race.event_name || "";
+        $("target-event-city").value = race.event_city || "";
+        $("target-event-country").value = race.event_country || "";
+        $("target-race-date").value = race.race_date || "";
+        $("target-priority").value = race.priority || "A";
+        $("target-status").value = race.status || "planned";
+        $("target-goal-time").value = race.goal_time_sec ? formatGoalTime(race.goal_time_sec) : "";
+        $("target-notes").value = race.notes || "";
+        $("target-race-catalog-id").value = race.race_catalog_id || "";
+        $("target-series").value = race.series || "";
+        $("target-distance-label").value = race.distance_label || "";
+        if (deleteBtn) deleteBtn.hidden = false;
+      }
+    } else {
+      if (title) title.textContent = "Main Event hinzufügen";
+      $("target-modal-form").reset();
+      $("target-race-id").value = "";
+      $("target-race-catalog-id").value = "";
+      $("target-series").value = "";
+      $("target-distance-label").value = "";
+      if (deleteBtn) deleteBtn.hidden = true;
+    }
+    backdrop.hidden = false;
+    setTimeout(() => $("target-event-search")?.focus(), 60);
+  }
+
+  function closeModal() {
+    const backdrop = $("target-modal-backdrop");
+    if (backdrop) backdrop.hidden = true;
+    editingId = null;
+    hideSuggest();
+  }
+
+  async function saveRace(e) {
+    e.preventDefault();
+    const acc = account();
+    if (!acc) { alert("Bitte zuerst einloggen."); return; }
+
+    const id = $("target-race-id").value || null;
+    const eventName = $("target-event-search").value.trim();
+    const raceDate = $("target-race-date").value;
+    if (!eventName || !raceDate) { alert("Bitte Event und Datum angeben."); return; }
+
+    const payload = {
+      event_name: eventName,
+      event_city: $("target-event-city").value.trim() || null,
+      event_country: $("target-event-country").value.trim() || null,
+      race_date: raceDate,
+      priority: $("target-priority").value,
+      status: $("target-status").value,
+      goal_time_sec: parseGoalTime($("target-goal-time").value),
+      notes: $("target-notes").value.trim() || null,
+      race_catalog_id: $("target-race-catalog-id").value || null,
+      series: $("target-series").value || null,
+      distance_label: $("target-distance-label").value || null,
+    };
+
+    try {
+      if (id) {
+        await window.sbDb.updateTargetRace(id, payload);
+      } else {
+        await window.sbDb.addTargetRace(acc.id, payload);
+      }
+      closeModal();
+      await render();
+    } catch (err) {
+      console.error("[MainEvents] save failed:", err);
+      alert("Speichern fehlgeschlagen: " + (err.message || err));
+    }
+  }
+
+  async function deleteRace() {
+    if (!editingId) return;
+    if (!confirm("Diesen Main Event wirklich löschen?")) return;
+    try {
+      await window.sbDb.deleteTargetRace(editingId);
+      closeModal();
+      await render();
+    } catch (err) {
+      console.error("[MainEvents] delete failed:", err);
+      alert("Löschen fehlgeschlagen: " + (err.message || err));
+    }
+  }
+
+  // ── Event autocomplete (catalog) ──
+  async function onSearchInput(e) {
+    const q = e.target.value.trim().toLowerCase();
+    // Clear catalog linkage when user edits freely
+    $("target-race-catalog-id").value = "";
+    $("target-series").value = "";
+    $("target-distance-label").value = "";
+    if (q.length < 2) { hideSuggest(); return; }
+    const catalog = await getCatalog();
+    suggestItems = catalog
+      .filter((c) => {
+        const hay = `${c.event_name} ${c.short_name || ""} ${c.city || ""} ${c.country || ""}`.toLowerCase();
+        return hay.includes(q);
+      })
+      .slice(0, 8);
+    showSuggest();
+  }
+
+  function showSuggest() {
+    const box = $("target-event-suggest");
+    if (!box) return;
+    if (!suggestItems.length) { hideSuggest(); return; }
+    box.innerHTML = suggestItems.map((c, i) => `
+      <div class="target-suggest-item${i === suggestFocus ? " is-focused" : ""}" data-idx="${i}">
+        <span class="target-suggest-name">${escapeHTML(c.event_name)}</span>
+        <span class="target-suggest-meta">${escapeHTML(c.city || "")} · ${escapeHTML(c.distance_label || "")}</span>
+      </div>
+    `).join("");
+    box.hidden = false;
+    box.querySelectorAll(".target-suggest-item").forEach((el) => {
+      el.addEventListener("mousedown", (ev) => {
+        ev.preventDefault();
+        pickSuggest(parseInt(el.dataset.idx, 10));
+      });
+    });
+  }
+
+  function hideSuggest() {
+    const box = $("target-event-suggest");
+    if (box) { box.hidden = true; box.innerHTML = ""; }
+    suggestItems = [];
+    suggestFocus = -1;
+  }
+
+  function pickSuggest(idx) {
+    const c = suggestItems[idx];
+    if (!c) return;
+    $("target-event-search").value = c.event_name;
+    $("target-event-city").value = c.city || "";
+    $("target-event-country").value = c.country || "";
+    $("target-race-catalog-id").value = c.id;
+    $("target-series").value = c.series || "";
+    $("target-distance-label").value = c.distance_label || "";
+    hideSuggest();
+    $("target-race-date")?.focus();
+  }
+
+  function onSearchKey(e) {
+    if (!suggestItems.length) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      suggestFocus = Math.min(suggestFocus + 1, suggestItems.length - 1);
+      showSuggest();
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      suggestFocus = Math.max(suggestFocus - 1, 0);
+      showSuggest();
+    } else if (e.key === "Enter" && suggestFocus >= 0) {
+      e.preventDefault();
+      pickSuggest(suggestFocus);
+    } else if (e.key === "Escape") {
+      hideSuggest();
+    }
+  }
+
+  // ── Event binding ──
+  function bindEvents() {
+    $("pp-main-add")?.addEventListener("click", () => openModal());
+    $("target-modal-close")?.addEventListener("click", closeModal);
+    $("target-cancel-btn")?.addEventListener("click", closeModal);
+    $("target-delete-btn")?.addEventListener("click", deleteRace);
+    $("target-modal-form")?.addEventListener("submit", saveRace);
+    $("target-modal-backdrop")?.addEventListener("click", (e) => {
+      if (e.target === e.currentTarget) closeModal();
+    });
+    $("target-event-search")?.addEventListener("input", onSearchInput);
+    $("target-event-search")?.addEventListener("keydown", onSearchKey);
+    $("target-event-search")?.addEventListener("blur", () => setTimeout(hideSuggest, 150));
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !$("target-modal-backdrop")?.hidden) closeModal();
+    });
+  }
+
+  // ── Plan → Main Events Sync ──
+  // Distance preset → human label
+  const DISTANCE_LABEL_MAP = {
+    "5k": "5 km", "10k": "10 km", "half_marathon": "Halbmarathon", "marathon": "Marathon",
+    "50k": "50 km Ultra", "100k": "100 km Ultra", "100mi": "100 Miles", "custom": "Custom",
+    "sprint_tri": "Sprint Triathlon", "olympic_tri": "Olympic Triathlon",
+    "70_3": "Ironman 70.3", "ironman": "Ironman",
+    "hyrox": "HYROX", "crit": "Criterium", "gran_fondo": "Gran Fondo", "time_trial": "TT",
+    "swim_1500": "1500m Swim", "swim_5k": "5 km Swim",
+  };
+  function distanceToLabel(distance) {
+    if (!distance) return null;
+    return DISTANCE_LABEL_MAP[distance] || distance.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+  }
+  function goalTimeStrToSec(str) {
+    if (!str) return null;
+    const parts = String(str).split(":").map((p) => parseInt(p.trim(), 10));
+    if (parts.some(isNaN)) return null;
+    if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+    if (parts.length === 2) return parts[0] * 60 + parts[1];
+    return parts[0] || null;
+  }
+  function toDateStr(d) {
+    if (!d) return null;
+    const dt = d instanceof Date ? d : new Date(d);
+    if (isNaN(dt.getTime())) return null;
+    return dt.toISOString().slice(0, 10);
+  }
+
+  /**
+   * Sync a plan's race calendar into user_target_races.
+   * Takes A + B priority events (skips C and training blocks).
+   * Called from savePlanToLibrary after plan is persisted to Supabase.
+   */
+  async function syncFromPlan(userId, planId, raceEvents) {
+    if (!userId || !planId || !Array.isArray(raceEvents)) return;
+    const mapped = raceEvents
+      .filter((e) => e && (e.itemKind || "event") === "event")
+      .filter((e) => ["A", "B"].includes(String(e.priority || "").toUpperCase()))
+      .map((e) => {
+        const distLabel = distanceToLabel(e.distance);
+        const name = (e.title && e.title.trim())
+          || (distLabel ? `${distLabel}` : "Wettkampf");
+        return {
+          event_name: name,
+          race_date: toDateStr(e.date),
+          priority: String(e.priority || "A").toUpperCase(),
+          status: "planned",
+          goal_time_sec: goalTimeStrToSec(e.goalTime),
+          distance_label: distLabel,
+          series: e.discipline || null,
+        };
+      })
+      .filter((r) => r.race_date);
+    try {
+      await window.sbDb.syncTargetRacesFromPlan(userId, planId, mapped);
+      // Refresh profile if visible
+      if (window.MainEvents?.render) window.MainEvents.render();
+    } catch (err) {
+      console.warn("[MainEvents] syncFromPlan failed:", err);
+    }
+  }
+
+  // ── Public API ──
+  window.MainEvents = {
+    render,
+    loadRaces,
+    openModal,
+    closeModal,
+    syncFromPlan,
+    getRaces: () => [...targetRaces],
+  };
+
+  function init() {
+    bindEvents();
+    console.log("[MainEvents] Main Events module loaded");
   }
 
   if (document.readyState === "loading") {

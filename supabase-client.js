@@ -422,6 +422,99 @@ const sbDb = {
     if (error) { console.warn("[sbDb.replaceUserBadges]", error); return []; }
     return data || [];
   },
+
+  // ── Main Events (Target Races) ──
+  /** Fetch a user's target races (upcoming first by default). */
+  async getTargetRaces(userId, { includeCompleted = false } = {}) {
+    let q = sb
+      .from("user_target_races")
+      .select(`
+        id, user_id, race_catalog_id, event_name, event_city, event_country,
+        series, distance_label, race_date, priority, status,
+        goal_time_sec, goal_note, training_plan_id, medal_id, notes, visibility,
+        created_at, updated_at,
+        catalog:race_catalog_id(primary_color, secondary_color, logo_emoji, short_name, iconic_level, country_code, distance_label)
+      `)
+      .eq("user_id", userId)
+      .order("race_date", { ascending: true });
+    if (!includeCompleted) {
+      q = q.not("status", "in", "(completed,dns,dnf,cancelled)");
+    }
+    const { data, error } = await q;
+    if (error) { console.warn("[sbDb.getTargetRaces]", error); return []; }
+    return data || [];
+  },
+
+  /** Insert a new target race. */
+  async addTargetRace(userId, race) {
+    const row = {
+      user_id: userId,
+      race_catalog_id: race.race_catalog_id || null,
+      event_name: race.event_name,
+      event_city: race.event_city || null,
+      event_country: race.event_country || null,
+      series: race.series || null,
+      distance_label: race.distance_label || null,
+      race_date: race.race_date,
+      priority: race.priority || "A",
+      status: race.status || "planned",
+      goal_time_sec: race.goal_time_sec || null,
+      goal_note: race.goal_note || null,
+      training_plan_id: race.training_plan_id || null,
+      notes: race.notes || null,
+      visibility: race.visibility || "public",
+    };
+    const { data, error } = await sb.from("user_target_races").insert(row).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async updateTargetRace(raceId, patch) {
+    const { data, error } = await sb.from("user_target_races").update(patch).eq("id", raceId).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async deleteTargetRace(raceId) {
+    const { error } = await sb.from("user_target_races").delete().eq("id", raceId);
+    if (error) throw error;
+    return true;
+  },
+
+  /**
+   * Replace all plan-linked target races for a given training plan.
+   * Deletes existing rows with training_plan_id = planId, then inserts fresh rows.
+   * Does NOT touch user-added target races (training_plan_id IS NULL).
+   */
+  async syncTargetRacesFromPlan(userId, planId, races) {
+    if (!userId || !planId) return [];
+    // Wipe previously-synced races for this plan
+    const { error: delErr } = await sb.from("user_target_races")
+      .delete()
+      .eq("user_id", userId)
+      .eq("training_plan_id", planId);
+    if (delErr) { console.warn("[sbDb.syncTargetRacesFromPlan] delete:", delErr); }
+    if (!Array.isArray(races) || !races.length) return [];
+    const rows = races.map((r) => ({
+      user_id: userId,
+      training_plan_id: planId,
+      race_catalog_id: r.race_catalog_id || null,
+      event_name: r.event_name,
+      event_city: r.event_city || null,
+      event_country: r.event_country || null,
+      series: r.series || null,
+      distance_label: r.distance_label || null,
+      race_date: r.race_date,
+      priority: r.priority || "A",
+      status: r.status || "planned",
+      goal_time_sec: r.goal_time_sec || null,
+      notes: r.notes || null,
+      visibility: r.visibility || "public",
+    }));
+    const { data, error } = await sb.from("user_target_races").insert(rows).select();
+    if (error) { console.warn("[sbDb.syncTargetRacesFromPlan] insert:", error); return []; }
+    return data || [];
+  },
 };
 
 // Expose globally for app.js

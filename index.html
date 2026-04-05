@@ -434,6 +434,100 @@
           </div>
         </section>
 
+        <!-- ═══ PUBLIC PROFILE · shown when activeAppView === "home" ═══ -->
+        <section class="surface section-public-profile stage-reveal" id="public-profile-section" hidden>
+          <!-- Banner + Avatar -->
+          <div class="pp-banner" id="pp-banner">
+            <div class="pp-banner-strip" id="pp-banner-strip"></div>
+            <div class="pp-banner-overlay"></div>
+            <button type="button" class="pp-banner-edit" id="pp-banner-edit" title="Banner bearbeiten" hidden aria-label="Banner bearbeiten">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+            </button>
+          </div>
+          <div class="pp-identity">
+            <div class="pp-avatar-wrap">
+              <div class="pp-avatar" id="pp-avatar"><span id="pp-avatar-initial">?</span></div>
+              <span class="pp-status-dot" id="pp-status-dot" data-status="base" title="Base Building"></span>
+            </div>
+            <div class="pp-identity-text">
+              <h2 class="pp-name" id="pp-name">—</h2>
+              <p class="pp-meta" id="pp-meta"></p>
+            </div>
+            <div class="pp-identity-actions" id="pp-identity-actions">
+              <button type="button" class="pp-status-btn" id="pp-status-btn" title="Status ändern">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+                <span>Status</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Main Events (goal races countdown) -->
+          <section class="pp-main-events" id="pp-main-events" hidden>
+            <div class="pp-section-head">
+              <h3 class="pp-section-title">Main Events</h3>
+              <div class="pp-main-head-actions">
+                <span class="pp-section-sub" id="pp-main-sub">—</span>
+                <button type="button" class="pp-main-add" id="pp-main-add" title="Wettkampf hinzufügen" aria-label="Wettkampf hinzufügen">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                  <span>Event</span>
+                </button>
+              </div>
+            </div>
+            <div class="pp-main-hero" id="pp-main-hero"></div>
+            <div class="pp-main-grid" id="pp-main-grid"></div>
+          </section>
+
+          <!-- Hero Stats Row -->
+          <div class="pp-hero-stats">
+            <div class="pp-hero-cell pp-hero-count">
+              <div class="pp-hero-big" id="pp-hero-count-value">0</div>
+              <div class="pp-hero-sub" id="pp-hero-count-label">letzte 4 Wochen · Aktivitäten</div>
+            </div>
+            <div class="pp-hero-cell pp-hero-dots">
+              <div class="pp-dot-header">
+                <span>M</span><span>D</span><span>M</span><span>D</span><span>F</span><span>S</span><span>S</span>
+              </div>
+              <div class="pp-dot-matrix" id="pp-dot-matrix"></div>
+            </div>
+            <div class="pp-hero-cell pp-hero-bars">
+              <div class="pp-sport-bars" id="pp-sport-bars"></div>
+            </div>
+            <div class="pp-hero-cell pp-hero-form" id="pp-hero-form">
+              <div class="pp-hero-big pp-form-value" id="pp-form-value">—</div>
+              <div class="pp-hero-sub">TSB</div>
+              <div class="pp-form-trend" id="pp-form-trend"></div>
+            </div>
+          </div>
+
+          <!-- Trophy Case will be moved here by JS -->
+          <div id="pp-trophy-host"></div>
+
+          <!-- PR Vault -->
+          <section class="pp-section pp-pr-vault">
+            <div class="pp-section-head">
+              <h3 class="pp-section-title">Bestzeiten</h3>
+              <span class="pp-section-sub" id="pp-pr-sub">Standard-Distanzen</span>
+            </div>
+            <div class="pp-pr-grid" id="pp-pr-grid"></div>
+          </section>
+
+          <!-- Totals Ribbon -->
+          <section class="pp-section pp-totals">
+            <div class="pp-totals-grid" id="pp-totals-grid"></div>
+          </section>
+
+          <!-- Photo Wall -->
+          <section class="pp-section pp-photo-wall">
+            <div class="pp-section-head">
+              <h3 class="pp-section-title">Fotos</h3>
+              <span class="pp-section-sub" id="pp-photo-count">0</span>
+            </div>
+            <div class="pp-photo-grid" id="pp-photo-grid">
+              <div class="pp-photo-empty" id="pp-photo-empty">Keine Fotos in deinen Aktivitäten.</div>
+            </div>
+          </section>
+        </section>
+
         <section class="surface section-home-feed stage-reveal" id="home-feed-section" hidden>
           <div class="surface-head">
             <div>
@@ -2627,6 +2721,85 @@
           <button type="button" class="ghost" id="medal-detect-reject">Nein, falsch</button>
           <button type="button" class="primary" id="medal-detect-confirm">Bestätigen</button>
         </div>
+      </div>
+    </div>
+
+    <!-- Main Event (Target Race) Modal -->
+    <div class="target-modal-backdrop" id="target-modal-backdrop" hidden>
+      <div class="target-modal" role="dialog" aria-modal="true" aria-labelledby="target-modal-title">
+        <div class="target-modal-header">
+          <h3 id="target-modal-title">Main Event hinzufügen</h3>
+          <button type="button" class="target-modal-close" id="target-modal-close" aria-label="Schließen">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <form class="target-modal-body" id="target-modal-form">
+          <input type="hidden" id="target-race-id" value="" />
+
+          <label class="target-field">
+            <span class="target-label">Event</span>
+            <input type="text" id="target-event-search" placeholder="UTMB, Berlin Marathon, HYROX Köln …" autocomplete="off" />
+            <div class="target-suggest" id="target-event-suggest" hidden></div>
+          </label>
+
+          <input type="hidden" id="target-race-catalog-id" value="" />
+          <input type="hidden" id="target-series" value="" />
+          <input type="hidden" id="target-distance-label" value="" />
+
+          <div class="target-field-row">
+            <label class="target-field">
+              <span class="target-label">Stadt</span>
+              <input type="text" id="target-event-city" placeholder="—" />
+            </label>
+            <label class="target-field">
+              <span class="target-label">Land</span>
+              <input type="text" id="target-event-country" placeholder="—" maxlength="40" />
+            </label>
+          </div>
+
+          <div class="target-field-row">
+            <label class="target-field">
+              <span class="target-label">Datum</span>
+              <input type="date" id="target-race-date" required />
+            </label>
+            <label class="target-field">
+              <span class="target-label">Priorität</span>
+              <select id="target-priority">
+                <option value="A">A · Peak-Race</option>
+                <option value="B">B · Tune-up</option>
+                <option value="C">C · Fun / Training</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="target-field-row">
+            <label class="target-field">
+              <span class="target-label">Status</span>
+              <select id="target-status">
+                <option value="planned">Geplant</option>
+                <option value="registered">Angemeldet</option>
+                <option value="confirmed">Bestätigt / Slot</option>
+              </select>
+            </label>
+            <label class="target-field">
+              <span class="target-label">Zielzeit (opt.)</span>
+              <input type="text" id="target-goal-time" placeholder="z.B. 3:30:00" pattern="[0-9:]*" />
+            </label>
+          </div>
+
+          <label class="target-field">
+            <span class="target-label">Notizen (opt.)</span>
+            <textarea id="target-notes" rows="2" placeholder="Was ist dein Plan für dieses Rennen?"></textarea>
+          </label>
+
+          <div class="target-modal-footer">
+            <button type="button" class="ghost" id="target-delete-btn" hidden>Löschen</button>
+            <div class="target-modal-footer-right">
+              <button type="button" class="ghost" id="target-cancel-btn">Abbrechen</button>
+              <button type="submit" class="primary" id="target-save-btn">Speichern</button>
+            </div>
+          </div>
+        </form>
       </div>
     </div>
 
