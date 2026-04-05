@@ -19447,7 +19447,15 @@ document.addEventListener("click", (e) => {
 
   async function runScan() {
     const account = (typeof getCurrentAccount === "function") ? getCurrentAccount() : null;
-    const activities = account?.activities || [];
+    if (!account) { alert("Bitte zuerst einloggen."); return; }
+    // Load full history from Supabase for thorough medal detection
+    let activities = account?.activities || [];
+    if (window.sbDb?.getActivities && account.id) {
+      try {
+        const remote = await window.sbDb.getActivities(account.id, 10000);
+        if (remote.length > activities.length) activities = remote;
+      } catch (e) { console.warn("[MedalBoard] Supabase fetch for scan failed:", e); }
+    }
     if (!activities.length) { alert("Keine Aktivitäten zum Scannen gefunden."); return; }
     if (!state.catalog.length) await loadCatalog();
     const candidates = detectAllUnmatched(activities);
@@ -19529,8 +19537,19 @@ document.addEventListener("click", (e) => {
     async scanActivities() { await runScan(); },
     async scanActivitiesQuiet(activities) {
       // Non-intrusive version called after Strava import
+      // Fetch full history from Supabase for thorough detection
       if (!state.catalog.length) await loadCatalog();
-      const list = activities || (typeof getCurrentAccount === "function" ? getCurrentAccount()?.activities : []) || [];
+      let list = activities || [];
+      if (!list.length) {
+        const acc = (typeof getCurrentAccount === "function") ? getCurrentAccount() : null;
+        list = acc?.activities || [];
+        if (window.sbDb?.getActivities && acc?.id) {
+          try {
+            const remote = await window.sbDb.getActivities(acc.id, 10000);
+            if (remote.length > list.length) list = remote;
+          } catch (_) {}
+        }
+      }
       const candidates = detectAllUnmatched(list);
       if (candidates.length) {
         // Show a gentle toast-like notification via existing status system
@@ -19614,10 +19633,19 @@ document.addEventListener("click", (e) => {
     catch { return null; }
   }
 
+  // Cached full activities list from Supabase (fetched once per session)
+  let _ppActivitiesCache = null;
+  let _ppActivitiesCacheUserId = null;
+
   function activitiesList() {
+    // Return cached Supabase list if available
     const acc = account();
+    if (_ppActivitiesCache && _ppActivitiesCacheUserId === acc?.id) return _ppActivitiesCache;
     const list = acc?.activities || [];
-    // Normalize (distanceKm / distance_km)
+    return _normalizeActivities(list);
+  }
+
+  function _normalizeActivities(list) {
     return list.map((a) => ({
       id: a.id,
       title: a.title || "",
@@ -19629,6 +19657,24 @@ document.addEventListener("click", (e) => {
       avg_heartrate: a.avg_heartrate ?? a.avgHeartrate ?? null,
       polyline: a.polyline || null,
     }));
+  }
+
+  /** Fetch full history from Supabase (once) and re-render stats/PRs */
+  async function hydrateFullActivities() {
+    const acc = account();
+    if (!acc?.id || !window.sbDb?.getActivities) return;
+    if (_ppActivitiesCacheUserId === acc.id && _ppActivitiesCache) return;
+    try {
+      const remote = await window.sbDb.getActivities(acc.id, 10000);
+      if (remote.length) {
+        _ppActivitiesCache = _normalizeActivities(remote);
+        _ppActivitiesCacheUserId = acc.id;
+        // Re-render stats with complete data
+        renderHeroStats();
+        renderPRVault();
+        renderTotals();
+      }
+    } catch (e) { console.warn("[PublicProfile] hydrate full activities:", e); }
   }
 
   function escapeHtml(str) {
@@ -20084,6 +20130,8 @@ document.addEventListener("click", (e) => {
     renderPRVault();
     renderTotals();
     renderPhotoWall();
+    // Fetch full history from Supabase in background, then re-render stats
+    hydrateFullActivities();
   }
 
   // ── Event binding ──
