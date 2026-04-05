@@ -1425,43 +1425,91 @@ document.addEventListener("input", (event) => {
   }, 300);
 });
 
-// Home feed athlete search
-document.getElementById("home-athlete-search-form")?.addEventListener("submit", (event) => {
-  event.preventDefault();
-  const query = String(new FormData(event.target).get("query") || "").trim().toLowerCase();
+// Home feed athlete search (Supabase-backed + local fallback)
+let _homeSearchSeq = 0;
+async function runHomeAthleteSearch(query) {
   const resultsEl = document.getElementById("home-athlete-search-results");
   if (!resultsEl) return;
   const account = getCurrentAccount();
   if (!account) return;
-  if (!query) {
+  const q = String(query || "").trim();
+  if (!q) {
     resultsEl.innerHTML = `<div class="empty-copy">Finde andere Athleten und connecte dich.</div>`;
     return;
   }
-  const results = (appStore?.accounts || [])
+  resultsEl.innerHTML = `<div class="empty-copy">Suche …</div>`;
+  const seq = ++_homeSearchSeq;
+
+  // Supabase remote search via profiles_public view
+  const remote = window.sbDb?.searchUsers
+    ? await window.sbDb.searchUsers(q, 12).catch(() => [])
+    : [];
+  if (seq !== _homeSearchSeq) return;
+
+  // Local fallback (offline / pre-Supabase users)
+  const lo = q.toLowerCase();
+  const local = (appStore?.accounts || [])
     .filter((a) => a.email !== account.email)
     .filter((a) => {
       const name = (a.email ? a.email.split("@")[0] : a.displayName || "Athlete").toLowerCase();
       const displayName = (a.displayName || "").toLowerCase();
-      return name.includes(query) || displayName.includes(query) || a.email.toLowerCase().includes(query);
+      return name.includes(lo) || displayName.includes(lo) || a.email.toLowerCase().includes(lo);
     })
-    .slice(0, 12);
-  if (!results.length) {
+    .map((a) => ({ id: a.email, email: a.email, display_name: a.displayName || a.email.split("@")[0], profile_image: a.profileImage || null, _local: true }));
+
+  // De-dup (remote wins) by email, exclude self
+  const seen = new Set();
+  const merged = [];
+  remote.filter((r) => r.email && r.email !== account.email).forEach((r) => {
+    if (seen.has(r.email)) return;
+    seen.add(r.email); merged.push(r);
+  });
+  local.forEach((l) => { if (!seen.has(l.email)) { seen.add(l.email); merged.push(l); } });
+
+  if (!merged.length) {
     resultsEl.innerHTML = `<div class="empty-copy">Keine Athleten gefunden.</div>`;
     return;
   }
-  resultsEl.innerHTML = results.map((a) => {
-    const isConnected = Boolean(account.friends?.includes(a.email));
-    const name = (a.email ? a.email.split("@")[0] : a.displayName || "Athlete");
-    return `<div class="account-search-item"><div class="account-search-row"><div><strong>${escapeHtml(name)}</strong><small>${escapeHtml(a.email)}</small></div><div class="account-search-actions"><button type="button" class="ghost" data-home-connect-email="${escapeHtml(a.email)}" ${isConnected ? "disabled" : ""}>${isConnected ? "Connected" : "Connecten"}</button></div></div></div>`;
+  resultsEl.innerHTML = merged.slice(0, 12).map((u) => {
+    const isConnected = Boolean(account.friends?.includes(u.email));
+    const name = u.display_name || (u.email ? u.email.split("@")[0] : "Athlete");
+    const avatar = u.profile_image
+      ? `<img src="${escapeHtml(u.profile_image)}" alt="" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">`
+      : `<div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;">${escapeHtml((name.charAt(0) || "?").toUpperCase())}</div>`;
+    return `<div class="account-search-item"><div class="account-search-row" style="display:flex;gap:10px;align-items:center;">${avatar}<div style="flex:1;min-width:0;"><strong>${escapeHtml(name)}</strong><small style="display:block;color:#94a3b8;">${escapeHtml(u.email || "")}${u._local ? " · lokal" : ""}</small></div><div class="account-search-actions"><button type="button" class="ghost" data-home-connect-email="${escapeHtml(u.email)}" data-home-connect-id="${escapeHtml(u.id || "")}" ${isConnected ? "disabled" : ""}>${isConnected ? "Verbunden" : "Verbinden"}</button></div></div></div>`;
   }).join("");
+
   resultsEl.querySelectorAll("[data-home-connect-email]").forEach((btn) => {
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", async () => {
       const email = btn.getAttribute("data-home-connect-email");
+      const friendId = btn.getAttribute("data-home-connect-id");
+      // Try remote friend request first
+      if (friendId && !friendId.includes("@") && typeof sendConnectRequest === "function") {
+        try { await sendConnectRequest(friendId); } catch (_) {}
+      }
       const result = addFriendByEmail(account, email);
       if (result.ok) persistStore();
+      btn.disabled = true; btn.textContent = "Angefragt";
       renderAccountUi();
     });
   });
+}
+
+document.getElementById("home-athlete-search-form")?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const query = String(new FormData(event.target).get("query") || "").trim();
+  runHomeAthleteSearch(query);
+});
+
+// Live debounced search on home-athlete input too
+let _homeLiveTimer = 0;
+document.addEventListener("input", (event) => {
+  const el = event.target;
+  if (!el || el.closest?.("#home-athlete-search-form") == null) return;
+  if (el.name !== "query") return;
+  clearTimeout(_homeLiveTimer);
+  const val = el.value;
+  _homeLiveTimer = setTimeout(() => runHomeAthleteSearch(val), 300);
 });
 
 // Home feed quick-add button
