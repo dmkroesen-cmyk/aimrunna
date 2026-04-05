@@ -31,7 +31,7 @@ create policy "Users can insert own profile"
 
 create policy "Public profiles are readable"
   on public.profiles for select using (
-    (settings->>'privacy'->>'profileVisibility') = 'public'
+    (settings->'privacy'->>'profileVisibility') = 'public'
     or auth.uid() = id
   );
 

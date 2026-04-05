@@ -1412,6 +1412,19 @@ accountSearchFormEl?.addEventListener("submit", (event) => {
   renderAccountSearchResults(query);
 });
 
+// Live search with debounce (fires after 300ms idle)
+let _liveSearchTimer = 0;
+document.addEventListener("input", (event) => {
+  const el = event.target?.closest?.("[data-account-search-input]");
+  if (!el) return;
+  clearTimeout(_liveSearchTimer);
+  const val = el.value;
+  _liveSearchTimer = setTimeout(() => {
+    lastAccountSearchQuery = val;
+    renderAccountSearchResults(val);
+  }, 300);
+});
+
 // Home feed athlete search
 document.getElementById("home-athlete-search-form")?.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -3710,63 +3723,193 @@ function renderFriendsList(account) {
     .join("");
 }
 
+// In-memory cache of the last remote search (avoids duplicate Supabase calls)
+let _remoteSearchSeq = 0;
+let _remoteFriendships = null; // {friendIds:Set, pendingOut:Set, pendingIn:Set, byId:Map}
+
+async function loadRemoteFriendships() {
+  try {
+    const user = await (window.sbAuth?.getUser?.() || Promise.resolve(null));
+    if (!user?.id || !window.sbDb?.getAllFriendships) return null;
+    const rows = await window.sbDb.getAllFriendships(user.id);
+    const friendIds = new Set(), pendingOut = new Set(), pendingIn = new Set();
+    const byId = new Map();
+    rows.forEach((r) => {
+      byId.set(`${r.user_id}:${r.friend_id}`, r);
+      if (r.status === "accepted") {
+        if (r.user_id === user.id) friendIds.add(r.friend_id);
+        else friendIds.add(r.user_id);
+      } else if (r.status === "pending") {
+        if (r.user_id === user.id) pendingOut.add(r.friend_id);
+        else pendingIn.add(r.user_id);
+      }
+    });
+    _remoteFriendships = { friendIds, pendingOut, pendingIn, byId, selfId: user.id };
+    return _remoteFriendships;
+  } catch (e) {
+    console.warn("[loadRemoteFriendships]", e);
+    return null;
+  }
+}
+
+async function sendConnectRequest(targetUserId) {
+  const self = await (window.sbAuth?.getUser?.() || Promise.resolve(null));
+  if (!self?.id) { openAccountModal("login"); return { ok: false }; }
+  try {
+    await window.sbDb.sendFriendRequest(self.id, targetUserId);
+    _remoteFriendships = null; // invalidate
+    return { ok: true };
+  } catch (e) {
+    console.warn("[sendConnectRequest]", e);
+    return { ok: false, error: e?.message || "Konnte Anfrage nicht senden" };
+  }
+}
+
+async function acceptConnectRequest(rowId) {
+  try {
+    await window.sbDb.acceptFriendRequest(rowId);
+    _remoteFriendships = null;
+    return { ok: true };
+  } catch (e) { return { ok: false, error: e?.message }; }
+}
+
 function renderAccountSearchResults(query = "") {
   if (!accountSearchResultsEl) return;
-  const q = String(query || "").trim().toLowerCase();
+  const q = String(query || "").trim();
   const account = getCurrentAccount();
   const ownEmail = account?.email || "";
-  const all = appStore?.accounts || [];
 
   if (!q) {
     if (crewResultCountEl) crewResultCountEl.textContent = "0";
+    // Instead of empty-prompt, show directory of recent users when query is blank
     accountSearchResultsEl.innerHTML = `<div class="empty-copy">${escapeHtml(t("empty_search_prompt"))}</div>`;
+    if (window.sbDb?.listPublicProfiles) {
+      const seq = ++_remoteSearchSeq;
+      (async () => {
+        const [profiles, friendships] = await Promise.all([
+          window.sbDb.listPublicProfiles(24).catch(() => []),
+          loadRemoteFriendships(),
+        ]);
+        if (seq !== _remoteSearchSeq) return;
+        renderSearchRows(profiles.filter((p) => p.email !== ownEmail), friendships, { mode: "directory" });
+      })();
+    }
     return;
   }
 
-  const results = all
-    .filter((a) => a.email !== ownEmail)
-    .filter((a) => a.email.toLowerCase().includes(q) || (a.email ? a.email.split("@")[0] : a.displayName || "Athlete").toLowerCase().includes(q))
-    .slice(0, 12);
+  accountSearchResultsEl.innerHTML = `<div class="empty-copy">${escapeHtml(t("searching") || "Suche …")}</div>`;
+  const seq = ++_remoteSearchSeq;
 
-  if (crewResultCountEl) crewResultCountEl.textContent = String(results.length);
+  (async () => {
+    const [remote, friendships] = await Promise.all([
+      window.sbDb?.searchUsers ? window.sbDb.searchUsers(q, 20).catch(() => []) : Promise.resolve([]),
+      loadRemoteFriendships(),
+    ]);
+    if (seq !== _remoteSearchSeq) return;
 
-  if (!results.length) {
-    accountSearchResultsEl.innerHTML = `<div class="empty-copy">${escapeHtml(t("empty_search_none"))}</div>`;
-    return;
-  }
+    // Merge with local accounts (fallback for offline / pre-Supabase users)
+    const local = (appStore?.accounts || [])
+      .filter((a) => a.email !== ownEmail)
+      .filter((a) => {
+        const lo = q.toLowerCase();
+        return a.email?.toLowerCase().includes(lo) || (a.displayName || a.email || "").toLowerCase().includes(lo);
+      })
+      .map((a) => ({ id: a.email, email: a.email, display_name: a.displayName || a.email.split("@")[0], _local: true }));
 
-  accountSearchResultsEl.innerHTML = results
-    .map((a) => {
-      const isConnected = Boolean(account?.friends?.includes(a.email));
-      return `
+    // De-dup by email
+    const seen = new Set();
+    const merged = [];
+    remote.filter((r) => r.email !== ownEmail).forEach((r) => {
+      if (seen.has(r.email)) return;
+      seen.add(r.email);
+      merged.push(r);
+    });
+    local.forEach((l) => { if (!seen.has(l.email)) { seen.add(l.email); merged.push(l); } });
+
+    if (crewResultCountEl) crewResultCountEl.textContent = String(merged.length);
+    if (!merged.length) {
+      accountSearchResultsEl.innerHTML = `<div class="empty-copy">${escapeHtml(t("empty_search_none"))}</div>`;
+      return;
+    }
+    renderSearchRows(merged, friendships, { mode: "search" });
+  })();
+}
+
+function renderSearchRows(list, friendships, opts = {}) {
+  const account = getCurrentAccount();
+  accountSearchResultsEl.innerHTML = (list || []).map((u) => {
+    const name = u.display_name || (u.email ? u.email.split("@")[0] : "Athlete");
+    const isRemote = !u._local;
+    const isFriend = friendships?.friendIds?.has(u.id);
+    const isPendingOut = friendships?.pendingOut?.has(u.id);
+    const isPendingIn = friendships?.pendingIn?.has(u.id);
+    const legacyFriend = Boolean(account?.friends?.includes(u.email));
+    const connected = isFriend || legacyFriend;
+    const btnLabel = connected ? (t("connected") || "Verbunden")
+      : isPendingOut ? "Angefragt"
+      : isPendingIn ? "Akzeptieren"
+      : (t("connect") || "Verbinden");
+    const btnAction = isPendingIn ? "accept" : connected ? "none" : "request";
+    const disabled = connected || isPendingOut;
+    const avatar = u.profile_image
+      ? `<img src="${escapeHtml(u.profile_image)}" alt="" style="width:38px;height:38px;border-radius:50%;object-fit:cover;">`
+      : `<div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px;">${escapeHtml(name.charAt(0).toUpperCase())}</div>`;
+    return `
       <div class="account-search-item">
-        <div class="account-search-row">
-          <div>
-            <strong>${escapeHtml((a.email ? a.email.split("@")[0] : a.displayName || "Athlete"))}</strong>
-            <small>${escapeHtml(a.email)} • ${Array.isArray(a.plans) ? a.plans.length : 0} ${escapeHtml(t("label_plans"))}</small>
+        <div class="account-search-row" style="display:flex;gap:12px;align-items:center;">
+          ${avatar}
+          <div style="flex:1;min-width:0;">
+            <strong>${escapeHtml(name)}</strong>
+            <small style="display:block;color:#94a3b8;">${escapeHtml(u.email || "")}${!isRemote ? " · lokal" : ""}</small>
           </div>
           <div class="account-search-actions">
-            <button type="button" class="ghost" data-connect-account-email="${escapeHtml(a.email)}" ${isConnected ? "disabled" : ""}>
-              ${isConnected ? escapeHtml(t("connected")) : escapeHtml(t("connect"))}
+            <button type="button" class="ghost"
+              data-connect-user-id="${escapeHtml(String(u.id))}"
+              data-connect-user-email="${escapeHtml(u.email || "")}"
+              data-connect-action="${btnAction}"
+              data-connect-row-id="${escapeHtml(String(friendships?.byId?.get(`${u.id}:${friendships?.selfId}`)?.id || ""))}"
+              ${disabled ? "disabled" : ""}>
+              ${escapeHtml(btnLabel)}
             </button>
           </div>
         </div>
       </div>`;
-    })
-    .join("");
+  }).join("");
 
-  accountSearchResultsEl.querySelectorAll("[data-connect-account-email]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const current = getCurrentAccount();
-      if (!current) {
-        openAccountModal("login");
-        setText(accountFormStatusEl, t("login_first"));
-        return;
+  accountSearchResultsEl.querySelectorAll("[data-connect-user-id]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const action = btn.dataset.connectAction;
+      const userId = btn.dataset.connectUserId;
+      const email = btn.dataset.connectUserEmail;
+      if (action === "none") return;
+      btn.disabled = true;
+      btn.textContent = "…";
+      try {
+        if (action === "request") {
+          // Use Supabase if target has a UUID (remote), else fall back to local
+          const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId);
+          if (isUuid) {
+            const r = await sendConnectRequest(userId);
+            if (!r.ok) throw new Error(r.error || "Anfrage fehlgeschlagen");
+          } else {
+            // Legacy local friendship by email
+            const current = getCurrentAccount();
+            if (!current) { openAccountModal("login"); return; }
+            const r = addFriendByEmail(current, email);
+            if (r.ok) persistStore();
+          }
+        } else if (action === "accept") {
+          const rowId = btn.dataset.connectRowId;
+          if (rowId) await acceptConnectRequest(rowId);
+        }
+        // Refresh view
+        const input = document.querySelector("[data-account-search-input]");
+        renderAccountSearchResults(input?.value || "");
+      } catch (e) {
+        console.warn("[connect]", e);
+        btn.disabled = false;
+        btn.textContent = "Fehler – erneut";
       }
-      const email = btn.getAttribute("data-connect-account-email");
-      const result = addFriendByEmail(current, email);
-      if (result.ok) persistStore();
-      renderAccountUi();
     });
   });
 }
@@ -4308,6 +4451,53 @@ function getActivitySportIcon(sportType) {
   return svg(icons[sportType] || icons.other);
 }
 
+// Cache of remote friends activities (populated async)
+let _remoteFriendsFeed = null;
+let _remoteFriendsFeedFetched = 0;
+
+async function refreshRemoteFriendsFeed() {
+  try {
+    const user = await (window.sbAuth?.getUser?.() || Promise.resolve(null));
+    if (!user?.id || !window.sbDb?.getFriendsFeed) return [];
+    const rows = await window.sbDb.getFriendsFeed(user.id, 60);
+    _remoteFriendsFeed = (rows || []).map((r) => ({
+      item: {
+        id: r.id,
+        title: r.title,
+        note: r.note,
+        sportType: r.sport_type,
+        distanceKm: r.distance_km,
+        movingTime: r.moving_time_sec,
+        elevationGain: r.elevation_gain_m,
+        createdAt: r.created_at,
+        imageUrl: r.image_url,
+        source: r.source,
+        _remote: true,
+      },
+      actorEmail: r.profile?.email || "",
+      actorName: r.profile?.display_name || "",
+      actorAvatar: r.profile?.profile_image || null,
+    }));
+    _remoteFriendsFeedFetched = Date.now();
+    return _remoteFriendsFeed;
+  } catch (e) {
+    console.warn("[refreshRemoteFriendsFeed]", e);
+    return [];
+  }
+}
+
+function mergeFeedItems(localItems, remoteItems) {
+  const seen = new Set();
+  const merged = [];
+  [...remoteItems, ...localItems].forEach((entry) => {
+    const key = `${entry.actorEmail}:${entry.item.id || entry.item.createdAt}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    merged.push(entry);
+  });
+  return merged.sort((a, b) => new Date(b.item.createdAt) - new Date(a.item.createdAt));
+}
+
 function renderCrewFeed(account) {
   if (!crewFeedListEl) return;
   if (!account) {
@@ -4316,11 +4506,18 @@ function renderCrewFeed(account) {
     return;
   }
   const friendEmails = account.friends || [];
-  const items = (appStore.accounts || [])
+  const localItems = (appStore.accounts || [])
     .filter((a) => friendEmails.includes(a.email))
-    .flatMap((a) => (a.activities || []).map((item) => ({ item, actorEmail: a.email, actorAvatar: a.profileImage || null })))
-    .sort((a, b) => new Date(b.item.createdAt) - new Date(a.item.createdAt))
-    .slice(0, 40);
+    .flatMap((a) => (a.activities || []).map((item) => ({ item, actorEmail: a.email, actorAvatar: a.profileImage || null })));
+  const items = mergeFeedItems(localItems, _remoteFriendsFeed || []).slice(0, 40);
+  // trigger async fetch if stale (>30s) and not yet attempted this render cycle
+  if (!_remoteFriendsFeed || Date.now() - _remoteFriendsFeedFetched > 30000) {
+    refreshRemoteFriendsFeed().then(() => {
+      // re-render crew if still viewing
+      const _acct = getCurrentAccount();
+      if (_acct) renderCrewFeed(_acct);
+    });
+  }
 
   if (crewFeedCountEl) crewFeedCountEl.textContent = String(items.length);
   if (!items.length) {
@@ -4390,15 +4587,19 @@ function renderHomeFeed(account) {
     homeFeedListEl.innerHTML = `<div class="empty-copy">Logge dich ein, um deinen Feed zu sehen.</div>`;
     return;
   }
-  // Combine own + friend activities
+  // Combine own + friend activities (local + Supabase remote)
   const friendEmails = account.friends || [];
   const ownItems = (account.activities || []).map((item) => ({ item, actorEmail: account.email, actorAvatar: account.profileImage || null }));
-  const friendItems = (appStore.accounts || [])
+  const localFriendItems = (appStore.accounts || [])
     .filter((a) => friendEmails.includes(a.email))
     .flatMap((a) => (a.activities || []).map((item) => ({ item, actorEmail: a.email, actorAvatar: a.profileImage || null })));
-  const allItems = [...ownItems, ...friendItems]
-    .sort((a, b) => new Date(b.item.createdAt) - new Date(a.item.createdAt))
-    .slice(0, 60);
+  const allItems = mergeFeedItems([...ownItems, ...localFriendItems], _remoteFriendsFeed || []).slice(0, 60);
+  if (!_remoteFriendsFeed || Date.now() - _remoteFriendsFeedFetched > 30000) {
+    refreshRemoteFriendsFeed().then(() => {
+      const _acct = getCurrentAccount();
+      if (_acct) renderHomeFeed(_acct);
+    });
+  }
 
   if (!allItems.length) {
     homeFeedListEl.innerHTML = `<div class="empty-copy">Noch keine Aktivitäten. Verbinde Strava oder poste dein erstes Training.</div>`;
@@ -7022,6 +7223,35 @@ function handleOAuthReturnParams() {
     const oauth = url.searchParams.get("oauth");
     const status = url.searchParams.get("status");
     if (oauth !== "strava" || !status) return;
+    if (status === "error") {
+      const errCode = url.searchParams.get("error_code") || "unknown";
+      const errMsg = url.searchParams.get("error_message") || "Strava-Verbindung fehlgeschlagen";
+      // Build a user-visible toast + persistent inline status
+      const isAppLimit = errCode === "strava_app_limit";
+      const bannerHtml = `
+        <div style="background:#1a1d2e;border:2px solid ${isAppLimit ? "#f97316" : "#ef4444"};border-radius:12px;padding:14px 16px;margin:12px 0;color:#e5e7eb;font-family:system-ui;">
+          <div style="font-weight:700;color:${isAppLimit ? "#fb923c" : "#f87171"};margin-bottom:6px;">⚠️ Strava-Verbindung fehlgeschlagen</div>
+          <div style="font-size:13px;line-height:1.5;color:#cbd5e1;">${errMsg}</div>
+          ${isAppLimit ? `<div style="margin-top:10px;padding:10px;background:#0f1220;border-radius:8px;font-size:12px;color:#94a3b8;">
+            <b style="color:#cbd5e1;">Lösung für den Admin:</b> In der <a href="https://www.strava.com/settings/api" target="_blank" style="color:#60a5fa;">Strava API-Konsole</a> die App auf „Unlimited Athletes" upgraden (Request via Strava Support). Bis dahin kann nur 1 Athlet (App-Owner) verbunden sein.
+          </div>` : ""}
+          <button onclick="this.closest('div').parentNode.remove()" style="margin-top:10px;background:transparent;color:#94a3b8;border:1px solid #2a2f45;border-radius:8px;padding:6px 14px;font-size:12px;cursor:pointer;">Schließen</button>
+        </div>
+      `;
+      const banner = document.createElement("div");
+      banner.innerHTML = bannerHtml;
+      banner.style.cssText = "position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:9999;max-width:520px;width:calc(100% - 32px);";
+      document.body.appendChild(banner);
+      setText(stravaProfileFetchStatusEl, errMsg);
+      url.searchParams.delete("oauth");
+      url.searchParams.delete("status");
+      url.searchParams.delete("error_code");
+      url.searchParams.delete("error_message");
+      url.searchParams.delete("error_details");
+      window.history.replaceState({}, document.title, url.toString());
+      console.warn("[Strava OAuth] Error:", errCode, errMsg);
+      return;
+    }
     if (status === "connected") {
       connectedSources.add("Strava");
       persistConnectedSourcesForCurrentUser();

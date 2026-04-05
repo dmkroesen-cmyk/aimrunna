@@ -47,23 +47,33 @@ async function supabaseUpsert(userId, tokenData) {
   return res.ok;
 }
 
+function redirectWithError(res, code, message, details) {
+  const redirect = new URL(FRONTEND_URL);
+  redirect.searchParams.set("oauth", "strava");
+  redirect.searchParams.set("status", "error");
+  redirect.searchParams.set("error_code", String(code || "unknown"));
+  if (message) redirect.searchParams.set("error_message", String(message).slice(0, 240));
+  if (details) redirect.searchParams.set("error_details", String(details).slice(0, 240));
+  res.writeHead(302, { Location: redirect.toString() });
+  res.end();
+}
+
 export default async function handler(req, res) {
   const url = new URL(req.url, `https://${req.headers.host}`);
 
   const error = url.searchParams.get("error");
   if (error) {
-    return res.status(400).json({ ok: false, error, message: url.searchParams.get("error_description") });
+    // Strava returns e.g. ?error=access_denied or error=invalid_scope
+    return redirectWithError(res, error, url.searchParams.get("error_description") || "Strava-Autorisierung abgebrochen");
   }
 
   const code = url.searchParams.get("code") || "";
   const state = url.searchParams.get("state") || "";
-  if (!code || !state) return res.status(400).json({ ok: false, error: "Missing code/state" });
+  if (!code || !state) return redirectWithError(res, "missing_code", "Autorisierungs-Code fehlt");
 
   const stateData = verifyState(state);
-  if (!stateData.ok) return res.status(400).json({ ok: false, error: "Invalid state" });
+  if (!stateData.ok) return redirectWithError(res, "invalid_state", "State-Verifikation fehlgeschlagen");
   const userId = stateData.payload.userId;
-
-  const redirectUri = `https://${req.headers.host}/api/oauth/strava/callback`;
 
   const tokenRes = await fetch("https://www.strava.com/oauth/token", {
     method: "POST",
@@ -78,10 +88,24 @@ export default async function handler(req, res) {
 
   const tokenJson = await tokenRes.json();
   if (!tokenRes.ok) {
-    return res.status(400).json({ ok: false, error: "Token exchange failed", details: tokenJson });
+    // Detect "limit of connected users" / single-athlete-mode errors
+    const raw = JSON.stringify(tokenJson || {}).toLowerCase();
+    let humanMsg = tokenJson?.message || "Token-Exchange fehlgeschlagen";
+    let errCode = "token_exchange_failed";
+    if (tokenRes.status === 403 || raw.includes("limit") || raw.includes("single athlete")) {
+      errCode = "strava_app_limit";
+      humanMsg = "Dieser Strava-App wurde das Verbinder-Limit überschritten (Single-Athlete-Mode). Admin muss die App auf 'unlimited' upgraden.";
+    } else if (tokenRes.status === 429) {
+      errCode = "strava_rate_limit";
+      humanMsg = "Strava-Rate-Limit erreicht (1000/Tag oder 100/15min). Bitte später erneut versuchen.";
+    }
+    return redirectWithError(res, errCode, humanMsg, tokenJson?.errors?.[0]?.field || "");
   }
 
-  await supabaseUpsert(userId, tokenJson);
+  const ok = await supabaseUpsert(userId, tokenJson);
+  if (!ok) {
+    return redirectWithError(res, "supabase_write_failed", "Integration konnte nicht gespeichert werden");
+  }
 
   const redirect = new URL(FRONTEND_URL);
   redirect.searchParams.set("oauth", "strava");

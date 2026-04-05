@@ -223,6 +223,100 @@ const sbDb = {
     if (error) throw error;
     return data;
   },
+
+  /** Search public profiles by name or email (ilike) */
+  async searchUsers(query, limit = 20) {
+    const q = String(query || "").trim();
+    if (!q) return [];
+    const pattern = `%${q.replace(/[%_]/g, "").slice(0, 60)}%`;
+    // Note: RLS policy "Public profiles are readable" allows read when settings->privacy->profileVisibility = 'public'
+    const { data, error } = await sb
+      .from("profiles")
+      .select("id, email, display_name, profile_image, settings")
+      .or(`display_name.ilike.${pattern},email.ilike.${pattern}`)
+      .limit(limit);
+    if (error) { console.warn("[sbDb.searchUsers]", error); return []; }
+    return data || [];
+  },
+
+  /** List public profiles (directory) */
+  async listPublicProfiles(limit = 50) {
+    const { data, error } = await sb
+      .from("profiles")
+      .select("id, email, display_name, profile_image, created_at")
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    if (error) { console.warn("[sbDb.listPublicProfiles]", error); return []; }
+    return data || [];
+  },
+
+  /** Get full friendships (outgoing + incoming, any status) */
+  async getAllFriendships(userId) {
+    const { data, error } = await sb.from("friendships")
+      .select("id, user_id, friend_id, status, created_at")
+      .or(`user_id.eq.${userId},friend_id.eq.${userId}`);
+    if (error) { console.warn("[sbDb.getAllFriendships]", error); return []; }
+    return data || [];
+  },
+
+  /** Send friend request */
+  async sendFriendRequest(userId, friendId) {
+    if (userId === friendId) throw new Error("Cannot befriend yourself");
+    const { data, error } = await sb.from("friendships").upsert({
+      user_id: userId,
+      friend_id: friendId,
+      status: "pending",
+    }, { onConflict: "user_id,friend_id" }).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  /** Accept friend request (you are the friend_id) */
+  async acceptFriendRequest(requestId) {
+    const { data, error } = await sb.from("friendships")
+      .update({ status: "accepted" })
+      .eq("id", requestId)
+      .select().single();
+    if (error) throw error;
+    // Create reciprocal row so both directions work
+    if (data) {
+      await sb.from("friendships").upsert({
+        user_id: data.friend_id,
+        friend_id: data.user_id,
+        status: "accepted",
+      }, { onConflict: "user_id,friend_id" });
+    }
+    return data;
+  },
+
+  /** Reject / remove friendship */
+  async removeFriend(requestId) {
+    const { error } = await sb.from("friendships").delete().eq("id", requestId);
+    if (error) throw error;
+  },
+
+  /** Get friends' recent activities (feed) */
+  async getFriendsFeed(userId, limit = 60) {
+    // Step 1: get accepted friend IDs
+    const { data: friendships, error: e1 } = await sb
+      .from("friendships")
+      .select("friend_id")
+      .eq("user_id", userId)
+      .eq("status", "accepted");
+    if (e1) { console.warn("[sbDb.getFriendsFeed friendships]", e1); return []; }
+    const friendIds = (friendships || []).map((r) => r.friend_id);
+    if (!friendIds.length) return [];
+    // Step 2: fetch activities with profile join
+    const { data, error } = await sb
+      .from("activities")
+      .select(`id, user_id, source, title, note, kind, sport_type, distance_km, moving_time_sec, elevation_gain_m, metrics, image_url, created_at,
+               profile:user_id(id, display_name, profile_image, email)`)
+      .in("user_id", friendIds)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    if (error) { console.warn("[sbDb.getFriendsFeed activities]", error); return []; }
+    return data || [];
+  },
 };
 
 // Expose globally for app.js
