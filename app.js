@@ -19830,6 +19830,10 @@ document.addEventListener("click", (e) => {
   function bindEvents() {
     document.getElementById("pp-status-btn")?.addEventListener("click", (e) => { e.stopPropagation(); openStatusPicker(); });
     document.getElementById("pp-status-dot")?.addEventListener("click", (e) => { e.stopPropagation(); openStatusPicker(); });
+    document.getElementById("pp-settings-btn")?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (typeof setActiveProfileView === "function") setActiveProfileView("settings");
+    });
     document.getElementById("pp-banner-edit")?.addEventListener("click", () => {
       alert("Banner-Edit: kommt in Kürze (Auswahl der Foto-Aktivitäten)");
     });
