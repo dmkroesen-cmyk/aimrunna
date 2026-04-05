@@ -459,7 +459,7 @@ body.is-authenticated .account-dot {
 /* Nav CTA — race. button aesthetic, used sparingly for primary action */
 .nav-cta {
   height: 32px;
-  padding: 0 16px;
+  padding: 0 14px;
   border: 0;
   border-radius: 10px;
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.97), rgba(245, 247, 251, 0.9));
@@ -473,6 +473,14 @@ body.is-authenticated .account-dot {
   font-family: inherit;
   position: relative;
   overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.nav-cta-icon {
+  flex-shrink: 0;
+  color: #090b0d;
+  transform: translateY(-0.5px);
 }
 .nav-cta::after {
   content: "";
