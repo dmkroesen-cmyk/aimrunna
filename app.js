@@ -19898,7 +19898,10 @@ document.addEventListener("click", (e) => {
     document.getElementById("pp-status-dot")?.addEventListener("click", (e) => { e.stopPropagation(); openStatusPicker(); });
     document.getElementById("pp-settings-btn")?.addEventListener("click", (e) => {
       e.stopPropagation();
+      try { document.body.classList.remove("peakplan-mode"); } catch (_) {}
       if (typeof setActiveProfileView === "function") setActiveProfileView("settings");
+      if (typeof setAppView === "function") setAppView("profile");
+      if (typeof setActiveAccountSection === "function") setActiveAccountSection("profile");
     });
     document.getElementById("pp-banner-edit")?.addEventListener("click", () => {
       alert("Banner-Edit: kommt in Kürze (Auswahl der Foto-Aktivitäten)");
