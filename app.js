@@ -4745,27 +4745,47 @@ function formatActivityFeedSportLabel(sportType) {
 }
 
 function getActivitySportIcon(sportType) {
-  const svg = (paths) => `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
+  // Premium icon set — stroke 1.75, clean geometry, consistent visual weight
+  const svg = (paths) => `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
   const icons = {
-    run:        '<circle cx="13" cy="4" r="2"/><path d="M7 21l3-7 3 1 4-8"/><path d="M17 21l-2-4"/><path d="M10 14l-3 7"/>',
-    trail:      '<circle cx="13" cy="4" r="2"/><path d="M7 21l3-7 3 1 4-8"/><path d="M3 18l4-3 3 2"/><path d="M14 20l3-2"/>',
-    bike:       '<circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><circle cx="15" cy="5" r="1"/><path d="M12 17.5V14l-3-3 4-3 2 3h3"/>',
-    mtb:        '<circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M12 17.5V14l-3-3 4-3 2 3h3"/><path d="M3 19l-1 2M21 19l1 2"/>',
-    swim:       '<path d="M2 16c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2c1.3 0 1.9.5 2.5 1"/><path d="M2 20c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2c1.3 0 1.9.5 2.5 1"/><path d="M9.5 15l5-8"/><circle cx="16" cy="5" r="2"/>',
-    hyrox:      '<rect x="3" y="8" width="18" height="8" rx="1"/><path d="M7 12h10"/><path d="M5 8V6M19 8V6M5 16v2M19 16v2"/>',
-    yoga:       '<circle cx="12" cy="4" r="2"/><path d="M12 6v6"/><path d="M6 20c2-4 4-6 6-6s4 2 6 6"/><path d="M8 14l-4-2M16 14l4-2"/>',
-    pilates:    '<circle cx="12" cy="5" r="2"/><path d="M12 7v5l-3 4"/><path d="M12 12l3 4"/><path d="M6 20h12"/>',
-    gym:        '<path d="M6 8v8M18 8v8M4 10v4M20 10v4M6 12h12"/>',
-    crossfit:   '<path d="M4 12l4-4M4 12l4 4M20 12l-4-4M20 12l-4 4M4 12h16"/>',
-    row:        '<path d="M3 18l4-2 4 3 4-3 4 2 2-1"/><path d="M12 12l-2-4 4-2 2 4-4 2z"/>',
-    walk:       '<circle cx="13" cy="4" r="2"/><path d="M9 20l3-8 3 2 2-4"/><path d="M7 12l3-4"/>',
-    hike:       '<circle cx="13" cy="4" r="2"/><path d="M9 20l3-8 3 2 2-4"/><path d="M3 20l4-5 3 3"/><path d="M17 20l-2-4"/>',
-    ski:        '<path d="M4 20L20 4"/><path d="M6 18l14-14"/><circle cx="16" cy="4" r="1"/>',
-    climb:      '<circle cx="14" cy="4" r="2"/><path d="M14 6v5l-4 3 2 6"/><path d="M14 11l3 2 1 4"/><path d="M6 16l3-2"/>',
-    elliptical: '<ellipse cx="12" cy="17" rx="8" ry="3"/><path d="M8 17l2-8 4 1 2 7"/><circle cx="12" cy="6" r="2"/>',
-    skate:      '<circle cx="6" cy="18" r="2"/><circle cx="12" cy="18" r="2"/><circle cx="18" cy="18" r="2"/><path d="M4 14h16l-1 4H5z"/>',
-    triathlon:  '<path d="M3 18h4M17 18h4"/><circle cx="11" cy="5" r="1.5"/><path d="M11 7v4l-2 3 3 2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="18" r="2"/>',
-    other:      '<path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>',
+    // Refined runner silhouette with proper anatomy
+    run:        '<circle cx="16" cy="4.5" r="1.75"/><path d="M12.5 21l1.5-5.5-3-2.5 2-5.5 3.5 3 3 .5"/><path d="M8 12l2.5-1.5"/><path d="M6.5 17.5h3l1-2"/>',
+    // Trail run: runner + terrain line
+    trail:      '<circle cx="16" cy="4.5" r="1.75"/><path d="M12.5 21l1.5-5.5-3-2.5 2-5.5 3.5 3 3 .5"/><path d="M8 12l2.5-1.5"/><path d="M3 20l4-3 3 2 4-3"/>',
+    // Clean road bike
+    bike:       '<circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M5.5 17.5l6-7.5h4l3 7.5"/><path d="M11.5 10l-2-4h-2"/><path d="M15.5 10l-2-4"/>',
+    // MTB: bike + suspension marks
+    mtb:        '<circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M5.5 17.5l6-7.5h4l3 7.5"/><path d="M11.5 10l-2-4h-2"/><path d="M2 21l2-1M22 21l-2-1"/>',
+    // Swimmer: head + stroke waves
+    swim:       '<path d="M3 14c2 0 2.5-1.5 4.5-1.5S10 14 12 14s2.5-1.5 4.5-1.5S19 14 21 14"/><path d="M3 19c2 0 2.5-1.5 4.5-1.5S10 19 12 19s2.5-1.5 4.5-1.5S19 19 21 19"/><circle cx="17.5" cy="6.5" r="1.75"/><path d="M6 11l4-3 5 2"/>',
+    // Hyrox: sled with handles
+    hyrox:      '<rect x="4" y="9" width="16" height="7" rx="1.5"/><path d="M4 13h16"/><path d="M6 9V7M18 9V7"/>',
+    // Yoga: meditation pose
+    yoga:       '<circle cx="12" cy="4.5" r="1.75"/><path d="M12 6.5v5"/><path d="M5 20c2-5 5-8 7-8s5 3 7 8"/><path d="M7 14l-3-1.5M17 14l3-1.5"/>',
+    // Pilates: reformer-inspired
+    pilates:    '<circle cx="12" cy="5" r="1.75"/><path d="M12 7v5l-3 4 3 3 3-3-3-4"/><path d="M5 20h14"/>',
+    // Dumbbell
+    gym:        '<path d="M6.5 7v10M17.5 7v10"/><path d="M3 10v4M21 10v4"/><path d="M6.5 12h11"/>',
+    // Crossfit: abstract cross/target
+    crossfit:   '<circle cx="12" cy="12" r="8"/><path d="M12 4v16M4 12h16"/>',
+    // Rowing: oar motion
+    row:        '<path d="M4 18l5-3 4 3 4-3 3 2"/><path d="M8 12l3-5 4 2-2 5"/>',
+    // Walk: figure with stride
+    walk:       '<circle cx="14" cy="4.5" r="1.75"/><path d="M10 21l2-6-2-3 2-5 3 3h2"/><path d="M8 12l2-1.5"/>',
+    // Hike: figure + mountain
+    hike:       '<circle cx="14" cy="4.5" r="1.75"/><path d="M10 21l2-6-2-3 2-5 3 3h2"/><path d="M2 20l4-5 3 3 4-6 3 4 3-3"/>',
+    // Ski: crossed skis/motion
+    ski:        '<path d="M4 21L20 3"/><path d="M2 19l6-6"/><circle cx="16" cy="4.5" r="1.75"/>',
+    // Climbing: holds
+    climb:      '<path d="M6 20V4"/><circle cx="6" cy="8" r="1.25" fill="currentColor"/><circle cx="12" cy="5" r="1.25" fill="currentColor"/><circle cx="11" cy="12" r="1.25" fill="currentColor"/><circle cx="17" cy="9" r="1.25" fill="currentColor"/><circle cx="16" cy="16" r="1.25" fill="currentColor"/>',
+    // Elliptical: loop + motion
+    elliptical: '<ellipse cx="12" cy="17" rx="7" ry="2.5"/><path d="M8 17l3-8 3 .5 2 7.5"/><circle cx="13" cy="5.5" r="1.75"/>',
+    // Skate: board + wheels
+    skate:      '<rect x="3" y="14" width="18" height="2.5" rx="1"/><circle cx="7" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/>',
+    // Triathlon: three discipline marks
+    triathlon:  '<path d="M3 20h4M17 20h4"/><circle cx="11" cy="5" r="1.5"/><path d="M11 6.5v4l-2 3 3 2.5"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/>',
+    // Other: activity pulse line
+    other:      '<path d="M3 12h4l2.5-6 4 12 2.5-6H21"/>',
   };
   return svg(icons[sportType] || icons.other);
 }
@@ -19642,13 +19662,18 @@ document.addEventListener("click", (e) => {
   }
 
   function sportSvg(sport) {
-    // Inline SVG icons, no emojis
+    // Premium inline SVG icons — stroke 1.75, clean geometry, no stick-figure cartoons
     switch (sport) {
-      case "run": return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4" r="2"/><path d="M14 6.5l-3 3-2 5 3 2 2 5"/><path d="M7 10.5l2-2 3 1 2-2"/></svg>`;
-      case "bike": return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M15 6h3l2 5-3.5 6.5M6 17.5l4-8 3 3 3-4.5"/></svg>`;
-      case "swim": return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 17c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2"/><path d="M2 12c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2"/><circle cx="17" cy="6" r="2"/></svg>`;
-      case "strength": return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5v14M18 5v14M3 10v4M21 10v4M6 12h12"/></svg>`;
-      default: return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>`;
+      // Run: refined runner silhouette, better anatomy + forward motion
+      case "run": return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="16" cy="4.5" r="1.75"/><path d="M12.5 21l1.5-5.5-3-2.5 2-5.5 3.5 3 3 .5"/><path d="M8 12l2.5-1.5"/><path d="M6.5 17.5h3l1-2"/></svg>`;
+      // Bike: clean frame, proper triangular geometry
+      case "bike": return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M5.5 17.5l6-7.5h4l3 7.5"/><path d="M11.5 10l-2-4h-2"/><path d="M15.5 10l-2-4"/></svg>`;
+      // Swim: clean parallel waves + head
+      case "swim": return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14c2 0 2.5-1.5 4.5-1.5S10 14 12 14s2.5-1.5 4.5-1.5S19 14 21 14"/><path d="M3 19c2 0 2.5-1.5 4.5-1.5S10 19 12 19s2.5-1.5 4.5-1.5S19 19 21 19"/><circle cx="17.5" cy="6.5" r="1.75"/><path d="M6 11l4-3 5 2"/></svg>`;
+      // Strength: dumbbell with proper plate proportions
+      case "strength": return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 7v10M17.5 7v10"/><path d="M3 10v4M21 10v4"/><path d="M6.5 12h11"/></svg>`;
+      // Other: activity pulse line (heartbeat metaphor)
+      default: return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2.5-6 4 12 2.5-6H21"/></svg>`;
     }
   }
 
