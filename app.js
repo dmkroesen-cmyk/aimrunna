@@ -3688,12 +3688,15 @@ function renderSavedPlansList(account) {
       const planId = btn.getAttribute("data-delete-plan-id");
       const account = getCurrentAccount();
       if (!account) return;
+      const plan = (account.plans || []).find((p) => p.id === planId);
+      const title = plan?.title || plan?.summary || "dieser Plan";
+      if (!window.confirm(`Plan "${title}" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.`)) return;
       account.plans = (account.plans || []).filter((p) => p.id !== planId);
       persistStore();
       renderSavedPlansList(account);
       // Also delete from Supabase
       if (window.sbDb && planId) {
-        sbDb.deletePlan(planId).catch(() => {});
+        sbDb.deletePlan(planId).catch((e) => console.warn("[deletePlan] Supabase:", e?.message || e));
       }
     });
   });
@@ -5572,10 +5575,52 @@ document.addEventListener("click", (e) => {
   renderStatisticsView(getCurrentAccount());
 });
 
-function readFileAsDataUrl(file) {
+function readFileAsDataUrl(file, opts = {}) {
+  const MAX_BYTES = opts.maxBytes || 800 * 1024; // 800 KB default
+  const MAX_DIM = opts.maxDim || 1600;
   return new Promise((resolve, reject) => {
+    if (!file) { reject(new Error("no_file")); return; }
+    // Hard limit: reject anything > 10 MB outright
+    if (file.size > 10 * 1024 * 1024) {
+      reject(new Error(`file_too_large (${Math.round(file.size/1024/1024)}MB, max 10MB)`));
+      return;
+    }
+    // Only compress images; other files (unlikely) pass through
+    if (!file.type || !file.type.startsWith("image/")) {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ""));
+      reader.onerror = () => reject(new Error("file_read_failed"));
+      reader.readAsDataURL(file);
+      return;
+    }
+    // Read → downscale via canvas → JPEG output
     const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          let { width, height } = img;
+          const scale = Math.min(1, MAX_DIM / Math.max(width, height));
+          width = Math.round(width * scale);
+          height = Math.round(height * scale);
+          const canvas = document.createElement("canvas");
+          canvas.width = width; canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height);
+          // Iteratively reduce quality until under MAX_BYTES
+          let quality = 0.85;
+          let dataUrl = canvas.toDataURL("image/jpeg", quality);
+          while (dataUrl.length * 0.75 > MAX_BYTES && quality > 0.4) {
+            quality -= 0.1;
+            dataUrl = canvas.toDataURL("image/jpeg", quality);
+          }
+          console.log(`[Image] ${file.name} ${(file.size/1024).toFixed(0)}KB → ${(dataUrl.length*0.75/1024).toFixed(0)}KB (q=${quality.toFixed(2)})`);
+          resolve(dataUrl);
+        } catch (e) { reject(e); }
+      };
+      img.onerror = () => reject(new Error("image_decode_failed"));
+      img.src = String(reader.result || "");
+    };
     reader.onerror = () => reject(new Error("file_read_failed"));
     reader.readAsDataURL(file);
   });
@@ -6609,7 +6654,7 @@ async function importStravaHistory() {
 
       // Upsert to Supabase in background if available
       if (window.sbDb && account.id) {
-        try { await sbDb.upsertStravaActivities(account.id, activities); } catch {}
+        try { await sbDb.upsertStravaActivities(account.id, activities); } catch (e) { console.warn("[Strava] Supabase upsert failed:", e?.message || e); }
       }
 
       if (activities.length < perPage) break;
@@ -12786,10 +12831,44 @@ function runBuiltInScenarioAudit(baseProfile) {
 }
 
 function renderPlan(plan) {
+  // Guard against malformed plan object (API failure, missing weeks, etc.)
+  if (!plan || !Array.isArray(plan.weeks) || plan.weeks.length === 0) {
+    console.warn("[renderPlan] Malformed plan object:", plan);
+    if (planMetaEl) planMetaEl.textContent = "Plan konnte nicht generiert werden. Bitte Formular prüfen und erneut versuchen.";
+    if (planMissionBriefEl) { planMissionBriefEl.hidden = true; planMissionBriefEl.textContent = ""; }
+    if (weekListEl) weekListEl.innerHTML = `<div class="empty-copy" style="padding:20px;text-align:center;color:#94a3b8;">⚠️ Plan-Generierung fehlgeschlagen. Prüfe Eingaben (Pace, Distanz, Hours/Woche) und versuche es erneut.</div>`;
+    return;
+  }
   const firstWeek = plan.weeks[0];
   const lastWeek = plan.weeks[plan.weeks.length - 1];
   const useLoadIndex = latestProfile?.discipline === "triathlon" || latestProfile?.discipline === "hyrox" || latestProfile?.discipline === "shape";
   planMetaEl.textContent = `${plan.weeks.length} Wochen bis Ziel • Zeitraum ${formatDateShort(firstWeek.start)}-${formatDateShort(lastWeek.end)} • Basis ${plan.meta.weeklyKmBase} ${useLoadIndex ? "Load-Index/Woche" : "km/Woche"}`;
+
+  // ACWR safety check: scan plan for weeks exceeding Gabbett sweet-spot
+  try {
+    const acwrRisks = [];
+    const loads = plan.weeks.map((w) => Number(w.load || w.weekLoad || 0));
+    for (let i = 4; i < loads.length; i += 1) {
+      const acute = loads.slice(Math.max(0, i - 0), i + 1).reduce((a, b) => a + b, 0) / 1;
+      const chronic4 = loads.slice(Math.max(0, i - 3), i + 1).reduce((a, b) => a + b, 0) / 4;
+      if (chronic4 <= 0) continue;
+      const ratio = loads[i] / chronic4;
+      if (ratio > 1.5) acwrRisks.push({ weekIdx: i, ratio: ratio.toFixed(2), week: plan.weeks[i] });
+    }
+    if (acwrRisks.length && planMetaEl?.parentNode) {
+      const oldBanner = document.getElementById("plan-acwr-banner");
+      if (oldBanner) oldBanner.remove();
+      const banner = document.createElement("div");
+      banner.id = "plan-acwr-banner";
+      banner.style.cssText = "background:#1a1d2e;border:1px solid #f59e0b;border-left:4px solid #f59e0b;border-radius:8px;padding:10px 14px;margin:10px 0;color:#fbbf24;font-size:12px;line-height:1.5;";
+      banner.innerHTML = `⚠️ <b>ACWR-Warnung:</b> ${acwrRisks.length} Woche${acwrRisks.length>1?"n":""} mit Load-Spike >1.5× (Verletzungsrisiko erhöht, Gabbett 2016).
+        Woche${acwrRisks.length>1?"n":""}: ${acwrRisks.slice(0,3).map(r => `#${r.weekIdx+1} (${r.ratio}×)`).join(", ")}${acwrRisks.length>3?"…":""}.
+        Der Plan ist ausführbar, aber erwäge längere Onboarding-Phase oder niedrigere Ambition.`;
+      planMetaEl.parentNode.insertBefore(banner, planMetaEl.nextSibling);
+    } else {
+      document.getElementById("plan-acwr-banner")?.remove();
+    }
+  } catch (e) { console.warn("[ACWR check]", e); }
   if (planMissionBriefEl) {
     if (latestProfile && plan) {
       renderPlanMissionBrief(latestProfile, plan);
