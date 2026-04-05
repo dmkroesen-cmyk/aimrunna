@@ -3744,6 +3744,44 @@ async function handleSupabaseAuth(session) {
   persistStore();
   hydrateConnectedSourcesFromAccount();
   document.body.classList.add("is-authenticated");
+
+  // Auto-sync new Strava activities in background (non-blocking)
+  autoSyncStravaOnLogin(account);
+}
+
+/**
+ * Silently fetch the latest Strava activities since last import and upsert
+ * them to Supabase + local feed. Runs once per login, non-blocking.
+ */
+async function autoSyncStravaOnLogin(account) {
+  try {
+    if (!account?.integrations?.strava?.connected) return;
+    const userId = getStravaLocalUserId(account);
+    if (!userId) return;
+    const lastImport = account.integrations.strava.lastImportAt;
+    // Fetch only the last 1-2 pages (most recent activities since last import)
+    const afterEpoch = lastImport ? Math.floor(new Date(lastImport).getTime() / 1000) - 3600 : 0;
+    const url = afterEpoch
+      ? `${STRAVA_OAUTH_DEV_BASE}/api/oauth/strava/activities?user_id=${encodeURIComponent(userId)}&page=1&per_page=200&after=${afterEpoch}`
+      : `${STRAVA_OAUTH_DEV_BASE}/api/oauth/strava/activities?user_id=${encodeURIComponent(userId)}&page=1&per_page=50`;
+    const res = await fetch(url, { method: "GET", headers: { Accept: "application/json" }, cache: "no-store" });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok || !Array.isArray(json?.activities) || !json.activities.length) return;
+    const acts = json.activities;
+    console.log(`[Strava auto-sync] ${acts.length} new activities since ${lastImport || "beginning"}`);
+    // Upsert to Supabase
+    if (window.sbDb && account.id) {
+      try { await sbDb.upsertStravaActivities(account.id, acts); } catch (_) {}
+    }
+    // Merge into local feed
+    mergeStravaActivitiesIntoLocalAccount(account, acts);
+    account.integrations.strava.lastImportAt = new Date().toISOString();
+    persistStore();
+    renderAccountUi();
+    try { if (window.MedalBoard?.scanActivitiesQuiet) window.MedalBoard.scanActivitiesQuiet(); } catch (_) {}
+  } catch (e) {
+    console.warn("[Strava auto-sync] failed (non-blocking):", e?.message || e);
+  }
 }
 
 async function requestPasswordReset(email) {
@@ -7222,13 +7260,15 @@ async function importStravaHistory() {
     const perPage = 200;
     const maxPages = 500;
     let totalImported = 0;
-    let allActivities = [];
+    // Keep only recent activities in memory for the local feed (max 200).
+    // Full history goes straight to Supabase, never into browser RAM.
+    const recentForFeed = [];
+    const FEED_CAP = 200;
 
     while (page <= maxPages) {
-      setText(stravaProfileFetchStatusEl, `Import läuft … Seite ${page} (${totalImported} Aktivitäten bisher)`);
+      setText(stravaProfileFetchStatusEl, `Import läuft … Seite ${page} (${totalImported} Aktivitäten)`);
       let activitiesJson = null;
       let lastError = null;
-      // Retry up to 3 times per page for resilience
       for (let attempt = 0; attempt < 3; attempt++) {
         try {
           const activitiesRes = await fetch(
@@ -7256,7 +7296,6 @@ async function importStravaHistory() {
       const activities = activitiesJson.activities;
       if (!activities.length) break; // empty page = real end of history
 
-      allActivities = allActivities.concat(activities);
       totalImported += activities.length;
 
       // Log oldest activity on this page for debugging
@@ -7264,21 +7303,23 @@ async function importStravaHistory() {
       const oldestDate = oldestOnPage?.start_date ? String(oldestOnPage.start_date).slice(0, 10) : "?";
       console.log(`[Strava] Page ${page}: ${activities.length} activities, oldest=${oldestDate}, total=${totalImported}`);
 
-      // Upsert to Supabase in background if available
+      // Stream straight to Supabase — source of truth
       if (window.sbDb && account.id) {
-        try { await sbDb.upsertStravaActivities(account.id, activities); } catch (e) { console.warn("[Strava] Supabase upsert failed:", e?.message || e); }
+        try { await sbDb.upsertStravaActivities(account.id, activities); } catch (e) { console.warn("[Strava] upsert failed:", e?.message || e); }
       }
 
-      // Only stop on empty page — some pages may return < perPage due to
-      // privacy filtering or API quirks, but older activities still follow.
+      // Only keep the newest activities in browser memory for the feed
+      if (recentForFeed.length < FEED_CAP) {
+        recentForFeed.push(...activities.slice(0, FEED_CAP - recentForFeed.length));
+      }
+
       page++;
-      // Small delay between pages to avoid rate limiting
       await new Promise((r) => setTimeout(r, 250));
     }
 
-    // Merge all into local account
-    if (allActivities.length) {
-      mergeStravaActivitiesIntoLocalAccount(account, allActivities);
+    // Merge only the recent subset into the local feed
+    if (recentForFeed.length) {
+      mergeStravaActivitiesIntoLocalAccount(account, recentForFeed);
     }
 
     account.integrations.strava = {
@@ -7295,7 +7336,6 @@ async function importStravaHistory() {
     renderStravaProfileStatus(account);
     setText(stravaProfileFetchStatusEl, `Import fertig: ${totalImported} Aktivitäten importiert.`);
     maybeAdaptPlan();
-    // Auto-detect medals from newly imported activities
     try {
       if (window.MedalBoard?.refresh) {
         await window.MedalBoard.refresh();
@@ -7322,9 +7362,7 @@ function mergeStravaActivitiesIntoLocalAccount(account, activities) {
   if (!mapped.length) return;
   account.activities = [...mapped, ...account.activities]
     .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
-    .slice(0, 2000);
-  // Activities are persisted in Supabase (upsert runs during import),
-  // so avoid heavy localStorage write here — just mark store dirty.
+    .slice(0, 300); // keep recent in browser; full history lives in Supabase
   persistStore();
 }
 
