@@ -1588,6 +1588,162 @@ document.addEventListener("input", (event) => {
   _homeLiveTimer = setTimeout(() => runHomeAthleteSearch(val), 300);
 });
 
+// ============================================================
+// Athleten Drawer (header icon → slide-in panel)
+// ============================================================
+let _athletesSearchSeq = 0;
+let _athletesLiveTimer = 0;
+
+function openAthletesDrawer() {
+  const backdrop = document.getElementById("athletes-drawer-backdrop");
+  if (!backdrop) return;
+  backdrop.hidden = false;
+  document.body.classList.add("athletes-drawer-open");
+  renderAthletesDrawer(getCurrentAccount());
+  setTimeout(() => document.getElementById("athletes-search-input")?.focus(), 50);
+}
+
+function closeAthletesDrawer() {
+  const backdrop = document.getElementById("athletes-drawer-backdrop");
+  if (!backdrop) return;
+  backdrop.hidden = true;
+  document.body.classList.remove("athletes-drawer-open");
+  // Reset search UI
+  const resultsWrap = document.getElementById("athletes-drawer-results-wrap");
+  const results = document.getElementById("athletes-drawer-results");
+  const input = document.getElementById("athletes-search-input");
+  if (resultsWrap) resultsWrap.hidden = true;
+  if (results) results.innerHTML = "";
+  if (input) input.value = "";
+}
+
+function renderAthletesDrawer(account) {
+  const connectedList = document.getElementById("athletes-drawer-connected");
+  const connectedCount = document.getElementById("athletes-drawer-connected-count");
+  const headerCount = document.getElementById("athletes-header-count");
+  if (!connectedList) return;
+
+  const friendEmails = account?.friends || [];
+  if (connectedCount) connectedCount.textContent = String(friendEmails.length);
+  if (headerCount) {
+    if (friendEmails.length > 0) {
+      headerCount.hidden = false;
+      headerCount.textContent = friendEmails.length > 99 ? "99+" : String(friendEmails.length);
+    } else {
+      headerCount.hidden = true;
+    }
+  }
+
+  if (!account || !friendEmails.length) {
+    connectedList.innerHTML = `<div class="athletes-drawer-empty">Noch keine Verbindungen.</div>`;
+    return;
+  }
+
+  connectedList.innerHTML = friendEmails.map((email) => {
+    const friend = (appStore?.accounts || []).find((a) => a.email === email);
+    const name = friend ? resolveDisplayName(friend) : email.split("@")[0];
+    const avatar = friend?.profileImage
+      ? `<img class="athletes-drawer-avatar" src="${escapeHtml(friend.profileImage)}" alt="">`
+      : `<div class="athletes-drawer-avatar is-fallback">${escapeHtml((name.charAt(0) || "?").toUpperCase())}</div>`;
+    return `<div class="athletes-drawer-item">${avatar}<div class="athletes-drawer-meta"><div class="athletes-drawer-name">${escapeHtml(name)}</div><div class="athletes-drawer-sub">${escapeHtml(email)}</div></div></div>`;
+  }).join("");
+}
+
+async function runAthletesDrawerSearch(query) {
+  const resultsWrap = document.getElementById("athletes-drawer-results-wrap");
+  const resultsEl = document.getElementById("athletes-drawer-results");
+  if (!resultsEl || !resultsWrap) return;
+  const account = getCurrentAccount();
+  if (!account) return;
+  const q = String(query || "").trim();
+  if (!q) {
+    resultsWrap.hidden = true;
+    resultsEl.innerHTML = "";
+    return;
+  }
+  resultsWrap.hidden = false;
+  resultsEl.innerHTML = `<div class="athletes-drawer-empty">Suche …</div>`;
+  const seq = ++_athletesSearchSeq;
+
+  const remote = window.sbDb?.searchUsers
+    ? await window.sbDb.searchUsers(q, 12).catch(() => [])
+    : [];
+  if (seq !== _athletesSearchSeq) return;
+
+  const lo = q.toLowerCase();
+  const local = (appStore?.accounts || [])
+    .filter((a) => a.email !== account.email)
+    .filter((a) => {
+      const name = (a.email ? a.email.split("@")[0] : a.displayName || "Athlete").toLowerCase();
+      const displayName = (a.displayName || "").toLowerCase();
+      return name.includes(lo) || displayName.includes(lo) || a.email.toLowerCase().includes(lo);
+    })
+    .map((a) => ({ id: a.email, email: a.email, display_name: a.displayName || a.email.split("@")[0], profile_image: a.profileImage || null, _local: true }));
+
+  const seen = new Set();
+  const merged = [];
+  remote.filter((r) => r.email && r.email !== account.email).forEach((r) => {
+    if (seen.has(r.email)) return;
+    seen.add(r.email); merged.push(r);
+  });
+  local.forEach((l) => { if (!seen.has(l.email)) { seen.add(l.email); merged.push(l); } });
+
+  if (!merged.length) {
+    resultsEl.innerHTML = `<div class="athletes-drawer-empty">Keine Athleten gefunden.</div>`;
+    return;
+  }
+
+  resultsEl.innerHTML = merged.slice(0, 12).map((u) => {
+    const isConnected = Boolean(account.friends?.includes(u.email));
+    const name = u.display_name || (u.email ? u.email.split("@")[0] : "Athlete");
+    const avatar = u.profile_image
+      ? `<img class="athletes-drawer-avatar" src="${escapeHtml(u.profile_image)}" alt="">`
+      : `<div class="athletes-drawer-avatar is-fallback">${escapeHtml((name.charAt(0) || "?").toUpperCase())}</div>`;
+    return `<div class="athletes-drawer-item">${avatar}<div class="athletes-drawer-meta"><div class="athletes-drawer-name">${escapeHtml(name)}</div><div class="athletes-drawer-sub">${escapeHtml(u.email)}${u._local ? " • lokal" : ""}</div></div><button type="button" class="athletes-drawer-action${isConnected ? " is-connected" : ""}" data-athletes-connect-email="${escapeHtml(u.email)}" data-athletes-connect-id="${escapeHtml(u.id || "")}" ${isConnected ? "disabled" : ""}>${isConnected ? "Verbunden" : "Verbinden"}</button></div>`;
+  }).join("");
+
+  resultsEl.querySelectorAll("[data-athletes-connect-email]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const email = btn.getAttribute("data-athletes-connect-email");
+      const friendId = btn.getAttribute("data-athletes-connect-id");
+      if (friendId && !friendId.includes("@") && typeof sendConnectRequest === "function") {
+        try { await sendConnectRequest(friendId); } catch (_) {}
+      }
+      const result = addFriendByEmail(account, email);
+      if (result.ok) persistStore();
+      btn.disabled = true; btn.textContent = "Angefragt";
+      renderAccountUi();
+    });
+  });
+}
+
+document.getElementById("athletes-header-btn")?.addEventListener("click", openAthletesDrawer);
+document.getElementById("athletes-drawer-close")?.addEventListener("click", closeAthletesDrawer);
+document.getElementById("athletes-drawer-backdrop")?.addEventListener("click", (event) => {
+  if (event.target?.id === "athletes-drawer-backdrop") closeAthletesDrawer();
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    const backdrop = document.getElementById("athletes-drawer-backdrop");
+    if (backdrop && !backdrop.hidden) closeAthletesDrawer();
+  }
+});
+
+document.getElementById("athletes-search-form")?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const query = String(new FormData(event.target).get("query") || "").trim();
+  runAthletesDrawerSearch(query);
+});
+
+document.addEventListener("input", (event) => {
+  const el = event.target;
+  if (!el || el.closest?.("#athletes-search-form") == null) return;
+  if (el.name !== "query") return;
+  clearTimeout(_athletesLiveTimer);
+  const val = el.value;
+  _athletesLiveTimer = setTimeout(() => runAthletesDrawerSearch(val), 300);
+});
+
 // Home feed quick-add button
 document.getElementById("home-quick-add-btn")?.addEventListener("click", () => {
   if (!getCurrentAccount()) {
@@ -3671,6 +3827,9 @@ function renderAccountUi() {
   if (accountLoginBtn) accountLoginBtn.hidden = !topAuthActionsVisible;
   if (accountRegisterBtn) accountRegisterBtn.hidden = !topAuthActionsVisible;
   if (accountLogoutBtn) accountLogoutBtn.hidden = !isAuth;
+  const athletesHeaderBtn = document.getElementById("athletes-header-btn");
+  if (athletesHeaderBtn) athletesHeaderBtn.hidden = !isAuth;
+  renderAthletesDrawer(account);
   if (accountOpenLoginBtn) accountOpenLoginBtn.hidden = true;
   if (accountOpenRegisterBtn) accountOpenRegisterBtn.hidden = true;
   if (savePlanBtn) savePlanBtn.disabled = !isAuth || !latestPlan || !latestProfile;
