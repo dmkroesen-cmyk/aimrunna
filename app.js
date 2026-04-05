@@ -3540,20 +3540,18 @@ function persistStore() {
     acc.settings._updatedAt = Date.now();
   }
   try {
-    // Build a slimmed-down copy for localStorage to avoid quota issues.
-    // Strip polylines, heavy metrics, and cap at 500 activities per account.
-    const slimStore = JSON.parse(JSON.stringify(appStore));
-    (slimStore.accounts || []).forEach((a) => {
-      if (Array.isArray(a.activities) && a.activities.length > 500) {
-        a.activities = a.activities.slice(0, 500);
+    // Slim localStorage: cap activities at 200 per account, skip heavy fields.
+    // Use a replacer instead of deep-clone to avoid blocking the main thread.
+    const SKIP_KEYS = new Set(["polyline", "metrics", "imageDataUrl"]);
+    const MAX_PERSIST_ACTIVITIES = 200;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(appStore, function (key, value) {
+      if (SKIP_KEYS.has(key)) return undefined;
+      // Cap activities arrays
+      if (key === "activities" && Array.isArray(value) && value.length > MAX_PERSIST_ACTIVITIES) {
+        return value.slice(0, MAX_PERSIST_ACTIVITIES);
       }
-      (a.activities || []).forEach((act) => {
-        delete act.polyline;
-        delete act.metrics;
-        delete act.imageDataUrl;
-      });
-    });
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(slimStore));
+      return value;
+    }));
   } catch (e) {
     console.warn("persistStore failed:", e);
   }
@@ -3707,8 +3705,8 @@ async function handleSupabaseAuth(session) {
         (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
       );
     }
-    // Load activities from Supabase (full history, not just 60)
-    const activities = await sbDb.getActivities(user.id, 5000);
+    // Load recent activities from Supabase (enough for feed + stats)
+    const activities = await sbDb.getActivities(user.id, 500);
     if (activities.length) {
       account.activities = activities.map((a) => {
         const m = a.metrics || {};
@@ -7324,7 +7322,9 @@ function mergeStravaActivitiesIntoLocalAccount(account, activities) {
   if (!mapped.length) return;
   account.activities = [...mapped, ...account.activities]
     .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
-    .slice(0, 5000);
+    .slice(0, 2000);
+  // Activities are persisted in Supabase (upsert runs during import),
+  // so avoid heavy localStorage write here — just mark store dirty.
   persistStore();
 }
 
