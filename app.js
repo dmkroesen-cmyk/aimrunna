@@ -3540,7 +3540,20 @@ function persistStore() {
     acc.settings._updatedAt = Date.now();
   }
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(appStore));
+    // Build a slimmed-down copy for localStorage to avoid quota issues.
+    // Strip polylines, heavy metrics, and cap at 500 activities per account.
+    const slimStore = JSON.parse(JSON.stringify(appStore));
+    (slimStore.accounts || []).forEach((a) => {
+      if (Array.isArray(a.activities) && a.activities.length > 500) {
+        a.activities = a.activities.slice(0, 500);
+      }
+      (a.activities || []).forEach((act) => {
+        delete act.polyline;
+        delete act.metrics;
+        delete act.imageDataUrl;
+      });
+    });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(slimStore));
   } catch (e) {
     console.warn("persistStore failed:", e);
   }
@@ -4538,7 +4551,6 @@ function postActivity(account, { title, note, kind, sportType, distanceKm, image
     propsBy: [],
   };
   account.activities.unshift(activity);
-  account.activities = account.activities.slice(0, 60);
 
   // Sync to Supabase in background
   if (typeof sbDb !== "undefined" && account.id && !account.id.startsWith("acc_")) {
