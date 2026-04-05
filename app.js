@@ -3650,7 +3650,7 @@ function renderAccountUi() {
   document.body.classList.toggle("is-authenticated", isAuth);
   if (accountPillEl) accountPillEl.hidden = !isAuth;
 
-  if (accountLabelEl) accountLabelEl.textContent = isAuth ? (account.email ? (account.email ? account.email.split("@")[0] : account.displayName || "user") : account.displayName || "Athlete") : t("account_guest");
+  if (accountLabelEl) accountLabelEl.textContent = isAuth ? resolveDisplayName(account) : t("account_guest");
   if (accountStatusTagEl) accountStatusTagEl.textContent = isAuth ? t("account_signed_in") : t("account_guest");
   if (accountStatusCopyEl) {
     accountStatusCopyEl.textContent = isAuth
@@ -4404,6 +4404,7 @@ function renderProfileFeed(account) {
   profileFeedListEl.innerHTML = activities.map((item) => buildActivityCardHtml({
     item,
     actorEmail: account.email,
+    actorName: resolveDisplayName(account),
     actorAvatar: account.profileImage || null,
     actorPoints: activityPoints(item),
     viewerEmail: account.email,
@@ -4422,7 +4423,7 @@ function renderActivityFeed() {
     return;
   }
 
-  const displayName = account.displayName || (account.email || "Athlete").split("@")[0];
+  const displayName = resolveDisplayName(account);
   const initials = (displayName[0] || "A").toUpperCase();
   const actorAvatar = account.profileImage || null;
 
@@ -4648,7 +4649,7 @@ function renderCrewFeed(account) {
   const friendEmails = account.friends || [];
   const localItems = (appStore.accounts || [])
     .filter((a) => friendEmails.includes(a.email))
-    .flatMap((a) => (a.activities || []).map((item) => ({ item, actorEmail: a.email, actorAvatar: a.profileImage || null })));
+    .flatMap((a) => (a.activities || []).map((item) => ({ item, actorEmail: a.email, actorName: resolveDisplayName(a), actorAvatar: a.profileImage || null })));
   const items = mergeFeedItems(localItems, _remoteFriendsFeed || []).slice(0, 40);
   // trigger async fetch if stale (>30s) and not yet attempted this render cycle
   if (!_remoteFriendsFeed || Date.now() - _remoteFriendsFeedFetched > 30000) {
@@ -4711,7 +4712,7 @@ function renderCrewRanking(account) {
     .map(
       ({ account: rowAcc, stats }, index) => `
       <div class="friend-item">
-        <strong>#${index + 1} ${escapeHtml(rowAcc.email ? rowAcc.email.split("@")[0] : rowAcc.displayName || "Athlete")}</strong>
+        <strong>#${index + 1} ${escapeHtml(resolveDisplayName(rowAcc))}</strong>
         <small>${stats.points} ${escapeHtml(t("unit_points"))} • ${stats.runKm.toFixed(0)}k RUN • ${stats.bikeKm.toFixed(0)}k BIKE • ${stats.races} ${escapeHtml(t("unit_races"))}</small>
       </div>`
     )
@@ -4729,10 +4730,10 @@ function renderHomeFeed(account) {
   }
   // Combine own + friend activities (local + Supabase remote)
   const friendEmails = account.friends || [];
-  const ownItems = (account.activities || []).map((item) => ({ item, actorEmail: account.email, actorAvatar: account.profileImage || null }));
+  const ownItems = (account.activities || []).map((item) => ({ item, actorEmail: account.email, actorName: resolveDisplayName(account), actorAvatar: account.profileImage || null }));
   const localFriendItems = (appStore.accounts || [])
     .filter((a) => friendEmails.includes(a.email))
-    .flatMap((a) => (a.activities || []).map((item) => ({ item, actorEmail: a.email, actorAvatar: a.profileImage || null })));
+    .flatMap((a) => (a.activities || []).map((item) => ({ item, actorEmail: a.email, actorName: resolveDisplayName(a), actorAvatar: a.profileImage || null })));
   const allItems = mergeFeedItems([...ownItems, ...localFriendItems], _remoteFriendsFeed || []).slice(0, 60);
   if (!_remoteFriendsFeed || Date.now() - _remoteFriendsFeedFetched > 30000) {
     refreshRemoteFriendsFeed().then(() => {
@@ -4778,9 +4779,27 @@ function renderHomeFeed(account) {
   }
 }
 
-function buildActivityCardHtml({ item, actorEmail, actorAvatar, actorPoints = 0, viewerEmail = "", showPropsAction = false }) {
-  const actorName = String(actorEmail || "Athlete").split("@")[0];
-  const initials = (actorName[0] || "A").toUpperCase();
+// Single source of truth for resolving a user's display name
+// Priority: profile.displayName → account.displayName → email-prefix → fallback
+function resolveDisplayName(account) {
+  if (!account) return "Athlet";
+  const fromProfile = account.profile?.displayName && String(account.profile.displayName).trim();
+  if (fromProfile) return fromProfile;
+  const fromAccount = account.displayName && String(account.displayName).trim();
+  if (fromAccount) return fromAccount;
+  if (account.email) {
+    const prefix = String(account.email).split("@")[0];
+    if (prefix) return prefix;
+  }
+  return "Athlet";
+}
+
+function buildActivityCardHtml({ item, actorEmail, actorName = "", actorAvatar, actorPoints = 0, viewerEmail = "", showPropsAction = false }) {
+  // Prefer real display name; fall back to email prefix only if no displayName known
+  const resolvedName = (actorName && String(actorName).trim())
+    || String(actorEmail || "Athlete").split("@")[0]
+    || "Athlet";
+  const initials = (resolvedName[0] || "A").toUpperCase();
   const dateRaw = item.createdAt || item.date || item.start_date || item.start_date_local;
   const date = dateRaw ? new Date(dateRaw) : new Date();
   const dateValid = !isNaN(date.getTime());
@@ -4836,7 +4855,7 @@ function buildActivityCardHtml({ item, actorEmail, actorAvatar, actorPoints = 0,
       <div class="activity-card-head">
         <div class="activity-card-avatar ${actorAvatar ? "has-image" : ""}" style="${actorAvatar ? `background-image:url('${actorAvatar}')` : ""}">${escapeHtml(initials)}</div>
         <div class="activity-card-meta">
-          <span class="activity-card-name">${escapeHtml(actorName)}</span>
+          <span class="activity-card-name">${escapeHtml(resolvedName)}</span>
           <span class="activity-card-date">${escapeHtml(dateStr)} · ${escapeHtml(timeStr)}</span>
         </div>
         <span class="activity-card-type">${escapeHtml(sportLabel)}</span>
