@@ -5047,16 +5047,33 @@ function openActivityDetail(ownerEmail, activityId) {
 
   modal.hidden = false;
 
-  // Initialize Leaflet map after DOM insertion
-  if (activity.polyline && window.L) {
-    try { renderLeafletRouteMap(leafletMapId, activity.polyline); } catch (e) { console.warn("[leaflet]", e); }
-  } else if (activity.polyline) {
-    // Leaflet not loaded yet — retry after small delay
-    setTimeout(() => {
-      if (window.L) {
-        try { renderLeafletRouteMap(leafletMapId, activity.polyline); } catch (e) { console.warn("[leaflet retry]", e); }
-      }
-    }, 400);
+  // Initialize Leaflet map with retry + SVG fallback
+  if (activity.polyline) {
+    tryRenderLeafletMap(leafletMapId, activity, 0);
+  }
+}
+
+function tryRenderLeafletMap(containerId, activity, attempt) {
+  const el = document.getElementById(containerId);
+  if (!el) { console.warn("[leaflet] container not found:", containerId); return; }
+
+  // Render SVG silhouette IMMEDIATELY as fallback/preview (shown until Leaflet loads)
+  if (!el.dataset.svgFallbackRendered) {
+    el.innerHTML = renderRouteMapSvg(activity, { width: el.clientWidth || 640, height: 280, strokeWidth: 3 });
+    el.dataset.svgFallbackRendered = "1";
+  }
+
+  if (!window.L) {
+    if (attempt >= 30) { console.warn("[leaflet] L never loaded after 3s, using SVG fallback"); return; }
+    setTimeout(() => tryRenderLeafletMap(containerId, activity, attempt + 1), 100);
+    return;
+  }
+
+  try {
+    renderLeafletRouteMap(containerId, activity.polyline);
+    console.log("[leaflet] map rendered for", containerId);
+  } catch (e) {
+    console.warn("[leaflet] render failed:", e);
   }
 }
 
@@ -5069,14 +5086,17 @@ function renderLeafletRouteMap(containerId, encodedPolyline) {
 
   // Clean up any previous map instance on this element
   if (el._leafletMap) {
-    el._leafletMap.remove();
+    try { el._leafletMap.remove(); } catch (_) {}
     el._leafletMap = null;
   }
+  // Clear SVG fallback before Leaflet takes over
+  el.innerHTML = "";
+  delete el.dataset.svgFallbackRendered;
 
-  const map = L.map(el, { zoomControl: true, attributionControl: true, scrollWheelZoom: false });
+  const map = L.map(el, { zoomControl: true, attributionControl: true, scrollWheelZoom: false, tap: true });
   el._leafletMap = map;
 
-  // Dark-mode friendly tiles (CartoDB Dark Matter — free, OSM-based)
+  // Dark-mode friendly tiles (CartoDB Dark Matter — free, OSM-based, no API key)
   L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
     subdomains: "abcd",
@@ -5084,15 +5104,17 @@ function renderLeafletRouteMap(containerId, encodedPolyline) {
   }).addTo(map);
 
   const route = L.polyline(pts, { color: "#E5A93D", weight: 4, opacity: 0.95, lineJoin: "round", lineCap: "round" }).addTo(map);
-  // Start + end markers
   const startIcon = L.divIcon({ className: "route-marker-start", html: '<div style="width:12px;height:12px;border-radius:50%;background:#34d399;border:2px solid #0a0a0a;box-shadow:0 0 0 2px #34d399;"></div>', iconSize: [12,12], iconAnchor:[6,6] });
   const endIcon = L.divIcon({ className: "route-marker-end", html: '<div style="width:12px;height:12px;border-radius:50%;background:#ef4444;border:2px solid #0a0a0a;box-shadow:0 0 0 2px #ef4444;"></div>', iconSize: [12,12], iconAnchor:[6,6] });
   L.marker(pts[0], { icon: startIcon }).addTo(map);
   L.marker(pts[pts.length - 1], { icon: endIcon }).addTo(map);
 
   map.fitBounds(route.getBounds(), { padding: [20, 20] });
-  // Invalidate size after modal animation completes
-  setTimeout(() => map.invalidateSize(), 200);
+  // Force invalidation multiple times to handle modal transitions / layout shifts
+  requestAnimationFrame(() => map.invalidateSize());
+  setTimeout(() => map.invalidateSize(), 100);
+  setTimeout(() => map.invalidateSize(), 400);
+  setTimeout(() => map.invalidateSize(), 1000);
 }
 
 function closeActivityDetail() {

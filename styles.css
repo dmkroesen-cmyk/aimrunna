@@ -2808,6 +2808,33 @@ body.profile-view-settings .profile-settings-card.is-active {
 
 .activity-detail-map {
   border-bottom: 1px solid rgba(255,255,255,0.06);
+  position: relative;
+  z-index: 0;
+}
+
+.activity-detail-leaflet {
+  position: relative;
+  z-index: 0;
+}
+.activity-detail-leaflet .leaflet-container {
+  background: #0a0a0a;
+  font-family: "Inter", sans-serif;
+}
+.activity-detail-leaflet .leaflet-control-attribution {
+  background: rgba(0,0,0,0.6);
+  color: rgba(255,255,255,0.55);
+  font-size: 10px;
+}
+.activity-detail-leaflet .leaflet-control-attribution a {
+  color: rgba(255,255,255,0.75);
+}
+.activity-detail-leaflet .leaflet-bar a {
+  background: rgba(20,20,20,0.9);
+  color: #e5a93d;
+  border-color: rgba(255,255,255,0.1);
+}
+.activity-detail-leaflet .leaflet-bar a:hover {
+  background: rgba(40,40,40,0.95);
 }
 
 .map-placeholder {
