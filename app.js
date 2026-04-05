@@ -7106,17 +7106,23 @@ async function importStravaHistory() {
         break;
       }
       const activities = activitiesJson.activities;
-      if (!activities.length) break;
+      if (!activities.length) break; // empty page = real end of history
 
       allActivities = allActivities.concat(activities);
       totalImported += activities.length;
+
+      // Log oldest activity on this page for debugging
+      const oldestOnPage = activities[activities.length - 1];
+      const oldestDate = oldestOnPage?.start_date ? String(oldestOnPage.start_date).slice(0, 10) : "?";
+      console.log(`[Strava] Page ${page}: ${activities.length} activities, oldest=${oldestDate}, total=${totalImported}`);
 
       // Upsert to Supabase in background if available
       if (window.sbDb && account.id) {
         try { await sbDb.upsertStravaActivities(account.id, activities); } catch (e) { console.warn("[Strava] Supabase upsert failed:", e?.message || e); }
       }
 
-      if (activities.length < perPage) break;
+      // Only stop on empty page — some pages may return < perPage due to
+      // privacy filtering or API quirks, but older activities still follow.
       page++;
       // Small delay between pages to avoid rate limiting
       await new Promise((r) => setTimeout(r, 250));
