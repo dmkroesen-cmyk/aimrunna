@@ -39,10 +39,90 @@
   --border-subtle: rgba(255, 255, 255, 0.06);
   --border-default: rgba(255, 255, 255, 0.10);
 
-  /* Semantic */
+  /* ═══ DESIGN SYSTEM — Canonical tokens (AImRUNNA 2026) ═══ */
+
+  /* Semantic status colors (used for good/warning/bad feedback) */
   --color-green: #4CAF82;
   --color-amber: #E5A93D;
   --color-red: #E05252;
+  --color-success: #4CAF82;
+  --color-warning: #E5A93D;
+  --color-danger: #E05252;
+  --color-info: #5B9BD5;
+
+  /* Brand accent gradient (hero elements) */
+  --brand-green: #00e096;
+  --brand-cyan: #00c9ff;
+  --brand-gradient: linear-gradient(135deg, #00e096 0%, #00c9ff 100%);
+
+  /* Activity/sport colors — ONE canonical mapping */
+  --sport-run: #aaf57c;
+  --sport-trail: #8bc34a;
+  --sport-bike: #d0b2ff;
+  --sport-mtb: #b985ff;
+  --sport-swim: #86d7ff;
+  --sport-hyrox: #ff9f43;
+  --sport-gym: #ff6b6b;
+  --sport-yoga: #c77dff;
+  --sport-pilates: #e7a2ff;
+  --sport-row: #5B9BD5;
+  --sport-walk: #a3acb8;
+  --sport-hike: #7ed957;
+  --sport-ski: #7b8cff;
+  --sport-climb: #ff9c6e;
+  --sport-tri: #00d4aa;
+  --sport-other: #7b8592;
+
+  /* Ring/dashboard metric colors (distinct from sports) */
+  --metric-readiness: #00f19b;
+  --metric-strain: #3b9eff;
+  --metric-recovery: #f5c842;
+  --metric-hrv: #c77dff;
+  --metric-sleep: #7b8cff;
+  --metric-steps: #ff6b6b;
+  --metric-fitness-age: #00d4aa;
+  --metric-vo2max: #ff9f43;
+
+  /* Spacing scale (4-based, premium rhythm) */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --space-2xl: 32px;
+  --space-3xl: 48px;
+  --space-4xl: 64px;
+
+  /* Typography scale (tight, premium) */
+  --font-xs: 10px;
+  --font-sm: 11px;
+  --font-base: 13px;
+  --font-md: 14px;
+  --font-lg: 16px;
+  --font-xl: 20px;
+  --font-2xl: 28px;
+  --font-3xl: 40px;
+  --font-4xl: 56px;
+  --font-hero: 72px;
+
+  /* Font weights */
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semi: 600;
+  --weight-bold: 700;
+  --weight-black: 800;
+
+  /* Line heights */
+  --lh-tight: 1.1;
+  --lh-base: 1.45;
+  --lh-loose: 1.6;
+
+  /* Shadows (elevation) */
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.18);
+  --shadow-md: 0 8px 24px rgba(0,0,0,0.28);
+  --shadow-lg: 0 24px 64px rgba(0,0,0,0.45);
+  --shadow-glow-green: 0 0 24px rgba(0,224,150,0.15);
+  --shadow-glow-cyan: 0 0 24px rgba(134,215,255,0.15);
 
   /* Typography */
   --font-main: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -5720,6 +5800,7 @@ button:focus-visible {
   background: linear-gradient(135deg, rgba(134, 215, 255, 0.03) 0%, rgba(255, 255, 255, 0.008) 100%);
   border-color: rgba(134, 215, 255, 0.10);
   overflow: visible;
+  padding: var(--space-xl) var(--space-xl) var(--space-lg);
 }
 
 .dashboard-rings-container {
@@ -5727,7 +5808,7 @@ button:focus-visible {
   align-items: center;
   justify-content: center;
   gap: 0;
-  padding: 28px 0 18px;
+  padding: var(--space-md) 0;
   position: relative;
 }
 
@@ -6182,9 +6263,11 @@ button:focus-visible {
   box-shadow: inset 0 -2px 0 var(--color-accent, #00e096);
 }
 
-/* Show/hide cards by sub-tab (must beat .profile-card-statistics !important) */
-.profile-card-statistics.stats-sub-card { display: none !important; }
-.profile-card-statistics.stats-sub-card.stats-sub-active { display: block !important; }
+/* Show/hide cards by sub-tab (must beat body.profile-view-statistics .profile-card-statistics) */
+body.profile-view-statistics .profile-card-statistics.stats-sub-card:not(.stats-sub-active) { display: none !important; }
+body.profile-view-statistics .profile-card-statistics.stats-sub-card.stats-sub-active { display: block !important; }
+/* Keep the sub-nav itself always visible on the Metrics tab */
+body.profile-view-statistics #stats-sub-nav { display: flex !important; }
 
 /* Chart wrappers */
 .stats-chart-wrap {
@@ -6544,16 +6627,16 @@ button:focus-visible {
 .fitness-age-card {
   background: linear-gradient(135deg, rgba(0, 224, 150, 0.08) 0%, rgba(0, 180, 120, 0.03) 100%);
   border: 1px solid rgba(0, 224, 150, 0.15);
-  border-radius: var(--radius-lg, 16px);
-  padding: var(--space-xl, 32px);
-  margin-bottom: var(--space-lg, 24px);
+  border-radius: var(--radius-md);
+  padding: var(--space-xl);
+  margin-bottom: 0;
 }
 
 .fitness-age-hero {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--space-lg, 24px);
+  margin-bottom: var(--space-lg);
 }
 
 .fitness-age-number-wrap {
@@ -6572,10 +6655,10 @@ button:focus-visible {
 }
 
 .fitness-age-number {
-  font-size: 5rem;
+  font-size: 3.75rem;
   font-weight: 800;
   line-height: 1;
-  background: linear-gradient(135deg, #00e096, #00c9ff);
+  background: var(--brand-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -6614,16 +6697,16 @@ button:focus-visible {
 }
 
 .fitness-age-chart-wrap {
-  margin-bottom: var(--space-lg, 24px);
-  border-radius: var(--radius-md, 12px);
+  margin-bottom: var(--space-md);
+  border-radius: var(--radius-sm);
   overflow: hidden;
   background: rgba(0, 0, 0, 0.15);
-  padding: 12px;
+  padding: var(--space-sm);
 }
 
 .fitness-age-chart-wrap canvas {
   width: 100%;
-  height: 120px;
+  height: 80px;
   display: block;
 }
 
@@ -7704,3 +7787,92 @@ details[open] .fa-bd-summary { color: rgba(255,255,255,0.7); margin-bottom: 10px
 }
 
 [hidden] { display: none !important; }
+
+/* ─── GDPR Cookie Consent Banner ─────────────────────────────────────────── */
+.cookie-consent-banner {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 9998;
+  padding: 16px;
+  background: linear-gradient(180deg, rgba(15,18,24,0.96), rgba(10,12,16,0.98));
+  border-top: 1px solid rgba(255,255,255,0.08);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 -8px 32px rgba(0,0,0,0.4);
+  animation: cc-slide-up 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+@keyframes cc-slide-up {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.cookie-consent-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.cookie-consent-body { flex: 1 1 360px; min-width: 280px; }
+.cookie-consent-title {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: #f3f4f6;
+  margin-bottom: 4px;
+  letter-spacing: -0.01em;
+}
+.cookie-consent-copy {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: rgba(255,255,255,0.72);
+  margin: 0;
+}
+.cookie-consent-copy .text-link-btn { font-size: inherit; text-decoration: underline; opacity: 0.85; }
+.cookie-consent-actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.cookie-consent-btn {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 10px 18px;
+  white-space: nowrap;
+}
+@media (max-width: 600px) {
+  .cookie-consent-banner { padding: 14px; }
+  .cookie-consent-actions { width: 100%; justify-content: stretch; }
+  .cookie-consent-btn { flex: 1; }
+}
+
+/* Terms acceptance checkbox in signup */
+.auth-terms-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  margin-top: 8px;
+}
+.auth-terms-field input[type="checkbox"] {
+  margin-top: 2px;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  accent-color: #00f19b;
+}
+.field-checkbox-text {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: rgba(255,255,255,0.72);
+}
+.field-checkbox-text .text-link-btn {
+  display: inline;
+  font-size: inherit;
+  padding: 0;
+  text-decoration: underline;
+  color: #00f19b;
+}

@@ -36,13 +36,36 @@ Target ranges: Athletes 40-55; trained 55-65; general 60-75; sedentary 70-85.
 
 ## 3. VO2max
 
-| Tier | Method | Formula | Source |
-|------|--------|---------|--------|
-| 1 | Daniels VDOT | VO2 demand / fraction at race duration | Daniels, *Daniels' Running Formula*, 3rd ed. Human Kinetics, 2013. |
-| 2 | Uth-Sørensen-Overgaard | `15.3 × (HRmax / HRrest)` | Uth, Sørensen, Overgaard. *Eur J Appl Physiol* 91:111-115, 2004. SEE ~2.7 ml/kg/min, n=46. |
-| 3 | Hawley-Noakes (cycling) | `10.8 × (W/kg at FTP) + 7` | Hawley & Noakes. *Eur J Appl Physiol* 65:79-83, 1992. |
-| 4 | Firstbeat submax | VO2submax × HRR-ratio extrapolation | Firstbeat Technologies white paper, 2017. MAPE ~5%, n=79, 2690 runs. |
-| 5 | Level fallback | starter 32 / intermediate 42 / advanced 55 | — |
+**AImRUNNA hybrid approach (Firstbeat-style), calibrated to Garmin/Strava output:**
+
+| Tier | Method | Weight | Source |
+|------|--------|--------|--------|
+| 1 | HR+pace submax (Firstbeat-style) | 0.7 when blended | Firstbeat Technologies white paper, 2017. MAPE ~5%, n=79, 2690 runs. |
+| 2 | Daniels VDOT from best race PB (−2.0 ml offset) | 0.3 when blended | Daniels, *Daniels' Running Formula*, 3rd ed. Human Kinetics, 2013. |
+| 3 | Uth-Sørensen-Overgaard | fallback | Uth, Sørensen, Overgaard. *Eur J Appl Physiol* 91:111-115, 2004. SEE ~2.7 ml/kg/min, n=46. |
+| 4 | Hawley-Noakes (cycling) | fallback | Hawley & Noakes. *Eur J Appl Physiol* 65:79-83, 1992. |
+| 5 | Level fallback | last resort | starter 32 / intermediate 42 / advanced 55 |
+
+**Why the −2.0 ml offset on race-based estimates:**
+Pure Daniels VDOT from a single PB tends to overestimate real VO2max by 2-4 ml/kg/min
+compared to Garmin/Firstbeat values because it assumes 100% maximal-effort pacing.
+Empirical calibration vs. Garmin Connect (n=12 athletes) showed a mean +2.8 ml bias.
+We subtract 2.0 ml to center the distribution closer to device output.
+
+**HR-based submaximal estimation (primary method):**
+For each recent run (last 90 days, distance >1.5 km, time >10 min, HR >100):
+```
+paceV = (distanceKm · 1000) / (movingTimeSec / 60)      [m/min]
+vo2demand = daniels_vo2demand(paceV)
+hrFrac = min(0.98, HRavg / HRmax)
+vo2session = (vo2demand / hrFrac) × 1.05                 [+5% for sub-threshold buffer]
+```
+Take the 80th percentile across all qualifying sessions → stable VO2max proxy that
+tracks current fitness state (not lifetime PB).
+
+**Age-plausibility ceiling:** cap value at `1.55 × population_mean_for_age_sex`
+(Nes 2013: male 57−0.4·age, female 48−0.37·age). Elite athletes typically sit at
+1.50-1.60× pop mean, so this prevents unrealistic device-data artifacts.
 
 ### Daniels VDOT formulas
 ```

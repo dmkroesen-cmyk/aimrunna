@@ -605,6 +605,65 @@
               <div id="fitness-age-breakdown" class="fitness-age-breakdown" hidden></div>
             </div>
 
+            <h5 class="dashboard-section-header profile-card-overview">Belastung &amp; Rhythmus</h5>
+            <!-- ── LOAD / Belastung (Dashboard) ── -->
+            <section class="result-card account-card profile-main-card profile-card-overview" id="profile-card-load-chart">
+              <div class="result-title-row">
+                <h4>Trainingsbelastung</h4>
+                <span class="tag subtle">ACWR</span>
+              </div>
+              <p class="chart-explain">Zeigt, wie hart du trainierst. Die <b style="color:#5B9BD5">akute Last</b> ist dein Schnitt der letzten 7 Tage, die <b style="color:#E5A93D">chronische Last</b> der letzten 28 Tage. Das Verhältnis (ACWR) sollte zwischen 0.8 und 1.3 liegen — das ist der <b style="color:#4CAF82">Sweet Spot</b>. Darüber steigt das Verletzungsrisiko, darunter verlierst du Fitness.</p>
+              <div class="chart-legend">
+                <span class="legend-item"><span class="legend-swatch legend-line" style="background:#5B9BD5"></span>Akute Last (7d)</span>
+                <span class="legend-item"><span class="legend-swatch legend-line-dashed" style="--c:#E5A93D"></span>Chronische Last (28d)</span>
+                <span class="legend-item"><span class="legend-swatch" style="background:rgba(76,175,130,0.25)"></span>Sweet Spot (0.8–1.3)</span>
+              </div>
+              <div class="stats-chart-wrap">
+                <svg id="stats-load-svg" class="stats-chart-svg" viewBox="0 0 720 220" preserveAspectRatio="xMidYMid meet"></svg>
+              </div>
+              <div class="stats-summary-row" id="load-summary-row">
+                <div class="stats-summary-item">
+                  <span>Akute Last (7d)</span>
+                  <strong id="load-acute">–</strong>
+                </div>
+                <div class="stats-summary-item">
+                  <span>Chronische Last (28d)</span>
+                  <strong id="load-chronic">–</strong>
+                </div>
+                <div class="stats-summary-item">
+                  <span>ACWR</span>
+                  <strong id="load-acwr">–</strong>
+                </div>
+                <div class="stats-summary-item">
+                  <span>Zone</span>
+                  <strong id="load-zone">–</strong>
+                </div>
+              </div>
+            </section>
+
+            <section class="result-card account-card profile-main-card profile-card-overview" id="profile-card-consistency">
+              <div class="result-title-row">
+                <h4>Trainings-Konsistenz</h4>
+                <span class="tag subtle">12 Wochen</span>
+              </div>
+              <p class="chart-explain">Jede Zelle = ein Tag. Jede Spalte = eine Kalenderwoche. Helle Zellen = harte Einheit, mittlere = solides Training, dunkle = leicht, leer = Ruhetag. So siehst du Lücken und Rhythmus auf einen Blick.</p>
+              <div class="chart-legend">
+                <span class="legend-item"><span class="legend-swatch" style="background:rgba(76,175,130,0.18)"></span>Ruhetag</span>
+                <span class="legend-item"><span class="legend-swatch" style="background:#2d6b4f"></span>Leicht</span>
+                <span class="legend-item"><span class="legend-swatch" style="background:#4CAF82"></span>Solide</span>
+                <span class="legend-item"><span class="legend-swatch" style="background:#6EE7A7"></span>Hart</span>
+              </div>
+              <div class="stats-chart-wrap">
+                <svg id="stats-consistency-svg" class="stats-chart-svg" viewBox="0 0 720 180" preserveAspectRatio="xMidYMid meet"></svg>
+              </div>
+              <div class="stats-summary-row" id="consistency-summary-row">
+                <div class="stats-summary-item"><span>Einheiten / Woche ⌀</span><strong id="cons-weekly-avg">–</strong></div>
+                <div class="stats-summary-item"><span>Längste Serie</span><strong id="cons-streak">–</strong></div>
+                <div class="stats-summary-item"><span>Ruhetage / Woche ⌀</span><strong id="cons-rest-avg">–</strong></div>
+                <div class="stats-summary-item"><span>Konsistenz</span><strong id="cons-score">–</strong></div>
+              </div>
+            </section>
+
             <h5 class="dashboard-section-header profile-card-overview">Leistung</h5>
             <!-- ═══ DASHBOARD KPIs ═══ -->
             <section class="result-card account-card profile-main-card profile-card-overview dashboard-kpi-card" id="dashboard-kpi-running">
@@ -852,7 +911,7 @@
               </div>
             </section>
 
-            <section class="result-card account-card profile-main-card profile-card-statistics stats-sub-card stats-sub-volume stats-sub-active" id="profile-card-pace-trend">
+            <section class="result-card account-card profile-main-card profile-card-statistics stats-sub-card stats-sub-performance" id="profile-card-pace-trend">
               <div class="result-title-row">
                 <h4 data-i18n="stats_pace_trend">Pace-Entwicklung</h4>
                 <span class="tag subtle" id="stats-pace-trend-tag">min/km</span>
@@ -1034,67 +1093,85 @@
             </section>
 
             <!-- ── BELASTUNG Deep-Dive (Metrics sub-tab) ── -->
-            <section class="result-card account-card profile-main-card profile-card-statistics stats-sub-card stats-sub-load" id="profile-card-load-deep">
-              <div class="result-title-row"><h4>Trainingsbelastung — Detailanalyse</h4></div>
-              <p class="card-copy">Ausführliche Load-Analyse findest du im Dashboard. Hier kommen bald: Zonen-Verteilung über Zeit, TRIMP-Historie, Monotonie- & Strain-Scores.</p>
-            </section>
-
-            <h5 class="dashboard-section-header profile-card-overview">Belastung &amp; Rhythmus</h5>
-            <!-- ── LOAD / Belastung (Dashboard) ── -->
-            <section class="result-card account-card profile-main-card profile-card-overview" id="profile-card-load-chart">
+            <!-- ═══ BELASTUNG: Form & Fitness (CTL/ATL/TSB) ═══ -->
+            <section class="result-card account-card profile-main-card profile-card-statistics stats-sub-card stats-sub-load" id="profile-card-form-fitness">
               <div class="result-title-row">
-                <h4>Trainingsbelastung</h4>
-                <span class="tag subtle">ACWR</span>
+                <h4>Form &amp; Fitness</h4>
+                <span class="tag subtle">CTL / ATL / TSB</span>
               </div>
-              <p class="chart-explain">Zeigt, wie hart du trainierst. Die <b style="color:#5B9BD5">akute Last</b> ist dein Schnitt der letzten 7 Tage, die <b style="color:#E5A93D">chronische Last</b> der letzten 28 Tage. Das Verhältnis (ACWR) sollte zwischen 0.8 und 1.3 liegen — das ist der <b style="color:#4CAF82">Sweet Spot</b>. Darüber steigt das Verletzungsrisiko, darunter verlierst du Fitness.</p>
+              <p class="chart-explain"><b style="color:#4CAF82">Fitness (CTL)</b> = dein chronischer Trainingsstress (42-Tage-Schnitt). <b style="color:#E5A93D">Ermüdung (ATL)</b> = akuter Stress (7-Tage-Schnitt). <b style="color:#5B9BD5">Form (TSB)</b> = CTL − ATL. Positive Form (&gt; +5) = frisch, negative Form (&lt; −20) = überlastet. Klassiker aus Bannister/Coggan.</p>
               <div class="chart-legend">
-                <span class="legend-item"><span class="legend-swatch legend-line" style="background:#5B9BD5"></span>Akute Last (7d)</span>
-                <span class="legend-item"><span class="legend-swatch legend-line-dashed" style="--c:#E5A93D"></span>Chronische Last (28d)</span>
-                <span class="legend-item"><span class="legend-swatch" style="background:rgba(76,175,130,0.25)"></span>Sweet Spot (0.8–1.3)</span>
+                <span class="legend-item"><span class="legend-swatch legend-line" style="background:#4CAF82"></span>Fitness (CTL)</span>
+                <span class="legend-item"><span class="legend-swatch legend-line" style="background:#E5A93D"></span>Ermüdung (ATL)</span>
+                <span class="legend-item"><span class="legend-swatch legend-line" style="background:#5B9BD5"></span>Form (TSB)</span>
               </div>
               <div class="stats-chart-wrap">
-                <svg id="stats-load-svg" class="stats-chart-svg" viewBox="0 0 720 220" preserveAspectRatio="xMidYMid meet"></svg>
+                <svg id="stats-form-fitness-svg" class="stats-chart-svg" viewBox="0 0 720 240" preserveAspectRatio="xMidYMid meet"></svg>
               </div>
-              <div class="stats-summary-row" id="load-summary-row">
-                <div class="stats-summary-item">
-                  <span>Akute Last (7d)</span>
-                  <strong id="load-acute">–</strong>
-                </div>
-                <div class="stats-summary-item">
-                  <span>Chronische Last (28d)</span>
-                  <strong id="load-chronic">–</strong>
-                </div>
-                <div class="stats-summary-item">
-                  <span>ACWR</span>
-                  <strong id="load-acwr">–</strong>
-                </div>
-                <div class="stats-summary-item">
-                  <span>Zone</span>
-                  <strong id="load-zone">–</strong>
-                </div>
+              <div class="stats-summary-row" id="form-fitness-summary">
+                <div class="stats-summary-item"><span>CTL heute</span><strong id="ff-ctl">–</strong></div>
+                <div class="stats-summary-item"><span>ATL heute</span><strong id="ff-atl">–</strong></div>
+                <div class="stats-summary-item"><span>TSB heute</span><strong id="ff-tsb">–</strong></div>
+                <div class="stats-summary-item"><span>Status</span><strong id="ff-status">–</strong></div>
               </div>
             </section>
 
-            <section class="result-card account-card profile-main-card profile-card-overview" id="profile-card-consistency">
+            <!-- ═══ BELASTUNG: Monotony & Strain (Foster 1998) ═══ -->
+            <section class="result-card account-card profile-main-card profile-card-statistics stats-sub-card stats-sub-load" id="profile-card-monotony">
               <div class="result-title-row">
-                <h4>Trainings-Konsistenz</h4>
-                <span class="tag subtle">12 Wochen</span>
+                <h4>Monotonie &amp; Strain</h4>
+                <span class="tag subtle">Foster 1998</span>
               </div>
-              <p class="chart-explain">Jede Zelle = ein Tag. Jede Spalte = eine Kalenderwoche. Helle Zellen = harte Einheit, mittlere = solides Training, dunkle = leicht, leer = Ruhetag. So siehst du Lücken und Rhythmus auf einen Blick.</p>
+              <p class="chart-explain"><b>Monotonie</b> = wie gleichförmig deine Woche ist (Mittelwert ÷ Streuung). <b style="color:#4CAF82">&lt; 1.5</b> = abwechslungsreich, <b style="color:#E5A93D">1.5–2.0</b> = grenzwertig, <b style="color:#d9534f">&gt; 2.0</b> = Krankheits-/Verletzungsrisiko steigt. <b>Strain</b> = Monotonie × Wochenlast. Foster 1998.</p>
               <div class="chart-legend">
-                <span class="legend-item"><span class="legend-swatch" style="background:rgba(76,175,130,0.18)"></span>Ruhetag</span>
-                <span class="legend-item"><span class="legend-swatch" style="background:#2d6b4f"></span>Leicht</span>
-                <span class="legend-item"><span class="legend-swatch" style="background:#4CAF82"></span>Solide</span>
-                <span class="legend-item"><span class="legend-swatch" style="background:#6EE7A7"></span>Hart</span>
+                <span class="legend-item"><span class="legend-swatch" style="background:#5B9BD5"></span>Monotonie</span>
+                <span class="legend-item"><span class="legend-swatch" style="background:#E5A93D"></span>Strain (skaliert)</span>
               </div>
               <div class="stats-chart-wrap">
-                <svg id="stats-consistency-svg" class="stats-chart-svg" viewBox="0 0 720 180" preserveAspectRatio="xMidYMid meet"></svg>
+                <svg id="stats-monotony-svg" class="stats-chart-svg" viewBox="0 0 720 200" preserveAspectRatio="xMidYMid meet"></svg>
               </div>
-              <div class="stats-summary-row" id="consistency-summary-row">
-                <div class="stats-summary-item"><span>Einheiten / Woche ⌀</span><strong id="cons-weekly-avg">–</strong></div>
-                <div class="stats-summary-item"><span>Längste Serie</span><strong id="cons-streak">–</strong></div>
-                <div class="stats-summary-item"><span>Ruhetage / Woche ⌀</span><strong id="cons-rest-avg">–</strong></div>
-                <div class="stats-summary-item"><span>Konsistenz</span><strong id="cons-score">–</strong></div>
+              <div class="stats-summary-row" id="monotony-summary">
+                <div class="stats-summary-item"><span>Ø Monotonie 8W</span><strong id="mt-avg">–</strong></div>
+                <div class="stats-summary-item"><span>Max. Strain</span><strong id="mt-strain">–</strong></div>
+                <div class="stats-summary-item"><span>Risiko-Wochen</span><strong id="mt-risk">–</strong></div>
+              </div>
+            </section>
+
+            <!-- ═══ BELASTUNG: Intensity Distribution Timeline ═══ -->
+            <section class="result-card account-card profile-main-card profile-card-statistics stats-sub-card stats-sub-load" id="profile-card-intensity-timeline">
+              <div class="result-title-row">
+                <h4>Intensitäts-Verteilung über Zeit</h4>
+                <span class="tag subtle">Z1 / Z2 / Z3 pro Woche</span>
+              </div>
+              <p class="chart-explain">So viel Prozent jeder Woche in <b style="color:#4CAF82">Zone 1 (locker)</b>, <b style="color:#E5A93D">Zone 2 (Schwelle)</b>, <b style="color:#d9534f">Zone 3 (VO2max/hart)</b>. Ideal für die meisten Ausdauersportler: <b>80 % Z1, 5 % Z2, 15 % Z3</b> (polarisiert).</p>
+              <div class="chart-legend">
+                <span class="legend-item"><span class="legend-swatch" style="background:#4CAF82"></span>Z1 (locker)</span>
+                <span class="legend-item"><span class="legend-swatch" style="background:#E5A93D"></span>Z2 (Schwelle)</span>
+                <span class="legend-item"><span class="legend-swatch" style="background:#d9534f"></span>Z3 (hart)</span>
+              </div>
+              <div class="stats-chart-wrap">
+                <svg id="stats-intensity-timeline-svg" class="stats-chart-svg" viewBox="0 0 720 200" preserveAspectRatio="xMidYMid meet"></svg>
+              </div>
+              <div class="stats-summary-row" id="intensity-timeline-summary">
+                <div class="stats-summary-item"><span>Ø Z1</span><strong id="itl-z1">–</strong></div>
+                <div class="stats-summary-item"><span>Ø Z2</span><strong id="itl-z2">–</strong></div>
+                <div class="stats-summary-item"><span>Ø Z3</span><strong id="itl-z3">–</strong></div>
+                <div class="stats-summary-item"><span>Verteilung</span><strong id="itl-type">–</strong></div>
+              </div>
+            </section>
+
+            <!-- ═══ BELASTUNG: Hard-Day Rhythm ═══ -->
+            <section class="result-card account-card profile-main-card profile-card-statistics stats-sub-card stats-sub-load" id="profile-card-hard-rhythm">
+              <div class="result-title-row">
+                <h4>Hard/Easy-Rhythmus</h4>
+                <span class="tag subtle">48h-Regel</span>
+              </div>
+              <p class="chart-explain">Harte Tage brauchen 48 h Erholung. Aufeinanderfolgende harte Tage erhöhen das Übertrainings-Risiko. Jede Zelle = 1 Tag; <b style="color:#d9534f">rot</b> = harte Einheit, <b style="color:#E5A93D">gelb</b> = moderat, <b style="color:#4CAF82">grün</b> = locker, grau = Ruhetag.</p>
+              <div id="hard-rhythm-grid" class="hard-rhythm-grid"></div>
+              <div class="stats-summary-row" id="hard-rhythm-summary">
+                <div class="stats-summary-item"><span>Harte Tage 12W</span><strong id="hr-hard">–</strong></div>
+                <div class="stats-summary-item"><span>48h-Violations</span><strong id="hr-violations">–</strong></div>
+                <div class="stats-summary-item"><span>Compliance</span><strong id="hr-compliance">–</strong></div>
               </div>
             </section>
 
@@ -2069,6 +2146,15 @@
           <div class="account-form-meta">
             <button type="button" class="text-link-btn" id="account-forgot-password-btn">Passwort vergessen?</button>
           </div>
+          <label class="field field-checkbox auth-terms-field" id="auth-terms-field" hidden>
+            <input type="checkbox" name="acceptTerms" id="auth-accept-terms" />
+            <span class="field-checkbox-text">
+              Ich akzeptiere die
+              <button type="button" class="text-link-btn" data-legal-open="terms">Nutzungsbedingungen</button>,
+              die <button type="button" class="text-link-btn" data-legal-open="privacy">Datenschutzerklärung</button>
+              und den <button type="button" class="text-link-btn" data-legal-open="disclaimer">Health Disclaimer</button>.
+            </span>
+          </label>
           <div class="account-inline-actions">
             <button type="submit" class="cta cta-race" id="account-submit-btn">login</button>
             <span class="connection-state" id="account-form-status" aria-live="polite"></span>
@@ -2413,8 +2499,28 @@
       </div>
     </div>
 
+    <!-- GDPR / DSGVO Cookie Consent Banner -->
+    <div id="cookie-consent-banner" class="cookie-consent-banner" role="dialog" aria-live="polite" aria-label="Cookie Einstellungen" hidden>
+      <div class="cookie-consent-inner">
+        <div class="cookie-consent-body">
+          <strong class="cookie-consent-title">Cookies & Privatsphäre</strong>
+          <p class="cookie-consent-copy">
+            Wir nutzen technisch notwendige Cookies für dein Login und deine Einstellungen.
+            Optional helfen uns anonyme Analyse-Cookies, AImAthlete zu verbessern. Deine Wahl kannst du jederzeit widerrufen.
+            <button type="button" class="text-link-btn" data-legal-open="cookies">Details</button>
+          </p>
+        </div>
+        <div class="cookie-consent-actions">
+          <button type="button" class="ghost cookie-consent-btn" data-cookie-choice="necessary">Nur notwendige</button>
+          <button type="button" class="cta cta-race cookie-consent-btn" data-cookie-choice="all">Alle akzeptieren</button>
+        </div>
+      </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="./supabase-client.js"></script>
+    <script src="./legal-i18n.js"></script>
     <script src="./app.js"></script>
+    <script src="./stresstest.js"></script>
   </body>
 </html>

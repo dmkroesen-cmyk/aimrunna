@@ -334,11 +334,11 @@ const STRAVA_OAUTH_DEV_BASE =
     : `${window.location.protocol}//${window.location.host}`;
 
 const LEGAL_CONTENT = {
-  imprint: `Impressum (Draft, DE)\n\nDiese Seite ist eine Beta-Version von AImAthlete.\n\nHier eintragen:\n• Anbieter / Firma / Rechtsform\n• Vertretungsberechtigte Person\n• Anschrift\n• Kontakt (E-Mail, Telefon)\n• Registereintrag (falls vorhanden)\n• USt-IdNr. (falls vorhanden)\n• Verantwortlich i.S.d. § 18 MStV (falls relevant)\n\nHinweis: Vor Veröffentlichung mit deutscher/europäischer Rechtsberatung final prüfen.`,
-  privacy: `Datenschutzerklärung (Draft)\n\n1. Verantwortlicher\n2. Verarbeitete Daten (Account, Trainingsdaten, Gesundheitsnahe Daten, Geräte-IDs, Logs)\n3. Zwecke (Trainingsplanung, Analyse, Community, Sicherheit)\n4. Rechtsgrundlagen (Art. 6 DSGVO; ggf. Einwilligung)\n5. Datenquellen (Strava, Garmin, WHOOP, manuelle Eingaben)\n6. Empfänger / Auftragsverarbeiter\n7. Speicherdauer\n8. Betroffenenrechte (Auskunft, Löschung, Berichtigung, Export, Widerspruch)\n9. Widerruf von Einwilligungen\n10. Sicherheit / Verschlüsselung\n11. Internationale Datenübermittlungen\n12. Cookies / Tracking\n\nWichtig: Gesundheits-/Fitnessdaten sauber klassifizieren und Rechtsgrundlagen juristisch prüfen.`,
-  terms: `Nutzungsbedingungen (Draft)\n\n• Leistungsbeschreibung (Beta, Trainingsplanung, Community, Datenimport)\n• Nutzerkonto / Zugang\n• Pflichten der Nutzer (wahre Angaben, keine rechtswidrigen Inhalte)\n• Verfügbarkeit / Änderungen / Beta-Status\n• Geistiges Eigentum\n• Community-Regeln / Sanktionen / Sperrung\n• Haftungsbegrenzung (rechtlich zulässig)\n• Hinweis: Trainingspläne sind keine medizinische Beratung\n• Kündigung / Account-Löschung\n• Anwendbares Recht / Gerichtsstand (soweit zulässig)\n\nVor Livegang rechtlich prüfen lassen.`,
+  imprint: `Impressum\n\nAngaben gemäß § 5 DDG (Digitale-Dienste-Gesetz) und § 18 MStV\n\n[Anbieter / Firma / Name]\n[Straße Hausnummer]\n[PLZ Ort]\nDeutschland\n\nVertreten durch: [Name]\nKontakt:\n  E-Mail: kontakt@aimathlete.app\n  Telefon: [optional]\n\nRegistereintrag: [Amtsgericht, HRB-Nr. — falls zutreffend]\nUmsatzsteuer-ID nach § 27a UStG: [falls vorhanden]\n\nVerantwortlich für den Inhalt nach § 18 Abs. 2 MStV:\n[Name, Anschrift wie oben]\n\n\n— EU-Streitschlichtung —\nDie Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit:\nhttps://ec.europa.eu/consumers/odr\n\nWir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer\nVerbraucherschlichtungsstelle teilzunehmen.\n\n\n— Haftung für Inhalte —\nAls Diensteanbieter sind wir gemäß § 7 Abs. 1 DDG für eigene Inhalte auf diesen Seiten\nnach den allgemeinen Gesetzen verantwortlich. Nach §§ 8 bis 10 DDG sind wir als\nDiensteanbieter jedoch nicht verpflichtet, übermittelte oder gespeicherte fremde\nInformationen zu überwachen oder nach Umständen zu forschen, die auf eine rechtswidrige\nTätigkeit hinweisen.\n\n\n— Haftung für Links —\nUnser Angebot enthält Links zu externen Websites Dritter, auf deren Inhalte wir keinen\nEinfluss haben. Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter\nder Seiten verantwortlich.\n\n\n— Urheberrecht —\nDie durch die Seitenbetreiber erstellten Inhalte und Werke auf dieser Website\nunterliegen dem deutschen Urheberrecht.\n\n\nHinweis: Vor Livegang bitte mit Rechtsberatung finalisieren und vollständige Anbieter-\ndaten eintragen (oder Impressum-Fragebogen in den Einstellungen nutzen).`,
+  privacy: `Datenschutzerklärung\n\nStand: 05.04.2026 · Version 1.0 (Beta)\n\n1. VERANTWORTLICHER\n[Name / Firma]\n[Anschrift]\nE-Mail: datenschutz@aimathlete.app\n\n2. ÜBERBLICK DER VERARBEITUNG\nWir verarbeiten folgende Datenkategorien:\n  a) Stammdaten: E-Mail, Passwort-Hash, optional Name, Geburtsjahr, Geschlecht\n  b) Trainingsdaten: Aktivitäten, Distanz, Zeit, Pace, Puls, GPS-Strecken, Leistung\n  c) Gesundheitsnahe Daten: HRV, Ruhepuls, VO2max-Schätzung, Schlaf, Gewicht, Recovery\n  d) Geräte- & Connector-Daten: Strava-, Garmin-, WHOOP-Tokens, Sync-Logs\n  e) Nutzungsdaten: Seitenaufrufe, Session-Logs, Fehlerberichte (nur mit Analyse-Consent)\n\n3. ZWECKE & RECHTSGRUNDLAGEN (Art. 6 DSGVO)\n  • Vertragserfüllung (Art. 6 Abs. 1 lit. b): Account-Verwaltung, Trainingsplanung, Analyse\n  • Berechtigtes Interesse (Art. 6 Abs. 1 lit. f): Sicherheit, Fehlerbehebung, Produkt-Verbesserung\n  • Einwilligung (Art. 6 Abs. 1 lit. a / Art. 9 Abs. 2 lit. a): Gesundheitsbezogene Daten, Connector-Sync, optionale Analyse/Telemetrie\n  • Rechtliche Verpflichtung (Art. 6 Abs. 1 lit. c): Aufbewahrung, Auskunft\n\nGesundheitsdaten (Art. 9 DSGVO) werden nur mit ausdrücklicher Einwilligung verarbeitet und\nausschließlich für Trainings-, Recovery- und Leistungsanalysen verwendet.\n\n4. DATENQUELLEN\n  • Manuelle Eingaben des Nutzers\n  • OAuth-Connectors (Strava, Garmin Connect, WHOOP) — sofern vom Nutzer verbunden\n  • Automatisch erfasste Geräte-/Session-Metadaten\n\n5. EMPFÄNGER / AUFTRAGSVERARBEITER\n  • Supabase (Hosting & Datenbank, EU/US — Standardvertragsklauseln)\n  • Vercel (Frontend-Hosting)\n  • OAuth-Provider (Strava, Garmin, WHOOP) — nur im Rahmen der aktiven Verbindung\nEine Weitergabe an weitere Dritte erfolgt nicht ohne Rechtsgrundlage oder Einwilligung.\n\n6. INTERNATIONALE ÜBERMITTLUNGEN\nSofern Daten in Drittländer (z.B. USA) übermittelt werden, erfolgt dies auf Basis der\nEU-Standardvertragsklauseln (Art. 46 DSGVO) oder eines Angemessenheitsbeschlusses\n(EU-US Data Privacy Framework).\n\n7. SPEICHERDAUER\n  • Account-Daten: bis zur Löschung des Accounts durch den Nutzer\n  • Trainingsdaten: bis zur Löschung durch den Nutzer oder Löschung des Accounts\n  • Logs / Telemetrie: max. 90 Tage\n  • Aufbewahrungspflichten (§ 147 AO, § 257 HGB) bleiben unberührt\n\n8. BETROFFENENRECHTE (Art. 15-22 DSGVO)\nDu hast das Recht auf:\n  • Auskunft (Art. 15)    • Berichtigung (Art. 16)\n  • Löschung (Art. 17)    • Einschränkung (Art. 18)\n  • Datenübertragbarkeit (Art. 20)    • Widerspruch (Art. 21)\n  • Widerruf erteilter Einwilligungen (Art. 7 Abs. 3) mit Wirkung für die Zukunft\nKontakt: datenschutz@aimathlete.app\n\nBeschwerderecht: Du kannst dich bei der zuständigen Datenschutz-Aufsichtsbehörde\nbeschweren (z.B. Landesbeauftragte/r für Datenschutz des Bundeslandes deines Wohnsitzes).\n\n9. SICHERHEIT\nTransport-Verschlüsselung (TLS 1.2+), Passwort-Hashing (bcrypt/argon2), Access-Control\nüber Row-Level Security (Supabase). OAuth-Tokens werden verschlüsselt gespeichert.\n\n10. COOKIES / TRACKING\nSiehe eigenes Cookie-Banner und Cookie-Hinweise. Wir nutzen technisch notwendige Cookies\nfür Login/Session und optional anonyme Analyse-Cookies (nur bei erteilter Einwilligung).\n\n11. AUTOMATISIERTE ENTSCHEIDUNGSFINDUNG\nTrainingspläne und Prognosen werden algorithmisch erstellt, sind aber Empfehlungen —\nkeine verbindlichen Einzelentscheidungen i.S.d. Art. 22 DSGVO. Der Nutzer entscheidet\nfrei über die Umsetzung.\n\nHinweis (Beta): Diese Erklärung wird vor Livegang juristisch final geprüft.`,
+  terms: `Nutzungsbedingungen (Terms of Service)\n\nStand: 05.04.2026 · Version 1.0 (Beta)\n\n§1 GELTUNGSBEREICH\nDiese Nutzungsbedingungen regeln die Nutzung von AImAthlete (im Folgenden "Dienst")\ndurch registrierte Nutzer.\n\n§2 LEISTUNGSBESCHREIBUNG\nAImAthlete bietet: KI-gestützte Trainingsplanung, Leistungsanalyse, Recovery-Tracking,\nConnector-Anbindung (Strava/Garmin/WHOOP), Community-Funktionen.\n\nDer Dienst befindet sich in der Beta-Phase. Funktionen, Algorithmen und Modelle\nwerden laufend weiterentwickelt und können sich ändern.\n\n§3 NUTZERKONTO\n  (1) Die Nutzung setzt ein Konto voraus. Mehrfachkonten sind unzulässig.\n  (2) Der Nutzer ist verpflichtet, Zugangsdaten geheim zu halten.\n  (3) Der Dienst kann ohne Vorankündigung eingestellt oder verändert werden (Beta).\n\n§4 PFLICHTEN DES NUTZERS\nDer Nutzer verpflichtet sich,\n  • wahre und aktuelle Angaben zu machen,\n  • keine rechtswidrigen, beleidigenden oder irreführenden Inhalte zu posten,\n  • keine Gesundheits- oder Heilversprechen gegenüber anderen Nutzern zu machen,\n  • keine Rechte Dritter (Urheber-, Persönlichkeits-, Markenrechte) zu verletzen,\n  • den Dienst nicht automatisiert zu scrapen oder zu überlasten.\n\n§5 GEISTIGES EIGENTUM\n  (1) Alle Rechte am Dienst (Software, Design, Inhalte, Marken) verbleiben beim Anbieter.\n  (2) Nutzer-generierte Inhalte (Posts, Fotos) bleiben Eigentum des Nutzers; der Nutzer\n      räumt dem Anbieter eine einfache, widerrufbare Lizenz zur Anzeige im Dienst ein.\n\n§6 KEINE MEDIZINISCHE BERATUNG\nTrainingspläne, Analysen und Empfehlungen sind keine medizinische Beratung und\nersetzen weder ärztlichen, physiotherapeutischen noch ernährungswissenschaftlichen Rat.\nSiehe Health Disclaimer.\n\n§7 HAFTUNG\n  (1) Der Anbieter haftet unbeschränkt für Vorsatz und grobe Fahrlässigkeit sowie\n      für Schäden aus der Verletzung des Lebens, des Körpers oder der Gesundheit.\n  (2) Bei leicht fahrlässiger Verletzung wesentlicher Vertragspflichten ist die\n      Haftung auf den vertragstypischen, vorhersehbaren Schaden begrenzt.\n  (3) Im Übrigen ist die Haftung ausgeschlossen, soweit gesetzlich zulässig.\n  (4) Für Schäden durch unsachgemäße Umsetzung von Trainingsempfehlungen haftet\n      der Anbieter nicht (Eigenverantwortung des Nutzers — siehe §6).\n\n§8 KÜNDIGUNG & LÖSCHUNG\n  (1) Der Nutzer kann den Account jederzeit in den Einstellungen löschen.\n  (2) Der Anbieter kann den Account bei Verstoß gegen diese Bedingungen\n      sperren oder löschen.\n  (3) Nach Löschung werden personenbezogene Daten unverzüglich entfernt,\n      soweit keine Aufbewahrungspflichten bestehen.\n\n§9 ÄNDERUNGEN\nDer Anbieter kann diese Bedingungen ändern. Wesentliche Änderungen werden\nmit mindestens 14 Tagen Vorlauf per E-Mail angekündigt.\n\n§10 SCHLUSSBESTIMMUNGEN\n  (1) Es gilt deutsches Recht.\n  (2) Gerichtsstand für Kaufleute ist der Sitz des Anbieters.\n  (3) Sollte eine Bestimmung unwirksam sein, bleibt der Rest wirksam.\n\nHinweis (Beta): Vor Livegang juristisch final prüfen lassen.`,
   agb: `AGB (Draft)\n\nNur erforderlich/sinnvoll, sobald kostenpflichtige Leistungen / Abos / Verträge angeboten werden.\n\nDann typischer Inhalt:\n• Vertragspartner\n• Vertragsschluss\n• Preise / Zahlung / Abrechnung\n• Laufzeit / Kündigung / Verlängerung\n• Widerrufsrechte (Verbraucher)\n• Leistungsumfang / Änderungen\n• Gewährleistung / Haftung\n• Support / Kontakt\n• Datenschutzverweis\n\nAGB bitte nicht aus Standard-Generator blind übernehmen – auf Trainings-/Datenprodukt anpassen und prüfen lassen.`,
-  disclaimer: `Health & Training Disclaimer (Draft)\n\nAImAthlete liefert Trainingspläne, Analysen und Prognosen zur Orientierung.\n\nKein medizinischer Rat / keine Diagnose:\n• Die Inhalte ersetzen keine ärztliche, physiotherapeutische oder ernährungsmedizinische Beratung.\n• Vor Beginn oder Änderung intensiver Trainingsprogramme gesundheitliche Eignung prüfen lassen.\n• Bei Schmerzen, Schwindel, Atemnot oder anderen Beschwerden Training abbrechen und medizinischen Rat einholen.\n\nEigenverantwortung:\n• Nutzer trainieren auf eigene Verantwortung.\n• Angaben/Prognosen können unvollständig oder fehlerhaft sein (insb. in Beta-Versionen).\n\nWichtig für Beta:\n• Modelle/Projektionen sind Entwicklungsstände und können sich ändern.`,
+  disclaimer: `Health & Training Disclaimer\n\nBitte sorgfältig lesen, bevor du den Dienst nutzt.\n\n1. KEIN MEDIZINISCHER RAT\nAImAthlete liefert Trainingspläne, Metriken, Prognosen und Empfehlungen zur Orientierung.\nDie Inhalte ersetzen KEINE ärztliche, physiotherapeutische, sportmedizinische oder\nernährungswissenschaftliche Beratung, Diagnose oder Behandlung.\n\n2. ÄRZTLICHE ABKLÄRUNG VOR TRAININGSBEGINN\nKonsultiere einen Arzt/eine Ärztin, bevor du ein neues Trainingsprogramm beginnst oder\nsignifikant intensivierst, insbesondere wenn du:\n  • älter als 35 Jahre bist und zuvor inaktiv warst,\n  • chronische Erkrankungen hast (Herz-Kreislauf, Stoffwechsel, Atemwege),\n  • unter Bluthochdruck, Diabetes oder Herzrhythmusstörungen leidest,\n  • schwanger bist oder kürzlich entbunden hast,\n  • frisch verletzt/operiert bist oder Schmerzen hast.\n\n3. WARNZEICHEN — TRAINING SOFORT ABBRECHEN\nBrich das Training ab und suche sofort medizinische Hilfe bei:\n  Brustschmerz · starker Atemnot · Schwindel · Ohnmachtsgefühl · unregelmäßigem\n  Herzschlag · plötzlichem scharfem Schmerz · Sehstörungen · Übelkeit.\n\n4. EIGENVERANTWORTUNG\nDu trainierst auf eigene Verantwortung und eigenes Risiko. AImAthlete und die\nBetreiber übernehmen keine Haftung für Verletzungen, Überlastungsschäden oder\ngesundheitliche Folgen, die aus der Umsetzung der Empfehlungen entstehen.\n\n5. GENAUIGKEIT VON SCHÄTZUNGEN\nAlle Kennzahlen (VO2max, Fitness-Alter, Recovery, Trainingsbelastung, Laufprognosen)\nsind algorithmische Schätzungen mit bekannter Unsicherheit. Sie sind kein Ersatz\nfür labormedizinische Messungen oder professionelles Coaching.\n\n6. BETA-STATUS\nAImAthlete befindet sich in der Beta-Phase. Modelle, Algorithmen und Funktionen\nwerden weiterentwickelt. Ergebnisse können sich durch Updates ändern.\n\n7. ERNÄHRUNG & SUPPLEMENTIERUNG\nHinweise zu Ernährung/Hydration/Supplementen sind allgemeine Orientierungen. Bei\nbesonderen Anforderungen (z.B. Unverträglichkeiten, Diabetes, Schwangerschaft)\nsprich mit einer qualifizierten Ernährungsfachkraft.\n\n8. NOTFALL\nIm Notfall wähle den europäischen Notruf 112.\n\nMit der Nutzung des Dienstes bestätigst du, dass du diesen Disclaimer gelesen und\nverstanden hast und ihm zustimmst.`,
   cookies: `Cookies & Tracking (Draft)\n\nEmpfohlen für Public Beta:\n• Technisch notwendige Cookies\n• Präferenz-Cookies (Sprache, Einheiten)\n• Analyse/Telemetry (optional, nur mit Consent)\n• Marketing (optional, später)\n\nUmsetzen:\n• Consent-Banner / Consent-Management\n• Einwilligungen speichern & widerrufbar machen\n• Cookie-Übersicht / Zwecke / Laufzeiten dokumentieren\n\nFür erste Beta möglichst tracking-arm starten.`,
   community: `Community Regeln (Draft)\n\nNicht erlaubt:\n• Hassrede, Belästigung, Drohungen\n• Spam / Betrug / irreführende Inhalte\n• Unerlaubte Gesundheitsversprechen / gefährliche Ratschläge\n• Verletzung von Rechten Dritter\n\nErwünscht:\n• Respektvoller Umgang\n• Konstruktives Feedback\n• Transparenz bei Race-/Training-Posts\n\nModeration:\n• Inhalte melden\n• Temporäre Sperren / Account-Sperren bei Verstößen\n• Wiederholte Verstöße = dauerhafte Sperre möglich`,
   "data-processing": `Datenverarbeitung & Connector-Hinweise (Draft)\n\nZweckbindung (wichtig):\n• Strava/Garmin/WHOOP-Daten werden nur für Trainingsplanung, Leistungsanalyse, Recovery-Einschätzung und Nutzeransichten verarbeitet.\n• Keine Weitergabe an Dritte ohne Rechtsgrundlage / Einwilligung.\n\nTechnik (üblich und machbar):\n• OAuth-Verbindung pro Anbieter\n• Tokens serverseitig speichern (verschlüsselt)\n• Refresh-Tokens rotieren\n• Webhooks/Sync-Jobs nutzen\n• Nutzer kann Verbindungen trennen und Daten löschen/exportieren\n\nHinweis:\n• Pushing Limits und ähnliche Produkte nutzen ebenfalls OAuth-Connects + eigene Auswertungsschicht; dafür ist keine exklusive Partnerschaft mit jedem Anbieter zwingend nötig (abhängig von API-Zugang/Scopes, besonders bei Garmin variabel).`,
@@ -1469,10 +1469,27 @@ accountFormEl?.addEventListener("submit", async (event) => {
   const fd = new FormData(accountFormEl);
   const email = String(fd.get("email") || "").trim().toLowerCase();
   const password = String(fd.get("password") || "");
+  const acceptedTerms = Boolean(fd.get("acceptTerms"));
   const submitBtn = document.getElementById("account-submit-btn");
+  // Gate registration on explicit terms acceptance (GDPR/DSGVO compliance)
+  if (authMode === "register" && !acceptedTerms) {
+    setText(accountFormStatusEl, "Bitte Nutzungsbedingungen & Datenschutz akzeptieren.");
+    return;
+  }
   if (submitBtn) submitBtn.disabled = true;
   setText(accountFormStatusEl, "Verbinde...");
   try {
+    // Persist consent record (timestamp + versions)
+    if (authMode === "register" && acceptedTerms) {
+      try {
+        localStorage.setItem("aimrunna_terms_consent", JSON.stringify({
+          acceptedAt: new Date().toISOString(),
+          termsVersion: "2026-04-05",
+          privacyVersion: "2026-04-05",
+          disclaimerVersion: "2026-04-05",
+        }));
+      } catch (_) {}
+    }
     const result = await (authMode === "register" ? registerAccount(email, password) : loginAccount(email, password));
     setText(accountFormStatusEl, result.message);
     if (result.ok) {
@@ -2785,7 +2802,11 @@ function setLegalSection(section) {
   legalNavEl?.querySelectorAll("[data-legal-section]").forEach((btn) => {
     btn.classList.toggle("is-active", btn.getAttribute("data-legal-section") === activeLegalSection);
   });
-  if (legalContentBodyEl) legalContentBodyEl.textContent = LEGAL_CONTENT[activeLegalSection] || LEGAL_CONTENT.imprint;
+  if (legalContentBodyEl) {
+    const lang = (typeof currentLang !== "undefined" && currentLang) || (document.documentElement.lang || "de");
+    const i18nText = window.LEGAL_I18N?.get?.(lang, activeLegalSection);
+    legalContentBodyEl.textContent = i18nText || LEGAL_CONTENT[activeLegalSection] || LEGAL_CONTENT.imprint;
+  }
 }
 
 function openLegalModal(section = "imprint") {
@@ -3117,6 +3138,9 @@ function setAuthMode(mode) {
   accountTabButtons.forEach((btn) => btn.classList.toggle("is-active", btn.dataset.authMode === authMode));
   if (accountSubmitBtn) accountSubmitBtn.textContent = authMode === "register" ? "create" : "login";
   if (accountFormStatusEl) accountFormStatusEl.textContent = "";
+  // Only require terms acceptance on registration
+  const termsField = document.getElementById("auth-terms-field");
+  if (termsField) termsField.hidden = authMode !== "register";
 }
 
 function openAccountModal(mode = authMode) {
@@ -4871,26 +4895,54 @@ document.getElementById("stats-sub-nav")?.addEventListener("click", (e) => {
   renderStatisticsView(getCurrentAccount());
 });
 
+// Wire plan-form autosave early (before account switch) so anon users don't lose input.
+// Restore any anon draft if present.
+if (typeof window !== "undefined") {
+  const initAutosave = () => {
+    if (typeof wirePlanFormAutosave === "function") wirePlanFormAutosave();
+    try {
+      const anon = localStorage.getItem("aimrunna_plan_draft_anon");
+      if (anon && typeof restorePlanForm === "function") restorePlanForm(JSON.parse(anon));
+    } catch (_) {}
+  };
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initAutosave, { once: true });
+  } else {
+    setTimeout(initAutosave, 0);
+  }
+}
+
 function renderStatisticsView(account) {
   const activities = normalizeActivities(account?.activities || []);
+  // Pre-filter activities by current range — all range-aware charts use this subset
+  const rangedActivities = filterActivitiesByRange(activities, currentStatsRange);
   // Activate current sub-tab cards
   setStatsSubTab(currentStatsSub);
-  // Render all charts (they only render if visible/have data)
+  // Volume/Sport charts generate their own buckets from range + full dataset
   renderVolumeChart(activities, currentStatsRange, currentStatsMetric);
   renderSportSplit(activities, currentStatsRange);
-  renderPaceTrend(activities);
+  // Pace trend over time — needs full activity history within range
+  renderPaceTrend(activities, currentStatsRange);
+  // PRs and year-compare are all-time by design
   renderPersonalRecords(activities);
   renderYearCompare(activities);
   renderMetricTimeSeries(account);
   renderHealthMetrics(account);
-  renderIntensityDistribution(activities);
-  renderPaceDistribution(activities);
-  renderPowerDistribution(activities);
-  renderHrZones(activities);
-  renderPaceZones(activities);
-  renderPowerZones(activities);
+  // Distributions + zones respect the selected range
+  renderIntensityDistribution(rangedActivities);
+  renderPaceDistribution(rangedActivities);
+  renderPowerDistribution(rangedActivities);
+  renderHrZones(rangedActivities);
+  renderPaceZones(rangedActivities);
+  renderPowerZones(rangedActivities);
+  // Load and consistency operate on recent windows — stay on full set
   renderLoadChart(activities);
   renderConsistencyChart(activities);
+  // Belastung tab deep cards
+  renderFormFitnessChart(activities);
+  renderMonotonyChart(activities);
+  renderIntensityTimeline(activities);
+  renderHardRhythm(activities);
 }
 
 function filterActivitiesByRange(activities, range) {
@@ -4932,31 +4984,65 @@ function renderVolumeChart(allActivities, range, metric) {
     else if (a.sportType === "swim") months[key].swim += val;
   });
 
-  // Generate continuous month range
-  const sortedKeys = Object.keys(months).sort();
+  // Generate continuous month range ALWAYS matching the selected range
+  // (fixes bug where sparse data showed fewer bars than the range implies)
   let allMonths = [];
-  if (sortedKeys.length) {
-    const start = new Date(sortedKeys[0] + "-01");
-    const end = new Date(sortedKeys[sortedKeys.length - 1] + "-01");
-    const cur = new Date(start);
-    while (cur <= end) {
-      const key = `${cur.getFullYear()}-${String(cur.getMonth() + 1).padStart(2, "0")}`;
-      const shortLabel = cur.toLocaleString("default", { month: "short" });
-      allMonths.push({ key, label: shortLabel, ...(months[key] || { run: 0, bike: 0, swim: 0 }) });
-      cur.setMonth(cur.getMonth() + 1);
+  const today = new Date();
+  const curYear = today.getFullYear();
+  const curMonth = today.getMonth();
+  let monthsToShow = 12;
+  let startOffset = 11; // 11 months back → 12 inclusive
+  if (range === "ytd") {
+    monthsToShow = curMonth + 1;
+    startOffset = curMonth;
+  } else if (range === "all") {
+    // All: from earliest activity month to current
+    const sortedKeys = Object.keys(months).sort();
+    if (sortedKeys.length) {
+      const first = new Date(sortedKeys[0] + "-01");
+      const diffMonths = (curYear - first.getFullYear()) * 12 + (curMonth - first.getMonth());
+      monthsToShow = diffMonths + 1;
+      startOffset = diffMonths;
+    } else {
+      monthsToShow = 6;
+      startOffset = 5;
+    }
+    // Cap at 24 bars for readability — for very long histories bucket into quarters
+    if (monthsToShow > 24) {
+      // Quarterly bucketing for multi-year histories
+      const quarters = {};
+      activities.forEach((a) => {
+        const d = new Date(a.createdAt);
+        const qk = `${d.getFullYear()}-Q${Math.floor(d.getMonth() / 3) + 1}`;
+        if (!quarters[qk]) quarters[qk] = { run: 0, bike: 0, swim: 0 };
+        const val = useHours ? (Number(a.movingTimeSec) || 0) / 3600 : Number(a.distanceKm) || 0;
+        if (a.sportType === "run") quarters[qk].run += val;
+        else if (a.sportType === "bike") quarters[qk].bike += val;
+        else if (a.sportType === "swim") quarters[qk].swim += val;
+      });
+      // Generate continuous quarters from first to current
+      const firstQ = new Date(sortedKeys[0] + "-01");
+      const startQ = Math.floor(firstQ.getMonth() / 3);
+      const startY = firstQ.getFullYear();
+      const endQ = Math.floor(curMonth / 3);
+      allMonths = [];
+      let y = startY, q = startQ;
+      while (y < curYear || (y === curYear && q <= endQ)) {
+        const qk = `${y}-Q${q + 1}`;
+        allMonths.push({ key: qk, label: `Q${q + 1} ${String(y).slice(2)}`, ...(quarters[qk] || { run: 0, bike: 0, swim: 0 }) });
+        q++;
+        if (q > 3) { q = 0; y++; }
+      }
     }
   }
-  if (!allMonths.length) {
-    // Generate last 6 months as empty
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date();
-      d.setMonth(d.getMonth() - i);
-      allMonths.push({ key: "", label: d.toLocaleString("default", { month: "short" }), run: 0, bike: 0, swim: 0 });
+  if (allMonths.length === 0) {
+    for (let i = startOffset; i >= 0; i--) {
+      const d = new Date(curYear, curMonth - i, 1);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      const label = d.toLocaleString("default", { month: "short" });
+      allMonths.push({ key, label, ...(months[key] || { run: 0, bike: 0, swim: 0 }) });
     }
   }
-
-  // Limit to last 12 months max for readability
-  if (allMonths.length > 12) allMonths = allMonths.slice(-12);
 
   const rawMax = Math.max(0, ...allMonths.map((m) => m.run + m.bike + m.swim));
   const maxKm = rawMax > 0 ? rawMax : (useHours ? 20 : 100); // Use sensible default scale for empty state
@@ -5079,12 +5165,13 @@ function renderSportSplit(allActivities, range) {
   }).join("") || `<p class="card-copy">${t("stats_no_data")}</p>`;
 }
 
-function renderPaceTrend(allActivities) {
+function renderPaceTrend(allActivities, range) {
   const svg = document.getElementById("stats-pace-svg");
   if (!svg) return;
 
-  // Filter runs with distance and time
-  const runs = allActivities
+  // Filter by range first, then runs with distance and time
+  const inRange = range ? filterActivitiesByRange(allActivities, range) : allActivities;
+  const runs = inRange
     .filter((a) => a.sportType === "run" && (Number(a.distanceKm) || 0) > 1 && (Number(a.movingTimeSec) || 0) > 0)
     .map((a) => ({
       date: new Date(a.createdAt),
@@ -7174,49 +7261,168 @@ function vdotFromProfile(profile) {
  *
  * We use the best available race data; if none, derive from VDOT table pace.
  */
-function estimateVO2max(profile) {
-  // Try from actual race data first (most accurate)
+/**
+ * Daniels VO2 demand at velocity v (m/min)
+ */
+function daniels_vo2demand(velocityMperMin) {
+  return -4.60 + 0.182258 * velocityMperMin + 0.000104 * velocityMperMin * velocityMperMin;
+}
+
+/**
+ * Daniels sustainable fraction of VO2max at duration t (min)
+ */
+function daniels_fraction(durationMin) {
+  return 0.8 + 0.1894393 * Math.exp(-0.012778 * durationMin) + 0.2989558 * Math.exp(-0.1932605 * durationMin);
+}
+
+/**
+ * VO2max estimation — hybrid race + HR-based (Firstbeat-style) approach.
+ *
+ * Garmin / Strava use HR-pace regression during submaximal runs (Firstbeat
+ * method). Pure race-based VDOT estimates run 2-4 ml/kg/min higher because
+ * they assume the runner maxes out effort.
+ *
+ * Hybrid strategy:
+ *   1. If recent run with HR data exists → HR-adjusted median (matches Garmin)
+ *   2. If race PB within 90 days → blend race-VDOT + HR estimate
+ *   3. Else → VDOT table lookup from profile PBs
+ *   4. Fallback → level-based default
+ */
+function estimateVO2max(profile, activities) {
+  // Auto-pull activities from current account if not supplied
+  if (!activities) {
+    try {
+      const acc = typeof getCurrentAccount === "function" ? getCurrentAccount() : null;
+      activities = acc?.activities ? (typeof normalizeActivities === "function" ? normalizeActivities(acc.activities) : acc.activities) : [];
+    } catch (_) { activities = []; }
+  }
+  activities = activities || [];
+  const maxHr = Number(profile?.maxHr) || null;
+  const restingHr = Number(profile?.restingHr) || 60;
+  const age = profile?.birthYear ? (new Date().getFullYear() - profile.birthYear) : null;
+  // Age-based maxHR fallback (Tanaka 2001: 208 - 0.7·age, more accurate than 220-age)
+  const estMaxHr = maxHr || (age ? Math.round(208 - 0.7 * age) : 190);
+  const hrReserve = Math.max(50, estMaxHr - restingHr);
+
+  // --- HR-based estimation (corrected HRR model) ---
+  // Relationship (Swain & Leutholtz 1997): %HRR ≈ %VO2R
+  // where VO2R = VO2max - VO2rest (VO2rest ≈ 3.5 ml/kg/min)
+  // So: VO2max = (VO2session - 3.5) / %HRR + 3.5
+  //
+  // Requires *hard* runs (≥70% HRR) to produce stable estimates; easy
+  // Z1/Z2 runs at sub-maximal HR yield too much extrapolation noise.
+  const VO2_REST = 3.5;
+  const now = Date.now();
+  const ms90 = 90 * 86400000;
+  const recentRunsWithHr = activities
+    .filter(a => a.sportType === "run"
+      && Number(a.distanceKm) > 2.0
+      && Number(a.movingTimeSec) > 900 // ≥15 min, excludes warmups/easy jogs
+      && Number(a.avgHeartrate) > 100
+      && (now - new Date(a.createdAt || 0).getTime()) < ms90)
+    .map(a => {
+      const paceMperMin = (Number(a.distanceKm) * 1000) / (Number(a.movingTimeSec) / 60);
+      const vo2demand = daniels_vo2demand(paceMperMin);
+      const hrr = Math.max(0.20, Math.min(0.98, (Number(a.avgHeartrate) - restingHr) / hrReserve));
+      // HRR-based back-projection to VO2max
+      const vo2max = (vo2demand - VO2_REST) / hrr + VO2_REST;
+      return { vo2max, hrr, vo2demand, avgHr: a.avgHeartrate, pace: paceMperMin };
+    })
+    .filter(r => Number.isFinite(r.vo2max) && r.vo2max > 20 && r.vo2max < 90);
+
+  // Gate: only runs at ≥70% HRR produce reliable back-projection
+  const hardRuns = recentRunsWithHr.filter(r => r.hrr >= 0.70).sort((a, b) => a.vo2max - b.vo2max);
+  // If we lack hard runs, fall back to moderate runs (≥55% HRR) but down-weight
+  const modRuns = hardRuns.length < 3 ? recentRunsWithHr.filter(r => r.hrr >= 0.55).sort((a, b) => a.vo2max - b.vo2max) : [];
+
+  let hrEstimate = null;
+  let hrQuality = null;
+  if (hardRuns.length >= 3) {
+    // 75th percentile of hard runs — reflects true capacity, filters outliers
+    const idx = Math.floor(hardRuns.length * 0.75);
+    hrEstimate = hardRuns[Math.min(idx, hardRuns.length - 1)].vo2max;
+    hrQuality = "hard";
+  } else if (modRuns.length >= 5) {
+    // Median of moderate runs, minus 2 ml (bias correction for sub-threshold extrapolation)
+    const idx = Math.floor(modRuns.length * 0.5);
+    hrEstimate = modRuns[Math.min(idx, modRuns.length - 1)].vo2max - 2.0;
+    hrQuality = "moderate";
+  }
+
+  // --- Race-based VDOT estimation (Daniels) ---
   const pbData = extractPbDataForPrediction ? extractPbDataForPrediction(profile) : [];
+  let raceEstimate = null;
   if (pbData.length) {
-    // Use the race closest to 10-15 min duration (optimal VO2max test range)
     const scored = pbData.map(pb => {
       const durationMin = pb.timeSec / 60;
-      const optimalDist = Math.abs(durationMin - 12); // ~12 min is ideal for VO2max estimation
+      const optimalDist = Math.abs(durationMin - 12);
       return { ...pb, durationMin, optimalDist };
     }).sort((a, b) => a.optimalDist - b.optimalDist);
-
     const best = scored[0];
     const velocityMperMin = (best.distKm * 1000) / best.durationMin;
-    const vo2demand = -4.60 + 0.182258 * velocityMperMin + 0.000104 * velocityMperMin * velocityMperMin;
-    const t = best.durationMin;
-    const fraction = 0.8 + 0.1894393 * Math.exp(-0.012778 * t) + 0.2989558 * Math.exp(-0.1932605 * t);
+    const vo2demand = daniels_vo2demand(velocityMperMin);
+    const fraction = daniels_fraction(best.durationMin);
     const vo2max = vo2demand / fraction;
+    // Apply slight deflation (-2 ml) to align with Garmin/Strava (pure race = higher)
     if (Number.isFinite(vo2max) && vo2max > 15 && vo2max < 95) {
-      return { value: +vo2max.toFixed(1), source: "race", confidence: "high" };
+      raceEstimate = vo2max - 2.0;
     }
   }
 
-  // Derive from VDOT using 12-min equivalent pace from table
-  const vdot = vdotFromProfile(profile);
-  if (vdot) {
-    // Use 5K time from VDOT table to compute VO2max
-    const preds = vdotRacePredictions(vdot);
-    const fiveKTimeSec = preds.fiveK;
-    if (fiveKTimeSec > 0) {
-      const durationMin = fiveKTimeSec / 60;
-      const velocityMperMin = 5000 / durationMin;
-      const vo2demand = -4.60 + 0.182258 * velocityMperMin + 0.000104 * velocityMperMin * velocityMperMin;
-      const fraction = 0.8 + 0.1894393 * Math.exp(-0.012778 * durationMin) + 0.2989558 * Math.exp(-0.1932605 * durationMin);
-      const vo2max = vo2demand / fraction;
-      if (Number.isFinite(vo2max) && vo2max > 15 && vo2max < 95) {
-        return { value: +vo2max.toFixed(1), source: "vdot", confidence: pbData.length ? "moderate" : "low" };
+  // --- Blending logic ---
+  // HR-based alone: use it (matches Garmin approach most closely)
+  // Both available: weighted blend (0.7 HR / 0.3 race) — HR captures current state
+  // Race only: use race estimate
+  let value, source, confidence;
+  if (hrEstimate != null && raceEstimate != null) {
+    // Race is the ground truth; HR gives current-state adjustment. Weight race higher.
+    const hrWeight = hrQuality === "hard" ? 0.45 : 0.30;
+    value = raceEstimate * (1 - hrWeight) + hrEstimate * hrWeight;
+    source = "hr+race";
+    confidence = hrQuality === "hard" ? "high" : "moderate";
+  } else if (hrEstimate != null) {
+    value = hrEstimate;
+    source = hrQuality === "hard" ? "hr" : "hr-mod";
+    confidence = hrQuality === "hard" && hardRuns.length >= 8 ? "high" : "moderate";
+  } else if (raceEstimate != null) {
+    value = raceEstimate;
+    source = "race";
+    confidence = "moderate";
+  } else {
+    // VDOT fallback
+    const vdot = vdotFromProfile(profile);
+    if (vdot) {
+      const preds = vdotRacePredictions(vdot);
+      const fiveKTimeSec = preds.fiveK;
+      if (fiveKTimeSec > 0) {
+        const durationMin = fiveKTimeSec / 60;
+        const velocityMperMin = 5000 / durationMin;
+        const vo2demand = daniels_vo2demand(velocityMperMin);
+        const fraction = daniels_fraction(durationMin);
+        const vo2max = vo2demand / fraction - 2.0;
+        if (Number.isFinite(vo2max) && vo2max > 15 && vo2max < 95) {
+          return { value: +vo2max.toFixed(1), source: "vdot", confidence: "low" };
+        }
       }
     }
+    const fallback = { starter: 32, intermediate: 42, advanced: 55 }[profile?.fitnessLevel] || 38;
+    return { value: fallback, source: "estimate", confidence: "low" };
   }
 
-  // Fallback from level
-  const fallback = { starter: 32, intermediate: 42, advanced: 55 }[profile?.fitnessLevel] || 38;
-  return { value: fallback, source: "estimate", confidence: "low" };
+  // Age-plausibility clamp: 1.55× = true elite (sub-3h marathon),
+  // 1.40× = strong amateur / sub-elite. We cap at 1.40× for typical users
+  // and only allow up to 1.55× if the estimate came from a clean race PB.
+  if (age) {
+    const sex = profile?.sex === "female" ? "f" : "m";
+    const popMean = sex === "m" ? (57 - 0.40 * age) : (48 - 0.37 * age);
+    const ceiling = source === "race" ? popMean * 1.55 : popMean * 1.40;
+    if (value > ceiling) value = ceiling;
+    // also a hard floor: 50% of popMean (really untrained)
+    const floor = popMean * 0.55;
+    if (value < floor) value = floor;
+  }
+
+  return { value: +value.toFixed(1), source, confidence };
 }
 
 /*
@@ -15021,13 +15227,10 @@ function renderIntensityDistribution(allActivities) {
   const emptyEl = document.getElementById("intensity-dist-empty");
   if (!svg) return;
 
-  // Group activities by week, classify intensity by HR zones
-  const now = Date.now();
-  const msPerDay = 86400000;
-  const recent = allActivities.filter(a => {
-    const ts = new Date(a.createdAt || 0).getTime();
-    return ts > now - 60 * msPerDay && Number.isFinite(ts);
-  }).sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+  // Incoming activities are already pre-filtered by range in renderStatisticsView
+  const recent = allActivities
+    .filter(a => Number.isFinite(new Date(a.createdAt || 0).getTime()))
+    .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
 
   if (!recent.length) {
     svg.innerHTML = "";
@@ -15036,10 +15239,9 @@ function renderIntensityDistribution(allActivities) {
   }
   if (emptyEl) emptyEl.style.display = "none";
 
-  // Group by day (last 30 days for readability)
+  // Group by day across the ranged window; cap x-axis density with label stepping
   const days = {};
-  const last30 = recent.filter(a => new Date(a.createdAt || 0).getTime() > now - 30 * msPerDay);
-  last30.forEach(a => {
+  recent.forEach(a => {
     const d = new Date(a.createdAt).toISOString().slice(0, 10);
     if (!days[d]) days[d] = { lit: 0, mit: 0, hit: 0 };
     const durH = (a.movingTimeSec || 0) / 3600;
@@ -15802,6 +16004,347 @@ function renderLoadChart(allActivities) {
   }
 }
 
+// ─── Daily load series helper (used by Belastung tab) ───
+function buildDailyLoadSeries(activities, days = 120) {
+  const now = Date.now();
+  const msPerDay = 86400000;
+  const series = new Array(days).fill(0);
+  // today is series[days-1]; days ago is series[days-1-d]
+  for (const a of activities) {
+    const t = new Date(a.createdAt || a.date || a.start_date || 0).getTime();
+    if (!Number.isFinite(t) || t <= 0) continue;
+    const daysAgo = Math.floor((now - t) / msPerDay);
+    if (daysAgo < 0 || daysAgo >= days) continue;
+    const durH = (a.movingTimeSec || a.moving_time || a.duration || 0) / 3600;
+    if (durH <= 0) continue;
+    const hrFactor = a.avgHeartrate ? Math.pow(Math.max(80, a.avgHeartrate) / 150, 1.5) : 1.0;
+    series[days - 1 - daysAgo] += durH * hrFactor * 100;
+  }
+  return series;
+}
+
+// CTL/ATL/TSB with Banister EMA (τ_ctl=42d, τ_atl=7d)
+function computeFormFitness(dailyLoad) {
+  const ctl = new Array(dailyLoad.length).fill(0);
+  const atl = new Array(dailyLoad.length).fill(0);
+  const tsb = new Array(dailyLoad.length).fill(0);
+  const alphaCtl = 1 - Math.exp(-1 / 42);
+  const alphaAtl = 1 - Math.exp(-1 / 7);
+  for (let i = 0; i < dailyLoad.length; i++) {
+    const prevCtl = i === 0 ? dailyLoad[i] : ctl[i - 1];
+    const prevAtl = i === 0 ? dailyLoad[i] : atl[i - 1];
+    ctl[i] = prevCtl + alphaCtl * (dailyLoad[i] - prevCtl);
+    atl[i] = prevAtl + alphaAtl * (dailyLoad[i] - prevAtl);
+    tsb[i] = ctl[i] - atl[i];
+  }
+  return { ctl, atl, tsb };
+}
+
+function renderFormFitnessChart(allActivities) {
+  const svg = document.getElementById("stats-form-fitness-svg");
+  if (!svg) return;
+  const dailyLoad = buildDailyLoadSeries(allActivities, 120);
+  const { ctl, atl, tsb } = computeFormFitness(dailyLoad);
+  // show last 90 days
+  const offset = Math.max(0, dailyLoad.length - 90);
+  const ctlSlice = ctl.slice(offset);
+  const atlSlice = atl.slice(offset);
+  const tsbSlice = tsb.slice(offset);
+  const n = ctlSlice.length;
+  if (n < 7 || Math.max(...ctlSlice) < 1) { svg.innerHTML = `<text x="360" y="120" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="12">Zu wenig Aktivitäten für Form/Fitness-Analyse</text>`; return; }
+
+  const W = 720, H = 240, padL = 50, padR = 50, padT = 15, padB = 30;
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
+  const maxY = Math.max(5, ...ctlSlice, ...atlSlice);
+  const minTsb = Math.min(0, ...tsbSlice);
+  const maxTsb = Math.max(0, ...tsbSlice);
+  const tsbRange = Math.max(20, maxTsb - minTsb);
+
+  const pathFrom = (arr, scale = "y") => arr.map((v, i) => {
+    const x = padL + (i / (n - 1)) * chartW;
+    let y;
+    if (scale === "y") y = padT + chartH - (v / maxY) * chartH;
+    else y = padT + chartH / 2 - ((v - (minTsb + maxTsb) / 2) / tsbRange) * chartH * 0.9;
+    return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(" ");
+
+  let yLabels = "";
+  for (let i = 0; i <= 4; i++) {
+    const v = (i / 4) * maxY;
+    const y = padT + chartH - (v / maxY) * chartH;
+    yLabels += `<text x="${padL - 6}" y="${y + 4}" fill="rgba(255,255,255,0.3)" font-size="10" text-anchor="end">${Math.round(v)}</text>`;
+    yLabels += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="rgba(255,255,255,0.04)" />`;
+  }
+  // right axis for TSB
+  let rLabels = "";
+  for (let i = 0; i <= 2; i++) {
+    const v = minTsb + (i / 2) * tsbRange;
+    const y = padT + chartH / 2 - ((v - (minTsb + maxTsb) / 2) / tsbRange) * chartH * 0.9;
+    rLabels += `<text x="${W - padR + 6}" y="${y + 4}" fill="rgba(91,155,213,0.6)" font-size="10" text-anchor="start">${Math.round(v)}</text>`;
+  }
+  // zero line for TSB
+  const zeroY = padT + chartH / 2 - ((0 - (minTsb + maxTsb) / 2) / tsbRange) * chartH * 0.9;
+
+  svg.innerHTML = `
+    ${yLabels}${rLabels}
+    <line x1="${padL}" y1="${zeroY}" x2="${W - padR}" y2="${zeroY}" stroke="rgba(91,155,213,0.25)" stroke-dasharray="4 4" />
+    <path d="${pathFrom(ctlSlice)}" fill="none" stroke="#4CAF82" stroke-width="2.5" />
+    <path d="${pathFrom(atlSlice)}" fill="none" stroke="#E5A93D" stroke-width="2" opacity="0.85" />
+    <path d="${pathFrom(tsbSlice, "tsb")}" fill="none" stroke="#5B9BD5" stroke-width="2" stroke-dasharray="4 3" opacity="0.9" />
+  `;
+  const ctlNow = ctl[ctl.length - 1];
+  const atlNow = atl[atl.length - 1];
+  const tsbNow = tsb[tsb.length - 1];
+  setText(document.getElementById("ff-ctl"), Math.round(ctlNow));
+  setText(document.getElementById("ff-atl"), Math.round(atlNow));
+  const tsbText = (tsbNow > 0 ? "+" : "") + Math.round(tsbNow);
+  setText(document.getElementById("ff-tsb"), tsbText);
+  const statusEl = document.getElementById("ff-status");
+  if (statusEl) {
+    let status, color;
+    if (tsbNow > 25) { status = "zu frisch"; color = "#5B9BD5"; }
+    else if (tsbNow > 5) { status = "erholt ✓"; color = "#4CAF82"; }
+    else if (tsbNow > -10) { status = "neutral"; color = "#E5A93D"; }
+    else if (tsbNow > -20) { status = "ermüdet"; color = "#E5A93D"; }
+    else { status = "überlastet ⚠"; color = "#d9534f"; }
+    statusEl.textContent = status;
+    statusEl.style.color = color;
+  }
+}
+
+function renderMonotonyChart(allActivities) {
+  const svg = document.getElementById("stats-monotony-svg");
+  if (!svg) return;
+  const weeks = 12;
+  const dailyLoad = buildDailyLoadSeries(allActivities, weeks * 7);
+  // Build per-week stats
+  const weekly = [];
+  for (let w = 0; w < weeks; w++) {
+    const slice = dailyLoad.slice(w * 7, w * 7 + 7);
+    const mean = slice.reduce((a, b) => a + b, 0) / 7;
+    const variance = slice.reduce((a, b) => a + (b - mean) ** 2, 0) / 7;
+    const sd = Math.sqrt(variance);
+    const monotony = sd > 0.01 ? mean / sd : 0;
+    const weekLoad = mean * 7;
+    const strain = monotony * weekLoad;
+    weekly.push({ monotony, strain, weekLoad });
+  }
+  const hasData = weekly.some((w) => w.weekLoad > 1);
+  if (!hasData) { svg.innerHTML = `<text x="360" y="100" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="12">Zu wenig Aktivitäten</text>`; return; }
+
+  const W = 720, H = 200, padL = 40, padR = 40, padT = 15, padB = 30;
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
+  const barW = chartW / weeks - 4;
+  const maxMono = Math.max(2.5, ...weekly.map((w) => w.monotony));
+  const maxStrain = Math.max(1, ...weekly.map((w) => w.strain));
+
+  let bars = "";
+  weekly.forEach((w, i) => {
+    const x = padL + i * (chartW / weeks) + 2;
+    const hMono = (w.monotony / maxMono) * chartH;
+    const color = w.monotony > 2.0 ? "#d9534f" : w.monotony > 1.5 ? "#E5A93D" : "#5B9BD5";
+    bars += `<rect x="${x}" y="${padT + chartH - hMono}" width="${barW / 2 - 1}" height="${hMono}" fill="${color}" opacity="0.85" rx="2"/>`;
+    const hStrain = (w.strain / maxStrain) * chartH;
+    bars += `<rect x="${x + barW / 2 + 1}" y="${padT + chartH - hStrain}" width="${barW / 2 - 1}" height="${hStrain}" fill="#E5A93D" opacity="0.45" rx="2"/>`;
+  });
+
+  // risk line at monotony=2.0
+  const riskY = padT + chartH - (2.0 / maxMono) * chartH;
+  const warnY = padT + chartH - (1.5 / maxMono) * chartH;
+
+  let xLabels = "";
+  for (let i = 0; i < weeks; i += 2) {
+    const x = padL + i * (chartW / weeks) + barW / 2;
+    const weeksAgo = weeks - 1 - i;
+    xLabels += `<text x="${x}" y="${H - 8}" fill="rgba(255,255,255,0.35)" font-size="10" text-anchor="middle">${weeksAgo === 0 ? "heute" : "-" + weeksAgo + "w"}</text>`;
+  }
+
+  svg.innerHTML = `
+    <line x1="${padL}" y1="${riskY}" x2="${W - padR}" y2="${riskY}" stroke="#d9534f" stroke-dasharray="4 3" opacity="0.5" />
+    <line x1="${padL}" y1="${warnY}" x2="${W - padR}" y2="${warnY}" stroke="#E5A93D" stroke-dasharray="4 3" opacity="0.4" />
+    <text x="${W - padR + 4}" y="${riskY + 4}" fill="#d9534f" font-size="9">2.0</text>
+    <text x="${W - padR + 4}" y="${warnY + 4}" fill="#E5A93D" font-size="9">1.5</text>
+    ${bars}${xLabels}
+  `;
+  const avgMono = weekly.slice(-8).reduce((a, w) => a + w.monotony, 0) / 8;
+  const maxStrainVal = Math.max(...weekly.map((w) => w.strain));
+  const riskWeeks = weekly.filter((w) => w.monotony > 2.0).length;
+  setText(document.getElementById("mt-avg"), avgMono.toFixed(2));
+  setText(document.getElementById("mt-strain"), Math.round(maxStrainVal));
+  setText(document.getElementById("mt-risk"), String(riskWeeks));
+}
+
+function renderIntensityTimeline(allActivities) {
+  const svg = document.getElementById("stats-intensity-timeline-svg");
+  if (!svg) return;
+  const weeks = 12;
+  const now = Date.now();
+  const msPerDay = 86400000;
+  // for each week, count seconds in Z1/Z2/Z3 based on HR or pace heuristics
+  const weekBuckets = Array.from({ length: weeks }, () => ({ z1: 0, z2: 0, z3: 0, total: 0 }));
+  for (const a of allActivities) {
+    const t = new Date(a.createdAt || a.date || a.start_date || 0).getTime();
+    const daysAgo = (now - t) / msPerDay;
+    if (daysAgo < 0 || daysAgo > weeks * 7) continue;
+    const weekIdx = weeks - 1 - Math.floor(daysAgo / 7);
+    if (weekIdx < 0 || weekIdx >= weeks) continue;
+    const dur = a.movingTimeSec || 0;
+    if (dur < 60) continue;
+    // Classify by avg HR relative to estimated maxHr
+    const acc = getCurrentAccount?.();
+    const age = Number(acc?.profile?.age) || (acc?.profile?.birthYear ? new Date().getFullYear() - Number(acc.profile.birthYear) : 40);
+    const maxHr = Number(acc?.profile?.maxHr) || Math.round(208 - 0.7 * age);
+    const avgHr = a.avgHeartrate;
+    let zone = "z1";
+    if (avgHr && maxHr) {
+      const pct = avgHr / maxHr;
+      if (pct >= 0.87) zone = "z3";
+      else if (pct >= 0.78) zone = "z2";
+      else zone = "z1";
+    } else {
+      // fallback: label by activity intensity hints
+      const type = String(a.sportType || a.workoutType || "").toLowerCase();
+      if (/interval|vo2|tempo|threshold/.test(type)) zone = "z2";
+      else if (/race/.test(type)) zone = "z3";
+      else zone = "z1";
+    }
+    weekBuckets[weekIdx][zone] += dur;
+    weekBuckets[weekIdx].total += dur;
+  }
+
+  const hasData = weekBuckets.some((w) => w.total > 0);
+  if (!hasData) { svg.innerHTML = `<text x="360" y="100" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="12">Keine Intensitätsdaten verfügbar</text>`; return; }
+
+  const W = 720, H = 200, padL = 40, padR = 10, padT = 15, padB = 30;
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
+  const barW = chartW / weeks - 3;
+
+  let bars = "";
+  weekBuckets.forEach((w, i) => {
+    if (w.total === 0) return;
+    const x = padL + i * (chartW / weeks) + 1.5;
+    const z1p = w.z1 / w.total;
+    const z2p = w.z2 / w.total;
+    const z3p = w.z3 / w.total;
+    const h1 = z1p * chartH;
+    const h2 = z2p * chartH;
+    const h3 = z3p * chartH;
+    let yCur = padT + chartH;
+    bars += `<rect x="${x}" y="${yCur - h1}" width="${barW}" height="${h1}" fill="#4CAF82" opacity="0.85" />`;
+    yCur -= h1;
+    bars += `<rect x="${x}" y="${yCur - h2}" width="${barW}" height="${h2}" fill="#E5A93D" opacity="0.85" />`;
+    yCur -= h2;
+    bars += `<rect x="${x}" y="${yCur - h3}" width="${barW}" height="${h3}" fill="#d9534f" opacity="0.85" />`;
+  });
+
+  let yLabels = "";
+  [0, 25, 50, 75, 100].forEach((v) => {
+    const y = padT + chartH - (v / 100) * chartH;
+    yLabels += `<text x="${padL - 6}" y="${y + 4}" fill="rgba(255,255,255,0.3)" font-size="10" text-anchor="end">${v}%</text>`;
+    yLabels += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="rgba(255,255,255,0.04)" />`;
+  });
+  let xLabels = "";
+  for (let i = 0; i < weeks; i += 2) {
+    const x = padL + i * (chartW / weeks) + barW / 2;
+    const weeksAgo = weeks - 1 - i;
+    xLabels += `<text x="${x}" y="${H - 8}" fill="rgba(255,255,255,0.35)" font-size="10" text-anchor="middle">${weeksAgo === 0 ? "heute" : "-" + weeksAgo + "w"}</text>`;
+  }
+
+  svg.innerHTML = `${yLabels}${bars}${xLabels}`;
+
+  // averages across all weeks with data
+  const withData = weekBuckets.filter((w) => w.total > 0);
+  const avgZ1 = withData.reduce((a, w) => a + w.z1 / w.total, 0) / (withData.length || 1);
+  const avgZ2 = withData.reduce((a, w) => a + w.z2 / w.total, 0) / (withData.length || 1);
+  const avgZ3 = withData.reduce((a, w) => a + w.z3 / w.total, 0) / (withData.length || 1);
+  setText(document.getElementById("itl-z1"), Math.round(avgZ1 * 100) + "%");
+  setText(document.getElementById("itl-z2"), Math.round(avgZ2 * 100) + "%");
+  setText(document.getElementById("itl-z3"), Math.round(avgZ3 * 100) + "%");
+  let type = "pyramidal";
+  if (avgZ1 > 0.75 && avgZ3 > 0.12 && avgZ2 < 0.1) type = "polarisiert ✓";
+  else if (avgZ1 > 0.75 && avgZ2 > avgZ3) type = "pyramidal ✓";
+  else if (avgZ2 > 0.35) type = "threshold-heavy ⚠";
+  else if (avgZ1 > 0.90) type = "low intensity";
+  setText(document.getElementById("itl-type"), type);
+}
+
+function renderHardRhythm(allActivities) {
+  const grid = document.getElementById("hard-rhythm-grid");
+  if (!grid) return;
+  const weeks = 12;
+  const msPerDay = 86400000;
+  const now = Date.now();
+  const cells = [];
+  // Build day classification: hard/moderate/easy/rest
+  const dayStart = new Date(now);
+  dayStart.setHours(0, 0, 0, 0);
+  const startTs = dayStart.getTime() - (weeks * 7 - 1) * msPerDay;
+  const totalDays = weeks * 7;
+  const byDay = new Array(totalDays).fill(null).map(() => ({ load: 0, hr: 0, count: 0, types: [] }));
+  for (const a of allActivities) {
+    const t = new Date(a.createdAt || a.date || a.start_date || 0).getTime();
+    if (t < startTs) continue;
+    const idx = Math.floor((t - startTs) / msPerDay);
+    if (idx < 0 || idx >= totalDays) continue;
+    const dur = (a.movingTimeSec || 0) / 60;
+    if (dur < 5) continue;
+    const hrFactor = a.avgHeartrate ? Math.max(80, a.avgHeartrate) / 150 : 1.0;
+    byDay[idx].load += dur * Math.pow(hrFactor, 1.5);
+    byDay[idx].hr = Math.max(byDay[idx].hr, a.avgHeartrate || 0);
+    byDay[idx].count++;
+    byDay[idx].types.push(String(a.sportType || a.type || ""));
+  }
+
+  const acc = getCurrentAccount?.();
+  const age = Number(acc?.profile?.age) || (acc?.profile?.birthYear ? new Date().getFullYear() - Number(acc.profile.birthYear) : 40);
+  const maxHr = Number(acc?.profile?.maxHr) || Math.round(208 - 0.7 * age);
+  const hardThreshold = maxHr * 0.85;
+  const modThreshold = maxHr * 0.75;
+
+  const classifyDay = (d) => {
+    if (d.count === 0) return "rest";
+    if (d.hr >= hardThreshold || d.load > 80) return "hard";
+    if (d.hr >= modThreshold || d.load > 40) return "moderate";
+    return "easy";
+  };
+  const classes = byDay.map(classifyDay);
+  // Count 48h violations: consecutive hard days
+  let violations = 0;
+  for (let i = 1; i < classes.length; i++) {
+    if (classes[i] === "hard" && classes[i - 1] === "hard") violations++;
+  }
+  const hardCount = classes.filter((c) => c === "hard").length;
+  const compliance = hardCount > 0 ? Math.round((1 - violations / hardCount) * 100) : 100;
+
+  // Render as 7×12 heatmap
+  grid.innerHTML = "";
+  grid.style.cssText = "display:grid;grid-template-columns:repeat(" + weeks + ",1fr);grid-template-rows:repeat(7,16px);gap:2px;";
+  const colors = { hard: "#d9534f", moderate: "#E5A93D", easy: "#4CAF82", rest: "rgba(255,255,255,0.08)" };
+  for (let d = 0; d < 7; d++) {
+    for (let w = 0; w < weeks; w++) {
+      // index in byDay: we want row d (day-of-week), column w (week)
+      // Calculate which day: startTs + (w*7 + d)*msPerDay  — but we need day-of-week alignment
+      const dayOffset = w * 7 + d;
+      if (dayOffset >= totalDays) continue;
+      const cls = classes[dayOffset];
+      const cell = document.createElement("div");
+      cell.style.cssText = `background:${colors[cls]};border-radius:3px;grid-column:${w + 1};grid-row:${d + 1};`;
+      cell.title = `${cls} — Tag ${dayOffset - totalDays + 1}`;
+      grid.appendChild(cell);
+    }
+  }
+  setText(document.getElementById("hr-hard"), String(hardCount));
+  setText(document.getElementById("hr-violations"), String(violations));
+  const compEl = document.getElementById("hr-compliance");
+  if (compEl) {
+    compEl.textContent = compliance + "%";
+    compEl.style.color = compliance >= 80 ? "#4CAF82" : compliance >= 60 ? "#E5A93D" : "#d9534f";
+  }
+}
+
 function renderConsistencyChart(allActivities) {
   const svg = document.getElementById("stats-consistency-svg");
   if (!svg) return;
@@ -16053,25 +16596,143 @@ function initBirthdateDropdowns() {
 /**
  * Pre-populate plan form fields from saved inputData.
  */
-function populatePlanFormFromSaved(account) {
-  const id = account?.settings?.inputData;
-  if (!id) return;
+// ═══════════════════════════════════════════════════════════════════
+// Generic Form Snapshot & Autosave (all fields, all users, Supabase-synced)
+// ═══════════════════════════════════════════════════════════════════
+
+// Fields that should NEVER be snapshotted (sensitive, auto-computed, ephemeral)
+const SNAPSHOT_EXCLUDE = new Set([
+  "raceEventsJson", // handled separately via draftRaceEvents
+]);
+
+function snapshotPlanForm() {
+  const f = document.getElementById("plan-form");
+  if (!f) return null;
+  const snap = {};
+  const formData = new FormData(f);
+  for (const [name, value] of formData.entries()) {
+    if (SNAPSHOT_EXCLUDE.has(name)) continue;
+    // Checkboxes send their value only when checked; also capture unchecked state
+    snap[name] = String(value || "");
+  }
+  // Capture unchecked checkboxes as "" so they restore correctly
+  f.querySelectorAll('input[type="checkbox"]').forEach((el) => {
+    if (!el.name || SNAPSHOT_EXCLUDE.has(el.name)) return;
+    if (!formData.has(el.name)) snap[el.name] = "";
+  });
+  // Also persist draft race events (separate structured field)
+  if (typeof draftRaceEvents !== "undefined" && Array.isArray(draftRaceEvents)) {
+    snap._raceEvents = draftRaceEvents.map((e) => ({
+      ...e,
+      date: e.date instanceof Date ? e.date.toISOString() : e.date,
+      endDate: e.endDate instanceof Date ? e.endDate.toISOString() : e.endDate,
+    }));
+  }
+  snap._updatedAt = Date.now();
+  return snap;
+}
+
+function restorePlanForm(snap) {
+  if (!snap || typeof snap !== "object") return;
   const f = document.getElementById("plan-form");
   if (!f) return;
+  for (const [name, value] of Object.entries(snap)) {
+    if (name.startsWith("_")) continue;
+    const elements = f.querySelectorAll(`[name="${CSS.escape(name)}"]`);
+    if (!elements.length) continue;
+    elements.forEach((el) => {
+      if (el.type === "checkbox") {
+        el.checked = value === "on" || value === "true" || value === "1";
+      } else if (el.type === "radio") {
+        el.checked = el.value === value;
+      } else {
+        el.value = value != null ? value : "";
+      }
+    });
+  }
+  // Restore race events
+  if (Array.isArray(snap._raceEvents) && typeof draftRaceEvents !== "undefined") {
+    draftRaceEvents.length = 0;
+    snap._raceEvents.forEach((e) => {
+      draftRaceEvents.push({
+        ...e,
+        date: e.date ? new Date(e.date) : null,
+        endDate: e.endDate ? new Date(e.endDate) : null,
+      });
+    });
+    if (typeof persistInlineRaceEvents === "function") persistInlineRaceEvents();
+    if (typeof renderInlineRaceList === "function") renderInlineRaceList();
+  }
+}
 
-  if (id.birthDate?.day)   { const el = f.querySelector('[name="birthDay"]');   if (el) el.value = id.birthDate.day; }
-  if (id.birthDate?.month) { const el = f.querySelector('[name="birthMonth"]'); if (el) el.value = id.birthDate.month; }
-  if (id.birthDate?.year)  { const el = f.querySelector('[name="birthYear"]');  if (el) el.value = id.birthDate.year; }
-  if (id.ftpBike)              { const el = f.querySelector('[name="bikeFtp"]');            if (el) el.value = id.ftpBike; }
-  if (id.thresholdPace)        { const el = f.querySelector('[name="runThresholdPace"]');   if (el) el.value = id.thresholdPace; }
-  if (id.bikeThresholdHr)      { const el = f.querySelector('[name="bikeThresholdHr"]');    if (el) el.value = id.bikeThresholdHr; }
-  if (id.bikeThresholdLactate) { const el = f.querySelector('[name="bikeThresholdLactate"]'); if (el) el.value = id.bikeThresholdLactate; }
-  if (id.runThresholdHr)       { const el = f.querySelector('[name="runThresholdHr"]');     if (el) el.value = id.runThresholdHr; }
-  if (id.runThresholdLactate)  { const el = f.querySelector('[name="runThresholdLactate"]'); if (el) el.value = id.runThresholdLactate; }
-  if (id.swimCss)              { const el = f.querySelector('[name="swimCss"]');            if (el) el.value = id.swimCss; }
-  if (id.weight)               { const el = f.querySelector('[name="weightKg"]');           if (el) el.value = id.weight; }
-  if (id.heightCm)             { const el = f.querySelector('[name="heightCm"]');           if (el) el.value = id.heightCm; }
-  if (id.sex)                  { const el = f.querySelector('[name="sex"]');                if (el) el.value = id.sex; }
+// Save snapshot to current account + localStorage + cloud-sync via persistStore
+function savePlanFormSnapshot() {
+  try {
+    const snap = snapshotPlanForm();
+    if (!snap) return;
+    const account = typeof getCurrentAccount === "function" ? getCurrentAccount() : null;
+    if (account) {
+      account.settings = account.settings || {};
+      account.settings.planFormSnapshot = snap;
+      if (typeof persistStore === "function") persistStore();
+    } else {
+      // No account: still keep local-only draft so nothing is lost pre-login
+      try { localStorage.setItem("aimrunna_plan_draft_anon", JSON.stringify(snap)); } catch (_) {}
+    }
+  } catch (e) { console.warn("savePlanFormSnapshot failed:", e); }
+}
+
+// Debounced wrapper
+let _planSnapshotTimer = null;
+function schedulePlanFormSnapshot() {
+  clearTimeout(_planSnapshotTimer);
+  _planSnapshotTimer = setTimeout(savePlanFormSnapshot, 600);
+}
+
+// Wire input listeners once the form exists
+function wirePlanFormAutosave() {
+  const f = document.getElementById("plan-form");
+  if (!f || f.dataset.autosaveWired === "1") return;
+  f.dataset.autosaveWired = "1";
+  f.addEventListener("input", schedulePlanFormSnapshot, true);
+  f.addEventListener("change", schedulePlanFormSnapshot, true);
+  // Save on page-hide (handles closing tab / mobile swipe-away)
+  window.addEventListener("pagehide", savePlanFormSnapshot);
+  window.addEventListener("beforeunload", savePlanFormSnapshot);
+}
+
+function populatePlanFormFromSaved(account) {
+  const f = document.getElementById("plan-form");
+  if (!f) return;
+  // 1) Apply generic snapshot first (all fields)
+  const snap = account?.settings?.planFormSnapshot;
+  if (snap) restorePlanForm(snap);
+  // 2) Apply anon pre-login draft if logged-in account has no snapshot yet
+  if (!snap) {
+    try {
+      const anon = localStorage.getItem("aimrunna_plan_draft_anon");
+      if (anon) restorePlanForm(JSON.parse(anon));
+    } catch (_) {}
+  }
+  // 3) Apply typed inputData (source of truth for threshold/biometry fields)
+  const id = account?.settings?.inputData;
+  if (id) {
+    if (id.birthDate?.day)   { const el = f.querySelector('[name="birthDay"]');   if (el) el.value = id.birthDate.day; }
+    if (id.birthDate?.month) { const el = f.querySelector('[name="birthMonth"]'); if (el) el.value = id.birthDate.month; }
+    if (id.birthDate?.year)  { const el = f.querySelector('[name="birthYear"]');  if (el) el.value = id.birthDate.year; }
+    if (id.ftpBike)              { const el = f.querySelector('[name="bikeFtp"]');            if (el) el.value = id.ftpBike; }
+    if (id.thresholdPace)        { const el = f.querySelector('[name="runThresholdPace"]');   if (el) el.value = id.thresholdPace; }
+    if (id.bikeThresholdHr)      { const el = f.querySelector('[name="bikeThresholdHr"]');    if (el) el.value = id.bikeThresholdHr; }
+    if (id.bikeThresholdLactate) { const el = f.querySelector('[name="bikeThresholdLactate"]'); if (el) el.value = id.bikeThresholdLactate; }
+    if (id.runThresholdHr)       { const el = f.querySelector('[name="runThresholdHr"]');     if (el) el.value = id.runThresholdHr; }
+    if (id.runThresholdLactate)  { const el = f.querySelector('[name="runThresholdLactate"]'); if (el) el.value = id.runThresholdLactate; }
+    if (id.swimCss)              { const el = f.querySelector('[name="swimCss"]');            if (el) el.value = id.swimCss; }
+    if (id.weight)               { const el = f.querySelector('[name="weightKg"]');           if (el) el.value = id.weight; }
+    if (id.heightCm)             { const el = f.querySelector('[name="heightCm"]');           if (el) el.value = id.heightCm; }
+    if (id.sex)                  { const el = f.querySelector('[name="sex"]');                if (el) el.value = id.sex; }
+  }
+  // 4) Ensure autosave is wired
+  wirePlanFormAutosave();
 }
 
 /**
@@ -16637,4 +17298,52 @@ document.addEventListener("keydown", (e) => {
     e.preventDefault();
     openKpiDrilldown(e.target.dataset.kpi);
   }
+});
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   GDPR / DSGVO COOKIE CONSENT
+   ═══════════════════════════════════════════════════════════════════════════ */
+const COOKIE_CONSENT_KEY = "aimrunna_cookie_consent_v1";
+
+function getCookieConsent() {
+  try {
+    const raw = localStorage.getItem(COOKIE_CONSENT_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (_) { return null; }
+}
+
+function setCookieConsent(choice) {
+  try {
+    localStorage.setItem(COOKIE_CONSENT_KEY, JSON.stringify({
+      choice, // "all" or "necessary"
+      analytics: choice === "all",
+      marketing: false,
+      acceptedAt: new Date().toISOString(),
+      version: "2026-04-05",
+    }));
+  } catch (_) {}
+}
+
+function hideCookieBanner() {
+  const banner = document.getElementById("cookie-consent-banner");
+  if (banner) banner.hidden = true;
+}
+
+function showCookieBanner() {
+  const banner = document.getElementById("cookie-consent-banner");
+  if (!banner) return;
+  if (getCookieConsent()) return; // already chose
+  banner.hidden = false;
+}
+
+// Show banner on load if no prior consent recorded
+requestAnimationFrame(() => { try { showCookieBanner(); } catch (_) {} });
+
+// Handle consent button clicks
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-cookie-choice]");
+  if (!btn) return;
+  const choice = btn.dataset.cookieChoice;
+  setCookieConsent(choice);
+  hideCookieBanner();
 });
