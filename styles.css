@@ -246,6 +246,15 @@ body.home-feed-mode .section-calendar,
 body.home-feed-mode .section-data {
   display: none;
 }
+
+/* PeakPlan mode — force landing hero + plan form even when authenticated */
+body.peakplan-mode .section-home-feed,
+body.peakplan-mode #public-profile-section {
+  display: none !important;
+}
+body.peakplan-mode .scroll-stage {
+  display: block !important;
+}
 body.home-feed-mode .section-home-feed {
   display: block;
   margin-top: 80px;

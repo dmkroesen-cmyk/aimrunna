@@ -1316,16 +1316,29 @@ accountOpenRegisterBtn?.addEventListener("click", () => openAccountModal("regist
 accountLogoutBtn?.addEventListener("click", logoutCurrentAccount);
 // Swapped semantics: "Home" button → workspace (dashboard), "Profil" button → public profile + social feed
 accountHomeBtn?.addEventListener("click", () => {
+  document.body.classList.remove("peakplan-mode");
   setActiveProfileView("overview");
   setAppView("profile");
   setActiveAccountSection("profile");
 });
-accountProfileBtn?.addEventListener("click", () => setAppView("home"));
-// PeakPlan (race-styled CTA): jumps straight to the plan creator
+accountProfileBtn?.addEventListener("click", () => {
+  document.body.classList.remove("peakplan-mode");
+  setAppView("home");
+});
+// PeakPlan (race-styled CTA): shows the landing hero + plan form beneath the top nav
 document.getElementById("account-peakplan-btn")?.addEventListener("click", () => {
-  setActiveProfileView("playbook");
-  setAppView("profile");
-  setActiveAccountSection("profile");
+  // Ensure plan form is inside the landing panel (not captured by playbook host)
+  const landingPanel = document.querySelector(".landing-panel");
+  const planForm = document.getElementById("plan-form");
+  if (landingPanel && planForm && planForm.parentElement !== landingPanel) {
+    landingPanel.appendChild(planForm);
+  }
+  document.body.classList.add("peakplan-mode");
+  setAppView("home");
+  // Re-sync UI state (mode visibility, hero images) after nav
+  try { if (typeof syncPlanModeUI === "function") syncPlanModeUI(); } catch (_) {}
+  try { if (typeof applyHeroImagesForDiscipline === "function") applyHeroImagesForDiscipline(document.querySelector('select[name="discipline"]')?.value || "running"); } catch (_) {}
+  window.scrollTo({ top: 0, behavior: "smooth" });
 });
 // Community button removed — feed is now on Home when logged in
 accountSectionTabButtons.forEach((btn) =>
@@ -1338,6 +1351,7 @@ accountSectionTabButtons.forEach((btn) =>
 
 profileViewTabButtons.forEach((btn) =>
   btn.addEventListener("click", () => {
+    document.body.classList.remove("peakplan-mode");
     const view = btn.dataset.profileView || "overview";
     setActiveProfileView(view);
     if (activeAppView !== "profile") setAppView("profile");
@@ -3441,7 +3455,7 @@ function ensureAccountIntegrationsShape(account) {
 function setAuthMode(mode) {
   authMode = mode === "register" ? "register" : "login";
   accountTabButtons.forEach((btn) => btn.classList.toggle("is-active", btn.dataset.authMode === authMode));
-  if (accountSubmitBtn) accountSubmitBtn.textContent = authMode === "register" ? "create" : "login";
+  if (accountSubmitBtn) accountSubmitBtn.textContent = authMode === "register" ? "create." : "login.";
   if (accountFormStatusEl) accountFormStatusEl.textContent = "";
   // Only require terms acceptance on registration
   const termsField = document.getElementById("auth-terms-field");
@@ -4323,21 +4337,23 @@ function setAppView(view) {
   document.body.classList.add(`app-view-${activeAppView}`);
 
   const isAuth = Boolean(getCurrentAccount());
-  // When logged in and on Home, show feed instead of landing page
-  document.body.classList.toggle("home-feed-mode", isAuth && activeAppView === "home");
+  const peakplanMode = document.body.classList.contains("peakplan-mode");
+  // When logged in and on Home, show feed instead of landing page (unless peakplan-mode overrides)
+  document.body.classList.toggle("home-feed-mode", isAuth && activeAppView === "home" && !peakplanMode);
 
   // Swapped: "Home" button active when on workspace (profile view), "Profil" button active when on public/home view
   // Training button active when in profile (excluding playbook sub-view)
-  accountHomeBtn?.classList.toggle("is-active", activeAppView === "profile" && activeProfileView !== "playbook");
+  accountHomeBtn?.classList.toggle("is-active", !peakplanMode && activeAppView === "profile" && activeProfileView !== "playbook");
   // Profil button active when on home (public profile + feed)
-  accountProfileBtn?.classList.toggle("is-active", activeAppView === "home");
-  // peakplan. CTA stays visually the CTA; no active-state swap needed
+  accountProfileBtn?.classList.toggle("is-active", !peakplanMode && activeAppView === "home");
+  // peakplan. CTA active when in peakplan-mode
+  document.getElementById("account-peakplan-btn")?.classList.toggle("is-active", peakplanMode);
 
   const homeFeedSection = document.getElementById("home-feed-section");
-  if (homeFeedSection) homeFeedSection.hidden = !(isAuth && activeAppView === "home");
+  if (homeFeedSection) homeFeedSection.hidden = !(isAuth && activeAppView === "home" && !peakplanMode);
   const publicProfileSection = document.getElementById("public-profile-section");
-  if (publicProfileSection) publicProfileSection.hidden = !(isAuth && activeAppView === "home");
-  if (isAuth && activeAppView === "home" && window.PublicProfile?.render) {
+  if (publicProfileSection) publicProfileSection.hidden = !(isAuth && activeAppView === "home" && !peakplanMode);
+  if (isAuth && activeAppView === "home" && !peakplanMode && window.PublicProfile?.render) {
     try { window.PublicProfile.render(); } catch (e) { console.warn("[PublicProfile] render:", e); }
   }
 
@@ -7680,6 +7696,8 @@ function renderStravaProfileStatus(account) {
 
 async function fetchStravaImportSummary(userId) {
   if (!userId) return null;
+  // Endpoint not yet deployed — skip to avoid 404 noise in console
+  if (!window.__ENABLE_STRAVA_IMPORT_SUMMARY__) return null;
   try {
     const summaryRes = await fetch(`${STRAVA_OAUTH_DEV_BASE}/api/oauth/strava/import-summary?user_id=${encodeURIComponent(userId)}`, {
       method: "GET",
@@ -17573,6 +17591,10 @@ function populatePlanFormFromSaved(account) {
   }
   // 4) Ensure autosave is wired
   wirePlanFormAutosave();
+  // 5) Re-sync UI state based on restored values (mode visibility, discipline fields, etc.)
+  try { if (typeof syncPlanModeUI === "function") syncPlanModeUI(); } catch (_) {}
+  try { if (typeof applyHeroImagesForDiscipline === "function") applyHeroImagesForDiscipline(document.querySelector('select[name="discipline"]')?.value || "running"); } catch (_) {}
+  try { if (typeof syncDisciplineSpecificFields === "function") syncDisciplineSpecificFields(document.querySelector('select[name="discipline"]')?.value || "running"); } catch (_) {}
 }
 
 /**
