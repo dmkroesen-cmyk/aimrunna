@@ -19997,233 +19997,85 @@ document.addEventListener("click", (e) => {
   // Unique ID counter to avoid SVG gradient ID collisions
   let _medalSvgId = 0;
 
-  // Event-specific landmark paths (silhouettes)
+  // ── Event-specific landmark silhouettes (monochrome) ──
   const MEDAL_LANDMARKS = {
-    // Marathon Majors
-    berlin: {
-      // Brandenburger Tor
-      path: "M24,56 L24,46 L26,46 L26,42 L28,40 L28,46 L30,46 L30,42 L32,40 L32,46 L34,46 L34,42 L36,38 L38,36 L40,35 L42,36 L44,38 L46,42 L46,46 L48,46 L48,42 L50,40 L50,46 L52,46 L52,42 L54,40 L54,46 L56,46 L56,56",
-      ribbonPattern: "stripes-diagonal",
-      starOnRibbon: true,
-    },
-    boston: {
-      // Unicorn silhouette
-      path: "M32,56 L34,50 L33,46 L35,42 L37,40 L36,37 L38,35 L41,34 L44,35 L46,33 L48,34 L47,36 L49,38 L48,40 L50,42 L52,44 L51,48 L53,50 L52,54 L48,56",
-      ribbonPattern: "chevron",
-      detail: "laurel",
-    },
-    chicago: {
-      // Skyline silhouette (Willis Tower, Hancock)
-      path: "M22,56 L22,50 L24,50 L24,44 L26,44 L26,48 L28,48 L28,42 L30,42 L30,38 L32,38 L32,42 L34,42 L34,46 L36,46 L36,36 L38,36 L38,34 L40,34 L40,36 L42,36 L42,40 L44,40 L44,44 L46,44 L46,38 L48,38 L48,42 L50,42 L50,46 L52,46 L52,44 L54,44 L54,48 L56,48 L56,50 L58,50 L58,56",
-      ribbonPattern: "stars-4",
-      detail: "star",
-    },
-    london: {
-      // Tower Bridge silhouette
-      path: "M22,56 L22,48 L24,48 L24,44 L26,44 L26,40 L28,40 L28,38 L30,36 L32,38 L32,42 L34,42 L34,40 L36,38 L38,38 L40,37 L42,38 L44,38 L46,40 L46,42 L48,42 L48,38 L50,36 L52,38 L52,40 L54,40 L54,44 L56,44 L56,48 L58,48 L58,56",
-      ribbonPattern: "stripes-horizontal",
-      detail: "crown",
-    },
-    nyc: {
-      // Statue of Liberty torch & skyline
-      path: "M26,56 L26,50 L28,50 L28,46 L30,46 L30,44 L32,44 L32,48 L34,48 L34,42 L36,42 L36,38 L38,38 L38,36 L39,34 L40,32 L41,34 L42,36 L42,38 L44,38 L44,34 L43,32 L44,30 L45,28 L44,26 L46,28 L45,30 L46,32 L46,38 L48,38 L48,42 L50,42 L50,46 L52,46 L52,50 L54,50 L54,56",
-      ribbonPattern: "stripes-vertical",
-      detail: "apple",
-    },
-    tokyo: {
-      // Torii gate silhouette
-      path: "M26,56 L26,48 L28,48 L28,44 L24,42 L22,40 L24,38 L28,38 L30,36 L32,35 L34,34 L38,33 L42,33 L46,34 L48,35 L50,36 L52,38 L56,38 L58,40 L56,42 L52,44 L52,48 L54,48 L54,56",
-      ribbonPattern: "rising-sun",
-      detail: "sakura",
-    },
-  };
-
-  // Series-specific medal styles
-  const MEDAL_SERIES_STYLE = {
-    hyrox: {
-      texture: "crosshatch",
-      finish: "matte",
-      icon: "bolt",
-    },
-    ironman: {
-      texture: "tricolor-ring",
-      finish: "chrome",
-      icon: "mdot",
-    },
-    ironman_703: {
-      texture: "tricolor-ring",
-      finish: "chrome",
-      icon: "mdot703",
-    },
+    berlin:  "M24,56 L24,46 L26,46 L26,42 L28,40 L28,46 L30,46 L30,42 L32,40 L32,46 L34,46 L34,42 L36,38 L38,36 L40,35 L42,36 L44,38 L46,42 L46,46 L48,46 L48,42 L50,40 L50,46 L52,46 L52,42 L54,40 L54,46 L56,46 L56,56",
+    boston:  "M32,56 L34,50 L33,46 L35,42 L37,40 L36,37 L38,35 L41,34 L44,35 L46,33 L48,34 L47,36 L49,38 L48,40 L50,42 L52,44 L51,48 L53,50 L52,54 L48,56",
+    chicago: "M22,56 L22,50 L24,50 L24,44 L26,44 L26,48 L28,48 L28,42 L30,42 L30,38 L32,38 L32,42 L34,42 L34,46 L36,46 L36,36 L38,36 L38,34 L40,34 L40,36 L42,36 L42,40 L44,40 L44,44 L46,44 L46,38 L48,38 L48,42 L50,42 L50,46 L52,46 L52,44 L54,44 L54,48 L56,48 L56,56",
+    london:  "M22,56 L22,48 L24,48 L24,44 L26,44 L26,40 L28,40 L28,38 L30,36 L32,38 L32,42 L34,42 L34,40 L36,38 L38,38 L40,37 L42,38 L44,38 L46,40 L46,42 L48,42 L48,38 L50,36 L52,38 L52,40 L54,40 L54,44 L56,44 L56,48 L58,48 L58,56",
+    nyc:     "M26,56 L26,50 L28,50 L28,46 L30,46 L30,44 L32,44 L32,48 L34,48 L34,42 L36,42 L36,38 L38,38 L38,36 L39,34 L40,32 L41,34 L42,36 L42,38 L44,38 L44,34 L43,32 L44,30 L45,28 L44,26 L46,28 L45,30 L46,32 L46,38 L48,38 L48,42 L50,42 L50,46 L52,46 L52,50 L54,50 L54,56",
+    tokyo:   "M26,56 L26,48 L28,48 L28,44 L24,42 L22,40 L24,38 L28,38 L30,36 L32,35 L34,34 L38,33 L42,33 L46,34 L48,35 L50,36 L52,38 L56,38 L58,40 L56,42 L52,44 L52,48 L54,48 L54,56",
   };
 
   function _renderMedalSvg(primary, secondary, emoji, shortName, year, eventCode, series) {
     const uid = `m${++_medalSvgId}`;
-    const p = primary || "#E5A93D";
-    const s = secondary || "#1a1a1a";
-    const landmark = MEDAL_LANDMARKS[eventCode];
-    const seriesStyle = MEDAL_SERIES_STYLE[series];
     const abbr = String(shortName || "").replace(/[^A-Za-z0-9]/g, "").slice(0, 5).toUpperCase();
+    const landmark = MEDAL_LANDMARKS[eventCode];
+    const isHyrox = series === "hyrox";
+    const isIronman = series === "ironman" || series === "ironman_703";
 
-    // ── Build defs (gradients, patterns, filters) ──
+    // Corporate identity: monochrome silver/white on dark
+    // Only accent: subtle warm highlight for earned medals
+    const accent = "rgba(229,169,61,0.15)"; // very subtle gold hint
+
     let defs = `
       <radialGradient id="${uid}_mg" cx="35%" cy="28%" r="65%">
-        <stop offset="0%" stop-color="${_lighten(p,30)}"/>
-        <stop offset="45%" stop-color="${p}"/>
-        <stop offset="100%" stop-color="${s}"/>
+        <stop offset="0%" stop-color="rgba(255,255,255,0.12)"/>
+        <stop offset="50%" stop-color="rgba(255,255,255,0.04)"/>
+        <stop offset="100%" stop-color="rgba(0,0,0,0.3)"/>
       </radialGradient>
       <linearGradient id="${uid}_shine" x1="0.2" y1="0" x2="0.8" y2="1">
-        <stop offset="0%" stop-color="rgba(255,255,255,0.25)"/>
+        <stop offset="0%" stop-color="rgba(255,255,255,0.18)"/>
         <stop offset="50%" stop-color="rgba(255,255,255,0)"/>
-        <stop offset="100%" stop-color="rgba(255,255,255,0.08)"/>
+        <stop offset="100%" stop-color="rgba(255,255,255,0.05)"/>
       </linearGradient>
-      <linearGradient id="${uid}_rb" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="${p}" stop-opacity="0.95"/>
-        <stop offset="100%" stop-color="${s}" stop-opacity="0.75"/>
-      </linearGradient>
-      <filter id="${uid}_shadow" x="-10%" y="-10%" width="130%" height="130%">
-        <feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-color="rgba(0,0,0,0.45)"/>
+      <filter id="${uid}_sh" x="-10%" y="-10%" width="130%" height="130%">
+        <feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="rgba(0,0,0,0.5)"/>
       </filter>
-      <clipPath id="${uid}_clip"><circle cx="40" cy="48" r="29"/></clipPath>`;
+      <clipPath id="${uid}_c"><circle cx="40" cy="48" r="29"/></clipPath>`;
 
-    // ── Tricolor ring for Ironman ──
-    if (seriesStyle?.texture === "tricolor-ring") {
-      defs += `
-        <linearGradient id="${uid}_tri" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stop-color="#0077BE"/>
-          <stop offset="33%" stop-color="#0077BE"/>
-          <stop offset="33%" stop-color="#E30613"/>
-          <stop offset="66%" stop-color="#E30613"/>
-          <stop offset="66%" stop-color="#00A651"/>
-          <stop offset="100%" stop-color="#00A651"/>
-        </linearGradient>`;
-    }
+    // Ribbon: minimal, monochrome
+    const ribbon = `<path d="M30,9 L27,0 L40,5 L53,0 L50,9" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.08)" stroke-width="0.3"/>`;
 
-    // Crosshatch pattern for HYROX
-    if (seriesStyle?.texture === "crosshatch") {
-      defs += `
-        <pattern id="${uid}_hatch" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-          <line x1="0" y1="0" x2="0" y2="4" stroke="rgba(255,255,255,0.06)" stroke-width="0.8"/>
-        </pattern>`;
-    }
+    // Medal body: dark, subtle border
+    const body = `
+      <circle cx="40" cy="48" r="31" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+      <circle cx="40" cy="48" r="28" fill="url(#${uid}_mg)" filter="url(#${uid}_sh)" stroke="rgba(255,255,255,0.1)" stroke-width="0.6"/>`;
 
-    // ── Ribbon ──
-    let ribbon = "";
-    if (landmark?.ribbonPattern === "stripes-diagonal") {
-      ribbon = `<path d="M28,10 L24,0 L40,6 L56,0 L52,10" fill="url(#${uid}_rb)"/>
-        <line x1="30" y1="2" x2="36" y2="9" stroke="${s}" stroke-width="0.6" opacity="0.4"/>
-        <line x1="34" y1="1" x2="40" y2="8" stroke="${s}" stroke-width="0.6" opacity="0.4"/>
-        <line x1="40" y1="1" x2="46" y2="8" stroke="${s}" stroke-width="0.6" opacity="0.4"/>
-        <line x1="44" y1="2" x2="50" y2="9" stroke="${s}" stroke-width="0.6" opacity="0.4"/>`;
-      if (landmark.starOnRibbon) ribbon += `<polygon points="40,2 41.2,4.5 44,4.8 42,6.8 42.5,9.5 40,8.2 37.5,9.5 38,6.8 36,4.8 38.8,4.5" fill="${_lighten(p,20)}" opacity="0.8"/>`;
-    } else if (landmark?.ribbonPattern === "chevron") {
-      ribbon = `<path d="M28,10 L24,0 L40,6 L56,0 L52,10" fill="url(#${uid}_rb)"/>
-        <path d="M32,3 L40,7 L48,3" fill="none" stroke="${s}" stroke-width="0.7" opacity="0.5"/>
-        <path d="M33,5 L40,8.5 L47,5" fill="none" stroke="${s}" stroke-width="0.5" opacity="0.35"/>`;
-    } else if (landmark?.ribbonPattern === "stars-4") {
-      ribbon = `<path d="M28,10 L24,0 L40,6 L56,0 L52,10" fill="url(#${uid}_rb)"/>`;
-      [33,37,43,47].forEach(x => { ribbon += `<polygon points="${x},4 ${x+0.5},5.5 ${x+2},5.5 ${x+0.8},6.5 ${x+1.2},8 ${x},7 ${x-1.2},8 ${x-0.8},6.5 ${x-2},5.5 ${x-0.5},5.5" fill="rgba(255,255,255,0.5)" transform="scale(0.6) translate(${x*0.67},3)"/>`; });
-      // Simpler 4-star approach
-      ribbon = `<path d="M28,10 L24,0 L40,6 L56,0 L52,10" fill="url(#${uid}_rb)"/>
-        <circle cx="33" cy="5" r="1" fill="rgba(255,255,255,0.6)"/>
-        <circle cx="37" cy="4" r="1" fill="rgba(255,255,255,0.6)"/>
-        <circle cx="43" cy="4" r="1" fill="rgba(255,255,255,0.6)"/>
-        <circle cx="47" cy="5" r="1" fill="rgba(255,255,255,0.6)"/>`;
-    } else if (landmark?.ribbonPattern === "stripes-horizontal") {
-      ribbon = `<path d="M28,10 L24,0 L40,6 L56,0 L52,10" fill="url(#${uid}_rb)"/>
-        <line x1="28" y1="4" x2="52" y2="4" stroke="rgba(255,255,255,0.25)" stroke-width="0.6"/>
-        <line x1="27" y1="6" x2="53" y2="6" stroke="rgba(255,255,255,0.15)" stroke-width="0.5"/>
-        <line x1="26" y1="8" x2="54" y2="8" stroke="rgba(255,255,255,0.1)" stroke-width="0.4"/>`;
-    } else if (landmark?.ribbonPattern === "stripes-vertical") {
-      ribbon = `<path d="M28,10 L24,0 L40,6 L56,0 L52,10" fill="url(#${uid}_rb)"/>
-        <line x1="36" y1="1" x2="36" y2="9" stroke="${s}" stroke-width="0.8" opacity="0.4"/>
-        <line x1="40" y1="1" x2="40" y2="9" stroke="rgba(255,255,255,0.15)" stroke-width="0.5"/>
-        <line x1="44" y1="1" x2="44" y2="9" stroke="${s}" stroke-width="0.8" opacity="0.4"/>`;
-    } else if (landmark?.ribbonPattern === "rising-sun") {
-      ribbon = `<path d="M28,10 L24,0 L40,6 L56,0 L52,10" fill="url(#${uid}_rb)"/>
-        <circle cx="40" cy="5" r="2.5" fill="${_lighten(p,20)}" opacity="0.7"/>
-        <line x1="40" y1="0" x2="40" y2="2" stroke="${_lighten(p,20)}" stroke-width="0.4" opacity="0.5"/>
-        <line x1="36" y1="1" x2="37.5" y2="3" stroke="${_lighten(p,20)}" stroke-width="0.4" opacity="0.5"/>
-        <line x1="44" y1="1" x2="42.5" y2="3" stroke="${_lighten(p,20)}" stroke-width="0.4" opacity="0.5"/>`;
-    } else {
-      // Default ribbon
-      ribbon = `<path d="M28,10 L24,0 L40,6 L56,0 L52,10" fill="url(#${uid}_rb)" opacity="0.85"/>`;
-    }
-
-    // ── Medal body ──
-    let body = `
-      <circle cx="40" cy="48" r="33" fill="none" stroke="${p}" stroke-width="1" opacity="0.25"/>
-      <circle cx="40" cy="48" r="30" fill="url(#${uid}_mg)" filter="url(#${uid}_shadow)"/>`;
-
-    // Crosshatch overlay for HYROX
-    if (seriesStyle?.texture === "crosshatch") {
-      body += `<circle cx="40" cy="48" r="30" fill="url(#${uid}_hatch)" clip-path="url(#${uid}_clip)"/>`;
-    }
-
-    // ── Inner ring ──
-    let innerRing = "";
-    if (seriesStyle?.texture === "tricolor-ring") {
-      // Tri-color ring for Ironman (swim/bike/run)
-      innerRing = `<circle cx="40" cy="48" r="24" fill="none" stroke="url(#${uid}_tri)" stroke-width="2" opacity="0.6"/>`;
-    } else {
-      innerRing = `<circle cx="40" cy="48" r="24" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="0.8"/>
-        <circle cx="40" cy="48" r="22" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="0.4" stroke-dasharray="2,2"/>`;
-    }
-
-    // ── Landmark silhouette (clipped inside medal) ──
+    // Landmark silhouette (signature of each event)
     let landmarkSvg = "";
-    if (landmark?.path) {
-      landmarkSvg = `<path d="${landmark.path}" fill="rgba(255,255,255,0.08)" clip-path="url(#${uid}_clip)"/>`;
+    if (landmark) {
+      landmarkSvg = `<path d="${landmark}" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.1)" stroke-width="0.4" clip-path="url(#${uid}_c)"/>`;
     }
 
-    // ── Shine & light effects ──
-    const shine = `
-      <ellipse cx="32" cy="38" rx="14" ry="9" fill="url(#${uid}_shine)" clip-path="url(#${uid}_clip)"/>
-      <ellipse cx="48" cy="58" rx="8" ry="5" fill="rgba(255,255,255,0.04)" clip-path="url(#${uid}_clip)"/>`;
-
-    // ── Center content ──
-    let centerContent = "";
-
-    // HYROX: lightning bolt icon
-    if (seriesStyle?.icon === "bolt") {
-      centerContent = `
-        <path d="M42,38 L38,47 L41,47 L39,58 L46,46 L43,46 L45,38Z" fill="rgba(229,169,61,0.7)" clip-path="url(#${uid}_clip)"/>
-        <text x="40" y="64" text-anchor="middle" font-size="6" font-weight="700" fill="rgba(255,255,255,0.6)" font-family="Inter,sans-serif" letter-spacing="1">${abbr}</text>`;
-    }
-    // Ironman: M-DOT inspired
-    else if (seriesStyle?.icon === "mdot" || seriesStyle?.icon === "mdot703") {
-      centerContent = `
-        <circle cx="40" cy="40" r="2.5" fill="rgba(212,175,55,0.8)"/>
-        <text x="40" y="53" text-anchor="middle" font-size="${seriesStyle.icon === "mdot703" ? "5" : "6"}" font-weight="800" fill="rgba(255,255,255,0.7)" font-family="Inter,sans-serif" letter-spacing="0.5">${seriesStyle.icon === "mdot703" ? "70.3" : "IRONMAN"}</text>`;
-    }
-    // Majors & others: year + city engraving
-    else {
-      centerContent = `
-        <text x="40" y="44" text-anchor="middle" font-size="9" font-weight="800" fill="rgba(255,255,255,0.65)" font-family="Inter,sans-serif" letter-spacing="0.8">${year || ""}</text>
-        <text x="40" y="55" text-anchor="middle" font-size="6" font-weight="600" fill="rgba(255,255,255,0.4)" font-family="Inter,sans-serif" letter-spacing="1.5">${abbr}</text>`;
+    // Inner engraving ring
+    let innerRing = `<circle cx="40" cy="48" r="22" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="0.5"/>`;
+    if (isIronman) {
+      // Subtle tri-segment ring
+      innerRing = `<circle cx="40" cy="48" r="22" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="0.5" stroke-dasharray="15,1"/>`;
     }
 
-    // ── Detail accents ──
-    let detail = "";
-    if (landmark?.detail === "crown") {
-      detail = `<path d="M35,62 L37,59 L39,61 L40,58 L41,61 L43,59 L45,62Z" fill="rgba(255,255,255,0.1)" clip-path="url(#${uid}_clip)"/>`;
-    } else if (landmark?.detail === "sakura") {
-      // Tiny cherry blossom petals
-      [{ x: 28, y: 40 }, { x: 52, y: 55 }, { x: 25, y: 54 }].forEach(pos => {
-        detail += `<circle cx="${pos.x}" cy="${pos.y}" r="2" fill="rgba(255,180,200,0.12)" clip-path="url(#${uid}_clip)"/>`;
-      });
-    } else if (landmark?.detail === "star") {
-      detail = `<polygon points="40,61 41,63 43,63 41.5,64.5 42,66.5 40,65.2 38,66.5 38.5,64.5 37,63 39,63" fill="rgba(255,255,255,0.1)" clip-path="url(#${uid}_clip)"/>`;
-    } else if (landmark?.detail === "laurel") {
-      // Simplified laurel wreath arcs
-      detail = `<path d="M28,48 C28,38 34,32 40,32" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="1.5" clip-path="url(#${uid}_clip)"/>
-        <path d="M52,48 C52,38 46,32 40,32" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="1.5" clip-path="url(#${uid}_clip)"/>`;
-    } else if (landmark?.detail === "apple") {
-      detail = `<path d="M40,61 C38,60 36,61 36,63 C36,65 38,67 40,67 C42,67 44,65 44,63 C44,61 42,60 40,61Z M40,60 L40,58 L41,57" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="0.6" clip-path="url(#${uid}_clip)"/>`;
-    }
+    // Shine
+    const shine = `<ellipse cx="33" cy="39" rx="12" ry="8" fill="url(#${uid}_shine)" clip-path="url(#${uid}_c)"/>`;
 
-    // ── Rim highlight (premium chrome edge) ──
-    const rimHighlight = `<circle cx="40" cy="48" r="30" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>`;
+    // Center: year (large) + abbreviation (small)
+    let center = "";
+    if (isHyrox) {
+      // Lightning bolt + HYROX
+      center = `
+        <path d="M42,38 L38,47 L41,47 L39,57 L46,46 L43,46 L45,38Z" fill="rgba(255,255,255,0.15)" clip-path="url(#${uid}_c)"/>
+        <text x="40" y="64" text-anchor="middle" font-size="5.5" font-weight="700" fill="rgba(255,255,255,0.4)" font-family="Inter,sans-serif" letter-spacing="1.5">HYROX</text>`;
+    } else if (isIronman) {
+      // M-DOT dot + IRONMAN/70.3
+      const label = series === "ironman_703" ? "70.3" : "IRONMAN";
+      center = `
+        <circle cx="40" cy="40" r="2" fill="rgba(255,255,255,0.3)"/>
+        <text x="40" y="53" text-anchor="middle" font-size="${series === "ironman_703" ? "5.5" : "5"}" font-weight="800" fill="rgba(255,255,255,0.4)" font-family="Inter,sans-serif" letter-spacing="0.8">${label}</text>`;
+    } else {
+      center = `
+        <text x="40" y="46" text-anchor="middle" font-size="10" font-weight="800" fill="rgba(255,255,255,0.5)" font-family="Inter,sans-serif" letter-spacing="1">${year || ""}</text>
+        <text x="40" y="56" text-anchor="middle" font-size="5.5" font-weight="600" fill="rgba(255,255,255,0.25)" font-family="Inter,sans-serif" letter-spacing="1.5">${abbr}</text>`;
+    }
 
     return `<svg viewBox="0 0 80 90" xmlns="http://www.w3.org/2000/svg" class="medal-svg">
       <defs>${defs}</defs>
@@ -20232,9 +20084,7 @@ document.addEventListener("click", (e) => {
       ${landmarkSvg}
       ${innerRing}
       ${shine}
-      ${centerContent}
-      ${detail}
-      ${rimHighlight}
+      ${center}
     </svg>`;
   }
 
@@ -20853,18 +20703,23 @@ document.addEventListener("click", (e) => {
   /** Hydrate profile stats from server-side materialized view + RPC (no bulk activity fetch) */
   async function hydrateFullActivities() {
     const acc = account();
-    if (!acc?.id) return;
-    if (_ppActivitiesCacheUserId === acc.id && _ppActivitiesCache) return;
-    _ppActivitiesCacheUserId = acc.id; // prevent duplicate calls
+    if (!acc?.id || !_isUuid(acc.id)) return;
+    // Allow re-fetch if no data yet (don't block on empty cache)
+    if (_ppActivitiesCacheUserId === acc.id && (_ppActivitiesCache || _ppServerStats)) return;
+    _ppActivitiesCacheUserId = acc.id;
     try {
-      // Use server-side stats if available (fast, no bulk data transfer)
-      if (window.sbStats && _isUuid(acc.id)) {
+      // Try server-side stats first (fast), with activity fallback
+      let gotServerStats = false;
+      if (window.sbStats) {
+        // Refresh materialized view first to ensure fresh data
+        try { await window.sbStats.refreshStats(); } catch(e) { /* ignore */ }
         const [stats, prs] = await Promise.all([
           window.sbStats.getUserStats(acc.id).catch(() => null),
           window.sbStats.getPersonalRecords(acc.id).catch(() => null),
         ]);
-        if (stats) {
+        if (stats && (stats.total_activities > 0 || stats.activities_4w > 0)) {
           _ppServerStats = stats;
+          gotServerStats = true;
           try { renderHeroStats(); } catch (e) { console.warn("[PP] renderHeroStats:", e); }
           try { renderTotals(); } catch (e) { console.warn("[PP] renderTotals:", e); }
         }
@@ -20872,16 +20727,16 @@ document.addEventListener("click", (e) => {
           _ppServerPRs = prs;
           try { renderPRVault(); } catch (e) { console.warn("[PP] renderPRVault:", e); }
         }
-        return;
       }
-      // Fallback: fetch activities directly (legacy path)
-      if (!_isUuid(acc.id)) return;
+      // Always fetch activities as fallback for hero dots, form score, PR selection
       const remote = await window.sbDb.getActivities(acc.id, 500);
       if (remote.length) {
         _ppActivitiesCache = _normalizeActivities(remote);
-        try { renderHeroStats(); } catch (e) { console.warn("[PP] renderHeroStats:", e); }
+        if (!gotServerStats) {
+          try { renderHeroStats(); } catch (e) { console.warn("[PP] renderHeroStats:", e); }
+          try { renderTotals(); } catch (e) { console.warn("[PP] renderTotals:", e); }
+        }
         try { renderPRVault(); } catch (e) { console.warn("[PP] renderPRVault:", e); }
-        try { renderTotals(); } catch (e) { console.warn("[PP] renderTotals:", e); }
       }
     } catch (e) { console.warn("[PublicProfile] hydrate:", e); }
   }
