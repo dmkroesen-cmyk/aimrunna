@@ -134,29 +134,41 @@ const sbDb = {
   },
 
   async upsertStravaActivities(userId, activities) {
-    const rows = activities.map((a) => ({
-      user_id: userId,
-      source: "strava",
-      source_external_id: String(a.id),
-      title: a.name || "",
-      note: "",
-      kind: "training",
-      sport_type: a.type === "Run" ? "run" : a.type === "Ride" ? "bike" : a.type === "Swim" ? "swim" : "other",
-      distance_km: +(a.distance / 1000).toFixed(2),
-      moving_time_sec: a.moving_time || null,
-      elevation_gain_m: a.total_elevation_gain || null,
-      polyline: a.map?.summary_polyline || a.map?.polyline || a.summary_polyline || null,
-      metrics: {
-        avg_heartrate: a.average_heartrate || null,
-        max_heartrate: a.max_heartrate || null,
-        avg_watts: a.average_watts || null,
-        max_watts: a.max_watts || null,
-        weighted_avg_watts: a.weighted_average_watts || null,
-        suffer_score: a.suffer_score || null,
-        avg_cadence: a.average_cadence || null,
-      },
-      created_at: a.start_date || new Date().toISOString(),
-    }));
+    const sportMap = { Run: "run", Ride: "bike", Swim: "swim", VirtualRun: "run", VirtualRide: "bike", Walk: "walk", Hike: "hike", TrailRun: "trail" };
+    const rows = activities.map((a) => {
+      const isVirtual = /^Virtual/.test(a.type) || !!a.trainer;
+      const isRace = a.workout_type === 1; // Strava: 1 = race
+      return {
+        user_id: userId,
+        source: "strava",
+        source_external_id: String(a.id),
+        title: a.name || "",
+        note: "",
+        kind: isRace ? "race" : "training",
+        sport_type: sportMap[a.type] || "other",
+        distance_km: +(a.distance / 1000).toFixed(2),
+        moving_time_sec: a.moving_time || null,
+        elevation_gain_m: a.total_elevation_gain || null,
+        polyline: a.map?.summary_polyline || a.map?.polyline || a.summary_polyline || null,
+        metrics: {
+          avg_heartrate: a.average_heartrate || null,
+          max_heartrate: a.max_heartrate || null,
+          avg_watts: a.average_watts || null,
+          max_watts: a.max_watts || null,
+          weighted_avg_watts: a.weighted_average_watts || null,
+          suffer_score: a.suffer_score || null,
+          avg_cadence: a.average_cadence || null,
+          strava_type: a.type || null,
+          trainer: !!a.trainer,
+          virtual: isVirtual,
+          workout_type: a.workout_type ?? null,
+          elapsed_time: a.elapsed_time || null,
+          avg_speed: a.average_speed || null,
+          max_speed: a.max_speed || null,
+        },
+        created_at: a.start_date || new Date().toISOString(),
+      };
+    });
     const { data, error } = await sb.from("activities").upsert(rows, {
       onConflict: "user_id,source,source_external_id",
     }).select();

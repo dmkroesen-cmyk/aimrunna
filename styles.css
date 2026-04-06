@@ -274,9 +274,12 @@ body.home-feed-mode .content-shell {
 .section-home-feed {
   max-width: 1100px;
   margin: 0 auto var(--space-xl);
-  padding: var(--space-xl);
+  padding: 0;
   background: transparent;
   border: none;
+}
+.section-home-feed .surface-head {
+  padding: 0 0 var(--space-md);
 }
 body.home-feed-mode .section-home-feed #home-feed-list {
   margin-top: var(--space-lg);
@@ -8572,41 +8575,138 @@ details[open] .fa-bd-summary { color: rgba(255,255,255,0.7); margin-bottom: 10px
   gap: 12px;
   margin-bottom: 18px;
 }
-.medal-detect-candidate {
+/* Premium detect card */
+.medal-detect-card {
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.02);
+}
+.medal-detect-header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
-  border: 1px solid var(--border-default);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.03);
+  gap: 14px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border-subtle);
 }
-.medal-detect-info {
-  flex: 1;
+.medal-detect-event {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+.medal-detect-city {
+  font-size: 12px;
+  color: var(--color-amber);
+  margin-top: 2px;
+}
+.medal-detect-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 1px;
+  padding: 0;
+  background: var(--border-subtle);
+}
+.medal-detect-stat {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  min-width: 0;
+  align-items: center;
+  gap: 2px;
+  padding: 12px 8px;
+  background: rgba(10, 10, 10, 0.9);
 }
-.medal-detect-event { font-size: 14px; font-weight: 600; }
-.medal-detect-meta { font-size: 11px; color: rgba(255, 255, 255, 0.55); font-family: "JetBrains Mono", ui-monospace, monospace; }
-.medal-detect-score { font-size: 11px; color: #E5A93D; font-weight: 600; }
+.medal-detect-stat-val {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+.medal-detect-stat-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+}
+.medal-detect-activity {
+  padding: 10px 18px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.medal-detect-activity-title {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.medal-detect-activity-date {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+.medal-detect-confidence {
+  padding: 10px 18px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.medal-detect-conf-bar {
+  flex: 1;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.medal-detect-conf-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+.medal-detect-conf-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
 .medal-detect-footer {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
 }
 
+/* ── Medal sizing: more dezent/compact ── */
+.medal-shelf-grid {
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+}
+.medal-disc {
+  width: 52px;
+  height: 52px;
+  font-size: 20px;
+}
+.medal-card-label {
+  margin-top: 10px;
+  font-size: 10px;
+}
+
 /* Mobile tweaks */
 @media (max-width: 720px) {
   .medal-board-actions { flex-wrap: wrap; }
-  .medal-shelf-grid { grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; }
-  .medal-disc { width: 54px; height: 54px; font-size: 20px; }
-  .medal-card-label { font-size: 10px; margin-top: 10px; }
+  .medal-shelf-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 6px; }
+  .medal-disc { width: 42px; height: 42px; font-size: 16px; }
+  .medal-card-label { font-size: 9px; margin-top: 8px; }
+  .medal-card-year { font-size: 9px; }
   .medal-form-grid { grid-template-columns: 1fr; }
   /* On mobile: tap-to-flip instead of hover */
   .medal-card:hover .medal-card-inner { transform: none; }
   .medal-card.is-flipped .medal-card-inner { transform: rotateY(180deg); }
+  .medal-detect-stats { grid-template-columns: repeat(3, 1fr); }
+  .medal-detect-header { padding: 12px 14px; }
+  .medal-detect-event { font-size: 14px; }
 }
 
 /* ============================================================

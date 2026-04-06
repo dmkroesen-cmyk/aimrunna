@@ -19725,41 +19725,96 @@ document.addEventListener("click", (e) => {
   }
 
   // ── Auto-detection: match activity → race ──
+  /**
+   * Detect if an activity matches a race in the catalog.
+   * Filters out indoor/virtual activities, requires sport+distance match,
+   * and uses multi-signal scoring (title, distance, kind, date proximity).
+   */
   function detectRaceForActivity(activity, catalog) {
     if (!activity || !activity.created_at) return null;
     const actDate = new Date(activity.created_at);
     if (isNaN(actDate)) return null;
+
+    // ── Hard filters: exclude non-race-eligible activities ──
+    const m = activity.metrics || {};
+    const stravaType = String(m.strava_type || activity.strava_type || "").toLowerCase();
+    const title = String(activity.title || "").toLowerCase();
+    const sportType = String(activity.sport_type || activity.sportType || "").toLowerCase();
+
+    // REJECT: virtual/indoor activities can never be real races
+    const isVirtual = !!m.virtual || !!m.trainer
+      || /^virtual/i.test(stravaType)
+      || /zwift|wahoo|rouvy|trainer|indoor|virtual|peloton|tacx|bkool/i.test(title);
+    if (isVirtual) return null;
+
+    // REJECT: non-running/cycling/swim sports that don't have races in catalog
+    const raceSports = ["run", "bike", "swim", "trail", "hike", "tri", "other"];
+    if (!raceSports.includes(sportType)) return null;
+
     const actDistKm = Number(activity.distance_km || activity.distanceKm || 0);
-    const actTitle = String(activity.title || "").toLowerCase();
+    if (actDistKm < 0.5) return null; // too short
+
+    // Bonus if Strava marked it as a race (workout_type === 1)
+    const isStravaRace = Number(m.workout_type || activity.workout_type) === 1;
+    const isKindRace = String(activity.kind || "").toLowerCase() === "race";
+
     const candidates = [];
 
     for (const race of catalog) {
-      // Distance filter (±5% or ±2km for <50km, ±5km for longer)
+      // ── Sport type must match ──
+      const raceSport = String(race.sport_type || "run").toLowerCase();
+      const sportMatch = raceSport === sportType
+        || (raceSport === "run" && sportType === "trail")
+        || (raceSport === "run" && sportType === "other"); // some runs imported as "other"
+      if (!sportMatch && race.distance_km) continue; // skip if sport doesn't match (except for sport-agnostic events like HYROX)
+
+      // ── Distance filter (tighter tolerance) ──
       if (race.distance_km) {
-        const tolerance = race.distance_km >= 50 ? 5 : 2;
-        const distDiff = Math.abs(actDistKm - Number(race.distance_km));
-        if (distDiff > tolerance) continue;
-      } else {
-        // No distance set (e.g., HYROX, CrossFit) → skip distance check
+        const nominal = Number(race.distance_km);
+        // Tighter: ±3% or ±1km for <10km, ±2km for <50km, ±4km for longer
+        const tolerance = nominal < 10 ? Math.max(1, nominal * 0.03)
+          : nominal < 50 ? 2 : 4;
+        if (Math.abs(actDistKm - nominal) > tolerance) continue;
       }
 
       let score = 0;
-      // Distance exactness (40)
+
+      // ── Distance exactness (max 30) ──
       if (race.distance_km) {
         const rel = Math.abs(actDistKm - race.distance_km) / race.distance_km;
-        score += Math.max(0, 40 * (1 - rel * 10));
-      } else {
-        score += 10;
+        score += Math.max(0, 30 * (1 - rel * 15));
       }
-      // Title keyword match (40)
+
+      // ── Title keyword match (max 40) ──
       const shortName = String(race.short_name || "").toLowerCase();
       const city = String(race.city || "").toLowerCase();
       const eventName = String(race.event_name || "").toLowerCase();
-      if (shortName && actTitle.includes(shortName)) score += 40;
-      else if (city && actTitle.includes(city)) score += 30;
-      else if (eventName && actTitle.includes(eventName.split(" ")[0])) score += 20;
-      // Iconic level bump (up to 20)
-      score += (race.iconic_level || 3) * 4;
+      const eventWords = eventName.split(/\s+/).filter((w) => w.length > 3);
+
+      if (shortName && shortName.length > 2 && title.includes(shortName)) score += 40;
+      else if (eventName.length > 4 && title.includes(eventName)) score += 40;
+      else if (city && city.length > 3 && title.includes(city)) {
+        // City match alone is weak — could be "NYC" in a Zwift ride title
+        // Only give full credit if combined with other signals
+        score += 15;
+      }
+      // Check individual event words (at least 2 must match for credit)
+      else if (eventWords.length >= 2) {
+        const matched = eventWords.filter((w) => title.includes(w)).length;
+        if (matched >= 2) score += 10 + matched * 5;
+      }
+
+      // ── Race kind bonus (max 20) ──
+      if (isStravaRace || isKindRace) score += 20;
+
+      // ── Iconic level (max 12, reduced from 20) ──
+      score += Math.min(12, (race.iconic_level || 2) * 3);
+
+      // ── Penalties ──
+      // City-only match without race kind = likely false positive
+      if (score > 0 && !isStravaRace && !isKindRace && score <= 30) {
+        score -= 15; // penalize weak matches that aren't marked as races
+      }
 
       if (score >= 50) {
         candidates.push({ race, score: Math.min(100, Math.round(score)) });
@@ -20119,7 +20174,7 @@ document.addEventListener("click", (e) => {
   function openDetectModal(candidates) {
     const backdrop = document.getElementById("medal-detect-backdrop");
     const body = document.getElementById("medal-detect-body");
-    const title = document.getElementById("medal-detect-title");
+    const titleEl = document.getElementById("medal-detect-title");
     if (!backdrop || !body) return;
     if (!candidates.length) {
       alert("Keine neuen Race-Medaillen in deinen Aktivitäten gefunden.");
@@ -20129,23 +20184,58 @@ document.addEventListener("click", (e) => {
     showNextCandidate();
     backdrop.hidden = false;
 
+    function _fmtTime(sec) {
+      sec = Number(sec) || 0; if (!sec) return "–";
+      const h = Math.floor(sec / 3600); const m = Math.floor((sec % 3600) / 60); const s = Math.round(sec % 60);
+      return h > 0 ? `${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}` : `${m}:${String(s).padStart(2,"0")}`;
+    }
+    function _fmtPace(sec, km) {
+      if (!sec || !km) return "";
+      const p = (sec / 60) / km; const pm = Math.floor(p); const ps = Math.round((p - pm) * 60);
+      return `${pm}:${String(ps).padStart(2,"0")}/km`;
+    }
+
     function showNextCandidate() {
-      if (!state.scanCandidates.length) {
-        backdrop.hidden = true;
-        return;
-      }
+      if (!state.scanCandidates.length) { backdrop.hidden = true; return; }
       const c = state.scanCandidates[0];
       const total = candidates.length;
-      const remaining = state.scanCandidates.length;
-      title.textContent = `Medal erkannt (${total - remaining + 1}/${total})`;
+      const idx = total - state.scanCandidates.length + 1;
+      titleEl.textContent = `Medal erkannt (${idx}/${total})`;
+
+      const a = c.activity;
+      const km = Number(a.distance_km || a.distanceKm || 0);
+      const sec = Number(a.moving_time_sec || a.movingTimeSec || 0);
+      const elev = Number(a.elevation_gain_m || a.elevationGainM || 0);
+      const met = a.metrics || {};
+      const pace = _fmtPace(sec, km);
+      const hr = met.avg_heartrate ? `${Math.round(met.avg_heartrate)} bpm` : "";
+      const primary = c.race.primary_color || "#E5A93D";
+      const secondary = c.race.secondary_color || "#1a1a1a";
+      const dateStr = a.created_at ? new Date(a.created_at).toLocaleDateString("de-DE", { day: "numeric", month: "long", year: "numeric" }) : "";
+
       body.innerHTML = `
-        <div class="medal-detect-candidate">
-          <div class="medal-disc" style="background: radial-gradient(circle at 35% 30%, ${c.race.primary_color || "#E5A93D"}, ${c.race.secondary_color || "#000"}); width:48px; height:48px; font-size:18px;">${escapeHtml(c.race.logo_emoji || "🏅")}</div>
-          <div class="medal-detect-info">
-            <span class="medal-detect-event">${escapeHtml(c.race.event_name)}</span>
-            <span class="medal-detect-meta">${escapeHtml(formatShortDate(c.activity.created_at))} · ${(c.activity.distance_km || 0).toFixed(1)} km</span>
-            <span class="medal-detect-meta">"${escapeHtml((c.activity.title || "").slice(0, 60))}"</span>
-            <span class="medal-detect-score">Match-Score: ${c.score}%</span>
+        <div class="medal-detect-card">
+          <div class="medal-detect-header" style="background: linear-gradient(135deg, ${primary}22, ${secondary}44);">
+            <div class="medal-disc" style="background: radial-gradient(circle at 35% 30%, ${primary}, ${secondary}); width:56px; height:56px; font-size:22px; flex-shrink:0;">${escapeHtml(c.race.logo_emoji || "🏅")}</div>
+            <div>
+              <div class="medal-detect-event">${escapeHtml(c.race.event_name)}</div>
+              <div class="medal-detect-city">${escapeHtml(c.race.city || "")} · ${c.year}</div>
+            </div>
+          </div>
+          <div class="medal-detect-stats">
+            <div class="medal-detect-stat"><span class="medal-detect-stat-val">${_fmtTime(sec)}</span><span class="medal-detect-stat-label">Zeit</span></div>
+            <div class="medal-detect-stat"><span class="medal-detect-stat-val">${km.toFixed(2)} km</span><span class="medal-detect-stat-label">Distanz</span></div>
+            ${pace ? `<div class="medal-detect-stat"><span class="medal-detect-stat-val">${pace}</span><span class="medal-detect-stat-label">Pace</span></div>` : ""}
+            ${elev ? `<div class="medal-detect-stat"><span class="medal-detect-stat-val">${Math.round(elev)} m</span><span class="medal-detect-stat-label">Höhenmeter</span></div>` : ""}
+            ${hr ? `<div class="medal-detect-stat"><span class="medal-detect-stat-val">${hr}</span><span class="medal-detect-stat-label">Ø HR</span></div>` : ""}
+          </div>
+          <div class="medal-detect-activity">
+            <span class="medal-detect-activity-title">"${escapeHtml((a.title || "").slice(0, 80))}"</span>
+            <span class="medal-detect-activity-date">${dateStr}</span>
+          </div>
+          <div class="medal-detect-confidence">
+            <div class="medal-detect-conf-bar"><div class="medal-detect-conf-fill" style="width:${c.score}%;background:${c.score >= 80 ? "var(--color-green)" : c.score >= 60 ? "var(--color-amber)" : "var(--color-red)"}"></div></div>
+            <span class="medal-detect-conf-label">${c.score}% Confidence</span>
           </div>
         </div>
       `;
@@ -20163,6 +20253,7 @@ document.addEventListener("click", (e) => {
         date: String(c.activity.created_at).slice(0, 10),
         activityId: c.activity.id,
         detectionScore: c.score,
+        finishTimeSec: Number(c.activity.moving_time_sec || c.activity.movingTimeSec || 0),
       });
     };
   }
