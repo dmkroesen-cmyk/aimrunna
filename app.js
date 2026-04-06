@@ -19706,6 +19706,14 @@ document.addEventListener("click", (e) => {
       if (hit) { badges.push({ code: "norwegian_double", name: "Norwegian Double", tier: "legendary" }); break; }
     }
 
+    // Marathon Counter (all marathon finishes, Majors + Iconic)
+    const allMarathons = medals.filter((m) => m.series === "marathon_majors" || m.series === "iconic_marathon");
+    const marathonCount = allMarathons.length;
+    if (marathonCount >= 20) badges.push({ code: "marathon_20", name: `${marathonCount}× Marathon`, tier: "legendary" });
+    else if (marathonCount >= 10) badges.push({ code: "marathon_10", name: `${marathonCount}× Marathon`, tier: "epic" });
+    else if (marathonCount >= 5) badges.push({ code: "marathon_5", name: `${marathonCount}× Marathon`, tier: "rare" });
+    else if (marathonCount >= 1) badges.push({ code: "marathon_finisher", name: `${marathonCount}× Marathon`, tier: "common" });
+
     // Gran Fondo Rider
     const gfs = byEvent("gran_fondo");
     if (gfs.size >= 3) badges.push({ code: "gf_veteran", name: "Gran Fondo Veteran", tier: "epic" });
@@ -19749,18 +19757,24 @@ document.addEventListener("click", (e) => {
     // REJECT: virtual/indoor activities can never be real races
     const isVirtual = !!m.virtual || !!m.trainer
       || /^virtual/i.test(stravaType)
-      || /zwift|wahoo|rouvy|trainer|indoor|virtual|peloton|tacx|bkool/i.test(title);
+      || /zwift|wahoo|rouvy|trainer|indoor|virtual|peloton|tacx|bkool/i.test(title)
+      || /treadmill|ergometer|roller|smart\s*trainer/i.test(title);
     if (isVirtual) return null;
 
-    // REJECT: non-running/cycling/swim sports that don't have races in catalog
+    // REJECT: workout/gym activities (not races)
+    if (sportType === "workout") return null;
+
+    // REJECT: non-race-eligible sport types
     const raceSports = ["run", "bike", "swim", "trail", "hike", "tri", "other"];
     if (!raceSports.includes(sportType)) return null;
 
     const actDistKm = Number(activity.distance_km || activity.distanceKm || 0);
     if (actDistKm < 0.5) return null; // too short
 
-    // Bonus if Strava marked it as a race (workout_type === 1)
-    const isStravaRace = Number(m.workout_type || activity.workout_type) === 1;
+    // Strava workout_type: Run → 1=race; Ride → 11=race, 12=workout
+    const wt = Number(m.workout_type || activity.workout_type || 0);
+    const isStravaRace = (wt === 1 && (sportType === "run" || sportType === "trail"))
+      || (wt === 11 && sportType === "bike");
     const isKindRace = String(activity.kind || "").toLowerCase() === "race";
 
     const candidates = [];
@@ -19769,9 +19783,11 @@ document.addEventListener("click", (e) => {
       // ── Sport type must match ──
       const raceSport = String(race.sport_type || "run").toLowerCase();
       const sportMatch = raceSport === sportType
-        || (raceSport === "run" && sportType === "trail")
-        || (raceSport === "run" && sportType === "other"); // some runs imported as "other"
-      if (!sportMatch && race.distance_km) continue; // skip if sport doesn't match (except for sport-agnostic events like HYROX)
+        || (raceSport === "run" && (sportType === "trail" || sportType === "other"))
+        || (raceSport === "tri" && (sportType === "run" || sportType === "bike" || sportType === "swim"))
+        || (raceSport === "hyrox" && (sportType === "run" || sportType === "other"));
+      // Strict: bike activities can only match bike/tri/gran_fondo races, never run races
+      if (!sportMatch) continue;
 
       // ── Distance filter (tighter tolerance) ──
       if (race.distance_km) {
@@ -19793,21 +19809,26 @@ document.addEventListener("click", (e) => {
       // ── Title keyword match (max 40) ──
       const shortName = String(race.short_name || "").toLowerCase();
       const city = String(race.city || "").toLowerCase();
+      // Normalize umlauts for matching: ü→ue, ö→oe, ä→ae, ß→ss
+      const normTitle = title.replace(/ü/g,"ue").replace(/ö/g,"oe").replace(/ä/g,"ae").replace(/ß/g,"ss");
+      const normCity = city.replace(/ü/g,"ue").replace(/ö/g,"oe").replace(/ä/g,"ae").replace(/ß/g,"ss");
       const eventName = String(race.event_name || "").toLowerCase();
-      const eventWords = eventName.split(/\s+/).filter((w) => w.length > 3);
+      const eventWords = eventName.split(/\s+/).filter((w) => w.length > 2);
 
-      if (shortName && shortName.length > 2 && title.includes(shortName)) score += 40;
-      else if (eventName.length > 4 && title.includes(eventName)) score += 40;
-      else if (city && city.length > 3 && title.includes(city)) {
-        // City match alone is weak — could be "NYC" in a Zwift ride title
-        // Only give full credit if combined with other signals
-        score += 15;
+      let titleScore = 0;
+      if (eventName.length > 4 && title.includes(eventName)) titleScore = 40;
+      else if (shortName && shortName.length >= 2 && title.includes(shortName)) titleScore = 38;
+      else if (city && city.length >= 2 && (title.includes(city) || normTitle.includes(normCity) || normTitle.includes(city))) {
+        // City match — stronger if combined with distance/race keywords
+        const hasRaceWord = /marathon|halbmarathon|half|10k|5k|lauf|run|race|finish|ironman|hyrox|ultra|trail/i.test(title);
+        titleScore = hasRaceWord ? 30 : 15;
       }
-      // Check individual event words (at least 2 must match for credit)
-      else if (eventWords.length >= 2) {
+      // Check individual event words (at least 2 must match)
+      if (!titleScore && eventWords.length >= 2) {
         const matched = eventWords.filter((w) => title.includes(w)).length;
-        if (matched >= 2) score += 10 + matched * 5;
+        if (matched >= 2) titleScore = 10 + matched * 5;
       }
+      score += titleScore;
 
       // ── Race kind bonus (max 20) ──
       if (isStravaRace || isKindRace) score += 20;

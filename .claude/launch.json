@@ -2,9 +2,9 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "Frontend (Static Server)",
-      "runtimeExecutable": "npx",
-      "runtimeArgs": ["serve", "-l", "5500", "."],
+      "name": "aimrunna",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "5500"],
       "port": 5500
     },
     {

@@ -109,9 +109,25 @@ const sbDb = {
 
   // ── Activities ──
   async getActivities(userId, limit = 60) {
-    const { data, error } = await sb.from("activities").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(limit);
-    if (error) throw error;
-    return data || [];
+    // Supabase caps at 1000 rows per request — paginate for large fetches
+    if (limit <= 1000) {
+      const { data, error } = await sb.from("activities").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(limit);
+      if (error) throw error;
+      return data || [];
+    }
+    // Paginated fetch for full history
+    const all = [];
+    const pageSize = 1000;
+    let offset = 0;
+    while (offset < limit) {
+      const { data, error } = await sb.from("activities").select("*").eq("user_id", userId).order("created_at", { ascending: false }).range(offset, offset + pageSize - 1);
+      if (error) throw error;
+      if (!data || !data.length) break;
+      all.push(...data);
+      if (data.length < pageSize) break; // last page
+      offset += pageSize;
+    }
+    return all;
   },
 
   async postActivity(userId, activity) {
@@ -134,10 +150,24 @@ const sbDb = {
   },
 
   async upsertStravaActivities(userId, activities) {
-    const sportMap = { Run: "run", Ride: "bike", Swim: "swim", VirtualRun: "run", VirtualRide: "bike", Walk: "walk", Hike: "hike", TrailRun: "trail" };
+    const sportMap = {
+      Run: "run", Ride: "bike", Swim: "swim",
+      VirtualRun: "run", VirtualRide: "bike",
+      Walk: "walk", Hike: "hike", TrailRun: "trail",
+      EBikeRide: "bike", GravelRide: "bike", MountainBikeRide: "bike",
+      Handcycle: "bike", Velomobile: "bike",
+      NordicSki: "ski", AlpineSki: "ski", BackcountrySki: "ski", Snowboard: "ski",
+      Rowing: "row", Canoeing: "row", Kayaking: "row", StandUpPaddling: "row",
+      Skateboard: "other", InlineSkate: "other", IceSkate: "other",
+      Yoga: "other", WeightTraining: "workout", Crossfit: "workout", Elliptical: "workout", StairStepper: "workout",
+      Workout: "workout", RockClimbing: "other", Golf: "other", Soccer: "other",
+      Wheelchair: "run", Snowshoe: "run",
+    };
     const rows = activities.map((a) => {
       const isVirtual = /^Virtual/.test(a.type) || !!a.trainer;
-      const isRace = a.workout_type === 1; // Strava: 1 = race
+      // Strava workout_type: Run → 1=race, 2=long run, 3=workout; Ride → 11=race, 12=workout
+      const isRace = (a.workout_type === 1 && /Run|Trail|Walk|Hike/i.test(a.type || ""))
+        || (a.workout_type === 11 && /Ride|Bike/i.test(a.type || ""));
       return {
         user_id: userId,
         source: "strava",

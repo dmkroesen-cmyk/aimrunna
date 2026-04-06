@@ -8222,7 +8222,12 @@ details[open] .fa-bd-summary { color: rgba(255,255,255,0.7); margin-bottom: 10px
 }
 .medal-shelf-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 8px;
+}
+/* Majors shelf gets slightly larger cards */
+.medal-shelf[data-series="marathon_majors"] .medal-shelf-grid {
+  grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
   gap: 10px;
 }
 
@@ -8266,12 +8271,17 @@ details[open] .fa-bd-summary { color: rgba(255,255,255,0.7); margin-bottom: 10px
   padding: 12px 10px;
 }
 
-/* Medal SVG (premium rendering) */
+/* Medal SVG (premium rendering) — default compact size */
 .medal-svg {
-  width: 52px;
-  height: 58px;
+  width: 42px;
+  height: 48px;
   margin-top: 2px;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+}
+/* Majors get slightly larger medals */
+.medal-shelf[data-series="marathon_majors"] .medal-svg {
+  width: 50px;
+  height: 56px;
 }
 /* Medal disc (fallback for empty slots & detect modal) */
 .medal-disc {
@@ -8303,9 +8313,9 @@ details[open] .fa-bd-summary { color: rgba(255,255,255,0.7); margin-bottom: 10px
   border-radius: 2px 2px 0 0;
 }
 .medal-card-label {
-  margin-top: 14px;
+  margin-top: 8px;
   text-align: center;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.95);
   text-transform: uppercase;
@@ -8313,11 +8323,14 @@ details[open] .fa-bd-summary { color: rgba(255,255,255,0.7); margin-bottom: 10px
   line-height: 1.2;
 }
 .medal-card-year {
-  font-size: 10px;
+  font-size: 9px;
   font-family: "JetBrains Mono", ui-monospace, monospace;
   color: rgba(229, 169, 61, 0.85);
   margin-top: 2px;
 }
+/* Majors get slightly more spacious labels */
+.medal-shelf[data-series="marathon_majors"] .medal-card-label { font-size: 11px; margin-top: 10px; }
+.medal-shelf[data-series="marathon_majors"] .medal-card-year { font-size: 10px; }
 .medal-card-pr {
   position: absolute;
   top: 6px;
