@@ -10955,6 +10955,229 @@ details[open] .fa-bd-summary { color: rgba(255,255,255,0.7); margin-bottom: 10px
   flex-shrink: 0;
 }
 
+/* ═══ UTILITY & COMPONENT CLASSES (inline style cleanup) ═══ */
+
+/* Cursor */
+.clickable { cursor: pointer; }
+[data-view-profile] { cursor: pointer; }
+[data-view-user-id] { cursor: pointer; }
+
+/* Flex utilities */
+.flex-1-min0 { flex: 1; min-width: 0; }
+.flex-shrink-0 { flex-shrink: 0; }
+.flex-row { display: flex; align-items: center; }
+.flex-row-between { display: flex; justify-content: space-between; align-items: center; }
+.flex-row-center { display: flex; align-items: center; justify-content: center; }
+.flex-gap-8 { display: flex; gap: 8px; }
+
+/* Text utilities */
+.text-muted { color: var(--text-muted); }
+.text-dim { color: var(--text-dim); }
+.text-soft { color: var(--text-soft); }
+.text-bright { color: var(--text-bright); }
+.text-white { color: #fff; }
+.text-error { color: #ef4444; }
+.text-link { color: #60a5fa; }
+.font-12 { font-size: 12px; }
+.font-13 { font-size: 13px; }
+.font-11 { font-size: 11px; }
+.font-10 { font-size: 10px; }
+
+/* Suggestion banner components */
+.suggestion-icon-box {
+  flex-shrink: 0; width: 42px; height: 42px; border-radius: 10px;
+  background: rgba(229,169,61,0.12); display: flex; align-items: center; justify-content: center;
+}
+.suggestion-title {
+  font-size: 14px; font-weight: 700; color: var(--text-bright); margin-bottom: 3px;
+}
+.suggestion-desc {
+  font-size: 12px; color: var(--text-muted); line-height: 1.4;
+}
+.suggestion-btn-primary {
+  flex-shrink: 0; border: none; border-radius: 8px; padding: 8px 14px;
+  font-size: 12px; font-weight: 700; cursor: pointer;
+}
+.suggestion-btn-dismiss {
+  flex-shrink: 0; background: transparent; border: none;
+  color: var(--text-dim); font-size: 18px; cursor: pointer; padding: 4px;
+}
+
+/* Avatar components */
+.avatar-32 {
+  width: 32px; height: 32px; border-radius: 50%; object-fit: cover;
+}
+.avatar-32-fallback {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 700; font-size: 13px;
+}
+.avatar-38 {
+  width: 38px; height: 38px; border-radius: 50%; object-fit: cover;
+}
+.avatar-38-fallback {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 700; font-size: 15px;
+}
+.local-badge {
+  display: block; color: var(--text-muted);
+}
+
+/* Modal shared components */
+.sota-modal-overlay {
+  position: fixed; inset: 0; background: rgba(15,18,30,.78);
+  backdrop-filter: blur(6px); z-index: 9998;
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.sota-modal-card {
+  background: #1a1d2e; border: 1px solid #2a2f45; border-radius: 16px;
+  width: 100%; padding: 22px 20px; max-height: 92vh; overflow-y: auto;
+  color: #e5e7eb; font-family: system-ui, -apple-system, sans-serif;
+}
+.sota-modal-header {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;
+}
+.sota-modal-title {
+  margin: 0; font-size: 17px; font-weight: 700; color: #fff;
+}
+.sota-modal-close {
+  background: transparent; border: 0; color: var(--text-muted);
+  font-size: 22px; cursor: pointer; padding: 0 6px;
+}
+.sota-modal-subtitle {
+  margin: 0 0 12px; color: var(--text-muted);
+}
+.sota-modal-actions {
+  display: flex; gap: 8px;
+}
+.sota-btn-primary {
+  flex: 1; color: #fff; border: 0; border-radius: 10px;
+  padding: 11px; font-weight: 600; cursor: pointer;
+}
+.sota-btn-cancel {
+  background: transparent; color: var(--text-muted);
+  border: 1px solid #2a2f45; border-radius: 10px; padding: 11px 14px; cursor: pointer;
+}
+
+/* Form label blocks (modal forms) */
+.sota-form-label {
+  display: block; margin-bottom: 12px;
+}
+.sota-form-label-sm {
+  display: block; margin-bottom: 9px;
+}
+.sota-form-label-lg {
+  display: block; margin-bottom: 14px;
+}
+.sota-form-label-10 {
+  display: block; margin-bottom: 10px;
+}
+.sota-label-text {
+  font-size: 12px; color: var(--text-soft);
+}
+.sota-label-text-sm {
+  font-size: 11px; color: var(--text-soft);
+}
+.sota-range-input {
+  width: 100%; margin-top: 4px;
+}
+.sota-range-input-sm {
+  width: 100%; margin-top: 3px;
+}
+.sota-range-scale {
+  display: flex; justify-content: space-between; font-size: 10px; color: var(--text-dim);
+}
+.sota-range-scale-top {
+  display: flex; justify-content: space-between; font-size: 10px; color: var(--text-dim); margin-top: -2px;
+}
+.sota-dark-input {
+  width: 100%; background: #0f1220; border: 1px solid #2a2f45;
+  border-radius: 8px; padding: 8px 10px; color: #fff; margin-top: 4px;
+}
+.sota-dark-input-sm {
+  width: 100%; background: #0f1220; border: 1px solid #2a2f45;
+  border-radius: 8px; padding: 7px 9px; color: #fff; margin-top: 3px;
+}
+.sota-dark-textarea {
+  width: 100%; background: #0f1220; border: 1px solid #2a2f45;
+  border-radius: 8px; padding: 8px 10px; color: #fff; margin-top: 4px;
+  resize: vertical; font-family: inherit; font-size: 13px;
+}
+.sota-modal-footnote {
+  margin-top: 10px; font-size: 11px; color: var(--text-dim); text-align: center;
+}
+.sota-grid-2col {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;
+}
+
+/* Strava error banner */
+.strava-error-banner {
+  background: #1a1d2e; border-radius: 12px; padding: 14px 16px;
+  margin: 12px 0; color: #e5e7eb; font-family: system-ui;
+}
+.strava-error-title {
+  font-weight: 700; margin-bottom: 6px;
+}
+.strava-error-body {
+  font-size: 13px; line-height: 1.5; color: var(--text-soft);
+}
+.strava-error-hint {
+  margin-top: 10px; padding: 10px; background: #0f1220;
+  border-radius: 8px; font-size: 12px; color: var(--text-muted);
+}
+.strava-error-close {
+  margin-top: 10px; background: transparent; color: var(--text-muted);
+  border: 1px solid #2a2f45; border-radius: 8px; padding: 6px 14px;
+  font-size: 12px; cursor: pointer;
+}
+
+/* Route map marker dots */
+.route-marker-dot {
+  width: 12px; height: 12px; border-radius: 50%; border: 2px solid #0a0a0a;
+}
+.route-marker-dot-start {
+  background: #34d399; box-shadow: 0 0 0 2px #34d399;
+}
+.route-marker-dot-end {
+  background: #ef4444; box-shadow: 0 0 0 2px #ef4444;
+}
+
+/* Zone intensity label colors */
+.zone-lit { color: var(--intensity-lit); }
+.zone-mit { color: var(--intensity-mit); }
+.zone-hit { color: var(--intensity-hit); }
+
+/* Sport color backgrounds (year-bar segments) */
+.year-bar-seg-run { background: #aaf57c; }
+.year-bar-seg-bike { background: #d0b2ff; }
+.year-bar-seg-swim { background: #86d7ff; }
+
+/* Zone intensity bar segment colors */
+.zone-seg-lit { background: var(--intensity-lit); }
+.zone-seg-mit { background: var(--intensity-mit); }
+.zone-seg-hit { background: var(--intensity-hit); }
+
+/* Empty state messages */
+.inline-empty-msg {
+  color: var(--text-dim); font-size: 13px;
+}
+.inline-error-msg {
+  color: #ef4444; font-size: 13px;
+}
+
+/* Leaflet map container */
+.activity-detail-leaflet-wrap {
+  width: 100%; height: 280px; border-radius: 12px; overflow: hidden; background: #0a0a0a;
+}
+
+/* Plan error empty state */
+.plan-error-msg {
+  padding: 20px; text-align: center; color: var(--text-muted);
+}
+
 /* Calendar responsive */
 @media (max-width: 600px) {
   .cal-day {

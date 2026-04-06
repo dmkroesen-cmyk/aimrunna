@@ -1272,15 +1272,15 @@ function _showDataConnectionSuggestion() {
   el.id = "data-connect-suggestion";
   el.style.cssText = "position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;background:linear-gradient(135deg,#1e293b,#0f172a);border:1px solid rgba(229,169,61,0.3);border-radius:14px;padding:18px 24px;max-width:480px;width:calc(100% - 32px);box-shadow:0 12px 40px rgba(0,0,0,0.5);display:flex;gap:14px;align-items:center;";
   el.innerHTML = `
-    <div style="flex-shrink:0;width:42px;height:42px;border-radius:10px;background:rgba(229,169,61,0.12);display:flex;align-items:center;justify-content:center;">
+    <div class="suggestion-icon-box">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e5a93d" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
     </div>
-    <div style="flex:1;min-width:0;">
-      <div style="font-size:14px;font-weight:700;color:#f1f5f9;margin-bottom:3px;">Besserer Plan mit deinen Daten</div>
-      <div style="font-size:12px;color:#94a3b8;line-height:1.4;">Verbinde Strava oder Garmin, damit wir den Plan auf deine Trainingshistorie abstimmen.</div>
+    <div class="flex-1-min0">
+      <div class="suggestion-title">Besserer Plan mit deinen Daten</div>
+      <div class="suggestion-desc">Verbinde Strava oder Garmin, damit wir den Plan auf deine Trainingshistorie abstimmen.</div>
     </div>
-    <button type="button" onclick="this.closest('#data-connect-suggestion').remove();setActiveProfileView?.('settings');setActiveProfileSettingsView?.('connections');" style="flex-shrink:0;background:#e5a93d;color:#0f172a;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;">Verbinden</button>
-    <button type="button" onclick="this.closest('#data-connect-suggestion').remove();" style="flex-shrink:0;background:transparent;border:none;color:#64748b;font-size:18px;cursor:pointer;padding:4px;">&times;</button>
+    <button type="button" onclick="this.closest('#data-connect-suggestion').remove();setActiveProfileView?.('settings');setActiveProfileSettingsView?.('connections');" class="suggestion-btn-primary" style="background:#e5a93d;color:#0f172a;">Verbinden</button>
+    <button type="button" onclick="this.closest('#data-connect-suggestion').remove();" class="suggestion-btn-dismiss">&times;</button>
   `;
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 20000);
@@ -1295,12 +1295,12 @@ function _showSignUpSuggestion() {
   el.id = "signup-suggestion";
   el.style.cssText = "position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;background:linear-gradient(135deg,#1e293b,#0f172a);border:1px solid rgba(59,130,246,0.3);border-radius:14px;padding:18px 24px;max-width:480px;width:calc(100% - 32px);box-shadow:0 12px 40px rgba(0,0,0,0.5);display:flex;gap:14px;align-items:center;";
   el.innerHTML = `
-    <div style="flex:1;min-width:0;">
-      <div style="font-size:14px;font-weight:700;color:#f1f5f9;margin-bottom:3px;">Plan speichern & verbessern</div>
-      <div style="font-size:12px;color:#94a3b8;line-height:1.4;">Erstelle ein Konto, um deinen Plan zu speichern und mit Strava-Daten zu optimieren.</div>
+    <div class="flex-1-min0">
+      <div class="suggestion-title">Plan speichern & verbessern</div>
+      <div class="suggestion-desc">Erstelle ein Konto, um deinen Plan zu speichern und mit Strava-Daten zu optimieren.</div>
     </div>
-    <button type="button" onclick="this.closest('#signup-suggestion').remove();openAccountModal?.('register');" style="flex-shrink:0;background:#3b82f6;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;">Registrieren</button>
-    <button type="button" onclick="this.closest('#signup-suggestion').remove();" style="flex-shrink:0;background:transparent;border:none;color:#64748b;font-size:18px;cursor:pointer;padding:4px;">&times;</button>
+    <button type="button" onclick="this.closest('#signup-suggestion').remove();openAccountModal?.('register');" class="suggestion-btn-primary" style="background:#3b82f6;color:#fff;">Registrieren</button>
+    <button type="button" onclick="this.closest('#signup-suggestion').remove();" class="suggestion-btn-dismiss">&times;</button>
   `;
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 20000);
@@ -1793,7 +1793,7 @@ async function viewUserPublicProfile(user) {
     // ── Activities list (up to 20) ──
     const list = document.getElementById("upv-activities");
     if (!count) {
-      list.innerHTML = `<div style="color:#64748b;font-size:13px;">Keine öffentlichen Aktivitäten.</div>`;
+      list.innerHTML = `<div class="inline-empty-msg">Keine öffentlichen Aktivitäten.</div>`;
     } else {
       list.innerHTML = acts.slice(0, 20).map((a) => {
         const d = a.created_at ? new Date(a.created_at).toLocaleDateString("de-DE", { day: "2-digit", month: "short", year: "numeric" }) : "";
@@ -1805,7 +1805,7 @@ async function viewUserPublicProfile(user) {
     }
   } catch (e) {
     console.warn("[viewUserPublicProfile] fetch failed:", e?.message || e);
-    document.getElementById("upv-activities").innerHTML = `<div style="color:#ef4444;font-size:13px;">Fehler beim Laden.</div>`;
+    document.getElementById("upv-activities").innerHTML = `<div class="inline-error-msg">Fehler beim Laden.</div>`;
     document.getElementById("upv-s-count").textContent = "–";
     document.getElementById("upv-s-dist").textContent = "–";
     document.getElementById("upv-s-time").textContent = "–";
@@ -2036,10 +2036,10 @@ async function runHomeAthleteSearch(query) {
     const isConnected = Boolean(account.friends?.includes(u.email));
     const name = u.display_name || (u.email ? u.email.split("@")[0] : "Athlete");
     const avatar = u.profile_image
-      ? `<img src="${escapeHtml(u.profile_image)}" alt="" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">`
-      : `<div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;">${escapeHtml((name.charAt(0) || "?").toUpperCase())}</div>`;
-    const viewAttr = u._local ? "" : `data-view-user-id="${escapeHtml(u.id || "")}" data-view-user-name="${escapeHtml(name)}" data-view-user-email="${escapeHtml(u.email || "")}" data-view-user-avatar="${escapeHtml(u.profile_image || "")}" role="button" tabindex="0" style="cursor:pointer;"`;
-    return `<div class="account-search-item"><div class="account-search-row" ${viewAttr} style="display:flex;gap:10px;align-items:center;${u._local ? "" : "cursor:pointer;"}">${avatar}<div style="flex:1;min-width:0;"><strong>${escapeHtml(name)}</strong>${u._local ? `<small style="display:block;color:#94a3b8;">lokal</small>` : `<small style="display:block;color:#94a3b8;">Profil ansehen →</small>`}</div><div class="account-search-actions"><button type="button" class="ghost" data-home-connect-email="${escapeHtml(u.email)}" data-home-connect-id="${escapeHtml(u.id || "")}" ${isConnected ? "disabled" : ""}>${isConnected ? "Verbunden" : "Verbinden"}</button></div></div></div>`;
+      ? `<img src="${escapeHtml(u.profile_image)}" alt="" class="avatar-32">`
+      : `<div class="avatar-32-fallback">${escapeHtml((name.charAt(0) || "?").toUpperCase())}</div>`;
+    const viewAttr = u._local ? "" : `data-view-user-id="${escapeHtml(u.id || "")}" data-view-user-name="${escapeHtml(name)}" data-view-user-email="${escapeHtml(u.email || "")}" data-view-user-avatar="${escapeHtml(u.profile_image || "")}" role="button" tabindex="0"`;
+    return `<div class="account-search-item"><div class="account-search-row flex-row" ${viewAttr} style="gap:10px;">${avatar}<div class="flex-1-min0"><strong>${escapeHtml(name)}</strong>${u._local ? `<small class="local-badge">lokal</small>` : `<small class="local-badge">Profil ansehen →</small>`}</div><div class="account-search-actions"><button type="button" class="ghost" data-home-connect-email="${escapeHtml(u.email)}" data-home-connect-id="${escapeHtml(u.id || "")}" ${isConnected ? "disabled" : ""}>${isConnected ? "Verbunden" : "Verbinden"}</button></div></div></div>`;
   }).join("");
 
   // Wire "view profile" click on rows (ignore button clicks)
@@ -2151,7 +2151,7 @@ function renderAthletesDrawer(account) {
     const avatar = friend?.profileImage
       ? `<img class="athletes-drawer-avatar" src="${escapeHtml(friend.profileImage)}" alt="">`
       : `<div class="athletes-drawer-avatar is-fallback">${escapeHtml((name.charAt(0) || "?").toUpperCase())}</div>`;
-    return `<div class="athletes-drawer-item" data-view-profile="${escapeHtml(email)}" style="cursor:pointer;">${avatar}<div class="athletes-drawer-meta"><div class="athletes-drawer-name">${escapeHtml(name)}</div><div class="athletes-drawer-sub">${escapeHtml(email)}</div></div></div>`;
+    return `<div class="athletes-drawer-item" data-view-profile="${escapeHtml(email)}">${avatar}<div class="athletes-drawer-meta"><div class="athletes-drawer-name">${escapeHtml(name)}</div><div class="athletes-drawer-sub">${escapeHtml(email)}</div></div></div>`;
   }).join("");
 }
 
@@ -2206,7 +2206,7 @@ async function runAthletesDrawerSearch(query) {
       ? `<img class="athletes-drawer-avatar" src="${escapeHtml(u.profile_image)}" alt="">`
       : `<div class="athletes-drawer-avatar is-fallback">${escapeHtml((name.charAt(0) || "?").toUpperCase())}</div>`;
     const viewAttr = u._local ? "" : `data-view-user-id="${escapeHtml(u.id || "")}" data-view-user-name="${escapeHtml(name)}" data-view-user-email="${escapeHtml(u.email || "")}" data-view-user-avatar="${escapeHtml(u.profile_image || "")}" role="button" tabindex="0"`;
-    return `<div class="athletes-drawer-item" ${viewAttr} style="${u._local ? "" : "cursor:pointer;"}">${avatar}<div class="athletes-drawer-meta"><div class="athletes-drawer-name">${escapeHtml(name)}</div><div class="athletes-drawer-sub">${escapeHtml(u.email)}${u._local ? " • lokal" : ""}</div></div><button type="button" class="athletes-drawer-action${isConnected ? " is-connected" : ""}" data-athletes-connect-email="${escapeHtml(u.email)}" data-athletes-connect-id="${escapeHtml(u.id || "")}" ${isConnected ? "disabled" : ""}>${isConnected ? "Verbunden" : "Verbinden"}</button></div>`;
+    return `<div class="athletes-drawer-item" ${viewAttr}>${avatar}<div class="athletes-drawer-meta"><div class="athletes-drawer-name">${escapeHtml(name)}</div><div class="athletes-drawer-sub">${escapeHtml(u.email)}${u._local ? " • lokal" : ""}</div></div><button type="button" class="athletes-drawer-action${isConnected ? " is-connected" : ""}" data-athletes-connect-email="${escapeHtml(u.email)}" data-athletes-connect-id="${escapeHtml(u.id || "")}" ${isConnected ? "disabled" : ""}>${isConnected ? "Verbunden" : "Verbinden"}</button></div>`;
   }).join("");
 
   // Wire click-to-view-profile on drawer rows (ignore button clicks)
@@ -4640,7 +4640,7 @@ function renderFriendsList(account) {
         ? `${latest.kind === "race" ? "race." : t("label_training")} • ${formatSocialSportLabel(latest.sportType)}${latest.distanceKm ? ` • ${Number(latest.distanceKm).toFixed(1)} km` : ""}`
         : t("label_no_activity");
       return `
-      <div class="friend-item" data-view-profile="${escapeHtml(email)}" style="cursor:pointer;">
+      <div class="friend-item" data-view-profile="${escapeHtml(email)}">
         <strong>${escapeHtml(name)}</strong>
         <small>${stats.runKm.toFixed(0)} km Lauf • ${stats.races} ${escapeHtml(t("unit_races"))} • ${escapeHtml(latestText)}</small>
       </div>`
@@ -4777,15 +4777,15 @@ function renderSearchRows(list, friendships, opts = {}) {
     const btnAction = isPendingIn ? "accept" : connected ? "none" : "request";
     const disabled = connected || isPendingOut;
     const avatar = u.profile_image
-      ? `<img src="${escapeHtml(u.profile_image)}" alt="" style="width:38px;height:38px;border-radius:50%;object-fit:cover;">`
-      : `<div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px;">${escapeHtml(name.charAt(0).toUpperCase())}</div>`;
+      ? `<img src="${escapeHtml(u.profile_image)}" alt="" class="avatar-38">`
+      : `<div class="avatar-38-fallback">${escapeHtml(name.charAt(0).toUpperCase())}</div>`;
     return `
       <div class="account-search-item">
-        <div class="account-search-row" style="display:flex;gap:12px;align-items:center;">
+        <div class="account-search-row flex-row" style="gap:12px;">
           ${avatar}
-          <div style="flex:1;min-width:0;">
+          <div class="flex-1-min0">
             <strong>${escapeHtml(name)}</strong>
-            ${!isRemote ? `<small style="display:block;color:#94a3b8;">lokal</small>` : ""}
+            ${!isRemote ? `<small class="local-badge">lokal</small>` : ""}
           </div>
           <div class="account-search-actions">
             <button type="button" class="ghost"
@@ -5618,7 +5618,7 @@ function renderCrewRanking(account) {
   crewRankingListEl.innerHTML = rows
     .map(
       ({ account: rowAcc, stats }, index) => `
-      <div class="friend-item" data-view-profile="${escapeHtml(rowAcc.email)}" style="cursor:pointer;">
+      <div class="friend-item" data-view-profile="${escapeHtml(rowAcc.email)}">
         <strong>#${index + 1} ${escapeHtml(resolveDisplayName(rowAcc))}</strong>
         <small>${stats.runKm.toFixed(0)} km Lauf • ${stats.bikeKm.toFixed(0)} km Rad • ${stats.races} ${escapeHtml(t("unit_races"))}</small>
       </div>`
@@ -5691,7 +5691,7 @@ function renderHomeFeed(account) {
       homeFriendsListEl.innerHTML = friendEmails.map((email) => {
         const friend = (appStore?.accounts || []).find((a) => a.email === email);
         const name = friend ? resolveDisplayName(friend) : email.split("@")[0];
-        return `<div class="friend-item" data-view-profile="${escapeHtml(email)}" style="cursor:pointer;"><strong>${escapeHtml(name)}</strong><small>${escapeHtml(email)}</small></div>`;
+        return `<div class="friend-item" data-view-profile="${escapeHtml(email)}"><strong>${escapeHtml(name)}</strong><small>${escapeHtml(email)}</small></div>`;
       }).join("");
     }
     if (homeFriendsCountEl) homeFriendsCountEl.textContent = String(friendEmails.length);
@@ -5772,9 +5772,9 @@ function buildActivityCardHtml({ item, actorEmail, actorName = "", actorAvatar, 
   return `
     <article class="activity-card" data-activity-id="${escapeHtml(item.id)}" data-activity-owner="${escapeHtml(actorEmail)}">
       <div class="activity-card-head">
-        <div class="activity-card-avatar ${actorAvatar ? "has-image" : ""}" style="${actorAvatar ? `background-image:url('${actorAvatar}')` : ""}; cursor:pointer" data-view-profile="${escapeHtml(actorEmail)}">${escapeHtml(initials)}</div>
+        <div class="activity-card-avatar ${actorAvatar ? "has-image" : ""}" style="${actorAvatar ? `background-image:url('${actorAvatar}')` : ""}" data-view-profile="${escapeHtml(actorEmail)}">${escapeHtml(initials)}</div>
         <div class="activity-card-meta">
-          <span class="activity-card-name" style="cursor:pointer" data-view-profile="${escapeHtml(actorEmail)}">${escapeHtml(resolvedName)}</span>
+          <span class="activity-card-name" data-view-profile="${escapeHtml(actorEmail)}">${escapeHtml(resolvedName)}</span>
           <span class="activity-card-date">${escapeHtml(dateStr)} · ${escapeHtml(timeStr)}</span>
         </div>
         <span class="activity-card-type">${escapeHtml(sportLabel)}</span>
@@ -5909,7 +5909,7 @@ function openActivityDetail(ownerEmail, activityId) {
             ${escapeHtml(c.text || "")}
             <small>${c.date ? new Date(c.date).toLocaleDateString("de-DE") : ""}</small>
           </div>
-        `).join("") : `<div style="color:rgba(255,255,255,0.35);font-size:13px">Noch keine Kommentare.</div>`}
+        `).join("") : `<div class="font-13" style="color:rgba(255,255,255,0.35)">Noch keine Kommentare.</div>`}
       </div>
       <form class="comment-form" data-comment-activity="${escapeHtml(activityId)}" data-comment-owner="${escapeHtml(ownerEmail)}">
         <input type="text" placeholder="Kommentar schreiben…" required />
@@ -6049,7 +6049,7 @@ function openActivityDetail(ownerEmail, activityId) {
   // Interactive Leaflet map with OSM tiles if polyline available, else SVG placeholder
   const leafletMapId = `leaflet-map-${activityId}`;
   const mapHtml = activity.polyline
-    ? `<div class="activity-detail-map"><div id="${leafletMapId}" class="activity-detail-leaflet" style="width:100%;height:280px;border-radius:12px;overflow:hidden;background:#0a0a0a;"></div></div>`
+    ? `<div class="activity-detail-map"><div id="${leafletMapId}" class="activity-detail-leaflet activity-detail-leaflet-wrap"></div></div>`
     : `<div class="activity-detail-map">
         <div class="map-placeholder">
           <svg viewBox="0 0 640 200" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -6154,8 +6154,8 @@ function renderLeafletRouteMap(containerId, encodedPolyline) {
   }).addTo(map);
 
   const route = L.polyline(pts, { color: "#E5A93D", weight: 4, opacity: 0.95, lineJoin: "round", lineCap: "round" }).addTo(map);
-  const startIcon = L.divIcon({ className: "route-marker-start", html: '<div style="width:12px;height:12px;border-radius:50%;background:#34d399;border:2px solid #0a0a0a;box-shadow:0 0 0 2px #34d399;"></div>', iconSize: [12,12], iconAnchor:[6,6] });
-  const endIcon = L.divIcon({ className: "route-marker-end", html: '<div style="width:12px;height:12px;border-radius:50%;background:#ef4444;border:2px solid #0a0a0a;box-shadow:0 0 0 2px #ef4444;"></div>', iconSize: [12,12], iconAnchor:[6,6] });
+  const startIcon = L.divIcon({ className: "route-marker-start", html: '<div class="route-marker-dot route-marker-dot-start"></div>', iconSize: [12,12], iconAnchor:[6,6] });
+  const endIcon = L.divIcon({ className: "route-marker-end", html: '<div class="route-marker-dot route-marker-dot-end"></div>', iconSize: [12,12], iconAnchor:[6,6] });
   L.marker(pts[0], { icon: startIcon }).addTo(map);
   L.marker(pts[pts.length - 1], { icon: endIcon }).addTo(map);
 
@@ -6576,9 +6576,9 @@ function _renderYearCompareFromServer(data) {
         <span class="year-label">${d.year}</span>
         <div class="year-bar-wrap">
           <div class="year-bar" style="width:${pct}%">
-            <div class="year-bar-seg" style="width:${runPct}%;background:#aaf57c"></div>
-            <div class="year-bar-seg" style="width:${bikePct}%;background:#d0b2ff"></div>
-            <div class="year-bar-seg" style="width:${swimPct}%;background:#86d7ff"></div>
+            <div class="year-bar-seg year-bar-seg-run" style="width:${runPct}%"></div>
+            <div class="year-bar-seg year-bar-seg-bike" style="width:${bikePct}%"></div>
+            <div class="year-bar-seg year-bar-seg-swim" style="width:${swimPct}%"></div>
           </div>
         </div>
         <span class="year-total">${Math.round(total)} km</span>
@@ -6643,7 +6643,7 @@ function _renderVolumeChartFromServer(data, range, metric) {
   const rawMax = Math.max(0, ...allMonths.map((m) => m.run + m.bike + m.swim));
   const maxKm = rawMax > 0 ? rawMax : (useHours ? 20 : 100);
   const unit = useHours ? "h" : "km";
-  const W = 720, H = 200, padL = 40, padR = 10, padT = 10, padB = 28;
+  const W = 720, H = 200, padL = 40, padR = 10, padT = 10, padB = 38;
   const chartW = W - padL - padR;
   const chartH = H - padT - padB;
   const barW = Math.min(40, (chartW / allMonths.length) * 0.7);
@@ -6667,7 +6667,7 @@ function _renderVolumeChartFromServer(data, range, metric) {
     if (swimH > 0) { y -= swimH; svgContent += `<rect x="${x}" y="${y}" width="${barW}" height="${swimH}" rx="2" fill="#86d7ff" opacity="0.7"/>`; }
     if (bikeH > 0) { y -= bikeH; svgContent += `<rect x="${x}" y="${y}" width="${barW}" height="${bikeH}" rx="2" fill="#d0b2ff" opacity="0.7"/>`; }
     if (runH > 0) { y -= runH; svgContent += `<rect x="${x}" y="${y}" width="${barW}" height="${runH}" rx="2" fill="#aaf57c" opacity="0.7"/>`; }
-    svgContent += `<text x="${x + barW / 2}" y="${H - 6}" fill="rgba(255,255,255,0.4)" font-size="9" text-anchor="middle" font-family="Inter,sans-serif">${m.label}</text>`;
+    svgContent += `<text x="${x + barW / 2}" y="${H - 8}" fill="rgba(255,255,255,0.6)" font-size="10" text-anchor="middle" font-family="Inter,sans-serif">${m.label}</text>`;
     if (total > 0) svgContent += `<text x="${x + barW / 2}" y="${y - 4}" fill="rgba(255,255,255,0.5)" font-size="8" text-anchor="middle" font-family="Inter,sans-serif">${Math.round(total)}</text>`;
   });
 
@@ -6736,7 +6736,7 @@ function _renderPaceTrendFromServer(data) {
     }))
     .sort((a, b) => a.date - b.date);
 
-  const W = 720, H = 180, padL = 44, padR = 10, padT = 14, padB = 28;
+  const W = 720, H = 180, padL = 44, padR = 10, padT = 14, padB = 38;
 
   if (weeks.length < 2) {
     svg.innerHTML = `<text x="${W / 2}" y="${H / 2}" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="12" font-family="Inter,sans-serif">${t("stats_need_more_data")}</text>`;
@@ -6785,6 +6785,16 @@ function _renderPaceTrendFromServer(data) {
   pts.forEach((p) => {
     svgContent += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" fill="#aaf57c" opacity="0.5"/>`;
   });
+
+  // X-axis date labels
+  const totalWeeks = weeks.length;
+  const weekStep = Math.max(1, Math.floor(totalWeeks / 6));
+  for (let i = 0; i < totalWeeks; i += weekStep) {
+    const x = padL + (i / (totalWeeks - 1)) * chartW;
+    const d = weeks[i].date;
+    const label = `${String(d.getDate()).padStart(2, "0")}.${String(d.getMonth() + 1).padStart(2, "0")}`;
+    svgContent += `<text x="${x.toFixed(1)}" y="${H - 8}" fill="rgba(255,255,255,0.5)" font-size="9" text-anchor="middle" font-family="Inter,sans-serif">${label}</text>`;
+  }
 
   svg.innerHTML = svgContent;
 
@@ -6952,7 +6962,7 @@ function renderVolumeChart(allActivities, range, metric) {
   const rawMax = Math.max(0, ...allMonths.map((m) => m.run + m.bike + m.swim));
   const maxKm = rawMax > 0 ? rawMax : (useHours ? 20 : 100); // Use sensible default scale for empty state
   const unit = useHours ? "h" : "km";
-  const W = 720, H = 200, padL = 40, padR = 10, padT = 10, padB = 28;
+  const W = 720, H = 200, padL = 40, padR = 10, padT = 10, padB = 38;
   const chartW = W - padL - padR;
   const chartH = H - padT - padB;
   const barW = Math.min(40, (chartW / allMonths.length) * 0.7);
@@ -6993,7 +7003,7 @@ function renderVolumeChart(allActivities, range, metric) {
     }
 
     // Month label
-    svgContent += `<text x="${x + barW / 2}" y="${H - 6}" fill="rgba(255,255,255,0.4)" font-size="9" text-anchor="middle" font-family="Inter,sans-serif">${m.label}</text>`;
+    svgContent += `<text x="${x + barW / 2}" y="${H - 8}" fill="rgba(255,255,255,0.6)" font-size="10" text-anchor="middle" font-family="Inter,sans-serif">${m.label}</text>`;
 
     // Value on top
     if (total > 0) {
@@ -7085,7 +7095,7 @@ function renderPaceTrend(allActivities, range) {
     }))
     .sort((a, b) => a.date - b.date);
 
-  const W = 720, H = 180, padL = 44, padR = 10, padT = 14, padB = 28;
+  const W = 720, H = 180, padL = 44, padR = 10, padT = 14, padB = 38;
   let svgContent = "";
 
   if (runs.length < 2) {
@@ -7138,6 +7148,16 @@ function renderPaceTrend(allActivities, range) {
   pts.forEach((p) => {
     svgContent += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" fill="#aaf57c" opacity="0.5"/>`;
   });
+
+  // X-axis date labels
+  const totalRuns = runs.length;
+  const runStep = Math.max(1, Math.floor(totalRuns / 6));
+  for (let i = 0; i < totalRuns; i += runStep) {
+    const x = padL + (i / (totalRuns - 1)) * chartW;
+    const d = runs[i].date;
+    const label = `${String(d.getDate()).padStart(2, "0")}.${String(d.getMonth() + 1).padStart(2, "0")}`;
+    svgContent += `<text x="${x.toFixed(1)}" y="${H - 8}" fill="rgba(255,255,255,0.5)" font-size="9" text-anchor="middle" font-family="Inter,sans-serif">${label}</text>`;
+  }
 
   svg.innerHTML = svgContent;
 
@@ -7215,7 +7235,7 @@ function renderRaceHistory(activities) {
     .filter((a) => a.kind === "race" && (Number(a.distanceKm) || 0) > 0)
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   if (!races.length) {
-    host.innerHTML = `<div class="race-history-empty">Keine Rennen gefunden.<br><span style="font-size:11px;color:var(--muted-2)">Markiere Aktivitäten als "Wettkampf" um sie hier zu sehen.</span></div>`;
+    host.innerHTML = `<div class="race-history-empty">Keine Rennen gefunden.<br><span class="font-11 text-dim">Markiere Aktivitäten als "Wettkampf" um sie hier zu sehen.</span></div>`;
     return;
   }
   const fmtTime = (sec) => {
@@ -7324,9 +7344,9 @@ function renderYearCompare(activities, metric) {
         <span class="year-label">${y}</span>
         <div class="year-bar-wrap">
           <div class="year-bar" style="width:${pct}%">
-            <div class="year-bar-seg" style="width:${runPct}%;background:#aaf57c"></div>
-            <div class="year-bar-seg" style="width:${bikePct}%;background:#d0b2ff"></div>
-            <div class="year-bar-seg" style="width:${swimPct}%;background:#86d7ff"></div>
+            <div class="year-bar-seg year-bar-seg-run" style="width:${runPct}%"></div>
+            <div class="year-bar-seg year-bar-seg-bike" style="width:${bikePct}%"></div>
+            <div class="year-bar-seg year-bar-seg-swim" style="width:${swimPct}%"></div>
           </div>
         </div>
         <span class="year-total">${fmt(total)} ${unit}</span>
@@ -9115,13 +9135,13 @@ function handleOAuthReturnParams() {
       // Build a user-visible toast + persistent inline status
       const isAppLimit = errCode === "strava_app_limit";
       const bannerHtml = `
-        <div style="background:#1a1d2e;border:2px solid ${isAppLimit ? "#f97316" : "#ef4444"};border-radius:12px;padding:14px 16px;margin:12px 0;color:#e5e7eb;font-family:system-ui;">
-          <div style="font-weight:700;color:${isAppLimit ? "#fb923c" : "#f87171"};margin-bottom:6px;">⚠️ Strava-Verbindung fehlgeschlagen</div>
-          <div style="font-size:13px;line-height:1.5;color:#cbd5e1;">${errMsg}</div>
-          ${isAppLimit ? `<div style="margin-top:10px;padding:10px;background:#0f1220;border-radius:8px;font-size:12px;color:#94a3b8;">
-            <b style="color:#cbd5e1;">Lösung für den Admin:</b> In der <a href="https://www.strava.com/settings/api" target="_blank" style="color:#60a5fa;">Strava API-Konsole</a> die App auf „Unlimited Athletes" upgraden (Request via Strava Support). Bis dahin kann nur 1 Athlet (App-Owner) verbunden sein.
+        <div class="strava-error-banner" style="border:2px solid ${isAppLimit ? "#f97316" : "#ef4444"};">
+          <div class="strava-error-title" style="color:${isAppLimit ? "#fb923c" : "#f87171"};">⚠️ Strava-Verbindung fehlgeschlagen</div>
+          <div class="strava-error-body">${errMsg}</div>
+          ${isAppLimit ? `<div class="strava-error-hint">
+            <b class="text-soft">Lösung für den Admin:</b> In der <a href="https://www.strava.com/settings/api" target="_blank" class="text-link">Strava API-Konsole</a> die App auf „Unlimited Athletes" upgraden (Request via Strava Support). Bis dahin kann nur 1 Athlet (App-Owner) verbunden sein.
           </div>` : ""}
-          <button onclick="this.closest('div').parentNode.remove()" style="margin-top:10px;background:transparent;color:#94a3b8;border:1px solid #2a2f45;border-radius:8px;padding:6px 14px;font-size:12px;cursor:pointer;">Schließen</button>
+          <button onclick="this.closest('div').parentNode.remove()" class="strava-error-close">Schließen</button>
         </div>
       `;
       const banner = document.createElement("div");
@@ -14681,7 +14701,7 @@ function renderPlan(plan) {
     console.warn("[renderPlan] Malformed plan object:", plan);
     if (planMetaEl) planMetaEl.textContent = "Plan konnte nicht generiert werden. Bitte Formular prüfen und erneut versuchen.";
     if (planMissionBriefEl) { planMissionBriefEl.hidden = true; planMissionBriefEl.textContent = ""; }
-    if (weekListEl) weekListEl.innerHTML = `<div class="empty-copy" style="padding:20px;text-align:center;color:#94a3b8;">⚠️ Plan-Generierung fehlgeschlagen. Prüfe Eingaben (Pace, Distanz, Hours/Woche) und versuche es erneut.</div>`;
+    if (weekListEl) weekListEl.innerHTML = `<div class="empty-copy plan-error-msg">⚠️ Plan-Generierung fehlgeschlagen. Prüfe Eingaben (Pace, Distanz, Hours/Woche) und versuche es erneut.</div>`;
     return;
   }
   const firstWeek = plan.weeks[0];
@@ -17715,14 +17735,14 @@ function renderZoneTable(containerId, zones, totalSec) {
       <tbody>${rows}</tbody>
     </table>
     <div class="zone-intensity-summary">
-      <div class="zone-intensity-item"><span class="zone-intensity-label" style="color:#22c55e">LIT</span><span class="zone-intensity-pct">${litPct}%</span></div>
-      <div class="zone-intensity-item"><span class="zone-intensity-label" style="color:#f59e0b">MIT</span><span class="zone-intensity-pct">${mitPct}%</span></div>
-      <div class="zone-intensity-item"><span class="zone-intensity-label" style="color:#ef4444">HIT</span><span class="zone-intensity-pct">${hitPct}%</span></div>
+      <div class="zone-intensity-item"><span class="zone-intensity-label zone-lit">LIT</span><span class="zone-intensity-pct">${litPct}%</span></div>
+      <div class="zone-intensity-item"><span class="zone-intensity-label zone-mit">MIT</span><span class="zone-intensity-pct">${mitPct}%</span></div>
+      <div class="zone-intensity-item"><span class="zone-intensity-label zone-hit">HIT</span><span class="zone-intensity-pct">${hitPct}%</span></div>
     </div>
     <div class="zone-intensity-bar">
-      <div class="zone-intensity-bar-seg" style="width:${litPct}%;background:#22c55e"></div>
-      <div class="zone-intensity-bar-seg" style="width:${mitPct}%;background:#f59e0b"></div>
-      <div class="zone-intensity-bar-seg" style="width:${hitPct}%;background:#ef4444"></div>
+      <div class="zone-intensity-bar-seg zone-seg-lit" style="width:${litPct}%"></div>
+      <div class="zone-intensity-bar-seg zone-seg-mit" style="width:${mitPct}%"></div>
+      <div class="zone-intensity-bar-seg zone-seg-hit" style="width:${hitPct}%"></div>
     </div>
   `;
 }
@@ -18321,8 +18341,22 @@ function renderFormFitnessChart(allActivities) {
   // zero line for TSB
   const zeroY = padT + chartH / 2 - ((0 - (minTsb + maxTsb) / 2) / tsbRange) * chartH * 0.9;
 
+  // X-axis date labels
+  let xLabels = "";
+  const totalDays = n;
+  const dayStep = Math.max(1, Math.floor(totalDays / 8));
+  const msPerDay = 86400000;
+  const todayMs = Date.now();
+  for (let i = 0; i < totalDays; i += dayStep) {
+    const x = padL + (i / (n - 1)) * chartW;
+    const daysFromEnd = totalDays - 1 - i;
+    const d = new Date(todayMs - daysFromEnd * msPerDay);
+    const label = `${String(d.getDate()).padStart(2, "0")}.${String(d.getMonth() + 1).padStart(2, "0")}`;
+    xLabels += `<text x="${x.toFixed(1)}" y="${H - 8}" fill="rgba(255,255,255,0.5)" font-size="9" text-anchor="middle" font-family="Inter,sans-serif">${label}</text>`;
+  }
+
   svg.innerHTML = `
-    ${yLabels}${rLabels}
+    ${yLabels}${rLabels}${xLabels}
     <line x1="${padL}" y1="${zeroY}" x2="${W - padR}" y2="${zeroY}" stroke="rgba(91,155,213,0.25)" stroke-dasharray="4 4" />
     <path d="${pathFrom(ctlSlice)}" fill="none" stroke="#4CAF82" stroke-width="2.5" />
     <path d="${pathFrom(atlSlice)}" fill="none" stroke="#E5A93D" stroke-width="2" opacity="0.85" />
@@ -19833,47 +19867,47 @@ document.addEventListener("click", (e) => {
     if (document.getElementById("sota-feedback-modal")) return;
     const overlay = document.createElement("div");
     overlay.id = "sota-feedback-modal";
-    overlay.style.cssText = "position:fixed;inset:0;background:rgba(15,18,30,.78);backdrop-filter:blur(6px);z-index:9998;display:flex;align-items:center;justify-content:center;padding:20px;";
+    overlay.className = "sota-modal-overlay";
     overlay.innerHTML = `
-      <div style="background:#1a1d2e;border:1px solid #2a2f45;border-radius:16px;max-width:440px;width:100%;padding:22px 20px;max-height:92vh;overflow-y:auto;color:#e5e7eb;font-family:system-ui,-apple-system,sans-serif;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-          <h3 style="margin:0;font-size:17px;font-weight:700;color:#fff;">Session Feedback · sRPE</h3>
-          <button id="sota-fb-close" style="background:transparent;border:0;color:#94a3b8;font-size:22px;cursor:pointer;padding:0 6px;">×</button>
+      <div class="sota-modal-card" style="max-width:440px;">
+        <div class="sota-modal-header">
+          <h3 class="sota-modal-title">Session Feedback · sRPE</h3>
+          <button id="sota-fb-close" class="sota-modal-close">×</button>
         </div>
-        <p style="margin:0 0 12px;font-size:12px;color:#94a3b8;">${sessionCtx.sessionTitle || "Wie war die Session?"}</p>
+        <p class="sota-modal-subtitle font-12">${sessionCtx.sessionTitle || "Wie war die Session?"}</p>
 
-        <label style="display:block;margin-bottom:12px;">
-          <span style="font-size:12px;color:#cbd5e1;">Session-RPE (Borg CR10): <b id="sota-fb-rpe-val" style="color:#fff;">6</b></span>
-          <input type="range" id="sota-fb-rpe" min="0" max="10" step="1" value="6" style="width:100%;margin-top:4px;">
-          <div style="display:flex;justify-content:space-between;font-size:10px;color:#64748b;margin-top:-2px;"><span>0 Nichts</span><span>5 Hart</span><span>10 Max</span></div>
+        <label class="sota-form-label">
+          <span class="sota-label-text">Session-RPE (Borg CR10): <b id="sota-fb-rpe-val" class="text-white">6</b></span>
+          <input type="range" id="sota-fb-rpe" min="0" max="10" step="1" value="6" class="sota-range-input">
+          <div class="sota-range-scale-top"><span>0 Nichts</span><span>5 Hart</span><span>10 Max</span></div>
         </label>
 
-        <label style="display:block;margin-bottom:12px;">
-          <span style="font-size:12px;color:#cbd5e1;">Dauer (min)</span>
-          <input type="number" id="sota-fb-dur" min="0" max="360" value="${sessionCtx.durationMin || 60}" style="width:100%;background:#0f1220;border:1px solid #2a2f45;border-radius:8px;padding:8px 10px;color:#fff;margin-top:4px;">
+        <label class="sota-form-label">
+          <span class="sota-label-text">Dauer (min)</span>
+          <input type="number" id="sota-fb-dur" min="0" max="360" value="${sessionCtx.durationMin || 60}" class="sota-dark-input">
         </label>
 
-        <label style="display:block;margin-bottom:12px;">
-          <span style="font-size:12px;color:#cbd5e1;">Wie hat es sich angefühlt? <b id="sota-fb-feel-val" style="color:#fff;">3</b>/5</span>
-          <input type="range" id="sota-fb-feel" min="1" max="5" step="1" value="3" style="width:100%;margin-top:4px;">
-          <div style="display:flex;justify-content:space-between;font-size:10px;color:#64748b;"><span>1 schlecht</span><span>3 ok</span><span>5 super</span></div>
+        <label class="sota-form-label">
+          <span class="sota-label-text">Wie hat es sich angefühlt? <b id="sota-fb-feel-val" class="text-white">3</b>/5</span>
+          <input type="range" id="sota-fb-feel" min="1" max="5" step="1" value="3" class="sota-range-input">
+          <div class="sota-range-scale"><span>1 schlecht</span><span>3 ok</span><span>5 super</span></div>
         </label>
 
-        <label style="display:block;margin-bottom:12px;">
-          <span style="font-size:12px;color:#cbd5e1;">Muskelkater/Soreness: <b id="sota-fb-sore-val" style="color:#fff;">1</b>/5</span>
-          <input type="range" id="sota-fb-sore" min="0" max="5" step="1" value="1" style="width:100%;margin-top:4px;">
+        <label class="sota-form-label">
+          <span class="sota-label-text">Muskelkater/Soreness: <b id="sota-fb-sore-val" class="text-white">1</b>/5</span>
+          <input type="range" id="sota-fb-sore" min="0" max="5" step="1" value="1" class="sota-range-input">
         </label>
 
-        <label style="display:block;margin-bottom:14px;">
-          <span style="font-size:12px;color:#cbd5e1;">Notizen (optional)</span>
-          <textarea id="sota-fb-notes" rows="2" placeholder="z. B. Stich im Knie, Wetter heiß, Magen grummelt…" style="width:100%;background:#0f1220;border:1px solid #2a2f45;border-radius:8px;padding:8px 10px;color:#fff;margin-top:4px;resize:vertical;font-family:inherit;font-size:13px;"></textarea>
+        <label class="sota-form-label-lg">
+          <span class="sota-label-text">Notizen (optional)</span>
+          <textarea id="sota-fb-notes" rows="2" placeholder="z. B. Stich im Knie, Wetter heiß, Magen grummelt…" class="sota-dark-textarea"></textarea>
         </label>
 
-        <div style="display:flex;gap:8px;">
-          <button id="sota-fb-save" style="flex:1;background:#3b82f6;color:#fff;border:0;border-radius:10px;padding:11px;font-weight:600;cursor:pointer;">Speichern</button>
-          <button id="sota-fb-cancel" style="background:transparent;color:#94a3b8;border:1px solid #2a2f45;border-radius:10px;padding:11px 14px;cursor:pointer;">Abbrechen</button>
+        <div class="sota-modal-actions">
+          <button id="sota-fb-save" class="sota-btn-primary" style="background:#3b82f6;">Speichern</button>
+          <button id="sota-fb-cancel" class="sota-btn-cancel">Abbrechen</button>
         </div>
-        <div style="margin-top:10px;font-size:11px;color:#64748b;text-align:center;">TSS ≈ sRPE × Dauer × 1.2</div>
+        <div class="sota-modal-footnote">TSS ≈ sRPE × Dauer × 1.2</div>
       </div>
     `;
     document.body.appendChild(overlay);
@@ -19908,24 +19942,24 @@ document.addEventListener("click", (e) => {
     const existing = (getReadinessLogs(2).find((r) => r.date === today)) || {};
     const overlay = document.createElement("div");
     overlay.id = "sota-readiness-modal";
-    overlay.style.cssText = "position:fixed;inset:0;background:rgba(15,18,30,.78);backdrop-filter:blur(6px);z-index:9998;display:flex;align-items:center;justify-content:center;padding:20px;";
+    overlay.className = "sota-modal-overlay";
     overlay.innerHTML = `
-      <div style="background:#1a1d2e;border:1px solid #2a2f45;border-radius:16px;max-width:420px;width:100%;padding:22px 20px;max-height:92vh;overflow-y:auto;color:#e5e7eb;font-family:system-ui,-apple-system,sans-serif;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-          <h3 style="margin:0;font-size:17px;font-weight:700;color:#fff;">Morning Readiness Check</h3>
-          <button id="sota-rd-close" style="background:transparent;border:0;color:#94a3b8;font-size:22px;cursor:pointer;padding:0 6px;">×</button>
+      <div class="sota-modal-card" style="max-width:420px;">
+        <div class="sota-modal-header">
+          <h3 class="sota-modal-title">Morning Readiness Check</h3>
+          <button id="sota-rd-close" class="sota-modal-close">×</button>
         </div>
-        <p style="margin:0 0 12px;font-size:11px;color:#94a3b8;">HRV-guided Training (Düking 2021) · Composite Score 0-100</p>
+        <p class="sota-modal-subtitle font-11">HRV-guided Training (Düking 2021) · Composite Score 0-100</p>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
-          <label><span style="font-size:11px;color:#cbd5e1;">HRV (RMSSD ms)</span>
-            <input type="number" id="sota-rd-hrv" value="${existing.hrv || ""}" min="10" max="200" placeholder="z.B. 52" style="width:100%;background:#0f1220;border:1px solid #2a2f45;border-radius:8px;padding:7px 9px;color:#fff;margin-top:3px;"></label>
-          <label><span style="font-size:11px;color:#cbd5e1;">Ruhepuls (bpm)</span>
-            <input type="number" id="sota-rd-rhr" value="${existing.rhr || ""}" min="30" max="100" placeholder="z.B. 48" style="width:100%;background:#0f1220;border:1px solid #2a2f45;border-radius:8px;padding:7px 9px;color:#fff;margin-top:3px;"></label>
+        <div class="sota-grid-2col">
+          <label><span class="sota-label-text-sm">HRV (RMSSD ms)</span>
+            <input type="number" id="sota-rd-hrv" value="${existing.hrv || ""}" min="10" max="200" placeholder="z.B. 52" class="sota-dark-input-sm"></label>
+          <label><span class="sota-label-text-sm">Ruhepuls (bpm)</span>
+            <input type="number" id="sota-rd-rhr" value="${existing.rhr || ""}" min="30" max="100" placeholder="z.B. 48" class="sota-dark-input-sm"></label>
         </div>
 
-        <label style="display:block;margin-bottom:10px;"><span style="font-size:11px;color:#cbd5e1;">Schlafdauer (h)</span>
-          <input type="number" id="sota-rd-sleep" step="0.25" value="${existing.sleepHours || ""}" min="0" max="14" placeholder="z.B. 7.5" style="width:100%;background:#0f1220;border:1px solid #2a2f45;border-radius:8px;padding:7px 9px;color:#fff;margin-top:3px;"></label>
+        <label class="sota-form-label-10"><span class="sota-label-text-sm">Schlafdauer (h)</span>
+          <input type="number" id="sota-rd-sleep" step="0.25" value="${existing.sleepHours || ""}" min="0" max="14" placeholder="z.B. 7.5" class="sota-dark-input-sm"></label>
 
         ${[
           {k:"sleepQuality",label:"Schlafqualität",min:1,max:5,def:3},
@@ -19934,15 +19968,15 @@ document.addEventListener("click", (e) => {
           {k:"stress",label:"Stress",min:0,max:5,def:2},
           {k:"motivation",label:"Motivation",min:1,max:5,def:3},
         ].map((it) => `
-          <label style="display:block;margin-bottom:9px;">
-            <span style="font-size:11px;color:#cbd5e1;">${it.label}: <b id="sota-rd-${it.k}-val" style="color:#fff;">${existing[it.k] != null ? existing[it.k] : it.def}</b>/${it.max}</span>
-            <input type="range" id="sota-rd-${it.k}" min="${it.min}" max="${it.max}" step="1" value="${existing[it.k] != null ? existing[it.k] : it.def}" style="width:100%;margin-top:3px;">
+          <label class="sota-form-label-sm">
+            <span class="sota-label-text-sm">${it.label}: <b id="sota-rd-${it.k}-val" class="text-white">${existing[it.k] != null ? existing[it.k] : it.def}</b>/${it.max}</span>
+            <input type="range" id="sota-rd-${it.k}" min="${it.min}" max="${it.max}" step="1" value="${existing[it.k] != null ? existing[it.k] : it.def}" class="sota-range-input-sm">
           </label>
         `).join("")}
 
-        <div style="display:flex;gap:8px;margin-top:14px;">
-          <button id="sota-rd-save" style="flex:1;background:#10b981;color:#fff;border:0;border-radius:10px;padding:11px;font-weight:600;cursor:pointer;">Speichern & Score</button>
-          <button id="sota-rd-cancel" style="background:transparent;color:#94a3b8;border:1px solid #2a2f45;border-radius:10px;padding:11px 14px;cursor:pointer;">Abbrechen</button>
+        <div class="sota-modal-actions" style="margin-top:14px;">
+          <button id="sota-rd-save" class="sota-btn-primary" style="background:#10b981;">Speichern & Score</button>
+          <button id="sota-rd-cancel" class="sota-btn-cancel">Abbrechen</button>
         </div>
       </div>
     `;
@@ -21213,8 +21247,8 @@ document.addEventListener("click", (e) => {
   async function hydrateFullActivities() {
     const acc = account();
     if (!acc?.id || !_isUuid(acc.id)) return;
-    // Allow re-fetch if no data yet (don't block on empty cache)
-    if (_ppActivitiesCacheUserId === acc.id && (_ppActivitiesCache || _ppServerStats)) return;
+    // Only skip if we already have the FULL activities cache (not just server stats)
+    if (_ppActivitiesCacheUserId === acc.id && _ppActivitiesCache) return;
     _ppActivitiesCacheUserId = acc.id;
     try {
       // Try server-side stats first (fast), with activity fallback
@@ -21237,7 +21271,7 @@ document.addEventListener("click", (e) => {
           try { renderPRVault(); } catch (e) { console.warn("[PP] renderPRVault:", e); }
         }
       }
-      // Always fetch ALL activities for hero dots, form score, PR selection
+      // ALWAYS fetch ALL activities for hero dots, form score, PR selection (full history!)
       // Use high limit — getActivities paginates internally past 1000-row Supabase limit
       const remote = await window.sbDb.getActivities(acc.id, 50000);
       if (remote.length) {
@@ -21246,6 +21280,7 @@ document.addEventListener("click", (e) => {
           try { renderHeroStats(); } catch (e) { console.warn("[PP] renderHeroStats:", e); }
           try { renderTotals(); } catch (e) { console.warn("[PP] renderTotals:", e); }
         }
+        // Always re-render PRs with full history (server PRs may miss older data)
         try { renderPRVault(); } catch (e) { console.warn("[PP] renderPRVault:", e); }
       }
     } catch (e) { console.warn("[PublicProfile] hydrate:", e); }
