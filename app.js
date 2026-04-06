@@ -6859,12 +6859,17 @@ function renderRaceHistory(activities) {
   }).join("");
 }
 
-// Flip card click handler
+// Flip card click handler (delegated, works with SVG children)
 document.addEventListener("click", (e) => {
-  const btn = e.target.closest("[data-pr-flip]");
+  const btn = e.target.closest("[data-pr-flip]") || e.target.closest(".pr-flip-btn");
   if (!btn) return;
+  e.preventDefault();
+  e.stopPropagation();
   const card = btn.closest(".pr-flip-card");
-  if (card) card.classList.toggle("is-flipped");
+  if (card) {
+    card.classList.toggle("is-flipped");
+    console.log("[PR-Flip] toggled", card.id || card.className);
+  }
 });
 
 function renderYearCompare(activities) {

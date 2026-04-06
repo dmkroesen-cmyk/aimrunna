@@ -2296,6 +2296,7 @@ body.profile-view-settings .profile-settings-card.is-active {
   height: 100%;
   overflow-y: auto;
   transform: rotateY(180deg);
+  pointer-events: none;
 }
 /* When flipped, swap which face is in flow */
 .pr-flip-card.is-flipped .pr-flip-front {
@@ -2303,6 +2304,7 @@ body.profile-view-settings .profile-settings-card.is-active {
 }
 .pr-flip-card.is-flipped .pr-flip-back {
   position: relative;
+  pointer-events: auto;
 }
 .pr-flip-btn {
   background: none;
