@@ -553,25 +553,13 @@
           <div id="pp-trophy-host"></div>
 
           <!-- PR Vault (flip card: front=PRs, back=Race History) -->
-          <section class="pp-section pp-pr-vault pr-flip-card" id="pp-pr-vault-section">
-            <div class="pr-flip-inner">
-              <div class="pr-flip-face pr-flip-front">
-                <div class="pp-section-head">
-                  <h3 class="pp-section-title">Bestzeiten</h3>
-                  <div style="display:flex;align-items:center;gap:8px">
-                    <span class="pp-section-sub" id="pp-pr-sub"></span>
-                    <button class="pr-flip-btn" data-pr-flip title="Race History"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg></button>
-                  </div>
-                </div>
-                <div class="pp-pr-grid" id="pp-pr-grid"></div>
-              </div>
-              <div class="pr-flip-face pr-flip-back">
-                <div class="pp-section-head">
-                  <h3 class="pp-section-title">Race History</h3>
-                  <button class="pr-flip-btn" data-pr-flip title="Bestzeiten"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg></button>
-                </div>
-                <div class="race-history-table" id="pp-race-history-table"></div>
-              </div>
+          <section class="pp-section pp-pr-vault" id="pp-pr-vault-section">
+            <div class="pp-section-head">
+              <h3 class="pp-section-title">Bestzeiten</h3>
+              <span class="pp-section-sub" id="pp-pr-sub"></span>
+            </div>
+            <div class="pp-pr-grid" id="pp-pr-grid">
+              <!-- Individual flippable PR cards rendered by JS -->
             </div>
           </section>
 

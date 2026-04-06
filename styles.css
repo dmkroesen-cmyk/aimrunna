@@ -9097,10 +9097,106 @@ details[open] .fa-bd-summary { color: rgba(255,255,255,0.7); margin-bottom: 10px
   grid-template-columns: repeat(4, 1fr);
   gap: var(--space-md);
 }
+
+/* Individual PR card flip container */
+.pp-pr-flip-card {
+  perspective: 900px;
+}
+.pp-pr-flip-card.pp-pr-empty { opacity: 0.5; }
+.pp-pr-flip-inner {
+  position: relative;
+  width: 100%;
+  transition: transform 0.5s cubic-bezier(0.4, 0.2, 0.2, 1);
+  transform-style: preserve-3d;
+}
+.pp-pr-flip-card.is-flipped .pp-pr-flip-inner {
+  transform: rotateY(180deg);
+}
+.pp-pr-flip-front,
+.pp-pr-flip-back {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 12px;
+  border: 1px solid var(--border-default);
+}
+.pp-pr-flip-front {
+  cursor: pointer;
+}
+.pp-pr-flip-back {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  transform: rotateY(180deg);
+  background: linear-gradient(160deg, rgba(255,255,255,0.06), rgba(255,255,255,0.01));
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  pointer-events: none;
+}
+.pp-pr-flip-card.is-flipped .pp-pr-flip-front { visibility: hidden; }
+.pp-pr-flip-card.is-flipped .pp-pr-flip-back { position: relative; pointer-events: auto; }
+
+/* Back face header */
+.pp-pr-back-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.pp-pr-back-close {
+  background: none;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  color: var(--muted-2);
+  width: 22px; height: 22px;
+  font-size: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s, border-color 0.2s;
+}
+.pp-pr-back-close:hover { color: var(--text); border-color: var(--border-default); }
+
+/* Alternative rows */
+.pp-pr-alt-list { display: flex; flex-direction: column; gap: 4px; }
+.pp-pr-alt-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.pp-pr-alt-row:hover { background: rgba(255,255,255,0.04); border-color: var(--border-subtle); }
+.pp-pr-alt-row.is-selected {
+  background: rgba(229,169,61,0.08);
+  border-color: rgba(229,169,61,0.25);
+}
+.pp-pr-alt-main { display: flex; flex-direction: column; min-width: 0; }
+.pp-pr-alt-time { font-size: 13px; font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.pp-pr-alt-pace { font-size: 10px; color: var(--color-amber); font-variant-numeric: tabular-nums; }
+.pp-pr-alt-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.pp-pr-alt-title { font-size: 10px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pp-pr-alt-date { font-size: 9px; color: var(--text-tertiary); }
+.pp-pr-alt-check { color: var(--color-amber); font-size: 13px; font-weight: 700; flex-shrink: 0; }
+.pp-pr-alt-select { font-size: 9px; color: var(--muted-2); text-transform: uppercase; letter-spacing: 0.05em; flex-shrink: 0; opacity: 0; transition: opacity 0.15s; }
+.pp-pr-alt-row:hover .pp-pr-alt-select { opacity: 1; }
+.pp-pr-alt-empty { font-size: 11px; color: var(--muted-2); text-align: center; padding: 12px 0; }
+
+/* Pinned badge */
+.pp-pr-pinned {
+  position: absolute;
+  top: var(--space-sm);
+  left: var(--space-sm);
+  font-size: 10px;
+}
+
 .pp-pr-card {
   position: relative;
   background: linear-gradient(160deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01));
-  border: 1px solid var(--border-default);
   border-radius: 12px;
   padding: 14px var(--space-md);
   aspect-ratio: 3 / 4;
@@ -9114,7 +9210,6 @@ details[open] .fa-bd-summary { color: rgba(255,255,255,0.7); margin-bottom: 10px
   border-color: rgba(229, 169, 61, 0.35);
   box-shadow: 0 8px 24px rgba(229, 169, 61, 0.08);
 }
-.pp-pr-empty { opacity: 0.5; }
 .pp-pr-label {
   font-size: var(--font-sm);
   font-weight: var(--weight-bold);

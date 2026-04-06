@@ -6859,17 +6859,36 @@ function renderRaceHistory(activities) {
   }).join("");
 }
 
-// Flip card click handler (delegated, works with SVG children)
+// PR card individual flip handler (click card front to flip, click ✕ to flip back)
 document.addEventListener("click", (e) => {
+  // Individual PR card flip
+  const flipTrigger = e.target.closest("[data-pr-card-flip]");
+  if (flipTrigger) {
+    e.preventDefault();
+    e.stopPropagation();
+    const flipCard = flipTrigger.closest(".pp-pr-flip-card");
+    if (flipCard) flipCard.classList.toggle("is-flipped");
+    return;
+  }
+  // PR alternative selection
+  const selectRow = e.target.closest("[data-pr-select]");
+  if (selectRow) {
+    e.preventDefault();
+    e.stopPropagation();
+    const distCode = selectRow.dataset.prSelect;
+    const activityId = selectRow.dataset.activityId;
+    if (distCode && activityId && typeof window._ppSelectPR === "function") {
+      window._ppSelectPR(distCode, activityId);
+    }
+    return;
+  }
+  // Section-level flip (statistics section — keep for backwards compat)
   const btn = e.target.closest("[data-pr-flip]") || e.target.closest(".pr-flip-btn");
   if (!btn) return;
   e.preventDefault();
   e.stopPropagation();
   const card = btn.closest(".pr-flip-card");
-  if (card) {
-    card.classList.toggle("is-flipped");
-    console.log("[PR-Flip] toggled", card.id || card.className);
-  }
+  if (card) card.classList.toggle("is-flipped");
 });
 
 function renderYearCompare(activities) {
@@ -20994,100 +21013,128 @@ document.addEventListener("click", (e) => {
   }
 
   // ── PR Vault ──
+  // ── PR Helpers ──
+  const _fmtTimePR = (sec) => {
+    sec = Number(sec) || 0; if (!sec) return "–";
+    const h = Math.floor(sec / 3600); const m = Math.floor((sec % 3600) / 60); const s = Math.round(sec % 60);
+    return h > 0 ? `${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}` : `${m}:${String(s).padStart(2,"0")}`;
+  };
+  const _fmtPacePR = (sec, km) => {
+    if (!sec || !km) return "";
+    const p = (sec / 60) / km; const pm = Math.floor(p); const ps = Math.round((p - pm) * 60);
+    return `${pm}:${String(ps).padStart(2,"0")}/km`;
+  };
+  const _fmtDatePR = (d) => d ? new Date(d).toLocaleDateString("de-DE", { day: "numeric", month: "short", year: "numeric" }) : "";
+  const _fmtDateShort = (d) => {
+    if (!d) return "";
+    const dt = new Date(d);
+    const weeksAgo = (Date.now() - dt.getTime()) / (7 * 86400000);
+    if (weeksAgo <= 12) return `vor ${Math.floor(weeksAgo)}W`;
+    return dt.toLocaleDateString("de-DE", { month: "short", year: "2-digit" });
+  };
+
+  // Store user-selected PRs (overrides auto-detected best)
+  let _prOverrides = {}; // { "5k": activityId, "10k": activityId, ... }
+  try { _prOverrides = JSON.parse(localStorage.getItem("aimrunna_pr_overrides") || "{}"); } catch(e) {}
+
+  function _getAllCandidatesForDist(dist) {
+    const acts = activitiesList().filter((a) => sportOf(a) === "run" && a.moving_time_sec > 0 && a.distance_km > 0);
+    return acts
+      .filter((a) => Math.abs(a.distance_km - dist.km) <= dist.tol)
+      .sort((a, b) => a.moving_time_sec - b.moving_time_sec) // fastest first
+      .slice(0, 10); // top 10
+  }
+
+  function _getSelectedPR(dist, candidates) {
+    const overrideId = _prOverrides[dist.code];
+    if (overrideId) {
+      const found = candidates.find((a) => String(a.id) === String(overrideId));
+      if (found) return found;
+    }
+    return candidates[0] || null; // fastest by default
+  }
+
+  function _selectPR(distCode, activityId) {
+    _prOverrides[distCode] = activityId;
+    try { localStorage.setItem("aimrunna_pr_overrides", JSON.stringify(_prOverrides)); } catch(e) {}
+    renderPRVault(); // re-render
+  }
+
   function renderPRVault() {
     const host = document.getElementById("pp-pr-grid");
     if (!host) return;
     host.innerHTML = "";
 
-    // Use server-side PRs if available (computed over full history)
-    if (_ppServerPRs && _ppServerPRs.length) {
-      const prMap = new Map(_ppServerPRs.map((p) => [p.distance_label, p]));
-      for (const dist of STANDARD_DISTANCES) {
-        const labelMap = { "5k": "5K", "10k": "10K", "half": "HM", "m": "M" };
-        const serverLabel = labelMap[dist.code] || dist.label;
-        const pr = prMap.get(serverLabel);
-        const card = document.createElement("div");
-        card.className = "pp-pr-card" + (pr ? "" : " pp-pr-empty");
-        if (!pr) {
-          card.innerHTML = `<div class="pp-pr-label">${dist.label}</div><div class="pp-pr-time">—</div><div class="pp-pr-pace"></div><div class="pp-pr-ctx">noch kein PR</div>`;
-          host.appendChild(card);
-          continue;
-        }
-        const sec = Number(pr.best_time_sec);
-        const h = Math.floor(sec / 3600);
-        const m = Math.floor((sec % 3600) / 60);
-        const s = sec % 60;
-        const timeStr = h > 0 ? `${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}` : `${m}:${String(s).padStart(2,"0")}`;
-        const paceTotal = Number(pr.pace_sec_per_km || 0);
-        const paceMin = Math.floor(paceTotal / 60);
-        const paceS = Math.round(paceTotal % 60);
-        const paceStr = `${paceMin}:${String(paceS).padStart(2,"0")}/km`;
-        const bestDate = pr.activity_date ? new Date(pr.activity_date) : null;
-        const weeksAgo = bestDate ? (Date.now() - bestDate.getTime()) / (7 * 86400000) : 999;
-        let ctx = "";
-        if (weeksAgo <= 12) ctx = `vor ${Math.floor(weeksAgo)}W`;
-        else if (bestDate) ctx = bestDate.toLocaleDateString("de-DE", { month: "short", year: "2-digit" });
-        const freshBadge = weeksAgo <= 12 ? `<span class="pp-pr-fresh">NEU</span>` : "";
-        card.innerHTML = `${freshBadge}<div class="pp-pr-label">${dist.label}</div><div class="pp-pr-time">${escapeHtml(timeStr)}</div><div class="pp-pr-pace">${escapeHtml(paceStr)}</div><div class="pp-pr-ctx">${escapeHtml(ctx)}</div>`;
-        host.appendChild(card);
-      }
-      return;
-    }
-
-    // Fallback: client-side PRs from local activities
-    const acts = activitiesList().filter((a) => sportOf(a) === "run" && a.moving_time_sec > 0 && a.distance_km > 0);
     for (const dist of STANDARD_DISTANCES) {
-      const candidates = acts.filter((a) => Math.abs(a.distance_km - dist.km) <= dist.tol);
-      let best = null;
-      for (const a of candidates) {
-        if (!best || a.moving_time_sec < best.moving_time_sec) best = a;
-      }
-      const card = document.createElement("div");
-      card.className = "pp-pr-card" + (best ? "" : " pp-pr-empty");
+      const candidates = _getAllCandidatesForDist(dist);
+      const best = _getSelectedPR(dist, candidates);
+
+      const wrapper = document.createElement("div");
+      wrapper.className = "pp-pr-flip-card" + (best ? "" : " pp-pr-empty");
+
       if (!best) {
-        card.innerHTML = `<div class="pp-pr-label">${dist.label}</div><div class="pp-pr-time">—</div><div class="pp-pr-pace"></div><div class="pp-pr-ctx">noch kein PR</div>`;
-        host.appendChild(card);
+        wrapper.innerHTML = `
+          <div class="pp-pr-flip-inner">
+            <div class="pp-pr-flip-front pp-pr-card pp-pr-empty">
+              <div class="pp-pr-label">${dist.label}</div>
+              <div class="pp-pr-time">—</div>
+              <div class="pp-pr-pace"></div>
+              <div class="pp-pr-ctx">noch kein PR</div>
+            </div>
+          </div>`;
+        host.appendChild(wrapper);
         continue;
       }
-      const paceSec = best.moving_time_sec / best.distance_km;
-      const paceMin = Math.floor(paceSec / 60);
-      const paceS = Math.round(paceSec % 60);
-      const h = Math.floor(best.moving_time_sec / 3600);
-      const m = Math.floor((best.moving_time_sec % 3600) / 60);
-      const s = best.moving_time_sec % 60;
-      const timeStr = h > 0 ? `${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}` : `${m}:${String(s).padStart(2,"0")}`;
-      const paceStr = `${paceMin}:${String(paceS).padStart(2,"0")}/km`;
-      const bestDate = new Date(best.created_at);
-      const weeksAgo = (Date.now() - bestDate.getTime()) / (7 * 86400000);
-      let ctx = "";
-      if (weeksAgo <= 12) ctx = `vor ${Math.floor(weeksAgo)}W`;
-      else ctx = bestDate.toLocaleDateString("de-DE", { month: "short", year: "2-digit" });
-      const freshBadge = weeksAgo <= 12 ? `<span class="pp-pr-fresh">NEU</span>` : "";
-      card.innerHTML = `${freshBadge}<div class="pp-pr-label">${dist.label}</div><div class="pp-pr-time">${escapeHtml(timeStr)}</div><div class="pp-pr-pace">${escapeHtml(paceStr)}</div><div class="pp-pr-ctx">${escapeHtml(ctx)}</div>`;
-      host.appendChild(card);
-    }
-  }
 
-  // ── Race History (overview flip back-face) ──
-  function renderPPRaceHistory() {
-    const host = document.getElementById("pp-race-history-table");
-    if (!host) return;
-    const acts = activitiesList();
-    const races = acts
-      .filter((a) => (a.kind === "race" || a.workout_type === 1) && (a.distance_km || 0) > 0)
-      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-    if (!races.length) {
-      host.innerHTML = `<div class="race-history-empty">Keine Rennen gefunden.<br><span style="font-size:11px;color:var(--muted-2)">Markiere Aktivitäten als "Wettkampf".</span></div>`;
-      return;
+      const timeStr = _fmtTimePR(best.moving_time_sec);
+      const paceStr = _fmtPacePR(best.moving_time_sec, best.distance_km);
+      const ctx = _fmtDateShort(best.created_at);
+      const isOverride = _prOverrides[dist.code] && String(best.id) === String(_prOverrides[dist.code]);
+      const weeksAgo = best.created_at ? (Date.now() - new Date(best.created_at).getTime()) / (7 * 86400000) : 999;
+      const freshBadge = weeksAgo <= 12 ? `<span class="pp-pr-fresh">NEU</span>` : "";
+      const pinBadge = isOverride ? `<span class="pp-pr-pinned" title="Manuell ausgewählt">📌</span>` : "";
+
+      // Back face: list of alternatives
+      let backRows = "";
+      for (let i = 0; i < candidates.length; i++) {
+        const c = candidates[i];
+        const isSelected = String(c.id) === String(best.id);
+        const title = escapeHtml((c.title || "Lauf").slice(0, 30));
+        const cTime = _fmtTimePR(c.moving_time_sec);
+        const cPace = _fmtPacePR(c.moving_time_sec, c.distance_km);
+        const cDate = _fmtDatePR(c.created_at);
+        backRows += `<div class="pp-pr-alt-row${isSelected ? " is-selected" : ""}" data-pr-select="${dist.code}" data-activity-id="${c.id}">
+          <div class="pp-pr-alt-main">
+            <span class="pp-pr-alt-time">${cTime}</span>
+            <span class="pp-pr-alt-pace">${cPace}</span>
+          </div>
+          <div class="pp-pr-alt-meta">
+            <span class="pp-pr-alt-title">${title}</span>
+            <span class="pp-pr-alt-date">${cDate}</span>
+          </div>
+          ${isSelected ? '<span class="pp-pr-alt-check">✓</span>' : '<span class="pp-pr-alt-select">Wählen</span>'}
+        </div>`;
+      }
+
+      wrapper.innerHTML = `
+        <div class="pp-pr-flip-inner">
+          <div class="pp-pr-flip-front pp-pr-card" data-pr-card-flip="${dist.code}">
+            ${freshBadge}${pinBadge}
+            <div class="pp-pr-label">${dist.label}</div>
+            <div class="pp-pr-time">${escapeHtml(timeStr)}</div>
+            <div class="pp-pr-pace">${escapeHtml(paceStr)}</div>
+            <div class="pp-pr-ctx">${escapeHtml(ctx)}</div>
+          </div>
+          <div class="pp-pr-flip-back">
+            <div class="pp-pr-back-head">
+              <span class="pp-pr-label">${dist.label}</span>
+              <button class="pp-pr-back-close" data-pr-card-flip="${dist.code}" title="Zurück">✕</button>
+            </div>
+            <div class="pp-pr-alt-list">${backRows || '<div class="pp-pr-alt-empty">Keine weiteren Läufe</div>'}</div>
+          </div>
+        </div>`;
+      host.appendChild(wrapper);
     }
-    const fmtTime = (sec) => { sec = Number(sec) || 0; const h = Math.floor(sec / 3600); const m = Math.floor((sec % 3600) / 60); const s = Math.round(sec % 60); return h > 0 ? `${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}` : `${m}:${String(s).padStart(2,"0")}`; };
-    host.innerHTML = races.slice(0, 15).map((r) => {
-      const km = Number(r.distance_km) || 0;
-      const sec = Number(r.moving_time_sec) || 0;
-      const date = r.created_at ? new Date(r.created_at).toLocaleDateString("de-DE", { day: "numeric", month: "short", year: "numeric" }) : "";
-      const pace = sec && km ? (() => { const p = (sec / 60) / km; const pm = Math.floor(p); const ps = Math.round((p - pm) * 60); return `${pm}:${String(ps).padStart(2,"0")}/km`; })() : "";
-      return `<div class="race-history-row"><div><div class="race-history-name">${escapeHtml(r.title || "Wettkampf")}</div><div class="race-history-meta">${km.toFixed(1)} km${pace ? ` · ${pace}` : ""}</div></div><span class="race-history-time">${sec ? fmtTime(sec) : "–"}</span><span class="race-history-date">${date}</span></div>`;
-    }).join("");
   }
 
   // ── Totals Ribbon ──
@@ -21203,6 +21250,7 @@ document.addEventListener("click", (e) => {
   }
 
   // ── Public API ──
+  window._ppSelectPR = _selectPR;
   window.PublicProfile = {
     render,
     renderIdentity,
