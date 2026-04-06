@@ -6064,6 +6064,7 @@ function renderStatisticsView(account) {
   _safeRender("renderSportSplit", () => renderSportSplit(activities, currentStatsRange));
   _safeRender("renderPaceTrend", () => renderPaceTrend(activities, currentStatsRange));
   _safeRender("renderPersonalRecords", () => renderPersonalRecords(activities));
+  _safeRender("renderRaceHistory", () => renderRaceHistory(activities));
   _safeRender("renderYearCompare", () => renderYearCompare(activities));
   _safeRender("renderMetricTimeSeries", () => renderMetricTimeSeries(account));
   _safeRender("renderHealthMetrics", () => renderHealthMetrics(account));
@@ -6761,6 +6762,55 @@ function renderPersonalRecords(activities) {
     ${records.map((r) => `<div class="records-row"><span>${r.label}</span><span>${r.time}</span><span>${r.pace}/km</span><span>${r.date}</span></div>`).join("")}
   `;
 }
+
+// ── PR Flip Card: Race History back-face ──
+function renderRaceHistory(activities) {
+  const host = document.getElementById("race-history-table");
+  if (!host) return;
+  const races = activities
+    .filter((a) => a.kind === "race" && (Number(a.distanceKm) || 0) > 0)
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  if (!races.length) {
+    host.innerHTML = `<div class="race-history-empty">Keine Rennen gefunden.<br><span style="font-size:11px;color:var(--muted-2)">Markiere Aktivitäten als "Wettkampf" um sie hier zu sehen.</span></div>`;
+    return;
+  }
+  const fmtTime = (sec) => {
+    sec = Number(sec) || 0;
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = Math.round(sec % 60);
+    return h > 0 ? `${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}` : `${m}:${String(s).padStart(2,"0")}`;
+  };
+  const fmtPace = (sec, km) => {
+    if (!km || !sec) return "";
+    const p = (sec / 60) / km;
+    const pm = Math.floor(p);
+    const ps = Math.round((p - pm) * 60);
+    return `${pm}:${String(ps).padStart(2,"0")}/km`;
+  };
+  host.innerHTML = races.slice(0, 20).map((r) => {
+    const km = Number(r.distanceKm) || 0;
+    const sec = Number(r.movingTimeSec) || 0;
+    const date = r.createdAt ? new Date(r.createdAt).toLocaleDateString("de-DE", { day: "numeric", month: "short", year: "numeric" }) : "";
+    const sportLabel = r.sportType === "run" ? "Lauf" : r.sportType === "bike" ? "Rad" : r.sportType === "swim" ? "Schwimmen" : (r.sportType || "");
+    return `<div class="race-history-row">
+      <div>
+        <div class="race-history-name">${escapeHtml(r.title || "Wettkampf")}</div>
+        <div class="race-history-meta">${sportLabel} · ${km.toFixed(1)} km${sec ? ` · ${fmtPace(sec, km)}` : ""}</div>
+      </div>
+      <span class="race-history-time">${sec ? fmtTime(sec) : "–"}</span>
+      <span class="race-history-date">${date}</span>
+    </div>`;
+  }).join("");
+}
+
+// Flip card click handler
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-pr-flip]");
+  if (!btn) return;
+  const card = btn.closest(".pr-flip-card");
+  if (card) card.classList.toggle("is-flipped");
+});
 
 function renderYearCompare(activities) {
   const body = document.getElementById("stats-year-compare-body");

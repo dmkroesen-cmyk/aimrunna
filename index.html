@@ -1061,12 +1061,32 @@
               </div>
             </section>
 
-            <section class="result-card account-card profile-main-card profile-card-statistics stats-sub-card stats-sub-volume stats-sub-active" id="profile-card-records">
-              <div class="result-title-row">
-                <h4 data-i18n="stats_personal_records">Persönliche Rekorde</h4>
-              </div>
-              <div class="stats-records-table" id="stats-records-table">
-                <p class="card-copy" data-i18n="stats_no_records">Starte Aktivitäten, um deine Rekorde zu tracken.</p>
+            <section class="result-card account-card profile-main-card profile-card-statistics stats-sub-card stats-sub-volume stats-sub-active pr-flip-card" id="profile-card-records">
+              <div class="pr-flip-inner">
+                <!-- FRONT: Personal Records -->
+                <div class="pr-flip-face pr-flip-front">
+                  <div class="result-title-row">
+                    <h4 data-i18n="stats_personal_records">Persönliche Rekorde</h4>
+                    <button class="pr-flip-btn" data-pr-flip title="Race History anzeigen">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+                    </button>
+                  </div>
+                  <div class="stats-records-table" id="stats-records-table">
+                    <p class="card-copy" data-i18n="stats_no_records">Starte Aktivitäten, um deine Rekorde zu tracken.</p>
+                  </div>
+                </div>
+                <!-- BACK: Race History -->
+                <div class="pr-flip-face pr-flip-back">
+                  <div class="result-title-row">
+                    <h4>Race History</h4>
+                    <button class="pr-flip-btn" data-pr-flip title="Persönliche Rekorde anzeigen">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+                    </button>
+                  </div>
+                  <div class="race-history-table" id="race-history-table">
+                    <p class="card-copy">Keine Rennen gefunden.</p>
+                  </div>
+                </div>
               </div>
             </section>
 
