@@ -159,35 +159,8 @@ const profilePointsBadgeEl = document.getElementById("profile-points-badge");
 const profileQuickAddBtnEl = document.getElementById("profile-quick-add-btn");
 const profilePostCardEl = document.getElementById("profile-card-post");
 const activityComposeModalEl = document.getElementById("activity-compose-modal");
-const profileStatBindings = {
-  today: {
-    run: document.getElementById("profile-stat-today-run-km"),
-    bike: document.getElementById("profile-stat-today-bike-km"),
-    swim: document.getElementById("profile-stat-today-swim-km"),
-    races: document.getElementById("profile-stat-today-races"),
-    props: document.getElementById("profile-stat-today-props"),
-    points: document.getElementById("profile-stat-today-points-total"),
-    badge: document.getElementById("profile-stats-today-points"),
-  },
-  year: {
-    run: document.getElementById("profile-stat-year-run-km"),
-    bike: document.getElementById("profile-stat-year-bike-km"),
-    swim: document.getElementById("profile-stat-year-swim-km"),
-    races: document.getElementById("profile-stat-year-races"),
-    props: document.getElementById("profile-stat-year-props"),
-    points: document.getElementById("profile-stat-year-points-total"),
-    badge: document.getElementById("profile-stats-year-points"),
-  },
-  all: {
-    run: document.getElementById("profile-stat-all-run-km"),
-    bike: document.getElementById("profile-stat-all-bike-km"),
-    swim: document.getElementById("profile-stat-all-swim-km"),
-    races: document.getElementById("profile-stat-all-races"),
-    props: document.getElementById("profile-stat-all-props"),
-    points: document.getElementById("profile-stat-all-points-total"),
-    badge: document.getElementById("profile-stats-all-points"),
-  },
-};
+// profileStatBindings — legacy period cards removed, now handled by renderProfileStats() with tab switcher
+const profileStatBindings = {};
 const savedPlanCountEl = document.getElementById("saved-plan-count");
 const savedPlansListEl = document.getElementById("saved-plans-list");
 const friendFormEl = document.getElementById("friend-form");
@@ -1590,16 +1563,16 @@ async function viewUserPublicProfile(user) {
   if (!modal) {
     modal = document.createElement("div");
     modal.id = "user-profile-viewer-modal";
+    modal.className = "modal-overlay";
     modal.setAttribute("role", "dialog");
     modal.setAttribute("aria-modal", "true");
-    modal.style.cssText = "position:fixed;inset:0;background:rgba(8,12,20,0.78);z-index:10000;display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto;backdrop-filter:blur(6px);";
     modal.innerHTML = `
-      <div style="background:#0f172a;color:#e2e8f0;border-radius:18px;max-width:640px;width:100%;padding:0;box-shadow:0 20px 60px rgba(0,0,0,0.5);border:1px solid rgba(148,163,184,0.15);overflow:hidden;">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid rgba(148,163,184,0.12);">
-          <strong style="font-size:14px;letter-spacing:.02em;color:#94a3b8;">athlet.</strong>
-          <button type="button" id="upv-close" aria-label="Schließen" style="background:transparent;border:none;color:#94a3b8;font-size:24px;line-height:1;cursor:pointer;padding:4px 8px;">×</button>
+      <div class="modal-card">
+        <div class="modal-card-head">
+          <strong class="section-label" style="margin-bottom:0;">athlet.</strong>
+          <button type="button" id="upv-close" aria-label="Schließen" class="ghost" style="padding:4px 8px;font-size:24px;line-height:1;min-height:auto;">×</button>
         </div>
-        <div id="upv-body" style="padding:22px;"></div>
+        <div id="upv-body" class="modal-card-body"></div>
       </div>`;
     document.body.appendChild(modal);
     modal.addEventListener("click", (e) => { if (e.target === modal) closeUserProfileViewer(); });
@@ -1614,28 +1587,114 @@ async function viewUserPublicProfile(user) {
   const body = modal.querySelector("#upv-body");
   const name = user.display_name || (user.email ? user.email.split("@")[0] : "Athlet");
   const avatarHtml = user.profile_image
-    ? `<img src="${escapeHtml(user.profile_image)}" alt="" style="width:84px;height:84px;border-radius:50%;object-fit:cover;border:2px solid rgba(148,163,184,0.2);">`
-    : `<div style="width:84px;height:84px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:32px;">${escapeHtml((name.charAt(0) || "?").toUpperCase())}</div>`;
+    ? `<div class="upv-avatar-ring"><img src="${escapeHtml(user.profile_image)}" alt="" class="upv-avatar-img"></div>`
+    : `<div class="upv-avatar-ring"><div class="avatar-gradient upv-avatar-fallback">${escapeHtml((name.charAt(0) || "?").toUpperCase())}</div></div>`;
 
+  // Render skeleton immediately
   body.innerHTML = `
-    <div style="display:flex;gap:18px;align-items:center;margin-bottom:20px;">
+    <div class="upv-hero">
       ${avatarHtml}
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:22px;font-weight:700;color:#f1f5f9;">${escapeHtml(name)}</div>
-        <div style="font-size:12px;color:#64748b;margin-top:2px;">${escapeHtml(user.email || "")}</div>
+      <div class="upv-hero-meta">
+        <div class="upv-name">${escapeHtml(name)}</div>
+        <div class="upv-email">${escapeHtml(user.email || "")}</div>
       </div>
     </div>
-    <div id="upv-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;">
-      <div style="background:rgba(148,163,184,0.06);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.06em;">Aktivitäten</div><div id="upv-s-count" style="font-size:20px;font-weight:700;margin-top:4px;">…</div></div>
-      <div style="background:rgba(148,163,184,0.06);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.06em;">Distanz</div><div id="upv-s-dist" style="font-size:20px;font-weight:700;margin-top:4px;">…</div></div>
-      <div style="background:rgba(148,163,184,0.06);border-radius:10px;padding:12px;text-align:center;"><div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.06em;">Zeit</div><div id="upv-s-time" style="font-size:20px;font-weight:700;margin-top:4px;">…</div></div>
+    <div id="upv-stats" class="upv-stats-grid">
+      <div class="stat-tile"><div class="stat-tile-label">Aktivitäten</div><div id="upv-s-count" class="stat-tile-value">…</div></div>
+      <div class="stat-tile"><div class="stat-tile-label">Distanz</div><div id="upv-s-dist" class="stat-tile-value">…</div></div>
+      <div class="stat-tile"><div class="stat-tile-label">Zeit</div><div id="upv-s-time" class="stat-tile-value">…</div></div>
     </div>
-    <div style="font-size:12px;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Zuletzt</div>
-    <div id="upv-activities" style="display:flex;flex-direction:column;gap:8px;"><div style="color:#64748b;font-size:13px;">Lade …</div></div>`;
+    <div id="upv-sport-breakdown" class="upv-stats-grid" style="display:none;"></div>
+    <div id="upv-vo2max-row" style="display:none;"></div>
+    <div id="upv-races-section" style="display:none;"></div>
+    <div id="upv-pbs-section" style="display:none;"></div>
+    <div id="upv-medals-section" style="display:none;"></div>
+    <div class="section-label">Letzte Aktivitäten</div>
+    <div id="upv-activities" class="upv-activities-list"><div class="activity-row-sub">Lade …</div></div>`;
 
-  // Fetch public activities for this user
+  // Helper: sport emoji
+  const sportEmoji = (s) => {
+    const t = String(s || "").toLowerCase();
+    if (t.includes("run")) return "🏃";
+    if (t.includes("bike") || t.includes("ride") || t.includes("cycling")) return "🚴";
+    if (t.includes("swim")) return "🏊";
+    if (t.includes("hike") || t.includes("walk")) return "🥾";
+    if (t.includes("ski") || t.includes("snow")) return "⛷️";
+    if (t.includes("yoga") || t.includes("stretch")) return "🧘";
+    return "💪";
+  };
+
+  // Helper: format seconds to H:MM:SS or M:SS
+  const fmtDur = (sec) => {
+    if (!sec || sec <= 0) return "–";
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = Math.round(sec % 60);
+    if (h > 0) return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+    return `${m}:${String(s).padStart(2, "0")}`;
+  };
+
+  // Helper: days until a date string
+  const daysUntil = (dateStr) => {
+    if (!dateStr) return null;
+    return Math.ceil((new Date(dateStr) - new Date()) / 86400000);
+  };
+
+  // Helper: extract run PBs from activities (same buckets as extractRunPbs)
+  const extractPbsFromActivities = (acts) => {
+    const runs = acts.filter((a) => String(a.sport_type || "").toLowerCase().includes("run"));
+    if (!runs.length) return [];
+    const buckets = [
+      { label: "5K", minKm: 4.5, maxKm: 5.5 },
+      { label: "10K", minKm: 9.2, maxKm: 10.8 },
+      { label: "HM", minKm: 19.9, maxKm: 22.2 },
+      { label: "Marathon", minKm: 41.0, maxKm: 43.5 },
+    ];
+    const pbs = [];
+    for (const bucket of buckets) {
+      const matching = runs.filter((r) => {
+        const km = Number(r.distance_km || 0);
+        return km >= bucket.minKm && km <= bucket.maxKm;
+      });
+      if (!matching.length) continue;
+      const best = matching.reduce((a, b) => (Number(a.moving_time_sec) < Number(b.moving_time_sec) ? a : b));
+      const timeSec = Number(best.moving_time_sec || 0);
+      if (timeSec <= 0) continue;
+      pbs.push({ label: bucket.label, timeSec, date: best.created_at });
+    }
+    return pbs;
+  };
+
+  // Helper: estimate VO2max from best run activity (Daniels formula)
+  const estimateVo2FromActivities = (acts) => {
+    const runs = acts.filter((a) => {
+      const t = String(a.sport_type || "").toLowerCase();
+      return t.includes("run") && Number(a.distance_km || 0) >= 3 && Number(a.moving_time_sec || 0) > 0;
+    });
+    if (!runs.length) return null;
+    let bestVo2 = 0;
+    for (const r of runs) {
+      const distM = Number(r.distance_km) * 1000;
+      const durMin = Number(r.moving_time_sec) / 60;
+      if (durMin < 5 || durMin > 300) continue;
+      const velocity = distM / durMin; // m/min
+      const vo2demand = -4.60 + 0.182258 * velocity + 0.000104 * velocity * velocity;
+      const fraction = 0.8 + 0.1894393 * Math.exp(-0.012778 * durMin) + 0.2989558 * Math.exp(-0.1932605 * durMin);
+      const vo2 = vo2demand / fraction;
+      if (vo2 > bestVo2) bestVo2 = vo2;
+    }
+    return bestVo2 > 20 ? Math.round(bestVo2 * 10) / 10 : null;
+  };
+
+  // Fetch all data in parallel
   try {
-    const acts = window.sbDb?.getActivities ? await window.sbDb.getActivities(user.id, 50) : [];
+    const [acts, races, medals] = await Promise.all([
+      window.sbDb?.getActivities ? window.sbDb.getActivities(user.id, 100) : Promise.resolve([]),
+      window.sbDb?.getTargetRaces ? window.sbDb.getTargetRaces(user.id) : Promise.resolve([]),
+      window.sbDb?.getMedals ? window.sbDb.getMedals(user.id) : Promise.resolve([]),
+    ]);
+
+    // ── Stats ──
     const count = acts.length;
     const distKm = acts.reduce((s, a) => s + Number(a.distance_km || 0), 0);
     const timeSec = acts.reduce((s, a) => s + Number(a.moving_time_sec || 0), 0);
@@ -1645,23 +1704,103 @@ async function viewUserPublicProfile(user) {
     document.getElementById("upv-s-dist").textContent = `${distKm.toFixed(0)} km`;
     document.getElementById("upv-s-time").textContent = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
 
+    // ── Sport breakdown ──
+    const sportKm = {};
+    const sportLabels = { run: { emoji: "🏃", label: "Laufen" }, bike: { emoji: "🚴", label: "Rad" }, swim: { emoji: "🏊", label: "Schwimmen" } };
+    for (const a of acts) {
+      const t = String(a.sport_type || "").toLowerCase();
+      let key = "other";
+      if (t.includes("run")) key = "run";
+      else if (t.includes("bike") || t.includes("ride") || t.includes("cycling")) key = "bike";
+      else if (t.includes("swim")) key = "swim";
+      if (key !== "other") sportKm[key] = (sportKm[key] || 0) + Number(a.distance_km || 0);
+    }
+    const breakdownKeys = Object.keys(sportKm).filter((k) => sportKm[k] > 0);
+    if (breakdownKeys.length > 1) {
+      const breakdownEl = document.getElementById("upv-sport-breakdown");
+      breakdownEl.style.display = "grid";
+      breakdownEl.innerHTML = breakdownKeys.map((k) => {
+        const info = sportLabels[k] || { emoji: "💪", label: k };
+        return `<div class="stat-tile"><div class="stat-tile-label">${info.emoji} ${info.label}</div><div class="stat-tile-value">${Math.round(sportKm[k])} km</div></div>`;
+      }).join("");
+    }
+
+    // ── VO2max estimate ──
+    const vo2 = estimateVo2FromActivities(acts);
+    if (vo2) {
+      const vo2Row = document.getElementById("upv-vo2max-row");
+      vo2Row.style.display = "block";
+      vo2Row.innerHTML = `<div class="upv-vo2max-badge"><span class="upv-vo2max-icon">❤️‍🔥</span><span class="upv-vo2max-label">VO2max (est.)</span><span class="upv-vo2max-value">${vo2.toFixed(1)}</span></div>`;
+    }
+
+    // ── Goal races ──
+    if (races.length) {
+      const racesSection = document.getElementById("upv-races-section");
+      racesSection.style.display = "block";
+      const priorityColors = { A: "#ef4444", B: "#f59e0b", C: "#3b82f6" };
+      racesSection.innerHTML = `<div class="section-label">Zielwettkämpfe</div><div class="upv-races-grid">${races.map((r) => {
+        const d = daysUntil(r.race_date);
+        const dateStr = r.race_date ? new Date(r.race_date).toLocaleDateString("de-DE", { day: "2-digit", month: "short", year: "numeric" }) : "";
+        const emoji = r.catalog?.logo_emoji || "🏁";
+        const prio = r.priority || "B";
+        const prioColor = priorityColors[prio] || "#64748b";
+        const goalTime = r.goal_time_sec ? fmtDur(r.goal_time_sec) : "";
+        const distLabel = r.distance_label || r.catalog?.distance_label || "";
+        const countdownStr = d !== null && d >= 0 ? `${d}d` : d !== null && d < 0 ? "vorbei" : "";
+        return `<div class="upv-race-card">
+          <div class="upv-race-card-head">
+            <span class="upv-race-emoji">${emoji}</span>
+            <span class="upv-race-prio" style="background:${escapeHtml(prioColor)};">${escapeHtml(prio)}</span>
+          </div>
+          <div class="upv-race-name">${escapeHtml(r.event_name || "Rennen")}</div>
+          <div class="upv-race-detail">${escapeHtml(dateStr)}${distLabel ? ` · ${escapeHtml(distLabel)}` : ""}</div>
+          ${countdownStr ? `<div class="upv-race-countdown">${countdownStr === "vorbei" ? "vorbei" : `noch ${escapeHtml(countdownStr)}`}</div>` : ""}
+          ${goalTime ? `<div class="upv-race-goal">Ziel: ${escapeHtml(goalTime)}</div>` : ""}
+        </div>`;
+      }).join("")}</div>`;
+    }
+
+    // ── Personal records ──
+    const pbs = extractPbsFromActivities(acts);
+    if (pbs.length) {
+      const pbsSection = document.getElementById("upv-pbs-section");
+      pbsSection.style.display = "block";
+      pbsSection.innerHTML = `<div class="section-label">Persönliche Bestzeiten 🏃</div><div class="upv-pbs-grid">${pbs.map((pb) => {
+        const dateStr = pb.date ? new Date(pb.date).toLocaleDateString("de-DE", { day: "2-digit", month: "short", year: "numeric" }) : "";
+        return `<div class="upv-pb-card"><div class="upv-pb-dist">${escapeHtml(pb.label)}</div><div class="upv-pb-time">${fmtDur(pb.timeSec)}</div>${dateStr ? `<div class="upv-pb-date">${dateStr}</div>` : ""}</div>`;
+      }).join("")}</div>`;
+    }
+
+    // ── Medals ──
+    if (medals.length) {
+      const medalsSection = document.getElementById("upv-medals-section");
+      medalsSection.style.display = "block";
+      medalsSection.innerHTML = `<div class="section-label">Medaillen 🏅</div><div class="upv-medals-grid">${medals.slice(0, 12).map((m) => {
+        const emoji = m.catalog?.logo_emoji || "🏅";
+        const year = m.event_year || (m.finish_date ? new Date(m.finish_date).getFullYear() : "");
+        const timeStr = m.finish_time_sec ? fmtDur(m.finish_time_sec) : "";
+        const distLabel = m.catalog?.distance_label || "";
+        return `<div class="upv-medal-card${m.is_pr ? " is-pr" : ""}">
+          <div class="upv-medal-emoji">${emoji}</div>
+          <div class="upv-medal-name">${escapeHtml(m.event_name || m.catalog?.short_name || "Rennen")}</div>
+          <div class="upv-medal-detail">${escapeHtml(String(year))}${distLabel ? ` · ${escapeHtml(distLabel)}` : ""}</div>
+          ${timeStr ? `<div class="upv-medal-time">${escapeHtml(timeStr)}</div>` : ""}
+          ${m.is_pr ? `<div class="upv-medal-pr-badge">PR</div>` : ""}
+        </div>`;
+      }).join("")}</div>`;
+    }
+
+    // ── Activities list (up to 20) ──
     const list = document.getElementById("upv-activities");
     if (!count) {
       list.innerHTML = `<div style="color:#64748b;font-size:13px;">Keine öffentlichen Aktivitäten.</div>`;
     } else {
-      const sportEmoji = (s) => {
-        const t = String(s || "").toLowerCase();
-        if (t.includes("run")) return "🏃";
-        if (t.includes("bike") || t.includes("ride")) return "🚴";
-        if (t.includes("swim")) return "🏊";
-        return "💪";
-      };
-      list.innerHTML = acts.slice(0, 10).map((a) => {
+      list.innerHTML = acts.slice(0, 20).map((a) => {
         const d = a.created_at ? new Date(a.created_at).toLocaleDateString("de-DE", { day: "2-digit", month: "short", year: "numeric" }) : "";
         const km = Number(a.distance_km || 0).toFixed(1);
         const t = Number(a.moving_time_sec || 0);
         const tStr = t ? `${Math.floor(t/3600) ? Math.floor(t/3600)+"h " : ""}${Math.floor((t%3600)/60)}m` : "";
-        return `<div style="display:flex;gap:10px;align-items:center;padding:10px;background:rgba(148,163,184,0.04);border-radius:8px;"><span style="font-size:20px;">${sportEmoji(a.sport_type)}</span><div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:13px;color:#e2e8f0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(a.title || "Aktivität")}</div><div style="font-size:11px;color:#64748b;">${d}</div></div><div style="text-align:right;font-size:12px;color:#cbd5e1;"><div>${km} km</div>${tStr ? `<div style="color:#64748b;">${tStr}</div>` : ""}</div></div>`;
+        return `<div class="activity-row"><span class="activity-row-icon">${sportEmoji(a.sport_type)}</span><div class="activity-row-meta"><div class="activity-row-title">${escapeHtml(a.title || "Aktivität")}</div><div class="activity-row-sub">${d}</div></div><div class="activity-row-stats"><div>${km} km</div>${tStr ? `<div class="activity-row-stats-sub">${tStr}</div>` : ""}</div></div>`;
       }).join("");
     }
   } catch (e) {
@@ -2012,7 +2151,7 @@ function renderAthletesDrawer(account) {
     const avatar = friend?.profileImage
       ? `<img class="athletes-drawer-avatar" src="${escapeHtml(friend.profileImage)}" alt="">`
       : `<div class="athletes-drawer-avatar is-fallback">${escapeHtml((name.charAt(0) || "?").toUpperCase())}</div>`;
-    return `<div class="athletes-drawer-item">${avatar}<div class="athletes-drawer-meta"><div class="athletes-drawer-name">${escapeHtml(name)}</div><div class="athletes-drawer-sub">${escapeHtml(email)}</div></div></div>`;
+    return `<div class="athletes-drawer-item" data-view-profile="${escapeHtml(email)}" style="cursor:pointer;">${avatar}<div class="athletes-drawer-meta"><div class="athletes-drawer-name">${escapeHtml(name)}</div><div class="athletes-drawer-sub">${escapeHtml(email)}</div></div></div>`;
   }).join("");
 }
 
@@ -4495,14 +4634,15 @@ function renderFriendsList(account) {
     .map((email) => {
       const friend = (appStore.accounts || []).find((a) => a.email === email);
       const stats = computeAccountStats(friend);
+      const name = friend ? resolveDisplayName(friend) : email.split("@")[0];
       const latest = (friend?.activities || [])[0];
       const latestText = latest
         ? `${latest.kind === "race" ? "race." : t("label_training")} • ${formatSocialSportLabel(latest.sportType)}${latest.distanceKm ? ` • ${Number(latest.distanceKm).toFixed(1)} km` : ""}`
         : t("label_no_activity");
       return `
-      <div class="friend-item">
-        <strong>${escapeHtml(email)}</strong>
-        <small>${stats.points} ${escapeHtml(t("unit_points"))} • ${stats.races} ${escapeHtml(t("unit_races"))} • ${escapeHtml(latestText)}</small>
+      <div class="friend-item" data-view-profile="${escapeHtml(email)}" style="cursor:pointer;">
+        <strong>${escapeHtml(name)}</strong>
+        <small>${stats.runKm.toFixed(0)} km Lauf • ${stats.races} ${escapeHtml(t("unit_races"))} • ${escapeHtml(latestText)}</small>
       </div>`
     })
     .join("");
@@ -4709,9 +4849,9 @@ function setActiveAccountSection(section) {
 }
 
 function setActiveProfileView(view) {
-  activeProfileView = ["overview", "playbook", "statistics", "activities", "settings"].includes(view) ? view : "overview";
+  activeProfileView = ["overview", "playbook", "calendar", "statistics", "activities", "settings"].includes(view) ? view : "overview";
   persistUiState();
-  document.body.classList.remove("profile-view-overview", "profile-view-playbook", "profile-view-statistics", "profile-view-activities", "profile-view-settings");
+  document.body.classList.remove("profile-view-overview", "profile-view-playbook", "profile-view-calendar", "profile-view-statistics", "profile-view-activities", "profile-view-settings");
   document.body.classList.add(`profile-view-${activeProfileView}`);
   profileViewTabButtons.forEach((btn) => btn.classList.toggle("is-active", btn.dataset.profileView === activeProfileView));
   // Keep top-nav Training button state in sync with sub-view changes
@@ -4730,6 +4870,7 @@ function setActiveProfileView(view) {
   }
   if (activeProfileView === "statistics") _safeRender("renderStatisticsView", () => renderStatisticsView(getCurrentAccount()));
   if (activeProfileView === "activities") _safeRender("renderActivityFeed", () => renderActivityFeed());
+  if (activeProfileView === "calendar" && typeof window._renderTrainingCalendar === "function") window._renderTrainingCalendar();
   if (activeProfileView === "playbook") populatePlanFormFromSaved(getCurrentAccount());
 
   // Move plan form + results into/out of Playbook host
@@ -4817,7 +4958,7 @@ function setAppView(view) {
     sectionAccountEl?.classList.add("is-visible");
     sectionDataEl?.classList.add("is-visible");
   } else {
-    document.body.classList.remove("profile-view-overview", "profile-view-playbook", "profile-view-statistics", "profile-view-activities", "profile-view-settings");
+    document.body.classList.remove("profile-view-overview", "profile-view-playbook", "profile-view-calendar", "profile-view-statistics", "profile-view-activities", "profile-view-settings");
     syncPlaybookFormPlacement(); // move form back to landing when leaving profile
   }
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -4865,15 +5006,40 @@ function postActivity(account, { title, note, kind, sportType, distanceKm, image
   }
 }
 
-function renderProfileStats(account) {
-  const statsToday = computeAccountStats(account, { range: "today" });
-  const statsYear = computeAccountStats(account, { range: "12m" });
-  const statsAll = computeAccountStats(account, { range: "all" });
-  if (profilePointsBadgeEl) profilePointsBadgeEl.textContent = `${statsAll.points} ${t("unit_points")}`;
-  applyProfileStatsToBindings(profileStatBindings.today, statsToday);
-  applyProfileStatsToBindings(profileStatBindings.year, statsYear);
-  applyProfileStatsToBindings(profileStatBindings.all, statsAll);
+let _currentStatsPeriod = "12m";
+
+function renderProfileStats(account, period) {
+  period = period || _currentStatsPeriod;
+  _currentStatsPeriod = period;
+  const stats = computeAccountStats(account, { range: period });
+  const grid = document.getElementById("profile-stats-grid");
+  if (!grid) return;
+
+  const fmtKm = (v) => { const n = Number(v) || 0; return n >= 100 ? `${Math.round(n)} km` : `${n.toFixed(1)} km`; };
+  const fmtH = (sec) => { const h = (Number(sec) || 0) / 3600; return h >= 10 ? `${Math.round(h)} h` : `${h.toFixed(1)} h`; };
+
+  grid.innerHTML = `
+    <div class="profile-stat"><span class="profile-stat-label">Lauf</span><strong class="profile-stat-val">${fmtKm(stats.runKm)}</strong></div>
+    <div class="profile-stat"><span class="profile-stat-label">Rad</span><strong class="profile-stat-val">${fmtKm(stats.bikeKm)}</strong></div>
+    <div class="profile-stat"><span class="profile-stat-label">Swim</span><strong class="profile-stat-val">${fmtKm(stats.swimKm)}</strong></div>
+    <div class="profile-stat"><span class="profile-stat-label">Aktivitäten</span><strong class="profile-stat-val">${stats.count || 0}</strong></div>
+    <div class="profile-stat"><span class="profile-stat-label">Zeit</span><strong class="profile-stat-val">${fmtH(stats.totalSec)}</strong></div>
+    <div class="profile-stat"><span class="profile-stat-label">Rennen</span><strong class="profile-stat-val">${stats.races || 0}</strong></div>
+  `;
+
+  // Update active tab
+  document.querySelectorAll("#stats-period-tabs .stats-period-tab").forEach((btn) => {
+    btn.classList.toggle("is-active", btn.dataset.period === period);
+  });
 }
+
+// Period tab click handler
+document.getElementById("stats-period-tabs")?.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-period]");
+  if (!btn) return;
+  const account = (typeof getCurrentAccount === "function") ? getCurrentAccount() : null;
+  if (account) renderProfileStats(account, btn.dataset.period);
+});
 
 function renderProfilePredictions(profile, plan) {
   const card = document.getElementById("profile-card-predictions");
@@ -5237,47 +5403,47 @@ function formatActivityFeedSportLabel(sportType) {
 }
 
 function getActivitySportIcon(sportType) {
-  // Premium icon set — stroke 1.75, clean geometry, consistent visual weight
-  const svg = (paths) => `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
+  // Lucide-grade icon set — clean vectors, uniform stroke, crisp at any size
+  const svg = (paths) => `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
   const icons = {
-    // Refined runner silhouette with proper anatomy
-    run:        '<circle cx="16" cy="4.5" r="1.75"/><path d="M12.5 21l1.5-5.5-3-2.5 2-5.5 3.5 3 3 .5"/><path d="M8 12l2.5-1.5"/><path d="M6.5 17.5h3l1-2"/>',
-    // Trail run: runner + terrain line
-    trail:      '<circle cx="16" cy="4.5" r="1.75"/><path d="M12.5 21l1.5-5.5-3-2.5 2-5.5 3.5 3 3 .5"/><path d="M8 12l2.5-1.5"/><path d="M3 20l4-3 3 2 4-3"/>',
-    // Clean road bike
-    bike:       '<circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M5.5 17.5l6-7.5h4l3 7.5"/><path d="M11.5 10l-2-4h-2"/><path d="M15.5 10l-2-4"/>',
-    // MTB: bike + suspension marks
-    mtb:        '<circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M5.5 17.5l6-7.5h4l3 7.5"/><path d="M11.5 10l-2-4h-2"/><path d="M2 21l2-1M22 21l-2-1"/>',
-    // Swimmer: head + stroke waves
-    swim:       '<path d="M3 14c2 0 2.5-1.5 4.5-1.5S10 14 12 14s2.5-1.5 4.5-1.5S19 14 21 14"/><path d="M3 19c2 0 2.5-1.5 4.5-1.5S10 19 12 19s2.5-1.5 4.5-1.5S19 19 21 19"/><circle cx="17.5" cy="6.5" r="1.75"/><path d="M6 11l4-3 5 2"/>',
-    // Hyrox: sled with handles
-    hyrox:      '<rect x="4" y="9" width="16" height="7" rx="1.5"/><path d="M4 13h16"/><path d="M6 9V7M18 9V7"/>',
-    // Yoga: meditation pose
-    yoga:       '<circle cx="12" cy="4.5" r="1.75"/><path d="M12 6.5v5"/><path d="M5 20c2-5 5-8 7-8s5 3 7 8"/><path d="M7 14l-3-1.5M17 14l3-1.5"/>',
-    // Pilates: reformer-inspired
-    pilates:    '<circle cx="12" cy="5" r="1.75"/><path d="M12 7v5l-3 4 3 3 3-3-3-4"/><path d="M5 20h14"/>',
-    // Dumbbell
-    gym:        '<path d="M6.5 7v10M17.5 7v10"/><path d="M3 10v4M21 10v4"/><path d="M6.5 12h11"/>',
-    // Crossfit: abstract cross/target
-    crossfit:   '<circle cx="12" cy="12" r="8"/><path d="M12 4v16M4 12h16"/>',
-    // Rowing: oar motion
-    row:        '<path d="M4 18l5-3 4 3 4-3 3 2"/><path d="M8 12l3-5 4 2-2 5"/>',
-    // Walk: figure with stride
-    walk:       '<circle cx="14" cy="4.5" r="1.75"/><path d="M10 21l2-6-2-3 2-5 3 3h2"/><path d="M8 12l2-1.5"/>',
-    // Hike: figure + mountain
-    hike:       '<circle cx="14" cy="4.5" r="1.75"/><path d="M10 21l2-6-2-3 2-5 3 3h2"/><path d="M2 20l4-5 3 3 4-6 3 4 3-3"/>',
-    // Ski: crossed skis/motion
-    ski:        '<path d="M4 21L20 3"/><path d="M2 19l6-6"/><circle cx="16" cy="4.5" r="1.75"/>',
-    // Climbing: holds
-    climb:      '<path d="M6 20V4"/><circle cx="6" cy="8" r="1.25" fill="currentColor"/><circle cx="12" cy="5" r="1.25" fill="currentColor"/><circle cx="11" cy="12" r="1.25" fill="currentColor"/><circle cx="17" cy="9" r="1.25" fill="currentColor"/><circle cx="16" cy="16" r="1.25" fill="currentColor"/>',
-    // Elliptical: loop + motion
-    elliptical: '<ellipse cx="12" cy="17" rx="7" ry="2.5"/><path d="M8 17l3-8 3 .5 2 7.5"/><circle cx="13" cy="5.5" r="1.75"/>',
+    // Runner: dynamic forward motion, proportional anatomy
+    run:        '<circle cx="14" cy="4" r="2"/><path d="M4 17l4.5-1 2.5-4 3 1 2.5-4"/><path d="M9 21l1.5-5L8 14"/><path d="M14.5 17l2 4"/><path d="M18 8l-4.5 5"/>',
+    // Trail: runner + mountain terrain
+    trail:      '<circle cx="14" cy="4" r="2"/><path d="M4 17l4.5-1 2.5-4 3 1 2.5-4"/><path d="M9 21l1.5-5L8 14"/><path d="M14.5 17l2 4"/><path d="M2 22l5-4 3 2 5-6 3 3 4-5"/>',
+    // Bicycle: geometric frame + wheels
+    bike:       '<circle cx="5.5" cy="17" r="3.5"/><circle cx="18.5" cy="17" r="3.5"/><path d="M15 6l-4 5h-1l-4.5 6"/><path d="M11 11l7.5 6"/><path d="M11 11h4l2-5"/>',
+    // MTB: bike + chunky terrain
+    mtb:        '<circle cx="5.5" cy="17" r="3.5"/><circle cx="18.5" cy="17" r="3.5"/><path d="M15 6l-4 5h-1l-4.5 6"/><path d="M11 11l7.5 6"/><path d="M11 11h4l2-5"/><path d="M1 22l3-2 3 2 3-2"/>',
+    // Swimmer: figure in water
+    swim:       '<circle cx="16" cy="5" r="2"/><path d="M12 10l4-2v4"/><path d="M2 16c1.5-1 3-1.5 4.5-1.5S9 16 10.5 16 13 14.5 14.5 14.5 17 16 18.5 16s3-1.5 4.5-1.5"/><path d="M2 20c1.5-1 3-1.5 4.5-1.5S9 20 10.5 20s2.5-1.5 4-1.5S17 20 18.5 20s3-1.5 4.5-1.5"/>',
+    // Hyrox: bolt / power symbol
+    hyrox:      '<path d="M13 2L3 14h9l-1 8 10-12h-9l1-8"/>',
+    // Yoga: lotus pose
+    yoga:       '<circle cx="12" cy="4" r="2"/><path d="M12 6v4"/><path d="M8 18c-2 0-4 1-4 2h16c0-1-2-2-4-2"/><path d="M8 14l4 4 4-4"/><path d="M6 12l2 2M18 12l-2 2"/>',
+    // Pilates: figure + mat
+    pilates:    '<circle cx="12" cy="4" r="2"/><path d="M12 6v3"/><path d="M9 13l3-4 3 4"/><path d="M7 18h10"/><path d="M4 22h16" stroke-dasharray="2 2"/>',
+    // Dumbbell: balanced weight
+    gym:        '<path d="M6.5 6.5v11M17.5 6.5v11"/><path d="M3 9v6M21 9v6"/><path d="M6.5 12h11"/>',
+    // CrossFit: kettlebell
+    crossfit:   '<circle cx="12" cy="15" r="6"/><path d="M9 9a5 5 0 0 1 6 0"/><path d="M12 4v5"/>',
+    // Rowing: oar + wave
+    row:        '<path d="M3 19c3-1 5-2 7-2s4 1 7 2"/><path d="M6 12l6-8 4 4"/><circle cx="6" cy="12" r="1.5" fill="currentColor"/>',
+    // Walk: upright figure
+    walk:       '<circle cx="13" cy="4" r="2"/><path d="M10 10l3-4v6"/><path d="M13 12l-3 4-1 5"/><path d="M13 12l2 5 2 4"/><path d="M10 10l-3 2"/>',
+    // Hike: walking figure + backpack
+    hike:       '<circle cx="13" cy="4" r="2"/><path d="M10 10l3-4v6"/><path d="M13 12l-3 4-1 5"/><path d="M13 12l2 5 2 4"/><path d="M15 7v3h-1"/><path d="M2 22l5-6 4 3 5-7"/>',
+    // Ski: dynamic skier
+    ski:        '<circle cx="12" cy="4" r="2"/><path d="M8 20l4-8 4 4"/><path d="M3 20l18-4"/><path d="M16 16l2 1"/>',
+    // Climbing: wall + holds
+    climb:      '<path d="M4 3v18"/><circle cx="8" cy="7" r="1" fill="currentColor"/><circle cx="12" cy="11" r="1" fill="currentColor"/><circle cx="10" cy="16" r="1" fill="currentColor"/><circle cx="16" cy="6" r="1" fill="currentColor"/><circle cx="15" cy="14" r="1" fill="currentColor"/><circle cx="19" cy="10" r="1" fill="currentColor"/>',
+    // Elliptical: machine silhouette
+    elliptical: '<ellipse cx="12" cy="18" rx="8" ry="2"/><path d="M12 4v14"/><path d="M8 8l4-4 4 4"/>',
     // Skate: board + wheels
-    skate:      '<rect x="3" y="14" width="18" height="2.5" rx="1"/><circle cx="7" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/>',
-    // Triathlon: three discipline marks
-    triathlon:  '<path d="M3 20h4M17 20h4"/><circle cx="11" cy="5" r="1.5"/><path d="M11 6.5v4l-2 3 3 2.5"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/>',
-    // Other: activity pulse line
-    other:      '<path d="M3 12h4l2.5-6 4 12 2.5-6H21"/>',
+    skate:      '<rect x="4" y="14" width="16" height="2" rx="1"/><circle cx="7.5" cy="19" r="1.5"/><circle cx="16.5" cy="19" r="1.5"/><path d="M10 14V8l4 6"/>',
+    // Triathlon: swim-bike-run combined
+    triathlon:  '<circle cx="5" cy="18" r="3"/><circle cx="19" cy="18" r="3"/><path d="M8 18h8"/><path d="M2 7c2-1 3-1 5 0s3 1 5 0 3-1 5 0"/><circle cx="17" cy="4" r="1.5"/>',
+    // Other: pulse / activity heartbeat
+    other:      '<path d="M2 12h4l3-7 4 14 3-7h6"/>',
   };
   return svg(icons[sportType] || icons.other);
 }
@@ -5441,7 +5607,7 @@ function renderCrewRanking(account) {
   const rows = (appStore.accounts || [])
     .filter((a) => emails.includes(a.email))
     .map((a) => ({ account: a, stats: computeAccountStats(a) }))
-    .sort((a, b) => b.stats.points - a.stats.points)
+    .sort((a, b) => (b.stats.runKm + b.stats.bikeKm + b.stats.swimKm) - (a.stats.runKm + a.stats.bikeKm + a.stats.swimKm))
     .slice(0, 10);
 
   if (crewRankingCountEl) crewRankingCountEl.textContent = String(rows.length);
@@ -5452,9 +5618,9 @@ function renderCrewRanking(account) {
   crewRankingListEl.innerHTML = rows
     .map(
       ({ account: rowAcc, stats }, index) => `
-      <div class="friend-item">
+      <div class="friend-item" data-view-profile="${escapeHtml(rowAcc.email)}" style="cursor:pointer;">
         <strong>#${index + 1} ${escapeHtml(resolveDisplayName(rowAcc))}</strong>
-        <small>${stats.points} ${escapeHtml(t("unit_points"))} • ${stats.runKm.toFixed(0)}k RUN • ${stats.bikeKm.toFixed(0)}k BIKE • ${stats.races} ${escapeHtml(t("unit_races"))}</small>
+        <small>${stats.runKm.toFixed(0)} km Lauf • ${stats.bikeKm.toFixed(0)} km Rad • ${stats.races} ${escapeHtml(t("unit_races"))}</small>
       </div>`
     )
     .join("");
@@ -5523,8 +5689,9 @@ function renderHomeFeed(account) {
       homeFriendsListEl.innerHTML = `<div class="empty-copy">Noch keine Connections.</div>`;
     } else {
       homeFriendsListEl.innerHTML = friendEmails.map((email) => {
-        const name = email.split("@")[0];
-        return `<div class="friend-item"><strong>${escapeHtml(name)}</strong><small>${escapeHtml(email)}</small></div>`;
+        const friend = (appStore?.accounts || []).find((a) => a.email === email);
+        const name = friend ? resolveDisplayName(friend) : email.split("@")[0];
+        return `<div class="friend-item" data-view-profile="${escapeHtml(email)}" style="cursor:pointer;"><strong>${escapeHtml(name)}</strong><small>${escapeHtml(email)}</small></div>`;
       }).join("");
     }
     if (homeFriendsCountEl) homeFriendsCountEl.textContent = String(friendEmails.length);
@@ -5756,30 +5923,127 @@ function openActivityDetail(ownerEmail, activityId) {
 
   // Speed stats
   const speedKmh = (distKm && durationSec) ? ((distKm / durationSec) * 3600).toFixed(1) : null;
-  // Pace zones estimate
+  // ── Advanced per-activity analytics ──
+  const profile = currentAcct?.profile || {};
+  const athleteMaxHr = Number(profile.maxHr) || (profile.birthYear ? Math.round(208 - 0.7 * (new Date().getFullYear() - profile.birthYear)) : null);
+  const athleteRestHr = Number(profile.restingHr) || 55;
+  const athleteThresholdPace = Number(profile.thresholdPace) || null; // sec/km
+
+  // ── HR Zone Distribution (real calculation based on avg/max HR + athlete max) ──
   let paceZoneHtml = "";
-  if (avgHr && maxHr) {
-    const zones = [
-      { name: "Zone 1", label: "Erholung", pct: 15, color: "#60a5fa" },
-      { name: "Zone 2", label: "Grundlage", pct: 35, color: "#34d399" },
-      { name: "Zone 3", label: "Tempo", pct: 25, color: "#fbbf24" },
-      { name: "Zone 4", label: "Schwelle", pct: 18, color: "#f97316" },
-      { name: "Zone 5", label: "Maximum", pct: 7, color: "#ef4444" },
+  if (avgHr && (maxHr || athleteMaxHr)) {
+    const effMaxHr = athleteMaxHr || maxHr;
+    const hrReserve = effMaxHr - athleteRestHr;
+    // Estimate zone distribution from avg HR intensity
+    const avgIntensity = hrReserve > 0 ? (avgHr - athleteRestHr) / hrReserve : 0.6;
+    const maxIntensity = maxHr && hrReserve > 0 ? (maxHr - athleteRestHr) / hrReserve : avgIntensity + 0.15;
+
+    // Model zone distribution from avg + max intensity using physiological heuristics
+    // Zone boundaries (% HRR): Z1 <60%, Z2 60-70%, Z3 70-80%, Z4 80-90%, Z5 >90%
+    const zones = _estimateHrZoneDistribution(avgIntensity, maxIntensity, durationSec);
+    const zoneColors = ["#60a5fa", "#34d399", "#fbbf24", "#f97316", "#ef4444"];
+    const zoneNames = ["Zone 1", "Zone 2", "Zone 3", "Zone 4", "Zone 5"];
+    const zoneLabels = ["Erholung", "Grundlage", "Tempo", "Schwelle", "Maximum"];
+    const zoneBpm = [
+      `<${Math.round(athleteRestHr + hrReserve * 0.6)}`,
+      `${Math.round(athleteRestHr + hrReserve * 0.6)}–${Math.round(athleteRestHr + hrReserve * 0.7)}`,
+      `${Math.round(athleteRestHr + hrReserve * 0.7)}–${Math.round(athleteRestHr + hrReserve * 0.8)}`,
+      `${Math.round(athleteRestHr + hrReserve * 0.8)}–${Math.round(athleteRestHr + hrReserve * 0.9)}`,
+      `>${Math.round(athleteRestHr + hrReserve * 0.9)}`,
     ];
+
     paceZoneHtml = `
       <div class="activity-detail-metrics">
         <h4>Herzfrequenz-Zonen</h4>
         <div class="hr-zones">
-          ${zones.map(z => `
+          ${zones.map((pct, i) => `
             <div class="hr-zone-row">
-              <span class="hr-zone-label">${z.name}</span>
-              <div class="hr-zone-bar-track"><div class="hr-zone-bar" style="width:${z.pct}%;background:${z.color}"></div></div>
-              <span class="hr-zone-pct">${z.pct}%</span>
+              <span class="hr-zone-label">${zoneNames[i]}<span class="hr-zone-sublabel">${zoneLabels[i]}</span></span>
+              <div class="hr-zone-bar-track"><div class="hr-zone-bar" style="width:${pct}%;background:${zoneColors[i]}"></div></div>
+              <span class="hr-zone-pct">${pct}%</span>
+              <span class="hr-zone-bpm">${zoneBpm[i]}</span>
             </div>
           `).join("")}
         </div>
       </div>
     `;
+  }
+
+  // ── Training Effect & Effort Score ──
+  let effortHtml = "";
+  {
+    const effort = _calculateActivityEffort(activity, profile);
+    if (effort) {
+      const effortBar = Math.min(100, Math.max(0, effort.score));
+      const effortColor = effortBar >= 80 ? "var(--color-danger)" : effortBar >= 60 ? "var(--color-warning)" : effortBar >= 30 ? "var(--color-green)" : "var(--color-info)";
+      const trainingEffect = effort.trainingEffect;
+      const teLabel = trainingEffect >= 4.0 ? "Sehr hoch" : trainingEffect >= 3.0 ? "Hoch" : trainingEffect >= 2.0 ? "Moderat" : trainingEffect >= 1.0 ? "Leicht" : "Gering";
+      const teColor = trainingEffect >= 4.0 ? "var(--color-danger)" : trainingEffect >= 3.0 ? "var(--color-warning)" : trainingEffect >= 2.0 ? "var(--color-green)" : "var(--color-info)";
+
+      effortHtml = `
+        <div class="activity-detail-metrics">
+          <h4>Belastungsanalyse</h4>
+          <div class="effort-analysis">
+            <div class="effort-row">
+              <div class="effort-stat">
+                <div class="effort-stat-label">Effort Score</div>
+                <div class="effort-stat-value" style="color:${effortColor}">${effort.score}</div>
+                <div class="effort-bar-track"><div class="effort-bar" style="width:${effortBar}%;background:${effortColor}"></div></div>
+              </div>
+              <div class="effort-stat">
+                <div class="effort-stat-label">Training Effect</div>
+                <div class="effort-stat-value" style="color:${teColor}">${trainingEffect.toFixed(1)}</div>
+                <div class="effort-stat-desc">${teLabel}</div>
+              </div>
+              ${effort.trimp ? `<div class="effort-stat"><div class="effort-stat-label">TRIMP</div><div class="effort-stat-value">${effort.trimp}</div><div class="effort-stat-desc">Training Impulse</div></div>` : ""}
+              ${effort.intensity ? `<div class="effort-stat"><div class="effort-stat-label">Intensität</div><div class="effort-stat-value">${effort.intensity}%</div><div class="effort-stat-desc">% HR Reserve</div></div>` : ""}
+            </div>
+          </div>
+        </div>`;
+    }
+  }
+
+  // ── Pace Analysis (run/walk only — pace zones + negative split check) ──
+  let paceAnalysisHtml = "";
+  if (["run", "walk", "trail", "hike"].includes(activity.sportType) && distKm >= 3 && durationSec > 0) {
+    const avgPaceSec = durationSec / distKm;
+    const paceAnalysis = _analyzePaceProfile(avgPaceSec, distKm, activity, profile);
+    if (paceAnalysis) {
+      paceAnalysisHtml = `
+        <div class="activity-detail-metrics">
+          <h4>Pace-Analyse</h4>
+          <div class="pace-analysis-grid">
+            ${paceAnalysis.paceZone ? `<div class="metric-item"><div class="metric-value" style="color:${paceAnalysis.paceZone.color}">${paceAnalysis.paceZone.name}</div><div class="metric-label">Trainingszone</div></div>` : ""}
+            ${paceAnalysis.vo2Demand ? `<div class="metric-item"><div class="metric-value">${paceAnalysis.vo2Demand.toFixed(1)} ml/kg/min</div><div class="metric-label">VO₂-Bedarf</div></div>` : ""}
+            ${paceAnalysis.equivalentVdot ? `<div class="metric-item"><div class="metric-value">${paceAnalysis.equivalentVdot.toFixed(1)}</div><div class="metric-label">Äquivalenter VDOT</div></div>` : ""}
+            ${paceAnalysis.pacePercentOfThreshold ? `<div class="metric-item"><div class="metric-value">${paceAnalysis.pacePercentOfThreshold}%</div><div class="metric-label">% der Schwelle</div></div>` : ""}
+          </div>
+        </div>`;
+    }
+  }
+
+  // ── Power Analysis (bike only) ──
+  let powerHtml = "";
+  if (["bike", "ride"].includes(activity.sportType) && avgWatts && durationSec > 0) {
+    const ftp = Number(profile.bikeFtp) || null;
+    const weightKg = Number(profile.weight) || 75;
+    const wpkg = (avgWatts / weightKg).toFixed(2);
+    const np = m.weighted_avg_watts || m.weightedAvgWatts || null;
+    const tss = ftp && np ? Math.round(((durationSec * np * (np / ftp)) / (ftp * 3600)) * 100) : null;
+    const ifactor = ftp && np ? (np / ftp).toFixed(2) : null;
+
+    powerHtml = `
+      <div class="activity-detail-metrics">
+        <h4>Power-Analyse</h4>
+        <div class="metrics-grid">
+          <div class="metric-item"><div class="metric-value">${avgWatts} W</div><div class="metric-label">Avg Power</div></div>
+          ${np ? `<div class="metric-item"><div class="metric-value">${np} W</div><div class="metric-label">Normalized Power</div></div>` : ""}
+          <div class="metric-item"><div class="metric-value">${wpkg} W/kg</div><div class="metric-label">Leistungsgewicht</div></div>
+          ${ftp ? `<div class="metric-item"><div class="metric-value">${ftp} W</div><div class="metric-label">FTP</div></div>` : ""}
+          ${ifactor ? `<div class="metric-item"><div class="metric-value">${ifactor}</div><div class="metric-label">Intensity Factor</div></div>` : ""}
+          ${tss ? `<div class="metric-item"><div class="metric-value">${tss}</div><div class="metric-label">TSS</div></div>` : ""}
+        </div>
+      </div>`;
   }
 
   // Interactive Leaflet map with OSM tiles if polyline available, else SVG placeholder
@@ -5817,7 +6081,10 @@ function openActivityDetail(ownerEmail, activityId) {
       ${calsEst ? `<div class="activity-detail-stat"><div class="stat-value">${calsEst}<span class="stat-unit"> kcal</span></div><div class="stat-label">Kalorien</div></div>` : ""}
     </div>
     ${metricsHtml}
+    ${effortHtml}
     ${paceZoneHtml}
+    ${paceAnalysisHtml}
+    ${powerHtml}
     ${splitsHtml}
     ${commentsHtml}
     <div class="activity-detail-actions">
@@ -5905,6 +6172,129 @@ function closeActivityDetail() {
   if (modal) modal.hidden = true;
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+//  PER-ACTIVITY ANALYTICS HELPERS
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Estimate HR zone distribution from average + max intensity.
+ * Uses a Gaussian model centered on avgIntensity with spread based on duration.
+ * Returns array of 5 zone percentages summing to 100.
+ */
+function _estimateHrZoneDistribution(avgIntensity, maxIntensity, durationSec) {
+  // Zone boundaries (% HRR): Z1 <0.6, Z2 0.6-0.7, Z3 0.7-0.8, Z4 0.8-0.9, Z5 >0.9
+  const bounds = [0, 0.6, 0.7, 0.8, 0.9, 1.0];
+  const sigma = 0.08 + (durationSec > 5400 ? 0.02 : durationSec > 3600 ? 0.04 : 0.06);
+  // Generate Gaussian probability for each zone
+  const raw = [];
+  for (let z = 0; z < 5; z++) {
+    const lo = bounds[z], hi = bounds[z + 1];
+    const mid = (lo + hi) / 2;
+    const prob = Math.exp(-0.5 * Math.pow((mid - avgIntensity) / sigma, 2));
+    // Boost zones up to maxIntensity, suppress above
+    const reachable = mid <= maxIntensity + 0.05 ? 1.0 : 0.1;
+    raw.push(prob * reachable);
+  }
+  const total = raw.reduce((s, v) => s + v, 0) || 1;
+  const pcts = raw.map(v => Math.round((v / total) * 100));
+  // Ensure sums to 100
+  const diff = 100 - pcts.reduce((s, v) => s + v, 0);
+  const maxIdx = pcts.indexOf(Math.max(...pcts));
+  pcts[maxIdx] += diff;
+  return pcts;
+}
+
+/**
+ * Calculate effort score, TRIMP, and training effect for an activity.
+ * Based on Banister's TRIMP model + Firstbeat-style Training Effect.
+ */
+function _calculateActivityEffort(activity, profile) {
+  const durationMin = (Number(activity.movingTimeSec) || 0) / 60;
+  if (durationMin < 5) return null;
+
+  const distKm = Number(activity.distanceKm) || 0;
+  const m = activity.metrics || activity;
+  const avgHr = Number(m.avgHeartrate || m.avg_heartrate) || 0;
+  const maxHr = Number(m.maxHeartrate || m.max_heartrate) || 0;
+  const athleteMaxHr = Number(profile?.maxHr) || (profile?.birthYear ? Math.round(208 - 0.7 * (new Date().getFullYear() - profile.birthYear)) : 190);
+  const restHr = Number(profile?.restingHr) || 55;
+  const hrReserve = athleteMaxHr - restHr;
+  const sex = profile?.sex === "female" ? "f" : "m";
+
+  let trimp = null;
+  let intensity = null;
+  let score = 0;
+
+  if (avgHr > 60 && hrReserve > 40) {
+    // TRIMP (Banister 1991) — exponentially weighted HR response
+    const hrr = Math.max(0, Math.min(1, (avgHr - restHr) / hrReserve));
+    intensity = Math.round(hrr * 100);
+    const k = sex === "m" ? 1.92 : 1.67;
+    trimp = Math.round(durationMin * hrr * 0.64 * Math.exp(k * hrr));
+  }
+
+  // Effort score (0-100) composite
+  // Duration component (longer = more effort, with diminishing returns)
+  const durScore = Math.min(40, (durationMin / 90) * 40);
+  // Intensity component (from HR or pace)
+  const intScore = intensity ? (intensity / 100) * 40 : (distKm > 0 ? Math.min(25, distKm * 2) : 10);
+  // Elevation component
+  const elevGain = Number(activity.elevationGainM) || 0;
+  const elevScore = Math.min(20, (elevGain / 500) * 20);
+  score = Math.round(Math.min(100, durScore + intScore + elevScore));
+
+  // Training Effect (1.0–5.0, Firstbeat-inspired)
+  // Based on TRIMP normalized to athlete baseline
+  let trainingEffect;
+  if (trimp != null) {
+    const normalizedTrimp = trimp / (durationMin > 60 ? 80 : 60);
+    trainingEffect = Math.min(5.0, Math.max(1.0, 1.0 + normalizedTrimp * 2.5));
+  } else {
+    // Fallback from duration + distance
+    trainingEffect = Math.min(5.0, Math.max(1.0, 1.0 + (durationMin / 60) * 1.2 + (distKm / 20) * 0.8));
+  }
+
+  return { score, trimp, intensity, trainingEffect };
+}
+
+/**
+ * Pace analysis: determine training zone, VO₂ demand, equivalent VDOT, % threshold.
+ */
+function _analyzePaceProfile(avgPaceSec, distKm, activity, profile) {
+  if (!avgPaceSec || avgPaceSec <= 0 || avgPaceSec > 1200) return null;
+  const velocityMperMin = 1000 / (avgPaceSec / 60);
+  const vo2Demand = daniels_vo2demand(velocityMperMin);
+  const durationMin = (Number(activity.movingTimeSec) || 0) / 60;
+  const fraction = durationMin > 3 ? daniels_fraction(durationMin) : 0.97;
+  const equivalentVdot = vo2Demand > 0 && fraction > 0 ? vo2Demand / fraction : null;
+
+  // Determine pace zone based on Daniels training zones
+  // Easy: 59-74% VO2max, Marathon: 75-84%, Threshold: 83-88%, Interval: 95-100%, Rep: 105-120%
+  const athleteVo2 = typeof estimateVO2max === "function" ? estimateVO2max(profile)?.value : null;
+  let paceZone = null;
+  let pacePercentOfThreshold = null;
+  if (athleteVo2 && athleteVo2 > 0) {
+    const pctVo2 = (vo2Demand / athleteVo2) * 100;
+    if (pctVo2 < 60) paceZone = { name: "Regeneration", color: "var(--color-info)" };
+    else if (pctVo2 < 75) paceZone = { name: "Easy / GA1", color: "var(--sport-run)" };
+    else if (pctVo2 < 84) paceZone = { name: "Marathon Pace", color: "var(--color-green)" };
+    else if (pctVo2 < 90) paceZone = { name: "Threshold / GA2", color: "var(--color-warning)" };
+    else if (pctVo2 < 100) paceZone = { name: "Interval / VO₂max", color: "var(--color-danger)" };
+    else paceZone = { name: "Repetition / Sprint", color: "#ef4444" };
+
+    // % of threshold (threshold ≈ 86% VO2max)
+    const thresholdDemand = athleteVo2 * 0.86;
+    pacePercentOfThreshold = Math.round((vo2Demand / thresholdDemand) * 100);
+  }
+
+  return {
+    vo2Demand: vo2Demand > 0 ? vo2Demand : null,
+    equivalentVdot: equivalentVdot && equivalentVdot > 10 && equivalentVdot < 95 ? equivalentVdot : null,
+    paceZone,
+    pacePercentOfThreshold,
+  };
+}
+
 // Close activity detail modal
 document.addEventListener("click", (e) => {
   if (e.target.closest("[data-close-activity-detail]")) {
@@ -5974,31 +6364,35 @@ function _computeAccountStatsImpl(account, { range = "all" } = {}) {
       const n = new Date(now);
       return d.getFullYear() === n.getFullYear() && d.getMonth() === n.getMonth() && d.getDate() === n.getDate();
     }
+    if (range === "4w") return ts >= now - 28 * 86400000;
     if (range === "12m") {
       const twelveMonthsAgo = new Date();
       twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
       return ts >= twelveMonthsAgo.getTime();
+    }
+    if (range === "ytd") {
+      const jan1 = new Date(new Date().getFullYear(), 0, 1).getTime();
+      return ts >= jan1;
     }
     return true;
   });
   const runKm = sumBy(activities.filter((a) => a.sportType === "run"), (a) => Number(a.distanceKm) || 0);
   const bikeKm = sumBy(activities.filter((a) => a.sportType === "bike"), (a) => Number(a.distanceKm) || 0);
   const swimKm = sumBy(activities.filter((a) => a.sportType === "swim"), (a) => Number(a.distanceKm) || 0);
+  const totalSec = sumBy(activities, (a) => Number(a.movingTimeSec) || 0);
+  const count = activities.length;
   const races = activities.filter((a) => a.kind === "race").length;
   const propsReceived = sumBy(activities, (a) => (Array.isArray(a.propsBy) ? a.propsBy.length : 0));
-  const points = Math.round(sumBy(activities, activityPoints) + propsReceived * 3);
-  return { runKm, bikeKm, swimKm, races, propsReceived, points };
+  return { runKm, bikeKm, swimKm, totalSec, count, races, propsReceived };
 }
 
 function applyProfileStatsToBindings(bindings, stats) {
   if (!bindings || !stats) return;
-  if (bindings.badge) bindings.badge.textContent = `${stats.points} ${t("unit_points")}`;
   if (bindings.run) bindings.run.textContent = `${stats.runKm.toFixed(1)} km`;
   if (bindings.bike) bindings.bike.textContent = `${stats.bikeKm.toFixed(1)} km`;
   if (bindings.swim) bindings.swim.textContent = `${stats.swimKm.toFixed(1)} km`;
   if (bindings.races) bindings.races.textContent = String(stats.races);
   if (bindings.props) bindings.props.textContent = String(stats.propsReceived);
-  if (bindings.points) bindings.points.textContent = String(stats.points);
 }
 
 function syncProfileComposerVisibility() {
@@ -6022,13 +6416,8 @@ function closeActivityComposeModal() {
   syncProfileComposerVisibility();
 }
 
-function activityPoints(item) {
-  const km = Number(item?.distanceKm) || 0;
-  const sportFactor = { run: 5, bike: 2, swim: 10, hyrox: 6, other: 1 }[item?.sportType] || 1;
-  const base = Math.round(km * sportFactor);
-  const raceBonus = item?.kind === "race" ? 60 + Math.round(km * 2) : 8;
-  return base + raceBonus;
-}
+// activityPoints removed — points system deprecated
+function activityPoints() { return 0; }
 
 function sumBy(list, fn) {
   return (list || []).reduce((sum, item) => sum + (Number(fn(item)) || 0), 0);
@@ -6891,19 +7280,24 @@ document.addEventListener("click", (e) => {
   if (card) card.classList.toggle("is-flipped");
 });
 
-function renderYearCompare(activities) {
+let _currentYcMetric = "km";
+function renderYearCompare(activities, metric) {
+  metric = metric || _currentYcMetric;
+  _currentYcMetric = metric;
+  const useHours = metric === "hours";
   const body = document.getElementById("stats-year-compare-body");
   if (!body) return;
 
   const years = {};
   activities.forEach((a) => {
     const y = new Date(a.createdAt).getFullYear();
-    if (!years[y]) years[y] = { run: 0, bike: 0, swim: 0, count: 0 };
+    if (!years[y]) years[y] = { run: 0, bike: 0, swim: 0, runSec: 0, bikeSec: 0, swimSec: 0, count: 0 };
     years[y].count++;
     const km = Number(a.distanceKm) || 0;
-    if (a.sportType === "run") years[y].run += km;
-    else if (a.sportType === "bike") years[y].bike += km;
-    else if (a.sportType === "swim") years[y].swim += km;
+    const sec = Number(a.movingTimeSec) || 0;
+    if (a.sportType === "run") { years[y].run += km; years[y].runSec += sec; }
+    else if (a.sportType === "bike") { years[y].bike += km; years[y].bikeSec += sec; }
+    else if (a.sportType === "swim") { years[y].swim += km; years[y].swimSec += sec; }
   });
 
   const sortedYears = Object.keys(years).sort().reverse();
@@ -6912,15 +7306,19 @@ function renderYearCompare(activities) {
     return;
   }
 
-  const maxKm = Math.max(1, ...sortedYears.map((y) => years[y].run + years[y].bike + years[y].swim));
+  const valFn = (d, sport) => useHours ? d[sport + "Sec"] / 3600 : d[sport];
+  const maxVal = Math.max(1, ...sortedYears.map((y) => valFn(years[y], "run") + valFn(years[y], "bike") + valFn(years[y], "swim")));
+  const unit = useHours ? "h" : "km";
+  const fmt = (v) => useHours ? v.toFixed(1) : String(Math.round(v));
 
   body.innerHTML = sortedYears.map((y) => {
     const d = years[y];
-    const total = d.run + d.bike + d.swim;
-    const pct = (total / maxKm) * 100;
-    const runPct = total > 0 ? (d.run / total) * 100 : 0;
-    const bikePct = total > 0 ? (d.bike / total) * 100 : 0;
-    const swimPct = total > 0 ? (d.swim / total) * 100 : 0;
+    const run = valFn(d, "run"), bike = valFn(d, "bike"), swim = valFn(d, "swim");
+    const total = run + bike + swim;
+    const pct = (total / maxVal) * 100;
+    const runPct = total > 0 ? (run / total) * 100 : 0;
+    const bikePct = total > 0 ? (bike / total) * 100 : 0;
+    const swimPct = total > 0 ? (swim / total) * 100 : 0;
     return `
       <div class="year-compare-row">
         <span class="year-label">${y}</span>
@@ -6931,11 +7329,16 @@ function renderYearCompare(activities) {
             <div class="year-bar-seg" style="width:${swimPct}%;background:#86d7ff"></div>
           </div>
         </div>
-        <span class="year-total">${Math.round(total)} km</span>
+        <span class="year-total">${fmt(total)} ${unit}</span>
         <span class="year-count">${d.count} act.</span>
       </div>
     `;
   }).join("");
+
+  // Update active toggle
+  document.querySelectorAll("#year-compare-metric-toggle .stats-toggle-btn").forEach((b) => {
+    b.classList.toggle("is-active", b.dataset.ycMetric === metric);
+  });
 }
 
 // Stats range toggle
@@ -6958,6 +7361,31 @@ document.addEventListener("click", (e) => {
   currentStatsMetric = metric;
   document.querySelectorAll(".stats-metric-btn").forEach((b) => b.classList.toggle("is-active", b === btn));
   renderStatisticsView(getCurrentAccount());
+});
+
+// Year compare metric toggle (km / h)
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-yc-metric]");
+  if (!btn) return;
+  const metric = btn.dataset.ycMetric;
+  if (!metric) return;
+  const account = getCurrentAccount();
+  const activities = account?.activities || [];
+  renderYearCompare(activities, metric);
+});
+
+// Sport split range toggle (4w / 12m / ytd / all)
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-ss-range]");
+  if (!btn) return;
+  const range = btn.dataset.ssRange;
+  if (!range) return;
+  document.querySelectorAll("#sport-split-range-toggle .stats-toggle-btn").forEach((b) => {
+    b.classList.toggle("is-active", b === btn);
+  });
+  const account = getCurrentAccount();
+  const activities = account?.activities || [];
+  renderSportSplit(activities, range);
 });
 
 function readFileAsDataUrl(file, opts = {}) {
@@ -8261,12 +8689,15 @@ function analyzeActivityHistory(activities) {
     return d > now - 90 * msPerDay; // last 3 months
   });
 
+  // For PBs: search ALL TIME (not just 12 months) — a PR is a PR regardless of age
+  const allValid = activities.filter((a) => a.distanceKm > 0 && a.movingTimeSec > 0);
+  const allRuns = allValid.filter((a) => a.sportType === "run");
   const runs = recent.filter((a) => a.sportType === "run" && a.distanceKm > 0 && a.movingTimeSec > 0);
   const bikes = recent.filter((a) => a.sportType === "bike" && a.distanceKm > 0 && a.movingTimeSec > 0);
   const swims = recent.filter((a) => a.sportType === "swim" && a.distanceKm > 0 && a.movingTimeSec > 0);
 
   return {
-    runPbs: extractRunPbs(runs),
+    runPbs: extractRunPbs(allRuns), // ALL TIME for PBs
     estimatedFtp: estimateFtpFromActivities(bikes),
     hrProfile: estimateHrProfileFromActivities([...runs, ...bikes]),
     weeklyVolume: estimateWeeklyVolume(veryRecent),
@@ -8286,10 +8717,12 @@ function extractRunPbs(runs) {
   if (!runs.length) return [];
   // Distance buckets: 5k, 10k, half marathon, marathon
   const buckets = [
-    { label: "5k", minKm: 4.8, maxKm: 5.5, key: "5k" },
-    { label: "10k", minKm: 9.5, maxKm: 10.8, key: "10k" },
-    { label: "half", minKm: 20.5, maxKm: 22.0, key: "half" },
-    { label: "marathon", minKm: 41.5, maxKm: 43.5, key: "marathon" },
+    { label: "5k", minKm: 4.5, maxKm: 5.5, key: "5k" },
+    { label: "10k", minKm: 9.2, maxKm: 10.8, key: "10k" },
+    { label: "15k", minKm: 14.5, maxKm: 15.8, key: "15k" },
+    { label: "half", minKm: 19.9, maxKm: 22.2, key: "half" },
+    { label: "30k", minKm: 29.0, maxKm: 31.5, key: "30k" },
+    { label: "marathon", minKm: 41.0, maxKm: 43.5, key: "marathon" },
   ];
   const pbs = [];
   for (const bucket of buckets) {
@@ -9033,22 +9466,25 @@ function estimateVO2max(profile, activities) {
   }
 
   // --- Race-based VDOT estimation (Daniels) ---
+  // For each PB, calculate the implied VO2max and pick the highest.
+  // The best race performance reveals the athlete's true ceiling.
   const pbData = extractPbDataForPrediction ? extractPbDataForPrediction(profile) : [];
   let raceEstimate = null;
   if (pbData.length) {
-    const scored = pbData.map(pb => {
+    let bestVo2 = 0;
+    for (const pb of pbData) {
       const durationMin = pb.timeSec / 60;
-      const optimalDist = Math.abs(durationMin - 12);
-      return { ...pb, durationMin, optimalDist };
-    }).sort((a, b) => a.optimalDist - b.optimalDist);
-    const best = scored[0];
-    const velocityMperMin = (best.distKm * 1000) / best.durationMin;
-    const vo2demand = daniels_vo2demand(velocityMperMin);
-    const fraction = daniels_fraction(best.durationMin);
-    const vo2max = vo2demand / fraction;
-    // Apply slight deflation (-2 ml) to align with Garmin/Strava (pure race = higher)
-    if (Number.isFinite(vo2max) && vo2max > 15 && vo2max < 95) {
-      raceEstimate = vo2max - 2.0;
+      if (durationMin < 3 || durationMin > 360) continue; // skip implausible
+      const velocityMperMin = (pb.distKm * 1000) / durationMin;
+      const vo2demand = daniels_vo2demand(velocityMperMin);
+      const fraction = daniels_fraction(durationMin);
+      const vo2max = vo2demand / fraction;
+      if (Number.isFinite(vo2max) && vo2max > bestVo2) bestVo2 = vo2max;
+    }
+    // No deflation — the Daniels formula is already conservative for trained runners.
+    // Garmin/Strava show similar or higher values (Firstbeat method includes economy bonus).
+    if (bestVo2 > 15 && bestVo2 < 95) {
+      raceEstimate = bestVo2;
     }
   }
 
@@ -9058,8 +9494,9 @@ function estimateVO2max(profile, activities) {
   // Race only: use race estimate
   let value, source, confidence;
   if (hrEstimate != null && raceEstimate != null) {
-    // Race is the ground truth; HR gives current-state adjustment. Weight race higher.
-    const hrWeight = hrQuality === "hard" ? 0.45 : 0.30;
+    // Race is ground truth; HR reflects current fitness state.
+    // Weight race higher — it's a verified max-effort data point.
+    const hrWeight = hrQuality === "hard" ? 0.35 : 0.20;
     value = raceEstimate * (1 - hrWeight) + hrEstimate * hrWeight;
     source = "hr+race";
     confidence = hrQuality === "hard" ? "high" : "moderate";
@@ -9082,7 +9519,7 @@ function estimateVO2max(profile, activities) {
         const velocityMperMin = 5000 / durationMin;
         const vo2demand = daniels_vo2demand(velocityMperMin);
         const fraction = daniels_fraction(durationMin);
-        const vo2max = vo2demand / fraction - 2.0;
+        const vo2max = vo2demand / fraction;
         if (Number.isFinite(vo2max) && vo2max > 15 && vo2max < 95) {
           return { value: +vo2max.toFixed(1), source: "vdot", confidence: "low" };
         }
@@ -9092,16 +9529,16 @@ function estimateVO2max(profile, activities) {
     return { value: fallback, source: "estimate", confidence: "low" };
   }
 
-  // Age-plausibility clamp: 1.55× = true elite (sub-3h marathon),
-  // 1.40× = strong amateur / sub-elite. We cap at 1.40× for typical users
-  // and only allow up to 1.55× if the estimate came from a clean race PB.
+  // Age-plausibility clamp: 1.65× = true elite, 1.50× = sub-elite.
+  // Relaxed from 1.40 to 1.50 for non-race sources — strong amateurs
+  // (sub-1:35 HM) legitimately reach 1.45× of population mean.
   if (age) {
     const sex = profile?.sex === "female" ? "f" : "m";
     const popMean = sex === "m" ? (57 - 0.40 * age) : (48 - 0.37 * age);
-    const ceiling = source === "race" ? popMean * 1.55 : popMean * 1.40;
+    const ceiling = source === "race" || source === "hr+race" ? popMean * 1.65 : popMean * 1.50;
     if (value > ceiling) value = ceiling;
-    // also a hard floor: 50% of popMean (really untrained)
-    const floor = popMean * 0.55;
+    // Hard floor: 50% of popMean (really untrained)
+    const floor = popMean * 0.50;
     if (value < floor) value = floor;
   }
 
@@ -19973,17 +20410,33 @@ document.addEventListener("click", (e) => {
     `;
     const grid = shelf.querySelector(".medal-shelf-grid");
 
+    // Helper: merge multiple medals for the same event into one display medal with allYears
+    function _mergeMedals(group) {
+      const sorted = [...group].sort((a, b) => new Date(b.finish_date) - new Date(a.finish_date));
+      const display = Object.assign({}, sorted[0]); // most recent as base
+      const years = sorted.map(m => m.event_year || yearFromDate(m.finish_date) || "").filter(Boolean);
+      if (years.length > 1) display.allYears = [...new Set(years)].sort();
+      return display;
+    }
+
     // For series with fixed event list (Majors), show all 6 slots
     if (meta.events && meta.events.length) {
       for (const code of meta.events) {
-        const medal = medals.find((m) => m.event_code === code);
-        if (medal) grid.appendChild(buildMedalCardEl(medal));
+        const matching = medals.filter((m) => m.event_code === code);
+        if (matching.length) grid.appendChild(buildMedalCardEl(_mergeMedals(matching)));
         else grid.appendChild(buildEmptySlotEl(seriesKey, code));
       }
     } else {
-      // Sort by date desc, render all
-      const sorted = [...medals].sort((a, b) => new Date(b.finish_date) - new Date(a.finish_date));
-      for (const m of sorted) grid.appendChild(buildMedalCardEl(m));
+      // Group by event_code, merge multi-year, sort by most recent date desc
+      const groups = new Map();
+      for (const m of medals) {
+        const key = m.event_code || m.id;
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(m);
+      }
+      const merged = [...groups.values()].map(_mergeMedals);
+      merged.sort((a, b) => new Date(b.finish_date) - new Date(a.finish_date));
+      for (const m of merged) grid.appendChild(buildMedalCardEl(m));
     }
 
     return shelf;
@@ -19997,87 +20450,140 @@ document.addEventListener("click", (e) => {
   // Unique ID counter to avoid SVG gradient ID collisions
   let _medalSvgId = 0;
 
-  // ── Event-specific landmark silhouettes (monochrome) ──
+  // ── Event-specific landmark silhouettes (premium, detailed) ──
   const MEDAL_LANDMARKS = {
-    berlin:  "M24,56 L24,46 L26,46 L26,42 L28,40 L28,46 L30,46 L30,42 L32,40 L32,46 L34,46 L34,42 L36,38 L38,36 L40,35 L42,36 L44,38 L46,42 L46,46 L48,46 L48,42 L50,40 L50,46 L52,46 L52,42 L54,40 L54,46 L56,46 L56,56",
-    boston:  "M32,56 L34,50 L33,46 L35,42 L37,40 L36,37 L38,35 L41,34 L44,35 L46,33 L48,34 L47,36 L49,38 L48,40 L50,42 L52,44 L51,48 L53,50 L52,54 L48,56",
-    chicago: "M22,56 L22,50 L24,50 L24,44 L26,44 L26,48 L28,48 L28,42 L30,42 L30,38 L32,38 L32,42 L34,42 L34,46 L36,46 L36,36 L38,36 L38,34 L40,34 L40,36 L42,36 L42,40 L44,40 L44,44 L46,44 L46,38 L48,38 L48,42 L50,42 L50,46 L52,46 L52,44 L54,44 L54,48 L56,48 L56,56",
-    london:  "M22,56 L22,48 L24,48 L24,44 L26,44 L26,40 L28,40 L28,38 L30,36 L32,38 L32,42 L34,42 L34,40 L36,38 L38,38 L40,37 L42,38 L44,38 L46,40 L46,42 L48,42 L48,38 L50,36 L52,38 L52,40 L54,40 L54,44 L56,44 L56,48 L58,48 L58,56",
-    nyc:     "M26,56 L26,50 L28,50 L28,46 L30,46 L30,44 L32,44 L32,48 L34,48 L34,42 L36,42 L36,38 L38,38 L38,36 L39,34 L40,32 L41,34 L42,36 L42,38 L44,38 L44,34 L43,32 L44,30 L45,28 L44,26 L46,28 L45,30 L46,32 L46,38 L48,38 L48,42 L50,42 L50,46 L52,46 L52,50 L54,50 L54,56",
-    tokyo:   "M26,56 L26,48 L28,48 L28,44 L24,42 L22,40 L24,38 L28,38 L30,36 L32,35 L34,34 L38,33 L42,33 L46,34 L48,35 L50,36 L52,38 L56,38 L58,40 L56,42 L52,44 L52,48 L54,48 L54,56",
+    // Berlin: Brandenburg Gate — detailed columns with quadriga chariot on top
+    berlin: "M18,60 L18,50 L20,50 L20,44 L22,42 L22,50 L25,50 L25,44 L27,42 L27,50 L29,50 L29,42 L31,40 L33,38 L35,36 L37,35 L40,34 L43,35 L45,36 L47,38 L49,40 L51,42 L51,50 L53,50 L53,44 L55,42 L55,50 L58,50 L58,44 L60,42 L60,50 L62,50 L62,60",
+    // Boston: Citgo sign triangle + Boylston finish arch
+    boston: "M28,60 L28,54 L26,52 L26,46 L28,42 L30,40 L33,38 L35,36 L37,35 L40,34 L43,35 L45,36 L47,38 L50,40 L52,42 L54,46 L54,52 L52,54 L52,60",
+    // Chicago: Willis Tower dominant + skyline
+    chicago: "M16,60 L16,52 L18,52 L18,46 L20,46 L20,50 L23,50 L23,42 L25,42 L25,38 L27,38 L27,36 L29,36 L29,30 L31,28 L33,26 L35,26 L37,26 L39,26 L41,26 L43,28 L45,30 L47,36 L47,38 L49,38 L49,42 L51,42 L51,46 L53,46 L53,50 L55,50 L55,46 L57,46 L57,50 L59,50 L59,52 L62,52 L62,60",
+    // London: Tower Bridge — twin gothic towers + suspension cables
+    london: "M16,60 L16,52 L18,52 L18,46 L20,44 L20,40 L22,38 L24,36 L24,34 L26,32 L28,34 L28,36 Q34,30 40,30 Q46,30 52,36 L52,34 L54,32 L56,34 L56,36 L58,38 L60,40 L60,44 L62,46 L62,52 L64,52 L64,60",
+    // NYC: Statue of Liberty — torch, crown, robes
+    nyc: "M30,60 L32,56 L32,52 L30,50 L30,46 L32,44 L32,42 L30,40 L32,38 L34,36 L35,34 L36,32 L37,30 L38,28 L37,26 L35,24 L37,22 L40,20 L43,22 L45,24 L43,26 L42,28 L43,30 L44,32 L45,34 L46,36 L48,38 L50,40 L48,42 L48,44 L50,46 L50,50 L48,52 L48,56 L50,60",
+    // Tokyo: Senso-ji five-story pagoda
+    tokyo: "M24,60 L24,54 L26,54 L26,50 L22,48 L20,46 L22,44 L26,42 L28,40 L30,38 L32,36 L34,34 L36,32 L38,30 L40,28 L42,30 L44,32 L46,34 L48,36 L50,38 L52,40 L54,42 L58,44 L60,46 L58,48 L54,50 L54,54 L56,54 L56,60",
+    // Düsseldorf: Rheinturm TV tower
+    duesseldorf: "M32,60 L32,54 L34,54 L34,50 L36,46 L37,42 L38,38 L38,34 L37,32 L36,28 L37,24 L39,20 L40,16 L41,20 L43,24 L44,28 L43,32 L42,34 L42,38 L43,42 L44,46 L46,50 L46,54 L48,54 L48,60",
+    // München: Frauenkirche twin onion domes
+    muenchen: "M20,60 L20,54 L22,54 L22,46 L24,44 L26,42 L26,36 L28,34 L28,30 L30,28 L31,26 L32,28 L32,34 L34,36 L36,38 L40,38 L44,36 L46,34 L46,28 L47,26 L48,28 L50,30 L50,34 L52,36 L52,42 L54,44 L56,46 L56,54 L58,54 L58,60",
+    // Vienna: Stephansdom spire
+    vienna: "M28,60 L28,54 L30,54 L30,48 L32,46 L32,42 L34,40 L36,38 L36,34 L38,30 L39,26 L40,20 L41,26 L42,30 L44,34 L44,38 L46,40 L48,42 L48,46 L50,48 L50,54 L52,54 L52,60",
+    // Amsterdam: canal house gabled rooftops
+    amsterdam: "M14,60 L14,54 L16,54 L16,48 L18,46 L20,44 L22,42 L20,42 L22,40 L24,42 L26,40 L28,38 L30,40 L32,38 L34,36 L36,38 L38,36 L40,38 L42,36 L44,38 L46,40 L48,38 L50,40 L52,42 L54,40 L56,42 L58,44 L60,46 L62,48 L62,54 L64,54 L64,60",
+    // Istanbul: Blue Mosque domes + minarets
+    istanbul: "M18,60 L18,56 L20,56 L20,50 L22,48 L22,42 L24,38 L22,36 L24,30 L26,36 L28,38 L30,36 L32,34 L34,32 L36,30 L38,28 L40,26 L42,28 L44,30 L46,32 L48,34 L50,36 L52,38 L54,36 L56,30 L58,36 L56,38 L56,42 L58,48 L60,50 L60,56 L62,56 L62,60",
+    // Barcelona: Sagrada Família spires
+    barcelona_m: "M20,60 L20,54 L22,54 L22,48 L24,44 L26,40 L26,36 L28,32 L30,28 L32,24 L34,22 L36,20 L38,18 L40,16 L42,18 L44,20 L46,22 L48,24 L50,28 L52,32 L52,36 L54,40 L56,44 L56,48 L58,54 L60,54 L60,60",
+    // Stockholm
+    stockholm_m: "M24,60 L24,54 L26,54 L26,48 L28,46 L30,42 L30,38 L32,36 L34,34 L36,30 L38,28 L40,24 L42,28 L44,30 L46,34 L48,36 L50,38 L50,42 L52,46 L54,48 L54,54 L56,54 L56,60",
+    // Copenhagen
+    copenhagen: "M22,60 L22,54 L24,54 L24,48 L26,46 L28,44 L30,42 L32,40 L34,38 L36,36 L38,34 L40,32 L42,34 L44,36 L46,38 L48,40 L50,42 L52,44 L54,46 L56,48 L56,54 L58,54 L58,60",
+    // Zürich
+    zurich: "M26,60 L26,54 L28,54 L28,48 L30,44 L32,40 L34,36 L36,34 L38,32 L40,28 L42,32 L44,34 L46,36 L48,40 L50,44 L52,48 L52,54 L54,54 L54,60",
   };
 
   function _renderMedalSvg(primary, secondary, emoji, shortName, year, eventCode, series) {
     const uid = `m${++_medalSvgId}`;
-    const abbr = String(shortName || "").replace(/[^A-Za-z0-9]/g, "").slice(0, 5).toUpperCase();
+    const abbr = String(shortName || "").replace(/[^A-Za-zÀ-ÿ0-9\s]/g, "").trim().slice(0, 8).toUpperCase();
     const landmark = MEDAL_LANDMARKS[eventCode];
     const isHyrox = series === "hyrox";
     const isIronman = series === "ironman" || series === "ironman_703";
+    const isMajor = series === "marathon_majors";
 
-    // Corporate identity: monochrome silver/white on dark
-    // Only accent: subtle warm highlight for earned medals
-    const accent = "rgba(229,169,61,0.15)"; // very subtle gold hint
+    // Parse primary color for accent tinting
+    const pHex = String(primary || "#E5A93D").replace("#", "");
+    const pR = parseInt(pHex.slice(0, 2), 16) || 200;
+    const pG = parseInt(pHex.slice(2, 4), 16) || 160;
+    const pB = parseInt(pHex.slice(4, 6), 16) || 50;
+    const acR = `rgba(${pR},${pG},${pB}`;
 
     let defs = `
-      <radialGradient id="${uid}_mg" cx="35%" cy="28%" r="65%">
-        <stop offset="0%" stop-color="rgba(255,255,255,0.12)"/>
-        <stop offset="50%" stop-color="rgba(255,255,255,0.04)"/>
-        <stop offset="100%" stop-color="rgba(0,0,0,0.3)"/>
+      <radialGradient id="${uid}_mg" cx="30%" cy="22%" r="72%">
+        <stop offset="0%" stop-color="${acR},0.20)"/>
+        <stop offset="30%" stop-color="rgba(255,255,255,0.10)"/>
+        <stop offset="65%" stop-color="rgba(255,255,255,0.03)"/>
+        <stop offset="100%" stop-color="rgba(0,0,0,0.45)"/>
       </radialGradient>
-      <linearGradient id="${uid}_shine" x1="0.2" y1="0" x2="0.8" y2="1">
-        <stop offset="0%" stop-color="rgba(255,255,255,0.18)"/>
-        <stop offset="50%" stop-color="rgba(255,255,255,0)"/>
-        <stop offset="100%" stop-color="rgba(255,255,255,0.05)"/>
+      <linearGradient id="${uid}_shine" x1="0.1" y1="0" x2="0.9" y2="1">
+        <stop offset="0%" stop-color="rgba(255,255,255,0.35)"/>
+        <stop offset="35%" stop-color="rgba(255,255,255,0.03)"/>
+        <stop offset="100%" stop-color="rgba(255,255,255,0.10)"/>
       </linearGradient>
-      <filter id="${uid}_sh" x="-10%" y="-10%" width="130%" height="130%">
-        <feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="rgba(0,0,0,0.5)"/>
+      <linearGradient id="${uid}_rim" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="${acR},0.5)"/>
+        <stop offset="50%" stop-color="rgba(255,255,255,0.3)"/>
+        <stop offset="100%" stop-color="${acR},0.35)"/>
+      </linearGradient>
+      <filter id="${uid}_sh" x="-15%" y="-15%" width="140%" height="140%">
+        <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="rgba(0,0,0,0.65)"/>
       </filter>
-      <clipPath id="${uid}_c"><circle cx="40" cy="48" r="29"/></clipPath>`;
+      ${isMajor ? `<filter id="${uid}_glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="5" result="b"/><feFlood flood-color="${acR},0.2)"/><feComposite in2="b" operator="in"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>` : ""}
+      <clipPath id="${uid}_c"><circle cx="40" cy="46" r="27"/></clipPath>`;
 
-    // Ribbon: minimal, monochrome
-    const ribbon = `<path d="M30,9 L27,0 L40,5 L53,0 L50,9" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.08)" stroke-width="0.3"/>`;
+    // Ribbon: V-shape with event color accent
+    const ribbon = `
+      <path d="M28,10 L24,0 L40,6 L56,0 L52,10" fill="${acR},0.15)" stroke="${acR},0.3)" stroke-width="0.5"/>
+      <line x1="40" y1="6" x2="40" y2="19" stroke="${acR},0.2)" stroke-width="0.6"/>`;
 
-    // Medal body: dark, subtle border
+    // Medal body: metallic gradient + colored rim glow
+    const glowFilter = isMajor ? ` filter="url(#${uid}_glow)"` : "";
     const body = `
-      <circle cx="40" cy="48" r="31" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
-      <circle cx="40" cy="48" r="28" fill="url(#${uid}_mg)" filter="url(#${uid}_sh)" stroke="rgba(255,255,255,0.1)" stroke-width="0.6"/>`;
+      <circle cx="40" cy="46" r="29" fill="none" stroke="url(#${uid}_rim)" stroke-width="1.2"${glowFilter}/>
+      <circle cx="40" cy="46" r="27" fill="url(#${uid}_mg)" filter="url(#${uid}_sh)" stroke="rgba(255,255,255,0.18)" stroke-width="0.5"/>
+      <circle cx="40" cy="46" r="26.2" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="0.3"/>`;
 
-    // Landmark silhouette (signature of each event)
+    // Landmark silhouette: visible with event color tint
     let landmarkSvg = "";
     if (landmark) {
-      landmarkSvg = `<path d="${landmark}" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.1)" stroke-width="0.4" clip-path="url(#${uid}_c)"/>`;
+      landmarkSvg = `
+        <path d="${landmark}" fill="${acR},0.10)" stroke="rgba(255,255,255,0.22)" stroke-width="0.6" stroke-linejoin="round" clip-path="url(#${uid}_c)"/>
+        <path d="${landmark}" fill="none" stroke="${acR},0.15)" stroke-width="0.3" clip-path="url(#${uid}_c)"/>`;
     }
 
     // Inner engraving ring
-    let innerRing = `<circle cx="40" cy="48" r="22" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="0.5"/>`;
+    let innerRing = `
+      <circle cx="40" cy="46" r="21" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="0.5"/>
+      <circle cx="40" cy="46" r="19" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="0.3" stroke-dasharray="2,3"/>`;
     if (isIronman) {
-      // Subtle tri-segment ring
-      innerRing = `<circle cx="40" cy="48" r="22" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="0.5" stroke-dasharray="15,1"/>`;
+      innerRing = `
+        <circle cx="40" cy="46" r="21" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="0.5" stroke-dasharray="10,3,3,3"/>
+        <circle cx="40" cy="46" r="17" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="0.3"/>`;
+    } else if (isHyrox) {
+      innerRing = `
+        <circle cx="40" cy="46" r="21" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="0.5"/>
+        <rect x="23" y="30" width="34" height="32" rx="4" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="0.3" clip-path="url(#${uid}_c)"/>`;
     }
 
-    // Shine
-    const shine = `<ellipse cx="33" cy="39" rx="12" ry="8" fill="url(#${uid}_shine)" clip-path="url(#${uid}_c)"/>`;
+    // Premium shine highlight
+    const shine = `<ellipse cx="32" cy="36" rx="14" ry="10" fill="url(#${uid}_shine)" clip-path="url(#${uid}_c)" opacity="0.8"/>`;
 
-    // Center: year (large) + abbreviation (small)
+    // Accent bar at bottom (our signature)
+    const accentBar = `<line x1="32" y1="78" x2="48" y2="78" stroke="${acR},0.7)" stroke-width="1.8" stroke-linecap="round"/>`;
+
+    // Center content: year + event name
+    const yearStr = String(year || "");
     let center = "";
     if (isHyrox) {
-      // Lightning bolt + HYROX
       center = `
-        <path d="M42,38 L38,47 L41,47 L39,57 L46,46 L43,46 L45,38Z" fill="rgba(255,255,255,0.15)" clip-path="url(#${uid}_c)"/>
-        <text x="40" y="64" text-anchor="middle" font-size="5.5" font-weight="700" fill="rgba(255,255,255,0.4)" font-family="Inter,sans-serif" letter-spacing="1.5">HYROX</text>`;
+        <path d="M42,36 L38,45 L41,45 L39,55 L46,44 L43,44 L45,36Z" fill="rgba(255,255,255,0.3)" stroke="rgba(255,255,255,0.12)" stroke-width="0.3" clip-path="url(#${uid}_c)"/>
+        <text x="40" y="66" text-anchor="middle" font-size="5" font-weight="800" fill="rgba(255,255,255,0.7)" font-family="Inter,sans-serif" letter-spacing="2.5">HYROX</text>
+        <text x="40" y="74" text-anchor="middle" font-size="8" font-weight="800" fill="rgba(255,255,255,0.55)" font-family="Inter,sans-serif">${yearStr}</text>`;
     } else if (isIronman) {
-      // M-DOT dot + IRONMAN/70.3
       const label = series === "ironman_703" ? "70.3" : "IRONMAN";
       center = `
-        <circle cx="40" cy="40" r="2" fill="rgba(255,255,255,0.3)"/>
-        <text x="40" y="53" text-anchor="middle" font-size="${series === "ironman_703" ? "5.5" : "5"}" font-weight="800" fill="rgba(255,255,255,0.4)" font-family="Inter,sans-serif" letter-spacing="0.8">${label}</text>`;
+        <circle cx="40" cy="37" r="3" fill="rgba(255,255,255,0.4)" stroke="${acR},0.3)" stroke-width="0.6"/>
+        <text x="40" y="51" text-anchor="middle" font-size="${series === "ironman_703" ? "6.5" : "5"}" font-weight="800" fill="rgba(255,255,255,0.7)" font-family="Inter,sans-serif" letter-spacing="1.2">${label}</text>
+        <text x="40" y="60" text-anchor="middle" font-size="8" font-weight="800" fill="rgba(255,255,255,0.55)" font-family="Inter,sans-serif">${yearStr}</text>`;
     } else {
+      // Standard: bold year centered, event abbreviation below in event color
       center = `
-        <text x="40" y="46" text-anchor="middle" font-size="10" font-weight="800" fill="rgba(255,255,255,0.5)" font-family="Inter,sans-serif" letter-spacing="1">${year || ""}</text>
-        <text x="40" y="56" text-anchor="middle" font-size="5.5" font-weight="600" fill="rgba(255,255,255,0.25)" font-family="Inter,sans-serif" letter-spacing="1.5">${abbr}</text>`;
+        <text x="40" y="44" text-anchor="middle" font-size="13" font-weight="800" fill="rgba(255,255,255,0.75)" font-family="Inter,sans-serif" letter-spacing="1.5">${yearStr}</text>
+        <text x="40" y="56" text-anchor="middle" font-size="5" font-weight="700" fill="${acR},0.6)" font-family="Inter,sans-serif" letter-spacing="2.5">${abbr}</text>`;
     }
 
-    return `<svg viewBox="0 0 80 90" xmlns="http://www.w3.org/2000/svg" class="medal-svg">
+    return `<svg viewBox="0 0 80 84" xmlns="http://www.w3.org/2000/svg" class="medal-svg">
       <defs>${defs}</defs>
       ${ribbon}
       ${body}
@@ -20085,6 +20591,7 @@ document.addEventListener("click", (e) => {
       ${innerRing}
       ${shine}
       ${center}
+      ${accentBar}
     </svg>`;
   }
 
@@ -20108,6 +20615,8 @@ document.addEventListener("click", (e) => {
     const emoji = cat.logo_emoji || "🏅";
     const shortName = cat.short_name || medal.event_name;
     const year = medal.event_year || yearFromDate(medal.finish_date) || "";
+    const yearsDisplay = medal.allYears && medal.allYears.length > 1
+      ? medal.allYears.join(" · ") : "";
 
     const time = formatTime(medal.finish_time_sec);
     const pace = medal.finish_time_sec && cat.distance_km
@@ -20125,7 +20634,7 @@ document.addEventListener("click", (e) => {
           ${medal.is_pr ? `<div class="medal-card-pr">PR</div>` : ""}
           ${_renderMedalSvg(primary, secondary, emoji, shortName, year, medal.event_code, medal.series)}
           <div class="medal-card-label">${escapeHtml(shortName)}</div>
-          <div class="medal-card-year">${time || escapeHtml(String(year))}</div>
+          <div class="medal-card-year">${yearsDisplay ? escapeHtml(yearsDisplay) : (time || escapeHtml(String(year)))}</div>
         </div>
         <div class="medal-card-back">
           <div class="medal-back-title">${escapeHtml(medal.event_name)}</div>
@@ -20659,10 +21168,10 @@ document.addEventListener("click", (e) => {
   };
 
   const STANDARD_DISTANCES = [
-    { code: "5k", label: "5K", km: 5, tol: 0.3 },
-    { code: "10k", label: "10K", km: 10, tol: 0.5 },
-    { code: "hm", label: "HM", km: 21.0975, tol: 0.8 },
-    { code: "m", label: "M", km: 42.195, tol: 1.5 },
+    { code: "5k", label: "5K", km: 5, tol: 0.5 },
+    { code: "10k", label: "10K", km: 10, tol: 0.8 },
+    { code: "hm", label: "HM", km: 21.0975, tol: 1.2 },
+    { code: "m", label: "M", km: 42.195, tol: 2.0 },
   ];
 
   // ── Helpers ──
@@ -20728,8 +21237,9 @@ document.addEventListener("click", (e) => {
           try { renderPRVault(); } catch (e) { console.warn("[PP] renderPRVault:", e); }
         }
       }
-      // Always fetch activities as fallback for hero dots, form score, PR selection
-      const remote = await window.sbDb.getActivities(acc.id, 500);
+      // Always fetch ALL activities for hero dots, form score, PR selection
+      // Use high limit — getActivities paginates internally past 1000-row Supabase limit
+      const remote = await window.sbDb.getActivities(acc.id, 50000);
       if (remote.length) {
         _ppActivitiesCache = _normalizeActivities(remote);
         if (!gotServerStats) {
@@ -20856,6 +21366,85 @@ document.addEventListener("click", (e) => {
     // Banner edit button visibility
     const bannerEdit = document.getElementById("pp-banner-edit");
     if (bannerEdit) bannerEdit.hidden = !acc;
+  }
+
+  // ── Hero Goals Strip ──
+  async function renderHeroGoals() {
+    const host = document.getElementById("pp-hero-goals");
+    if (!host) return;
+    const acc = account();
+    if (!acc) { host.innerHTML = ""; return; }
+
+    // Try MainEvents cache first, fall back to direct DB fetch
+    let races = window.MainEvents?.getRaces ? window.MainEvents.getRaces() : [];
+    if (!races.length && window.sbDb?.getTargetRaces) {
+      try { races = await window.sbDb.getTargetRaces(acc.id); } catch (_) { races = []; }
+    }
+    if (!races.length) { host.innerHTML = ""; return; }
+
+    // Sort by date, priority as tiebreak
+    const now = new Date(); now.setHours(0, 0, 0, 0);
+    const sorted = races
+      .map((r) => {
+        const d = r.race_date ? new Date(r.race_date + "T00:00:00") : null;
+        const days = d ? Math.round((d - now) / 86400000) : null;
+        return { ...r, _days: days };
+      })
+      .filter((r) => r._days == null || r._days >= -1)
+      .sort((a, b) => {
+        if ((a._days ?? 9999) !== (b._days ?? 9999)) return (a._days ?? 9999) - (b._days ?? 9999);
+        const order = { A: 0, B: 1, C: 2 };
+        return (order[a.priority] || 9) - (order[b.priority] || 9);
+      })
+      .slice(0, 4);
+
+    if (!sorted.length) { host.innerHTML = ""; return; }
+
+    // Sport emoji mapping
+    function sportEmoji(race) {
+      const dl = (race.distance_label || race.event_name || "").toLowerCase();
+      if (dl.includes("ironman") || dl.includes("triathlon") || dl.includes("70.3")) return "\u{1F3CA}\u{1F6B4}\u{1F3C3}";
+      if (dl.includes("swim") || dl.includes("schwimm")) return "\u{1F3CA}";
+      if (dl.includes("bike") || dl.includes("rad")) return "\u{1F6B4}";
+      return "\u{1F3C3}";
+    }
+
+    // Short distance label
+    function shortLabel(race) {
+      const dl = (race.distance_label || "").trim();
+      if (dl) {
+        const lower = dl.toLowerCase();
+        if (lower === "halbmarathon" || lower === "half marathon" || lower.includes("halv")) return "HM";
+        if (lower === "marathon") return "Marathon";
+        if (lower.includes("10k") || lower.includes("10 km")) return "10K";
+        if (lower.includes("5k") || lower.includes("5 km")) return "5K";
+        return dl.length > 14 ? dl.slice(0, 12) + "\u2026" : dl;
+      }
+      const name = (race.event_name || "").trim();
+      if (name.length > 14) return name.slice(0, 12) + "\u2026";
+      return name;
+    }
+
+    // Format goal time from seconds
+    function fmtGoalTime(sec) {
+      if (!sec) return "";
+      const h = Math.floor(sec / 3600);
+      const m = Math.floor((sec % 3600) / 60);
+      const s = sec % 60;
+      if (h > 0) return h + ":" + String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+      return m + ":" + String(s).padStart(2, "0");
+    }
+
+    host.innerHTML = sorted.map((r) => {
+      const emoji = sportEmoji(r);
+      const label = escapeHtml(shortLabel(r));
+      const time = r.goal_time_sec ? `<span class="pp-hero-goal-time">${escapeHtml(fmtGoalTime(r.goal_time_sec))}</span>` : "";
+      const days = r._days != null
+        ? `<span class="pp-hero-goal-days">${r._days === 0 ? "heute" : r._days === 1 ? "morgen" : r._days + "d"}</span>`
+        : "";
+      const isA = r.priority === "A";
+      return `<span class="pp-hero-goal-pill${isA ? " pp-hero-goal-a" : ""}">${emoji} ${label}${time ? " " + time : ""}${days ? " \u00b7 " + days : ""}</span>`;
+    }).join("");
   }
 
   function openStatusPicker() {
@@ -21043,18 +21632,14 @@ document.addEventListener("click", (e) => {
   }
 
   function sportSvg(sport) {
-    // Premium inline SVG icons — stroke 1.75, clean geometry, no stick-figure cartoons
+    // Lucide-grade SVG icons — crisp vectors, uniform stroke, clean at any size
+    const s = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">`;
     switch (sport) {
-      // Run: refined runner silhouette, better anatomy + forward motion
-      case "run": return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="16" cy="4.5" r="1.75"/><path d="M12.5 21l1.5-5.5-3-2.5 2-5.5 3.5 3 3 .5"/><path d="M8 12l2.5-1.5"/><path d="M6.5 17.5h3l1-2"/></svg>`;
-      // Bike: clean frame, proper triangular geometry
-      case "bike": return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M5.5 17.5l6-7.5h4l3 7.5"/><path d="M11.5 10l-2-4h-2"/><path d="M15.5 10l-2-4"/></svg>`;
-      // Swim: clean parallel waves + head
-      case "swim": return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14c2 0 2.5-1.5 4.5-1.5S10 14 12 14s2.5-1.5 4.5-1.5S19 14 21 14"/><path d="M3 19c2 0 2.5-1.5 4.5-1.5S10 19 12 19s2.5-1.5 4.5-1.5S19 19 21 19"/><circle cx="17.5" cy="6.5" r="1.75"/><path d="M6 11l4-3 5 2"/></svg>`;
-      // Strength: dumbbell with proper plate proportions
-      case "strength": return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 7v10M17.5 7v10"/><path d="M3 10v4M21 10v4"/><path d="M6.5 12h11"/></svg>`;
-      // Other: activity pulse line (heartbeat metaphor)
-      default: return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2.5-6 4 12 2.5-6H21"/></svg>`;
+      case "run": return `${s}<circle cx="14" cy="4" r="2"/><path d="M4 17l4.5-1 2.5-4 3 1 2.5-4"/><path d="M9 21l1.5-5L8 14"/><path d="M14.5 17l2 4"/><path d="M18 8l-4.5 5"/></svg>`;
+      case "bike": return `${s}<circle cx="5.5" cy="17" r="3.5"/><circle cx="18.5" cy="17" r="3.5"/><path d="M15 6l-4 5h-1l-4.5 6"/><path d="M11 11l7.5 6"/><path d="M11 11h4l2-5"/></svg>`;
+      case "swim": return `${s}<circle cx="16" cy="5" r="2"/><path d="M12 10l4-2v4"/><path d="M2 16c1.5-1 3-1.5 4.5-1.5S9 16 10.5 16 13 14.5 14.5 14.5 17 16 18.5 16s3-1.5 4.5-1.5"/><path d="M2 20c1.5-1 3-1.5 4.5-1.5S9 20 10.5 20s2.5-1.5 4-1.5S17 20 18.5 20s3-1.5 4.5-1.5"/></svg>`;
+      case "strength": return `${s}<path d="M6.5 6.5v11M17.5 6.5v11"/><path d="M3 9v6M21 9v6"/><path d="M6.5 12h11"/></svg>`;
+      default: return `${s}<path d="M2 12h4l3-7 4 14 3-7h6"/></svg>`;
     }
   }
 
@@ -21308,6 +21893,7 @@ document.addEventListener("click", (e) => {
     renderBanner();
     renderIdentity();
     if (window.MainEvents?.render) { try { window.MainEvents.render(); } catch (e) { console.warn("[MainEvents] render:", e); } }
+    renderHeroGoals();
     renderHeroStats();
     renderPRVault();
     renderPPRaceHistory();
@@ -21340,6 +21926,7 @@ document.addEventListener("click", (e) => {
     renderIdentity,
     renderBanner,
     renderHeroStats,
+    renderHeroGoals,
     renderPRVault,
     renderTotals,
     renderPhotoWall,
@@ -21348,11 +21935,27 @@ document.addEventListener("click", (e) => {
   function init() {
     bindEvents();
     relocateTrophyCase();
+    initStickyIdentity();
     // Render after slight delay so accounts/activities are loaded
     if (account()) {
       setTimeout(render, 200);
     }
     console.log("[PublicProfile] Public profile module loaded");
+  }
+
+  /** Sticky identity bar — adds .pp-hero-stuck when banner scrolls out */
+  function initStickyIdentity() {
+    const banner = document.getElementById("pp-banner");
+    const identity = document.querySelector(".pp-identity");
+    if (!banner || !identity) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        identity.classList.toggle("pp-hero-stuck", !entry.isIntersecting);
+      },
+      { threshold: 0, rootMargin: "-60px 0px 0px 0px" }
+    );
+    observer.observe(banner);
   }
 
   if (document.readyState === "loading") {
@@ -21837,6 +22440,206 @@ document.addEventListener("click", (e) => {
   function init() {
     bindEvents();
     console.log("[MainEvents] Main Events module loaded");
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();
+
+/* ============================================================
+   TRAINING CALENDAR MODULE
+   Monthly calendar grid showing training activities per day
+   ============================================================ */
+(function () {
+  "use strict";
+
+  const MONTH_NAMES = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
+  const WEEKDAYS = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+  const SPORT_COLORS = { run: "#22c55e", bike: "#3b82f6", swim: "#06b6d4", strength: "#ef4444", other: "#9ca3af" };
+
+  let calYear, calMonth; // 0-indexed month
+
+  function sportOf(a) {
+    const s = String(a.sport_type || "").toLowerCase();
+    if (s.includes("run") || s.includes("lauf")) return "run";
+    if (s.includes("bike") || s.includes("ride") || s.includes("rad") || s.includes("cycl")) return "bike";
+    if (s.includes("swim") || s.includes("schwim")) return "swim";
+    if (s.includes("strength") || s.includes("kraft") || s.includes("weight") || s.includes("hyrox") || s.includes("crossfit")) return "strength";
+    return "other";
+  }
+
+  function fmtDuration(sec) {
+    if (!sec || sec <= 0) return "";
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    return h > 0 ? `${h}h${m > 0 ? m + "m" : ""}` : `${m}m`;
+  }
+
+  function getActivities() {
+    try {
+      const acc = typeof getCurrentAccount === "function" ? getCurrentAccount() : null;
+      if (!acc?.activities?.length) return [];
+      return (typeof normalizeActivities === "function" ? normalizeActivities(acc.activities) : acc.activities);
+    } catch { return []; }
+  }
+
+  /** Group activities by date key "YYYY-MM-DD" */
+  function groupByDate(activities) {
+    const map = {};
+    for (const a of activities) {
+      const d = a.created_at || a.date;
+      if (!d) continue;
+      const key = String(d).slice(0, 10);
+      if (!map[key]) map[key] = [];
+      map[key].push(a);
+    }
+    return map;
+  }
+
+  function renderMonth() {
+    const grid = document.getElementById("cal-grid");
+    const label = document.getElementById("cal-month-label");
+    const detail = document.getElementById("cal-day-detail");
+    if (!grid || !label) return;
+
+    label.textContent = `${MONTH_NAMES[calMonth]} ${calYear}`;
+    if (detail) { detail.hidden = true; detail.innerHTML = ""; }
+
+    const activities = getActivities();
+    const byDate = groupByDate(activities);
+
+    const today = new Date();
+    const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+    // First day of month and padding
+    const firstDay = new Date(calYear, calMonth, 1);
+    let startDow = firstDay.getDay(); // 0=Sun
+    startDow = startDow === 0 ? 6 : startDow - 1; // Convert to Mon=0
+
+    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+    const prevMonthDays = new Date(calYear, calMonth, 0).getDate();
+
+    let html = "";
+    // Weekday headers
+    for (const wd of WEEKDAYS) {
+      html += `<div class="cal-weekday">${wd}</div>`;
+    }
+
+    // Previous month padding
+    for (let i = startDow - 1; i >= 0; i--) {
+      const day = prevMonthDays - i;
+      const pm = calMonth === 0 ? 11 : calMonth - 1;
+      const py = calMonth === 0 ? calYear - 1 : calYear;
+      const key = `${py}-${String(pm + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      html += buildDayCell(day, key, byDate[key], true, key === todayKey);
+    }
+
+    // Current month days
+    for (let d = 1; d <= daysInMonth; d++) {
+      const key = `${calYear}-${String(calMonth + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+      html += buildDayCell(d, key, byDate[key], false, key === todayKey);
+    }
+
+    // Next month padding (fill to complete last row)
+    const totalCells = startDow + daysInMonth;
+    const remainder = totalCells % 7;
+    if (remainder > 0) {
+      for (let d = 1; d <= 7 - remainder; d++) {
+        const nm = calMonth === 11 ? 0 : calMonth + 1;
+        const ny = calMonth === 11 ? calYear + 1 : calYear;
+        const key = `${ny}-${String(nm + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+        html += buildDayCell(d, key, byDate[key], true, key === todayKey);
+      }
+    }
+
+    grid.innerHTML = html;
+
+    // Click handlers
+    grid.querySelectorAll(".cal-day[data-date]").forEach((cell) => {
+      cell.addEventListener("click", () => showDayDetail(cell.dataset.date, byDate));
+    });
+  }
+
+  function buildDayCell(dayNum, dateKey, dayActivities, isOtherMonth, isToday) {
+    const has = dayActivities && dayActivities.length > 0;
+    const cls = ["cal-day"];
+    if (isOtherMonth) cls.push("is-other-month");
+    if (isToday) cls.push("is-today");
+    if (has) cls.push("has-activity");
+
+    let inner = `<span class="cal-day-num">${dayNum}</span>`;
+
+    if (has) {
+      // Sport dots
+      const sports = [...new Set(dayActivities.map(sportOf))];
+      inner += `<span class="cal-day-dots">${sports.map((s) => `<span class="cal-dot" style="background:${SPORT_COLORS[s] || SPORT_COLORS.other}"></span>`).join("")}</span>`;
+
+      // Summary
+      const totalKm = dayActivities.reduce((s, a) => s + (Number(a.distance_km) || 0), 0);
+      const totalSec = dayActivities.reduce((s, a) => s + (Number(a.moving_time_sec) || 0), 0);
+      const parts = [];
+      if (totalKm > 0) parts.push(`${totalKm.toFixed(1)}km`);
+      const dur = fmtDuration(totalSec);
+      if (dur) parts.push(dur);
+      if (parts.length) inner += `<span class="cal-day-summary">${parts.join(" · ")}</span>`;
+    }
+
+    return `<div class="${cls.join(" ")}" data-date="${dateKey}" role="button" tabindex="0">${inner}</div>`;
+  }
+
+  function showDayDetail(dateKey, byDate) {
+    const detail = document.getElementById("cal-day-detail");
+    if (!detail) return;
+    const acts = byDate[dateKey];
+    if (!acts || !acts.length) {
+      detail.hidden = true;
+      detail.innerHTML = "";
+      return;
+    }
+
+    const parts = dateKey.split("-");
+    const dayLabel = `${parseInt(parts[2], 10)}. ${MONTH_NAMES[parseInt(parts[1], 10) - 1]} ${parts[0]}`;
+
+    let html = `<div class="cal-detail-header"><strong>${dayLabel}</strong><span class="tag subtle">${acts.length} ${acts.length === 1 ? "Aktivität" : "Aktivitäten"}</span></div>`;
+    html += `<div class="cal-detail-list">`;
+    for (const a of acts) {
+      const sport = sportOf(a);
+      const color = SPORT_COLORS[sport] || SPORT_COLORS.other;
+      const km = Number(a.distance_km) || 0;
+      const dur = fmtDuration(Number(a.moving_time_sec) || 0);
+      const title = a.title || sport.charAt(0).toUpperCase() + sport.slice(1);
+      const meta = [km > 0 ? `${km.toFixed(1)} km` : null, dur || null].filter(Boolean).join(" · ");
+      html += `<div class="cal-detail-item"><span class="cal-dot" style="background:${color}"></span><span class="cal-detail-title">${title}</span>${meta ? `<span class="cal-detail-meta">${meta}</span>` : ""}</div>`;
+    }
+    html += `</div>`;
+
+    detail.innerHTML = html;
+    detail.hidden = false;
+  }
+
+  function init() {
+    const now = new Date();
+    calYear = now.getFullYear();
+    calMonth = now.getMonth();
+
+    document.getElementById("cal-prev")?.addEventListener("click", () => {
+      calMonth--;
+      if (calMonth < 0) { calMonth = 11; calYear--; }
+      renderMonth();
+    });
+    document.getElementById("cal-next")?.addEventListener("click", () => {
+      calMonth++;
+      if (calMonth > 11) { calMonth = 0; calYear++; }
+      renderMonth();
+    });
+
+    // Expose render for the profile view switcher
+    window._renderTrainingCalendar = renderMonth;
+
+    console.log("[TrainingCalendar] Training Calendar module loaded");
   }
 
   if (document.readyState === "loading") {

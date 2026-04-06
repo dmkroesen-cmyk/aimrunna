@@ -510,6 +510,7 @@
               </button>
             </div>
           </div>
+          <div class="pp-hero-goals" id="pp-hero-goals"></div>
 
           <!-- Main Events (goal races countdown) -->
           <section class="pp-main-events" id="pp-main-events" hidden>
@@ -613,6 +614,7 @@
           <div class="profile-pane-toolbar">
             <div class="profile-view-tabs" role="tablist" aria-label="Profile sections">
               <button type="button" class="profile-view-tab is-active" data-profile-view="overview" data-i18n="profile_tab_overview">Dashboard</button>
+              <button type="button" class="profile-view-tab" data-profile-view="calendar" data-i18n="profile_tab_calendar">Kalender</button>
               <button type="button" class="profile-view-tab" data-profile-view="statistics" data-i18n="profile_tab_statistics">Metrics</button>
               <button type="button" class="profile-view-tab" data-profile-view="activities" data-i18n="profile_tab_activities">Aktivitäten</button>
             </div>
@@ -925,52 +927,17 @@
 
             <section class="result-card account-card account-stats-card profile-main-card profile-card-statistics stats-sub-card stats-sub-volume stats-sub-active" id="profile-card-stats">
               <div class="result-title-row">
-                <h4 data-i18n="profile_stats">Statistik</h4>
-                <span class="tag subtle" id="profile-points-badge">0 Pkt.</span>
+                <h4>Statistik</h4>
+                <div class="stats-period-tabs" id="stats-period-tabs">
+                  <button type="button" class="stats-period-tab" data-period="today">Heute</button>
+                  <button type="button" class="stats-period-tab" data-period="4w">4 Wochen</button>
+                  <button type="button" class="stats-period-tab is-active" data-period="12m">12 Monate</button>
+                  <button type="button" class="stats-period-tab" data-period="ytd">YTD</button>
+                  <button type="button" class="stats-period-tab" data-period="all">Gesamt</button>
+                </div>
               </div>
-              <div class="profile-period-stats">
-                <section class="profile-period-card">
-                  <div class="result-title-row compact">
-                    <h5 data-i18n="profile_period_today">Heute</h5>
-                    <span class="tag subtle" id="profile-stats-today-points">0 Pkt.</span>
-                  </div>
-                  <div class="profile-stats-grid">
-                    <div class="profile-stat"><span data-i18n="label_run_short">Run</span><strong id="profile-stat-today-run-km">0 km</strong></div>
-                    <div class="profile-stat"><span data-i18n="label_bike_short">Bike</span><strong id="profile-stat-today-bike-km">0 km</strong></div>
-                    <div class="profile-stat"><span data-i18n="label_swim_short">Swim</span><strong id="profile-stat-today-swim-km">0 km</strong></div>
-                    <div class="profile-stat"><span data-i18n="unit_races">Races</span><strong id="profile-stat-today-races">0</strong></div>
-                    <div class="profile-stat"><span data-i18n="label_props">Props</span><strong id="profile-stat-today-props">0</strong></div>
-                    <div class="profile-stat"><span data-i18n="profile_total_points">Total Points</span><strong id="profile-stat-today-points-total">0</strong></div>
-                  </div>
-                </section>
-                <section class="profile-period-card">
-                  <div class="result-title-row compact">
-                    <h5 data-i18n="profile_period_12m">Letzte 12 Monate</h5>
-                    <span class="tag subtle" id="profile-stats-year-points">0 Pkt.</span>
-                  </div>
-                  <div class="profile-stats-grid">
-                    <div class="profile-stat"><span data-i18n="label_run_short">Run</span><strong id="profile-stat-year-run-km">0 km</strong></div>
-                    <div class="profile-stat"><span data-i18n="label_bike_short">Bike</span><strong id="profile-stat-year-bike-km">0 km</strong></div>
-                    <div class="profile-stat"><span data-i18n="label_swim_short">Swim</span><strong id="profile-stat-year-swim-km">0 km</strong></div>
-                    <div class="profile-stat"><span data-i18n="unit_races">Races</span><strong id="profile-stat-year-races">0</strong></div>
-                    <div class="profile-stat"><span data-i18n="label_props">Props</span><strong id="profile-stat-year-props">0</strong></div>
-                    <div class="profile-stat"><span data-i18n="profile_total_points">Total Points</span><strong id="profile-stat-year-points-total">0</strong></div>
-                  </div>
-                </section>
-                <section class="profile-period-card">
-                  <div class="result-title-row compact">
-                    <h5 data-i18n="profile_period_all">Gesamt</h5>
-                    <span class="tag subtle" id="profile-stats-all-points">0 Pkt.</span>
-                  </div>
-                  <div class="profile-stats-grid">
-                    <div class="profile-stat"><span data-i18n="label_run_short">Run</span><strong id="profile-stat-all-run-km">0 km</strong></div>
-                    <div class="profile-stat"><span data-i18n="label_bike_short">Bike</span><strong id="profile-stat-all-bike-km">0 km</strong></div>
-                    <div class="profile-stat"><span data-i18n="label_swim_short">Swim</span><strong id="profile-stat-all-swim-km">0 km</strong></div>
-                    <div class="profile-stat"><span data-i18n="unit_races">Races</span><strong id="profile-stat-all-races">0</strong></div>
-                    <div class="profile-stat"><span data-i18n="label_props">Props</span><strong id="profile-stat-all-props">0</strong></div>
-                    <div class="profile-stat"><span data-i18n="profile_total_points">Total Points</span><strong id="profile-stat-all-points-total">0</strong></div>
-                  </div>
-                </section>
+              <div class="profile-stats-grid" id="profile-stats-grid">
+                <!-- Populated dynamically by JS based on selected period -->
               </div>
             </section>
 
@@ -1029,7 +996,13 @@
 
             <section class="result-card account-card profile-main-card profile-card-statistics stats-sub-card stats-sub-volume stats-sub-active" id="profile-card-sport-split">
               <div class="result-title-row">
-                <h4 data-i18n="stats_sport_split">Sportverteilung</h4>
+                <h4>Sportverteilung</h4>
+                <div class="stats-toggle-group" id="sport-split-range-toggle">
+                  <button type="button" class="stats-toggle-btn" data-ss-range="4w">4W</button>
+                  <button type="button" class="stats-toggle-btn is-active" data-ss-range="12m">12M</button>
+                  <button type="button" class="stats-toggle-btn" data-ss-range="ytd">YTD</button>
+                  <button type="button" class="stats-toggle-btn" data-ss-range="all">All</button>
+                </div>
               </div>
               <div class="stats-sport-split-wrap">
                 <svg id="stats-donut-svg" class="stats-donut-svg" viewBox="0 0 180 180"></svg>
@@ -1094,10 +1067,21 @@
 
             <section class="result-card account-card profile-main-card profile-card-statistics stats-sub-card stats-sub-volume stats-sub-active" id="profile-card-year-compare">
               <div class="result-title-row">
-                <h4 data-i18n="stats_year_compare">Jahresvergleich</h4>
+                <h4>Jahresvergleich</h4>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div class="stats-volume-legend" id="year-compare-legend">
+                    <span class="legend-dot" style="background:var(--color-green)"></span> Lauf
+                    <span class="legend-dot" style="background:var(--color-violet)"></span> Rad
+                    <span class="legend-dot" style="background:var(--color-sky)"></span> Swim
+                  </div>
+                  <div class="stats-toggle-group" id="year-compare-metric-toggle">
+                    <button type="button" class="stats-toggle-btn is-active" data-yc-metric="km">km</button>
+                    <button type="button" class="stats-toggle-btn" data-yc-metric="hours">h</button>
+                  </div>
+                </div>
               </div>
               <div class="stats-year-compare-wrap" id="stats-year-compare-body">
-                <p class="card-copy" data-i18n="stats_no_data">Noch keine Daten vorhanden.</p>
+                <p class="card-copy">Noch keine Daten vorhanden.</p>
               </div>
             </section>
 
@@ -2011,6 +1995,17 @@
                   <p class="empty-state-desc">Verbinde dein Geraet oder importiere Aktivitaeten.</p>
                 </div>
               </div>
+            </section>
+
+            <!-- ── Training Calendar ── -->
+            <section class="result-card account-card profile-main-card profile-card-calendar" id="profile-calendar-section" style="grid-column:1/-1;">
+              <div class="cal-header">
+                <button type="button" id="cal-prev" class="ghost icon-only" aria-label="Vorheriger Monat">&lsaquo;</button>
+                <span id="cal-month-label" class="section-label cal-month-label"></span>
+                <button type="button" id="cal-next" class="ghost icon-only" aria-label="Naechster Monat">&rsaquo;</button>
+              </div>
+              <div id="cal-grid" class="cal-grid"></div>
+              <div id="cal-day-detail" class="cal-day-detail" hidden></div>
             </section>
           </div>
           </div>
