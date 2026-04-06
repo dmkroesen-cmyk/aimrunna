@@ -8406,7 +8406,25 @@ details[open] .fa-bd-summary { color: rgba(255,255,255,0.7); margin-bottom: 10px
 .medal-card-empty .medal-card-front {
   background: transparent;
   border-style: dashed;
-  opacity: 0.4;
+  opacity: 0.35;
+}
+.medal-card-empty .medal-card-ghost {
+  position: relative;
+}
+.medal-card-empty .medal-card-ghost .medal-svg {
+  opacity: 0.3;
+  filter: grayscale(0.8) brightness(0.5) drop-shadow(0 1px 2px rgba(0,0,0,0.3));
+}
+.medal-ghost-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -60%);
+  font-size: 22px;
+  font-weight: 300;
+  color: rgba(255,255,255,0.25);
+  z-index: 1;
+  pointer-events: none;
 }
 .medal-card-empty .medal-disc {
   background: transparent !important;
@@ -8417,7 +8435,8 @@ details[open] .fa-bd-summary { color: rgba(255,255,255,0.7); margin-bottom: 10px
 }
 .medal-card-empty .medal-disc::before { display: none; }
 .medal-card-empty:hover .medal-card-inner { transform: none !important; }
-.medal-card-empty { cursor: default; }
+.medal-card-empty:hover .medal-card-front { opacity: 0.5; }
+.medal-card-empty { cursor: pointer; }
 
 /* ── Medal Modal ── */
 .medal-modal-backdrop,
