@@ -1274,8 +1274,63 @@ function generatePlanFromProfile(profile) {
   if (getCurrentAccount()) {
     savePlanToLibrary(getCurrentAccount(), latestProfile, latestPlan);
     persistStore();
+    // Suggest connecting Strava if no activities imported yet
+    const acct = getCurrentAccount();
+    const hasActivities = (acct?.activities?.length || 0) > 5;
+    const stravaConnected = acct?.integrations?.strava?.connected;
+    if (!hasActivities && !stravaConnected) {
+      _showDataConnectionSuggestion();
+    }
+  } else {
+    // Not logged in — prompt to sign up for better plan
+    _showSignUpSuggestion();
   }
   renderAccountUi();
+  if (typeof addNotification === "function") addNotification("plan_ready", "Trainingsplan erstellt", `${plan.sessions?.length || 0} Einheiten geplant`);
+}
+
+function _showDataConnectionSuggestion() {
+  // Only show once per session
+  if (_showDataConnectionSuggestion._shown) return;
+  _showDataConnectionSuggestion._shown = true;
+  const existing = document.getElementById("data-connect-suggestion");
+  if (existing) existing.remove();
+  const el = document.createElement("div");
+  el.id = "data-connect-suggestion";
+  el.style.cssText = "position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;background:linear-gradient(135deg,#1e293b,#0f172a);border:1px solid rgba(229,169,61,0.3);border-radius:14px;padding:18px 24px;max-width:480px;width:calc(100% - 32px);box-shadow:0 12px 40px rgba(0,0,0,0.5);display:flex;gap:14px;align-items:center;";
+  el.innerHTML = `
+    <div style="flex-shrink:0;width:42px;height:42px;border-radius:10px;background:rgba(229,169,61,0.12);display:flex;align-items:center;justify-content:center;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e5a93d" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    </div>
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:14px;font-weight:700;color:#f1f5f9;margin-bottom:3px;">Besserer Plan mit deinen Daten</div>
+      <div style="font-size:12px;color:#94a3b8;line-height:1.4;">Verbinde Strava oder Garmin, damit wir den Plan auf deine Trainingshistorie abstimmen.</div>
+    </div>
+    <button type="button" onclick="this.closest('#data-connect-suggestion').remove();setActiveProfileView?.('settings');setActiveProfileSettingsView?.('connections');" style="flex-shrink:0;background:#e5a93d;color:#0f172a;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;">Verbinden</button>
+    <button type="button" onclick="this.closest('#data-connect-suggestion').remove();" style="flex-shrink:0;background:transparent;border:none;color:#64748b;font-size:18px;cursor:pointer;padding:4px;">&times;</button>
+  `;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 20000);
+}
+
+function _showSignUpSuggestion() {
+  if (_showSignUpSuggestion._shown) return;
+  _showSignUpSuggestion._shown = true;
+  const existing = document.getElementById("signup-suggestion");
+  if (existing) existing.remove();
+  const el = document.createElement("div");
+  el.id = "signup-suggestion";
+  el.style.cssText = "position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;background:linear-gradient(135deg,#1e293b,#0f172a);border:1px solid rgba(59,130,246,0.3);border-radius:14px;padding:18px 24px;max-width:480px;width:calc(100% - 32px);box-shadow:0 12px 40px rgba(0,0,0,0.5);display:flex;gap:14px;align-items:center;";
+  el.innerHTML = `
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:14px;font-weight:700;color:#f1f5f9;margin-bottom:3px;">Plan speichern & verbessern</div>
+      <div style="font-size:12px;color:#94a3b8;line-height:1.4;">Erstelle ein Konto, um deinen Plan zu speichern und mit Strava-Daten zu optimieren.</div>
+    </div>
+    <button type="button" onclick="this.closest('#signup-suggestion').remove();openAccountModal?.('register');" style="flex-shrink:0;background:#3b82f6;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;">Registrieren</button>
+    <button type="button" onclick="this.closest('#signup-suggestion').remove();" style="flex-shrink:0;background:transparent;border:none;color:#64748b;font-size:18px;cursor:pointer;padding:4px;">&times;</button>
+  `;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 20000);
 }
 
 savePlanBtn?.addEventListener("click", () => {
@@ -1624,6 +1679,174 @@ function closeUserProfileViewer() {
   document.body.style.overflow = "";
 }
 window.viewUserPublicProfile = viewUserPublicProfile;
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  NOTIFICATION SYSTEM
+//  In-app notifications stored in Supabase + local cache.
+//  Types: activity_new, pr_new, props_received, comment, friend_request,
+//         medal_earned, sync_complete, plan_ready
+// ═══════════════════════════════════════════════════════════════════════════
+const _notifState = { items: [], unreadCount: 0, isOpen: false, lastFetched: 0 };
+
+const NOTIF_ICONS = {
+  activity_new: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#aaf57c" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+  pr_new: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e5a93d" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+  props_received: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>',
+  comment: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#86d7ff" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+  friend_request: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d0b2ff" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>',
+  medal_earned: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e5a93d" stroke-width="2"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>',
+  sync_complete: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>',
+  plan_ready: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+  default: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+};
+
+function addNotification(type, title, body, meta = {}) {
+  const notif = {
+    id: crypto.randomUUID?.() || `n-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    type: type || "default",
+    title: title || "",
+    body: body || "",
+    time: new Date().toISOString(),
+    read: false,
+    ...meta,
+  };
+  _notifState.items.unshift(notif);
+  // Cap at 50
+  if (_notifState.items.length > 50) _notifState.items = _notifState.items.slice(0, 50);
+  _notifState.unreadCount = _notifState.items.filter((n) => !n.read).length;
+  _persistNotifications();
+  _renderNotifBadge();
+  _renderNotifList();
+  return notif;
+}
+
+function _persistNotifications() {
+  const account = getCurrentAccount?.();
+  if (!account) return;
+  if (!account._notifications) account._notifications = [];
+  account._notifications = _notifState.items.slice(0, 50);
+  persistStore();
+}
+
+function _loadNotifications() {
+  const account = getCurrentAccount?.();
+  if (!account) return;
+  _notifState.items = Array.isArray(account._notifications) ? account._notifications : [];
+  _notifState.unreadCount = _notifState.items.filter((n) => !n.read).length;
+  _renderNotifBadge();
+}
+
+function _renderNotifBadge() {
+  const bellBtn = document.getElementById("notif-bell-btn");
+  const badge = document.getElementById("notif-bell-badge");
+  if (!bellBtn) return;
+  const account = getCurrentAccount?.();
+  bellBtn.hidden = !account;
+  if (badge) {
+    const count = _notifState.unreadCount;
+    badge.textContent = count > 9 ? "9+" : String(count);
+    badge.hidden = count === 0;
+  }
+  bellBtn.classList.toggle("has-unread", _notifState.unreadCount > 0);
+}
+
+function _renderNotifList() {
+  const list = document.getElementById("notif-list");
+  if (!list) return;
+  if (!_notifState.items.length) {
+    list.innerHTML = '<div class="notif-empty">Keine neuen Benachrichtigungen</div>';
+    return;
+  }
+  list.innerHTML = _notifState.items.slice(0, 30).map((n) => {
+    const icon = NOTIF_ICONS[n.type] || NOTIF_ICONS.default;
+    const timeAgo = _timeAgo(n.time);
+    const unread = n.read ? "" : " is-unread";
+    return `<div class="notif-item${unread}" data-notif-id="${n.id}">
+      <div class="notif-item-icon">${icon}</div>
+      <div class="notif-item-content">
+        <div class="notif-item-title">${escapeHtml(n.title)}</div>
+        ${n.body ? `<div class="notif-item-body">${escapeHtml(n.body)}</div>` : ""}
+      </div>
+      <div class="notif-item-time">${timeAgo}</div>
+    </div>`;
+  }).join("");
+}
+
+function _timeAgo(iso) {
+  const diff = (Date.now() - new Date(iso).getTime()) / 1000;
+  if (diff < 60) return "jetzt";
+  if (diff < 3600) return `${Math.floor(diff / 60)}m`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
+  if (diff < 604800) return `${Math.floor(diff / 86400)}d`;
+  return new Date(iso).toLocaleDateString("de-DE", { day: "numeric", month: "short" });
+}
+
+function _toggleNotifDropdown() {
+  const dd = document.getElementById("notif-dropdown");
+  if (!dd) return;
+  _notifState.isOpen = !_notifState.isOpen;
+  dd.classList.toggle("is-open", _notifState.isOpen);
+  if (_notifState.isOpen) _renderNotifList();
+}
+
+function _markAllNotificationsRead() {
+  _notifState.items.forEach((n) => { n.read = true; });
+  _notifState.unreadCount = 0;
+  _persistNotifications();
+  _renderNotifBadge();
+  _renderNotifList();
+}
+
+// Wire notification UI
+document.getElementById("notif-bell-btn")?.addEventListener("click", (e) => {
+  e.stopPropagation();
+  _toggleNotifDropdown();
+});
+document.getElementById("notif-mark-read-btn")?.addEventListener("click", () => _markAllNotificationsRead());
+document.addEventListener("click", (e) => {
+  if (_notifState.isOpen && !e.target.closest(".notif-dropdown") && !e.target.closest("#notif-bell-btn")) {
+    _notifState.isOpen = false;
+    document.getElementById("notif-dropdown")?.classList.remove("is-open");
+  }
+});
+// Click on individual notification marks it read
+document.getElementById("notif-list")?.addEventListener("click", (e) => {
+  const item = e.target.closest(".notif-item");
+  if (!item) return;
+  const id = item.dataset.notifId;
+  const notif = _notifState.items.find((n) => n.id === id);
+  if (notif && !notif.read) {
+    notif.read = true;
+    _notifState.unreadCount = Math.max(0, _notifState.unreadCount - 1);
+    item.classList.remove("is-unread");
+    _persistNotifications();
+    _renderNotifBadge();
+  }
+});
+
+// Expose globally for use from other modules
+window.addNotification = addNotification;
+
+// ── Global: Click on athlete name/avatar → view their public profile ──
+document.addEventListener("click", async (e) => {
+  const el = e.target.closest("[data-view-profile]");
+  if (!el) return;
+  const email = el.dataset.viewProfile;
+  if (!email) return;
+  // Don't open own profile in modal
+  const me = getCurrentAccount?.();
+  if (me && me.email === email) return;
+  // Look up user by email in Supabase
+  try {
+    if (window.sb) {
+      const { data } = await sb.from("profiles").select("id,email,display_name,profile_image").eq("email", email).maybeSingle();
+      if (data) { viewUserPublicProfile(data); return; }
+    }
+    // Fallback: local
+    const local = (appStore.accounts || []).find((a) => a.email === email);
+    if (local) viewUserPublicProfile({ id: local.id, email: local.email, display_name: resolveDisplayName(local), profile_image: local.profileImage });
+  } catch (_) {}
+});
 
 // Home feed athlete search (Supabase-backed + local fallback)
 let _homeSearchSeq = 0;
@@ -3752,6 +3975,9 @@ async function handleSupabaseAuth(session) {
   hydrateConnectedSourcesFromAccount();
   document.body.classList.add("is-authenticated");
 
+  // Load notifications for this user
+  if (typeof _loadNotifications === "function") _loadNotifications();
+
   // Auto-sync new Strava activities in background (non-blocking)
   autoSyncStravaOnLogin(account);
 }
@@ -3786,6 +4012,12 @@ async function autoSyncStravaOnLogin(account) {
     persistStore();
     // Refresh server-side stats
     if (window.sbStats) { sbStats.invalidateCache(account.id); sbStats.refreshStats().catch(() => {}); }
+    // Notify user about new activities
+    if (acts.length && typeof addNotification === "function") {
+      const latest = acts[0];
+      const title = acts.length === 1 ? (latest.name || "Neue Aktivität") : `${acts.length} neue Aktivitäten`;
+      addNotification("activity_new", title, acts.length === 1 ? `${(latest.distance / 1000).toFixed(1)} km` : "Automatisch synchronisiert");
+    }
     renderAccountUi();
     try { if (window.MedalBoard?.scanActivitiesQuiet) window.MedalBoard.scanActivitiesQuiet(); } catch (_) {}
   } catch (e) {
@@ -4023,6 +4255,11 @@ function addFriendByEmail(account, email) {
   return { ok: true, message: t("connected") };
 }
 
+// ── Safe render wrapper: isolates each render call so one crash doesn't kill the rest ──
+function _safeRender(name, fn) {
+  try { fn(); } catch (e) { console.warn(`[Render] ${name} failed:`, e); }
+}
+
 // Debounce renderAccountUi: coalesce multiple calls into one rAF
 let _renderAccountUiScheduled = false;
 function renderAccountUi() {
@@ -4066,67 +4303,68 @@ function _renderAccountUiImpl() {
   if (accountProfileBtn) accountProfileBtn.hidden = !isAuth;
   const peakplanBtn = document.getElementById("account-peakplan-btn");
   if (peakplanBtn) peakplanBtn.hidden = !isAuth;
-  renderAthletesDrawer(account);
+  _safeRender("renderAthletesDrawer", () => renderAthletesDrawer(account));
   if (accountOpenLoginBtn) accountOpenLoginBtn.hidden = true;
   if (accountOpenRegisterBtn) accountOpenRegisterBtn.hidden = true;
   if (savePlanBtn) savePlanBtn.disabled = !isAuth || !latestPlan || !latestProfile;
-  renderProfileAvatar(account);
+  _safeRender("renderProfileAvatar", () => renderProfileAvatar(account));
   populateSettingsForms(account);
 
   // Pre-populate plan form from saved input data
   populatePlanFormFromSaved(account);
 
-  renderSavedPlansList(account);
-  renderFriendsList(account);
-  renderAccountSearchResults(lastAccountSearchQuery);
-  renderProfileStats(account);
-  renderProfileFeed(account);
-  if (activeProfileView === "activities") renderActivityFeed();
-  renderCrewFeed(account);
-  renderCrewRanking(account);
-  renderHomeFeed(account);
-  renderFitnessAnalysis(account);
-  renderDashboardRings();
-  renderDashboardKpis(account);
-  renderFitnessAgeHighlight(account);
+  _safeRender("renderSavedPlansList", () => renderSavedPlansList(account));
+  _safeRender("renderFriendsList", () => renderFriendsList(account));
+  _safeRender("renderAccountSearchResults", () => renderAccountSearchResults(lastAccountSearchQuery));
+  _safeRender("renderProfileStats", () => renderProfileStats(account));
+  _safeRender("renderProfileFeed", () => renderProfileFeed(account));
+  if (activeProfileView === "activities") _safeRender("renderActivityFeed", () => renderActivityFeed());
+  _safeRender("renderCrewFeed", () => renderCrewFeed(account));
+  _safeRender("renderCrewRanking", () => renderCrewRanking(account));
+  _safeRender("renderHomeFeed", () => renderHomeFeed(account));
+  _safeRender("renderFitnessAnalysis", () => renderFitnessAnalysis(account));
+  _safeRender("renderDashboardRings", () => renderDashboardRings());
+  _safeRender("renderDashboardKpis", () => renderDashboardKpis(account));
+  _safeRender("renderFitnessAgeHighlight", () => renderFitnessAgeHighlight(account));
   // Show predictions from activity data if no plan is loaded
-  if (!latestProfile && account?.activities?.length) {
-    const analysis = analyzeActivityHistory(account.activities);
-    if (analysis?.runPbs?.length) {
-      const pbMap = {};
-      for (const pb of analysis.runPbs) pbMap[pb.distance] = pb;
-      // Format times as H:MM:SS for parseGoalTimeToSeconds
-      function secToHMS(sec) {
-        if (!sec) return "";
-        const h = Math.floor(sec / 3600);
-        const m = Math.floor((sec % 3600) / 60);
-        const s = Math.round(sec % 60);
-        return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  _safeRender("predictions", () => {
+    if (!latestProfile && account?.activities?.length) {
+      const analysis = analyzeActivityHistory(account.activities);
+      if (analysis?.runPbs?.length) {
+        const pbMap = {};
+        for (const pb of analysis.runPbs) pbMap[pb.distance] = pb;
+        function secToHMS(sec) {
+          if (!sec) return "";
+          const h = Math.floor(sec / 3600);
+          const m = Math.floor((sec % 3600) / 60);
+          const s = Math.round(sec % 60);
+          return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+        }
+        const pb1 = pbMap["10k"] || pbMap["half"] || pbMap["5k"] || analysis.runPbs[0];
+        const pb2 = pbMap["half"] || pbMap["marathon"] || (pb1 !== pbMap["10k"] ? pbMap["10k"] : null);
+        const activityProfile = {
+          discipline: "running",
+          pb1Distance: pb1?.distance || "10k",
+          pb1Time: secToHMS(pb1?.timeSec),
+          pb2Distance: pb2?.distance === "half" ? "half" : pb2?.distance || "",
+          pb2Time: pb2 ? secToHMS(pb2.timeSec) : "",
+          sex: account.settings?.account?.sex || "male",
+          age: Number(account.settings?.account?.age) || 35,
+          weeklyKm: analysis.weeklyVolume?.distanceKm || 40,
+          runsPerWeek: analysis.weeklyVolume?.sessions || 3,
+          fitnessLevel: analysis.weeklyVolume?.distanceKm > 60 ? "advanced" : analysis.weeklyVolume?.distanceKm > 30 ? "intermediate" : "starter",
+        };
+        renderProfilePredictions(activityProfile, null);
       }
-      const pb1 = pbMap["10k"] || pbMap["half"] || pbMap["5k"] || analysis.runPbs[0];
-      const pb2 = pbMap["half"] || pbMap["marathon"] || (pb1 !== pbMap["10k"] ? pbMap["10k"] : null);
-      const activityProfile = {
-        discipline: "running",
-        pb1Distance: pb1?.distance || "10k",
-        pb1Time: secToHMS(pb1?.timeSec),
-        pb2Distance: pb2?.distance === "half" ? "half" : pb2?.distance || "",
-        pb2Time: pb2 ? secToHMS(pb2.timeSec) : "",
-        sex: account.settings?.account?.sex || "male",
-        age: Number(account.settings?.account?.age) || 35,
-        weeklyKm: analysis.weeklyVolume?.distanceKm || 40,
-        runsPerWeek: analysis.weeklyVolume?.sessions || 3,
-        fitnessLevel: analysis.weeklyVolume?.distanceKm > 60 ? "advanced" : analysis.weeklyVolume?.distanceKm > 30 ? "intermediate" : "starter",
-      };
-      renderProfilePredictions(activityProfile, null);
+    } else if (latestProfile) {
+      renderProfilePredictions(latestProfile, latestPlan);
     }
-  } else if (latestProfile) {
-    renderProfilePredictions(latestProfile, latestPlan);
-  }
+  });
   setActiveAccountSection(activeAccountSection);
   syncProfileComposerVisibility();
-  renderStravaProfileStatus(account);
-  updateConnectionStateCopy();
-  maybeFetchStravaStatus(account);
+  _safeRender("renderStravaProfileStatus", () => renderStravaProfileStatus(account));
+  _safeRender("updateConnectionStateCopy", () => updateConnectionStateCopy());
+  _safeRender("maybeFetchStravaStatus", () => maybeFetchStravaStatus(account));
 }
 
 function populateSettingsForms(account) {
@@ -4481,9 +4719,17 @@ function setActiveProfileView(view) {
   if (activeProfileView === "settings") {
     setActiveProfileSettingsView(activeProfileSettingsView || "profile");
   }
-  if (activeProfileView === "overview") { maybeFetchStravaStatus(getCurrentAccount()); renderDashboardRings(); renderDashboardKpis(getCurrentAccount()); renderFitnessAgeHighlight(getCurrentAccount()); const _ov = normalizeActivities(getCurrentAccount()?.activities || []); renderLoadChart(_ov); renderConsistencyChart(_ov); }
-  if (activeProfileView === "statistics") renderStatisticsView(getCurrentAccount());
-  if (activeProfileView === "activities") renderActivityFeed();
+  if (activeProfileView === "overview") {
+    maybeFetchStravaStatus(getCurrentAccount());
+    _safeRender("renderDashboardRings", () => renderDashboardRings());
+    _safeRender("renderDashboardKpis", () => renderDashboardKpis(getCurrentAccount()));
+    _safeRender("renderFitnessAgeHighlight", () => renderFitnessAgeHighlight(getCurrentAccount()));
+    const _ov = normalizeActivities(getCurrentAccount()?.activities || []);
+    _safeRender("renderLoadChart", () => renderLoadChart(_ov));
+    _safeRender("renderConsistencyChart", () => renderConsistencyChart(_ov));
+  }
+  if (activeProfileView === "statistics") _safeRender("renderStatisticsView", () => renderStatisticsView(getCurrentAccount()));
+  if (activeProfileView === "activities") _safeRender("renderActivityFeed", () => renderActivityFeed());
   if (activeProfileView === "playbook") populatePlanFormFromSaved(getCurrentAccount());
 
   // Move plan form + results into/out of Playbook host
@@ -5095,13 +5341,13 @@ function renderCrewFeed(account) {
     .filter((a) => friendEmails.includes(a.email))
     .flatMap((a) => (a.activities || []).map((item) => ({ item, actorEmail: a.email, actorName: resolveDisplayName(a), actorAvatar: a.profileImage || null })));
   const items = mergeFeedItems(localItems, _remoteFriendsFeed || []).slice(0, 40);
-  // trigger async fetch if stale (>30s) and not yet attempted this render cycle
+  // trigger async fetch if stale (>30s) — prevent recursive loop
   if (!_remoteFriendsFeed || Date.now() - _remoteFriendsFeedFetched > 30000) {
+    _remoteFriendsFeedFetched = Date.now();
     refreshRemoteFriendsFeed().then(() => {
-      // re-render crew if still viewing
       const _acct = getCurrentAccount();
       if (_acct) renderCrewFeed(_acct);
-    });
+    }).catch(() => {});
   }
 
   if (crewFeedCountEl) crewFeedCountEl.textContent = String(items.length);
@@ -5184,10 +5430,12 @@ function renderHomeFeed(account) {
     .flatMap((a) => (a.activities || []).map((item) => ({ item, actorEmail: a.email, actorName: resolveDisplayName(a), actorAvatar: a.profileImage || null })));
   const allItems = mergeFeedItems([...ownItems, ...localFriendItems], _remoteFriendsFeed || []).slice(0, 30);
   if (!_remoteFriendsFeed || Date.now() - _remoteFriendsFeedFetched > 30000) {
+    // Prevent recursive loop: mark as fetched BEFORE the async call
+    _remoteFriendsFeedFetched = Date.now();
     refreshRemoteFriendsFeed().then(() => {
       const _acct = getCurrentAccount();
       if (_acct) renderHomeFeed(_acct);
-    });
+    }).catch(() => {});
   }
 
   if (!allItems.length) {
@@ -5304,9 +5552,9 @@ function buildActivityCardHtml({ item, actorEmail, actorName = "", actorAvatar, 
   return `
     <article class="activity-card" data-activity-id="${escapeHtml(item.id)}" data-activity-owner="${escapeHtml(actorEmail)}">
       <div class="activity-card-head">
-        <div class="activity-card-avatar ${actorAvatar ? "has-image" : ""}" style="${actorAvatar ? `background-image:url('${actorAvatar}')` : ""}">${escapeHtml(initials)}</div>
+        <div class="activity-card-avatar ${actorAvatar ? "has-image" : ""}" style="${actorAvatar ? `background-image:url('${actorAvatar}')` : ""}; cursor:pointer" data-view-profile="${escapeHtml(actorEmail)}">${escapeHtml(initials)}</div>
         <div class="activity-card-meta">
-          <span class="activity-card-name">${escapeHtml(resolvedName)}</span>
+          <span class="activity-card-name" style="cursor:pointer" data-view-profile="${escapeHtml(actorEmail)}">${escapeHtml(resolvedName)}</span>
           <span class="activity-card-date">${escapeHtml(dateStr)} · ${escapeHtml(timeStr)}</span>
         </div>
         <span class="activity-card-type">${escapeHtml(sportLabel)}</span>
@@ -5811,40 +6059,58 @@ function renderStatisticsView(account) {
   const activities = normalizeActivities(account?.activities || []);
   const rangedActivities = filterActivitiesByRange(activities, currentStatsRange);
   setStatsSubTab(currentStatsSub);
-  renderVolumeChart(activities, currentStatsRange, currentStatsMetric);
-  renderSportSplit(activities, currentStatsRange);
-  renderPaceTrend(activities, currentStatsRange);
-  // PRs and year-compare: use server-side RPCs for full history
-  renderPersonalRecords(activities); // local fallback rendered first
-  renderYearCompare(activities);     // local fallback rendered first
-  _hydrateStatsFromServer(account);  // then overwrite with full server data
-  renderMetricTimeSeries(account);
-  renderHealthMetrics(account);
-  renderIntensityDistribution(rangedActivities);
-  renderPaceDistribution(rangedActivities);
-  renderPowerDistribution(rangedActivities);
-  renderHrZones(rangedActivities);
-  renderPaceZones(rangedActivities);
-  renderPowerZones(rangedActivities);
-  renderLoadChart(activities);
-  renderConsistencyChart(activities);
-  renderFormFitnessChart(activities);
-  renderMonotonyChart(activities);
-  renderIntensityTimeline(activities);
-  renderHardRhythm(activities);
+  // Each chart is isolated — one failure won't break the rest
+  _safeRender("renderVolumeChart", () => renderVolumeChart(activities, currentStatsRange, currentStatsMetric));
+  _safeRender("renderSportSplit", () => renderSportSplit(activities, currentStatsRange));
+  _safeRender("renderPaceTrend", () => renderPaceTrend(activities, currentStatsRange));
+  _safeRender("renderPersonalRecords", () => renderPersonalRecords(activities));
+  _safeRender("renderYearCompare", () => renderYearCompare(activities));
+  _safeRender("renderMetricTimeSeries", () => renderMetricTimeSeries(account));
+  _safeRender("renderHealthMetrics", () => renderHealthMetrics(account));
+  _safeRender("renderIntensityDistribution", () => renderIntensityDistribution(rangedActivities));
+  _safeRender("renderPaceDistribution", () => renderPaceDistribution(rangedActivities));
+  _safeRender("renderPowerDistribution", () => renderPowerDistribution(rangedActivities));
+  _safeRender("renderHrZones", () => renderHrZones(rangedActivities));
+  _safeRender("renderPaceZones", () => renderPaceZones(rangedActivities));
+  _safeRender("renderPowerZones", () => renderPowerZones(rangedActivities));
+  _safeRender("renderLoadChart", () => renderLoadChart(activities));
+  _safeRender("renderConsistencyChart", () => renderConsistencyChart(activities));
+  _safeRender("renderFormFitnessChart", () => renderFormFitnessChart(activities));
+  _safeRender("renderMonotonyChart", () => renderMonotonyChart(activities));
+  _safeRender("renderIntensityTimeline", () => renderIntensityTimeline(activities));
+  _safeRender("renderHardRhythm", () => renderHardRhythm(activities));
+  // Server-side hydration: overwrites charts with full-history data (non-blocking)
+  _hydrateStatsFromServer(account);
 }
 
-// Fetch full-history stats from Supabase RPCs and re-render charts that need it
+// Fetch full-history stats from Supabase RPCs and re-render charts that need it.
+// Each RPC is fetched in parallel, each render is individually try/catch guarded.
+// If any RPC fails, the others still render. If any render fails, local fallback remains.
 async function _hydrateStatsFromServer(account) {
   if (!account?.id || !window.sbStats) return;
-  try {
-    const [yearData, prData] = await Promise.all([
-      sbStats.getYearCompare(account.id),
-      sbStats.getPersonalRecords(account.id),
-    ]);
-    if (yearData?.length) _renderYearCompareFromServer(yearData);
-    if (prData?.length) _renderPersonalRecordsFromServer(prData);
-  } catch (e) { console.warn("[Stats] server hydration failed:", e); }
+
+  const range = currentStatsRange || "12m";
+  const monthsForRange = range === "ytd" ? new Date().getMonth() + 1
+    : range === "all" ? 240 : 12;
+
+  // Fire all RPCs in parallel, each with its own catch so one failure doesn't block others
+  const [yearData, prData, volumeData, paceData, userStats] = await Promise.all([
+    sbStats.getYearCompare(account.id).catch((e) => { console.warn("[Stats] getYearCompare failed:", e?.message); return null; }),
+    sbStats.getPersonalRecords(account.id).catch((e) => { console.warn("[Stats] getPersonalRecords failed:", e?.message); return null; }),
+    sbStats.getVolumeByMonth(account.id, monthsForRange).catch((e) => { console.warn("[Stats] getVolumeByMonth failed:", e?.message); return null; }),
+    sbStats.getPaceTrend(account.id, monthsForRange).catch((e) => { console.warn("[Stats] getPaceTrend failed:", e?.message); return null; }),
+    sbStats.getUserStats(account.id).catch((e) => { console.warn("[Stats] getUserStats failed:", e?.message); return null; }),
+  ]);
+
+  // Each render is individually guarded — one crash doesn't break the rest
+  if (Array.isArray(yearData) && yearData.length) _safeRender("_renderYearCompareFromServer", () => _renderYearCompareFromServer(yearData));
+  if (Array.isArray(prData) && prData.length) _safeRender("_renderPersonalRecordsFromServer", () => _renderPersonalRecordsFromServer(prData));
+  if (Array.isArray(volumeData) && volumeData.length) {
+    _safeRender("_renderVolumeChartFromServer", () => _renderVolumeChartFromServer(volumeData, range, currentStatsMetric));
+    _safeRender("_renderSportSplitFromServer", () => _renderSportSplitFromServer(volumeData, range));
+  }
+  if (Array.isArray(paceData) && paceData.length) _safeRender("_renderPaceTrendFromServer", () => _renderPaceTrendFromServer(paceData));
+  if (userStats) _safeRender("_renderSummaryStatsFromServer", () => _renderSummaryStatsFromServer(userStats, range, volumeData));
 }
 
 function _renderYearCompareFromServer(data) {
@@ -5877,7 +6143,7 @@ function _renderYearCompareFromServer(data) {
 }
 
 function _renderPersonalRecordsFromServer(data) {
-  const host = document.getElementById("stats-prs-body");
+  const host = document.getElementById("stats-records-table");
   if (!host) return;
   const formatTime = (sec) => {
     sec = Number(sec);
@@ -5886,20 +6152,257 @@ function _renderPersonalRecordsFromServer(data) {
     const s = sec % 60;
     return h > 0 ? `${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}` : `${m}:${String(s).padStart(2,"0")}`;
   };
-  host.innerHTML = data.map((pr) => {
-    const pace = Number(pr.pace_sec_per_km || 0);
-    const pMin = Math.floor(pace / 60);
-    const pS = Math.round(pace % 60);
-    const d = pr.activity_date ? new Date(pr.activity_date) : null;
-    const dateStr = d ? d.toLocaleDateString("de-DE", { day: "numeric", month: "short", year: "numeric" }) : "";
-    return `
-      <div class="pr-row">
-        <span class="pr-dist">${pr.distance_label}</span>
-        <span class="pr-time">${formatTime(pr.best_time_sec)}</span>
-        <span class="pr-pace">${pMin}:${String(pS).padStart(2,"0")}/km</span>
-        <span class="pr-date">${dateStr}</span>
-      </div>`;
-  }).join("");
+  host.innerHTML = `
+    <div class="records-header"><span>Distanz</span><span>Zeit</span><span>Pace</span><span>Datum</span></div>
+    ${data.map((pr) => {
+      const pace = Number(pr.pace_sec_per_km || 0);
+      const pMin = Math.floor(pace / 60);
+      const pS = Math.round(pace % 60);
+      const d = pr.activity_date ? new Date(pr.activity_date) : null;
+      const dateStr = d ? d.toLocaleDateString("de-DE", { day: "numeric", month: "short", year: "numeric" }) : "";
+      return `<div class="records-row" data-pr-activity-id="${pr.activity_id || ""}"><span>${pr.distance_label}</span><span>${formatTime(pr.best_time_sec)}</span><span>${pMin}:${String(pS).padStart(2,"0")}/km</span><span>${dateStr}</span></div>`;
+    }).join("")}`;
+}
+
+// ── Server-side Volume Chart ──
+function _renderVolumeChartFromServer(data, range, metric) {
+  const svg = document.getElementById("stats-volume-svg");
+  if (!svg) return;
+  const useHours = metric === "hours";
+
+  // data = [{month_key, month_label, run_km, bike_km, swim_km, run_sec, bike_sec, swim_sec}, ...]
+  let allMonths = data.map((d) => ({
+    key: d.month_key,
+    label: d.month_label,
+    run: useHours ? Number(d.run_sec || 0) / 3600 : Number(d.run_km || 0),
+    bike: useHours ? Number(d.bike_sec || 0) / 3600 : Number(d.bike_km || 0),
+    swim: useHours ? Number(d.swim_sec || 0) / 3600 : Number(d.swim_km || 0),
+  }));
+
+  // For "all" range with >24 months, bucket into quarters
+  if (range === "all" && allMonths.length > 24) {
+    const quarters = {};
+    allMonths.forEach((m) => {
+      const [y, mo] = m.key.split("-").map(Number);
+      const qk = `${y}-Q${Math.floor((mo - 1) / 3) + 1}`;
+      if (!quarters[qk]) quarters[qk] = { key: qk, label: `Q${Math.floor((mo - 1) / 3) + 1} ${String(y).slice(2)}`, run: 0, bike: 0, swim: 0 };
+      quarters[qk].run += m.run;
+      quarters[qk].bike += m.bike;
+      quarters[qk].swim += m.swim;
+    });
+    allMonths = Object.values(quarters).sort((a, b) => a.key.localeCompare(b.key));
+  }
+
+  if (!allMonths.length) return;
+
+  const rawMax = Math.max(0, ...allMonths.map((m) => m.run + m.bike + m.swim));
+  const maxKm = rawMax > 0 ? rawMax : (useHours ? 20 : 100);
+  const unit = useHours ? "h" : "km";
+  const W = 720, H = 200, padL = 40, padR = 10, padT = 10, padB = 28;
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
+  const barW = Math.min(40, (chartW / allMonths.length) * 0.7);
+  const gap = (chartW - barW * allMonths.length) / (allMonths.length + 1);
+
+  let svgContent = "";
+  for (let i = 0; i <= 4; i++) {
+    const y = padT + chartH - (chartH / 4) * i;
+    const val = Math.round((maxKm / 4) * i);
+    svgContent += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>`;
+    svgContent += `<text x="${padL - 6}" y="${y + 3}" fill="rgba(255,255,255,0.3)" font-size="9" text-anchor="end" font-family="Inter,sans-serif">${val}</text>`;
+  }
+
+  allMonths.forEach((m, i) => {
+    const x = padL + gap + i * (barW + gap);
+    const total = m.run + m.bike + m.swim;
+    const runH = (m.run / maxKm) * chartH;
+    const bikeH = (m.bike / maxKm) * chartH;
+    const swimH = (m.swim / maxKm) * chartH;
+    let y = padT + chartH;
+    if (swimH > 0) { y -= swimH; svgContent += `<rect x="${x}" y="${y}" width="${barW}" height="${swimH}" rx="2" fill="#86d7ff" opacity="0.7"/>`; }
+    if (bikeH > 0) { y -= bikeH; svgContent += `<rect x="${x}" y="${y}" width="${barW}" height="${bikeH}" rx="2" fill="#d0b2ff" opacity="0.7"/>`; }
+    if (runH > 0) { y -= runH; svgContent += `<rect x="${x}" y="${y}" width="${barW}" height="${runH}" rx="2" fill="#aaf57c" opacity="0.7"/>`; }
+    svgContent += `<text x="${x + barW / 2}" y="${H - 6}" fill="rgba(255,255,255,0.4)" font-size="9" text-anchor="middle" font-family="Inter,sans-serif">${m.label}</text>`;
+    if (total > 0) svgContent += `<text x="${x + barW / 2}" y="${y - 4}" fill="rgba(255,255,255,0.5)" font-size="8" text-anchor="middle" font-family="Inter,sans-serif">${Math.round(total)}</text>`;
+  });
+
+  svg.innerHTML = svgContent;
+}
+
+// ── Server-side Sport Split (donut) ──
+function _renderSportSplitFromServer(volumeData, range) {
+  const svg = document.getElementById("stats-donut-svg");
+  const body = document.getElementById("stats-sport-breakdown");
+  if (!svg || !body) return;
+
+  // Sum from volume data (already range-filtered by RPC months param)
+  let run = 0, bike = 0, swim = 0;
+  volumeData.forEach((d) => {
+    run += Number(d.run_km || 0);
+    bike += Number(d.bike_km || 0);
+    swim += Number(d.swim_km || 0);
+  });
+  const total = run + bike + swim;
+
+  const sports = [
+    { name: t("label_run_short"), km: run, color: "#aaf57c" },
+    { name: t("label_bike_short"), km: bike, color: "#d0b2ff" },
+    { name: t("label_swim_short"), km: swim, color: "#86d7ff" },
+  ].filter((s) => s.km > 0);
+
+  const cx = 90, cy = 90, r = 70, strokeW = 14;
+  const circumference = 2 * Math.PI * r;
+  let svgContent = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="${strokeW}"/>`;
+
+  if (total > 0) {
+    let offset = 0;
+    sports.forEach((s) => {
+      const pct = s.km / total;
+      const dashLen = pct * circumference;
+      svgContent += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${s.color}" stroke-width="${strokeW}" stroke-dasharray="${dashLen} ${circumference - dashLen}" stroke-dashoffset="${-offset}" transform="rotate(-90 ${cx} ${cy})" stroke-linecap="round" opacity="0.8"/>`;
+      offset += dashLen;
+    });
+    svgContent += `<text x="${cx}" y="${cy - 6}" text-anchor="middle" fill="#f3f4f6" font-size="18" font-weight="700" font-family="Inter,sans-serif">${Math.round(total)}</text>`;
+    svgContent += `<text x="${cx}" y="${cy + 10}" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="10" font-family="Inter,sans-serif">km</text>`;
+  } else {
+    svgContent += `<text x="${cx}" y="${cy + 4}" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="12" font-family="Inter,sans-serif">–</text>`;
+  }
+  svg.innerHTML = svgContent;
+
+  body.innerHTML = sports.map((s) => {
+    const pct = total > 0 ? ((s.km / total) * 100).toFixed(0) : 0;
+    return `<div class="sport-break-row"><span class="legend-dot" style="background:${s.color}"></span><span class="sport-break-name">${s.name}</span><span class="sport-break-km">${s.km.toFixed(1)} km</span><span class="sport-break-pct">${pct}%</span></div>`;
+  }).join("") || `<p class="card-copy">${t("stats_no_data")}</p>`;
+}
+
+// ── Server-side Pace Trend ──
+function _renderPaceTrendFromServer(data) {
+  const svg = document.getElementById("stats-pace-svg");
+  if (!svg) return;
+
+  // data = [{week_start, avg_pace_sec, total_km, run_count}, ...]
+  const weeks = data
+    .filter((d) => Number(d.avg_pace_sec) > 0)
+    .map((d) => ({
+      date: new Date(d.week_start),
+      pace: Number(d.avg_pace_sec) / 60, // sec/km → min/km
+      km: Number(d.total_km || 0),
+      count: Number(d.run_count || 0),
+    }))
+    .sort((a, b) => a.date - b.date);
+
+  const W = 720, H = 180, padL = 44, padR = 10, padT = 14, padB = 28;
+
+  if (weeks.length < 2) {
+    svg.innerHTML = `<text x="${W / 2}" y="${H / 2}" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="12" font-family="Inter,sans-serif">${t("stats_need_more_data")}</text>`;
+    setText(document.getElementById("stats-current-pace"), "–");
+    setText(document.getElementById("stats-best-pace"), "–");
+    setText(document.getElementById("stats-pace-delta"), "–");
+    return;
+  }
+
+  const paces = weeks.map((w) => w.pace);
+  const minPace = Math.max(0, Math.min(...paces) - 0.5);
+  const maxPace = Math.max(...paces) + 0.5;
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
+
+  let svgContent = "";
+  const paceSteps = 4;
+  for (let i = 0; i <= paceSteps; i++) {
+    const y = padT + (chartH / paceSteps) * i;
+    const val = (minPace + ((maxPace - minPace) / paceSteps) * (paceSteps - i)).toFixed(1);
+    svgContent += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/>`;
+    svgContent += `<text x="${padL - 6}" y="${y + 3}" fill="rgba(255,255,255,0.3)" font-size="9" text-anchor="end" font-family="Inter,sans-serif">${val}</text>`;
+  }
+
+  const pts = weeks.map((w, i) => {
+    const x = padL + (i / (weeks.length - 1)) * chartW;
+    const y = padT + chartH - ((w.pace - minPace) / (maxPace - minPace)) * chartH;
+    return { x, y, pace: w.pace };
+  });
+
+  // Trend line (since data is already weekly averages, use moving avg of 4 weeks)
+  const maWindow = Math.min(4, Math.floor(weeks.length / 2));
+  if (maWindow >= 2) {
+    const maPoints = [];
+    for (let i = 0; i < pts.length; i++) {
+      const start = Math.max(0, i - Math.floor(maWindow / 2));
+      const end = Math.min(pts.length, i + Math.ceil(maWindow / 2));
+      const avg = pts.slice(start, end).reduce((s, p) => s + p.pace, 0) / (end - start);
+      const y = padT + chartH - ((avg - minPace) / (maxPace - minPace)) * chartH;
+      maPoints.push({ x: pts[i].x, y });
+    }
+    const pathD = maPoints.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+    svgContent += `<path d="${pathD}" fill="none" stroke="#aaf57c" stroke-width="2" opacity="0.6"/>`;
+  }
+
+  pts.forEach((p) => {
+    svgContent += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" fill="#aaf57c" opacity="0.5"/>`;
+  });
+
+  svg.innerHTML = svgContent;
+
+  // Summary
+  const formatPace = (p) => { const m = Math.floor(p); const s = Math.round((p - m) * 60); return `${m}:${String(s).padStart(2, "0")}`; };
+  const recent = paces.slice(-4);
+  const currentPace = recent.reduce((s, p) => s + p, 0) / recent.length;
+  const bestPace = Math.min(...paces);
+  const oldPace = paces.slice(0, Math.max(1, Math.ceil(paces.length / 3))).reduce((s, p) => s + p, 0) / Math.max(1, Math.ceil(paces.length / 3));
+  const deltaSec = Math.round((oldPace - currentPace) * 60);
+
+  setText(document.getElementById("stats-current-pace"), `${formatPace(currentPace)} /km`);
+  setText(document.getElementById("stats-best-pace"), `${formatPace(bestPace)} /km`);
+  const deltaEl = document.getElementById("stats-pace-delta");
+  if (deltaEl) {
+    const sign = deltaSec > 0 ? "+" : "";
+    deltaEl.textContent = `${sign}${deltaSec}s`;
+    deltaEl.style.color = deltaSec > 0 ? "#aaf57c" : deltaSec < 0 ? "#ff9c6e" : "inherit";
+  }
+}
+
+// ── Server-side Summary Stats (computed from volume data + materialized view) ──
+function _renderSummaryStatsFromServer(stats, range, volumeData) {
+  if (!stats) return;
+
+  // For range-specific totals, prefer volume data (already range-filtered)
+  let displayKm, displayCount, displayHours;
+  if (range === "ytd") {
+    displayKm = Number(stats.km_ytd || 0);
+    displayCount = Number(stats.activities_ytd || 0);
+  } else if (range === "12m") {
+    displayKm = Number(stats.km_12m || 0);
+    displayCount = Number(stats.activities_12m || 0);
+  } else {
+    displayKm = Number(stats.total_km || 0);
+    displayCount = Number(stats.total_activities || 0);
+  }
+
+  // Compute hours from volume data if available (range-accurate)
+  if (volumeData?.length) {
+    const totalSec = volumeData.reduce((s, d) => s + Number(d.run_sec || 0) + Number(d.bike_sec || 0) + Number(d.swim_sec || 0), 0);
+    displayHours = totalSec / 3600;
+  } else {
+    displayHours = Number(stats.total_seconds || 0) / 3600;
+  }
+
+  const totalElevation = Number(stats.total_elevation_m || 0);
+  const useHours = currentStatsMetric === "hours";
+  const weeks = range === "12m" ? 52 : range === "ytd"
+    ? Math.max(1, Math.ceil((Date.now() - new Date(new Date().getFullYear(), 0, 1).getTime()) / 604800000))
+    : Math.max(1, 52);
+
+  if (useHours) {
+    setText(document.getElementById("stats-total-km"), `${displayHours.toFixed(1)} h`);
+    const avgWeeklyH = displayHours / weeks;
+    setText(document.getElementById("stats-avg-weekly-km"), `${avgWeeklyH.toFixed(1)} h`);
+  } else {
+    setText(document.getElementById("stats-total-km"), `${displayKm.toFixed(1)} km`);
+    const avgWeekly = displayKm / weeks;
+    setText(document.getElementById("stats-avg-weekly-km"), `${avgWeekly.toFixed(1)} km`);
+  }
+  setText(document.getElementById("stats-activity-count"), String(displayCount));
+  setText(document.getElementById("stats-elevation-gain"), `${Math.round(totalElevation)} m`);
 }
 
 function filterActivitiesByRange(activities, range) {
@@ -7443,6 +7946,7 @@ async function importStravaHistory() {
     renderAccountUi();
     renderStravaProfileStatus(account);
     setText(stravaProfileFetchStatusEl, `Import fertig: ${totalImported} Aktivitäten importiert.`);
+    if (typeof addNotification === "function") addNotification("sync_complete", "Strava Sync abgeschlossen", `${totalImported} Aktivitäten importiert.`);
     // Refresh server-side stats + invalidate client cache
     if (window.sbStats) {
       sbStats.invalidateCache(account.id);
@@ -19785,17 +20289,17 @@ document.addEventListener("click", (e) => {
       // Use server-side stats if available (fast, no bulk data transfer)
       if (window.sbStats) {
         const [stats, prs] = await Promise.all([
-          window.sbStats.getUserStats(acc.id),
-          window.sbStats.getPersonalRecords(acc.id),
+          window.sbStats.getUserStats(acc.id).catch(() => null),
+          window.sbStats.getPersonalRecords(acc.id).catch(() => null),
         ]);
         if (stats) {
           _ppServerStats = stats;
-          renderHeroStats();
-          renderTotals();
+          try { renderHeroStats(); } catch (e) { console.warn("[PP] renderHeroStats:", e); }
+          try { renderTotals(); } catch (e) { console.warn("[PP] renderTotals:", e); }
         }
-        if (prs?.length) {
+        if (Array.isArray(prs) && prs.length) {
           _ppServerPRs = prs;
-          renderPRVault();
+          try { renderPRVault(); } catch (e) { console.warn("[PP] renderPRVault:", e); }
         }
         return;
       }
@@ -19803,9 +20307,9 @@ document.addEventListener("click", (e) => {
       const remote = await window.sbDb.getActivities(acc.id, 500);
       if (remote.length) {
         _ppActivitiesCache = _normalizeActivities(remote);
-        renderHeroStats();
-        renderPRVault();
-        renderTotals();
+        try { renderHeroStats(); } catch (e) { console.warn("[PP] renderHeroStats:", e); }
+        try { renderPRVault(); } catch (e) { console.warn("[PP] renderPRVault:", e); }
+        try { renderTotals(); } catch (e) { console.warn("[PP] renderTotals:", e); }
       }
     } catch (e) { console.warn("[PublicProfile] hydrate:", e); }
   }
