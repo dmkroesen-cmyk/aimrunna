@@ -9572,7 +9572,7 @@ details[open] .fa-bd-summary { color: rgba(255,255,255,0.7); margin-bottom: 10px
   pointer-events: none;
 }
 .pp-pr-flip-card.is-flipped .pp-pr-flip-front { visibility: hidden; }
-.pp-pr-flip-card.is-flipped .pp-pr-flip-back { position: relative; pointer-events: auto; }
+.pp-pr-flip-card.is-flipped .pp-pr-flip-back { pointer-events: auto; }
 
 /* Back face header */
 .pp-pr-back-head {
@@ -9597,7 +9597,7 @@ details[open] .fa-bd-summary { color: rgba(255,255,255,0.7); margin-bottom: 10px
 .pp-pr-back-close:hover { color: var(--text); border-color: var(--border-default); }
 
 /* Alternative rows */
-.pp-pr-alt-list { display: flex; flex-direction: column; gap: 4px; }
+.pp-pr-alt-list { display: flex; flex-direction: column; gap: 4px; flex: 1; min-height: 0; overflow-y: auto; }
 .pp-pr-alt-row {
   display: flex;
   align-items: center;
@@ -10769,7 +10769,7 @@ details[open] .fa-bd-summary { color: rgba(255,255,255,0.7); margin-bottom: 10px
   .pp-hero-stats { grid-template-columns: 1fr; gap: 10px; }
   .pp-hero-big { font-size: 32px; }
   .pp-pr-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
-  .pp-pr-card { aspect-ratio: auto; padding: 10px 8px; }
+  .pp-pr-card { aspect-ratio: auto; min-height: 100px; padding: 10px 8px; }
   .pp-pr-time { font-size: 16px; }
   .pp-totals-val { font-size: 22px; }
 

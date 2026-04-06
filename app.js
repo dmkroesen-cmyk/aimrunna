@@ -21710,7 +21710,7 @@ document.addEventListener("click", (e) => {
     const acts = activitiesList().filter((a) => sportOf(a) === "run" && a.moving_time_sec > 0 && a.distance_km > 0);
     return acts
       .filter((a) => Math.abs(a.distance_km - dist.km) <= dist.tol)
-      .sort((a, b) => a.moving_time_sec - b.moving_time_sec) // fastest first
+      .sort((a, b) => Number(a.moving_time_sec) - Number(b.moving_time_sec)) // fastest first
       .slice(0, 10); // top 10
   }
 
