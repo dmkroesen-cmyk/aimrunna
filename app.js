@@ -3532,17 +3532,18 @@ function loadStore() {
 }
 
 // ── Debounced persist: localStorage write batched to max 1× per 2s ──
-const _PERSIST_SKIP_KEYS = new Set(["polyline", "metrics", "imageDataUrl"]);
-const _PERSIST_MAX_ACTIVITIES = 50; // minimal localStorage — full data in Supabase
+// Keys to strip from localStorage entirely — activities live in Supabase,
+// no reason to duplicate them in the browser's 5 MB quota.
+const _PERSIST_SKIP_KEYS = new Set([
+  "polyline", "metrics", "imageDataUrl",  // heavy fields
+  "activities",                            // 0 activities in localStorage
+]);
 
 function _flushPersistStore() {
   if (!appStore) return;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(appStore, function (key, value) {
       if (_PERSIST_SKIP_KEYS.has(key)) return undefined;
-      if (key === "activities" && Array.isArray(value) && value.length > _PERSIST_MAX_ACTIVITIES) {
-        return value.slice(0, _PERSIST_MAX_ACTIVITIES);
-      }
       return value;
     }));
   } catch (e) {
@@ -7412,7 +7413,7 @@ function mergeStravaActivitiesIntoLocalAccount(account, activities) {
   if (!mapped.length) return;
   account.activities = [...mapped, ...account.activities]
     .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
-    .slice(0, 300); // keep recent in browser; full history lives in Supabase
+    .slice(0, 200); // feed-only in-memory cache; full history in Supabase, 0 in localStorage
   persistStore();
 }
 
