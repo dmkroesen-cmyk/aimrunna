@@ -20153,9 +20153,13 @@ document.addEventListener("click", (e) => {
     },
     async scanActivities() { await runScan(); },
     async scanActivitiesQuiet(activities) {
-      // Non-intrusive version called after Strava import
-      // Fetch full history from Supabase for thorough detection
+      // Auto-detect medals after Strava import/sync.
+      // High-confidence matches (score >= 70) are auto-saved.
+      // Lower-confidence matches are shown in the detect modal for user review.
+      const userId = currentUserId();
+      if (!userId) return;
       if (!state.catalog.length) await loadCatalog();
+      if (!state.medals.length) await loadMedals();
       let list = activities || [];
       if (!list.length) {
         const acc = (typeof getCurrentAccount === "function") ? getCurrentAccount() : null;
@@ -20168,12 +20172,58 @@ document.addEventListener("click", (e) => {
         }
       }
       const candidates = detectAllUnmatched(list);
-      if (candidates.length) {
-        // Show a gentle toast-like notification via existing status system
-        console.log(`[MedalBoard] ${candidates.length} potential medal(s) detected`);
-        // Auto-open detect modal if user is on profile overview
+      if (!candidates.length) return;
+
+      const AUTO_THRESHOLD = 70;
+      const autoSave = candidates.filter((c) => c.score >= AUTO_THRESHOLD);
+      const needReview = candidates.filter((c) => c.score < AUTO_THRESHOLD);
+
+      // Auto-save high-confidence medals
+      let savedCount = 0;
+      for (const c of autoSave) {
+        try {
+          const finishDate = String(c.activity.created_at || "").slice(0, 10);
+          if (!finishDate) continue;
+          await window.sbDb.addMedal(userId, {
+            race_catalog_id: c.race.id || null,
+            series: c.race.series,
+            event_code: c.race.event_code,
+            event_name: c.race.event_name,
+            event_city: c.race.city || null,
+            event_year: c.year,
+            finish_date: finishDate,
+            finish_time_sec: c.activity.moving_time_sec || null,
+            activity_id: c.activity.id || null,
+            detection_score: c.score,
+            detection_confirmed: false, // auto-detected, user can review later
+          });
+          savedCount++;
+          console.log(`[MedalBoard] Auto-saved: ${c.race.event_name} (${c.year}, score=${c.score})`);
+        } catch (e) {
+          // Likely duplicate (unique constraint) — skip silently
+          if (!String(e?.message || "").includes("duplicate")) {
+            console.warn("[MedalBoard] Auto-save failed:", c.race.event_name, e?.message);
+          }
+        }
+      }
+
+      if (savedCount > 0) {
+        await loadMedals();
+        await recomputeBadges();
+        render();
+        if (typeof addNotification === "function") {
+          addNotification("medal_earned",
+            savedCount === 1 ? `Medaille erkannt: ${autoSave[0].race.event_name}` : `${savedCount} Medaillen erkannt`,
+            savedCount === 1 ? `${autoSave[0].year} · Score ${autoSave[0].score}%` : "Automatisch aus deinen Aktivitäten erkannt"
+          );
+        }
+      }
+
+      // Show modal for lower-confidence matches
+      if (needReview.length) {
+        console.log(`[MedalBoard] ${needReview.length} medal(s) need review (score < ${AUTO_THRESHOLD})`);
         if (document.body.classList.contains("profile-view-overview") || document.body.classList.contains("app-view-home")) {
-          openDetectModal(candidates);
+          openDetectModal(needReview);
         }
       }
     },
