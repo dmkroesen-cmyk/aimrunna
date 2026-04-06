@@ -3533,7 +3533,7 @@ function loadStore() {
 
 // ── Debounced persist: localStorage write batched to max 1× per 2s ──
 const _PERSIST_SKIP_KEYS = new Set(["polyline", "metrics", "imageDataUrl"]);
-const _PERSIST_MAX_ACTIVITIES = 200;
+const _PERSIST_MAX_ACTIVITIES = 50; // minimal localStorage — full data in Supabase
 
 function _flushPersistStore() {
   if (!appStore) return;
@@ -3711,8 +3711,8 @@ async function handleSupabaseAuth(session) {
         (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
       );
     }
-    // Load recent activities from Supabase (enough for feed + stats)
-    const activities = await sbDb.getActivities(user.id, 500);
+    // Load recent activities for feed only (stats come from server-side views)
+    const activities = await sbDb.getActivities(user.id, 200);
     if (activities.length) {
       account.activities = activities.map((a) => {
         const m = a.metrics || {};
@@ -3783,6 +3783,8 @@ async function autoSyncStravaOnLogin(account) {
     mergeStravaActivitiesIntoLocalAccount(account, acts);
     account.integrations.strava.lastImportAt = new Date().toISOString();
     persistStore();
+    // Refresh server-side stats
+    if (window.sbStats) { sbStats.invalidateCache(account.id); sbStats.refreshStats().catch(() => {}); }
     renderAccountUi();
     try { if (window.MedalBoard?.scanActivitiesQuiet) window.MedalBoard.scanActivitiesQuiet(); } catch (_) {}
   } catch (e) {
@@ -7378,6 +7380,11 @@ async function importStravaHistory() {
     renderAccountUi();
     renderStravaProfileStatus(account);
     setText(stravaProfileFetchStatusEl, `Import fertig: ${totalImported} Aktivitäten importiert.`);
+    // Refresh server-side stats + invalidate client cache
+    if (window.sbStats) {
+      sbStats.invalidateCache(account.id);
+      sbStats.refreshStats().catch(() => {});
+    }
     maybeAdaptPlan();
     try {
       if (window.MedalBoard?.refresh) {
@@ -19679,6 +19686,9 @@ document.addEventListener("click", (e) => {
   // Cached full activities list from Supabase (fetched once per session)
   let _ppActivitiesCache = null;
   let _ppActivitiesCacheUserId = null;
+  // Server-side stats (from materialized view + RPCs)
+  let _ppServerStats = null;
+  let _ppServerPRs = null;
 
   function activitiesList() {
     // Return cached Supabase list if available
@@ -19702,22 +19712,39 @@ document.addEventListener("click", (e) => {
     }));
   }
 
-  /** Fetch full history from Supabase (once) and re-render stats/PRs */
+  /** Hydrate profile stats from server-side materialized view + RPC (no bulk activity fetch) */
   async function hydrateFullActivities() {
     const acc = account();
-    if (!acc?.id || !window.sbDb?.getActivities) return;
+    if (!acc?.id) return;
     if (_ppActivitiesCacheUserId === acc.id && _ppActivitiesCache) return;
+    _ppActivitiesCacheUserId = acc.id; // prevent duplicate calls
     try {
-      const remote = await window.sbDb.getActivities(acc.id, 2000);
+      // Use server-side stats if available (fast, no bulk data transfer)
+      if (window.sbStats) {
+        const [stats, prs] = await Promise.all([
+          window.sbStats.getUserStats(acc.id),
+          window.sbStats.getPersonalRecords(acc.id),
+        ]);
+        if (stats) {
+          _ppServerStats = stats;
+          renderHeroStats();
+          renderTotals();
+        }
+        if (prs?.length) {
+          _ppServerPRs = prs;
+          renderPRVault();
+        }
+        return;
+      }
+      // Fallback: fetch activities directly (legacy path)
+      const remote = await window.sbDb.getActivities(acc.id, 500);
       if (remote.length) {
         _ppActivitiesCache = _normalizeActivities(remote);
-        _ppActivitiesCacheUserId = acc.id;
-        // Re-render stats with complete data
         renderHeroStats();
         renderPRVault();
         renderTotals();
       }
-    } catch (e) { console.warn("[PublicProfile] hydrate full activities:", e); }
+    } catch (e) { console.warn("[PublicProfile] hydrate:", e); }
   }
 
   function escapeHtml(str) {
@@ -19871,6 +19898,24 @@ document.addEventListener("click", (e) => {
 
   // ── Hero Stats: Big Number + Dot Matrix + Sport Bars + TSB ──
   function renderHeroStats() {
+    // Use server-side stats if available (no client-side iteration)
+    if (_ppServerStats) {
+      const countEl = document.getElementById("pp-hero-count-value");
+      if (countEl) countEl.textContent = String(_ppServerStats.activities_4w || 0);
+      // Dot matrix + sport bars still need activity-level data for placement
+      const acts = activitiesList();
+      const now = new Date();
+      const fourWeeksAgo = new Date(now.getTime() - 28 * 86400000);
+      const recent = acts.filter((a) => {
+        const d = new Date(a.created_at);
+        return !isNaN(d) && d >= fourWeeksAgo && d <= now;
+      });
+      renderDotMatrix(recent, now);
+      renderSportBarsFromStats(_ppServerStats);
+      renderFormScore(acts);
+      return;
+    }
+    // Fallback: client-side computation
     const acts = activitiesList();
     const now = new Date();
     const fourWeeksAgo = new Date(now.getTime() - 28 * 86400000);
@@ -19879,17 +19924,10 @@ document.addEventListener("click", (e) => {
       return !isNaN(d) && d >= fourWeeksAgo && d <= now;
     });
 
-    // Big Number
     const countEl = document.getElementById("pp-hero-count-value");
     if (countEl) countEl.textContent = String(recent.length);
-
-    // Dot Matrix (4 weeks × 7 days)
     renderDotMatrix(recent, now);
-
-    // Sport Bars
     renderSportBars(recent);
-
-    // Form Score (TSB - simple heuristic: load balance)
     renderFormScore(acts);
   }
 
@@ -19948,6 +19986,31 @@ document.addEventListener("click", (e) => {
         }
         host.appendChild(dot);
       }
+    }
+  }
+
+  function renderSportBarsFromStats(stats) {
+    const host = document.getElementById("pp-sport-bars");
+    if (!host || !stats) return;
+    host.innerHTML = "";
+    const items = [
+      { sport: "run", km: Number(stats.run_km_4w || 0) },
+      { sport: "bike", km: Number(stats.bike_km_4w || 0) },
+      { sport: "swim", km: Number(stats.swim_km_4w || 0) },
+    ].filter((i) => i.km > 0 || i.sport === "run");
+    const maxKm = Math.max(...items.map((i) => i.km), 1);
+    for (const { sport, km } of items) {
+      const meta = SPORT_META[sport];
+      const pct = (km / maxKm) * 100;
+      const label = km >= 10 ? `${Math.round(km)} km` : `${km.toFixed(1)} km`;
+      const row = document.createElement("div");
+      row.className = "pp-sport-row";
+      row.innerHTML = `
+        <span class="pp-sport-icon">${sportSvg(sport)}</span>
+        <span class="pp-sport-bar-track"><span class="pp-sport-bar-fill" style="width:${pct.toFixed(1)}%; background:${meta.color};"></span></span>
+        <span class="pp-sport-time">${escapeHtml(label)}</span>
+      `;
+      host.appendChild(row);
     }
   }
 
@@ -20093,11 +20156,18 @@ document.addEventListener("click", (e) => {
   function renderTotals() {
     const host = document.getElementById("pp-totals-grid");
     if (!host) return;
-    const acts = activitiesList();
-    const totalKm = acts.reduce((s, a) => s + (a.distance_km || 0), 0);
-    const totalSec = acts.reduce((s, a) => s + (a.moving_time_sec || 0), 0);
-    const totalHours = totalSec / 3600;
-    const count = acts.length;
+    let totalKm, totalHours, count;
+    if (_ppServerStats) {
+      totalKm = Number(_ppServerStats.total_km || 0);
+      totalHours = Number(_ppServerStats.total_seconds || 0) / 3600;
+      count = Number(_ppServerStats.total_activities || 0);
+    } else {
+      const acts = activitiesList();
+      totalKm = acts.reduce((s, a) => s + (a.distance_km || 0), 0);
+      const totalSec = acts.reduce((s, a) => s + (a.moving_time_sec || 0), 0);
+      totalHours = totalSec / 3600;
+      count = acts.length;
+    }
     const items = [
       { value: totalKm.toFixed(0), label: "Kilometer", unit: "km" },
       { value: totalHours.toFixed(0), label: "Stunden", unit: "h" },

@@ -517,7 +517,108 @@ const sbDb = {
   },
 };
 
+// ── In-memory cache with TTL (stale-while-revalidate) ──
+const _rpcCache = new Map();
+
+function cachedRpc(key, ttlMs, fetchFn) {
+  const entry = _rpcCache.get(key);
+  if (entry && Date.now() - entry.ts < ttlMs) return Promise.resolve(entry.data);
+  const promise = fetchFn().then((data) => {
+    _rpcCache.set(key, { data, ts: Date.now() });
+    if (_rpcCache.size > 100) {
+      const oldest = _rpcCache.keys().next().value;
+      _rpcCache.delete(oldest);
+    }
+    return data;
+  });
+  // Return stale data immediately if available, refresh in background
+  if (entry) { promise.catch(() => {}); return Promise.resolve(entry.data); }
+  return promise;
+}
+
+function invalidateUserCache(userId) {
+  for (const key of _rpcCache.keys()) {
+    if (key.includes(userId)) _rpcCache.delete(key);
+  }
+}
+
+// ── Server-side stats API ──
+const sbStats = {
+  /** User's aggregated stats from materialized view */
+  async getUserStats(userId) {
+    return cachedRpc(`stats:${userId}`, 30000, async () => {
+      const { data, error } = await sb.from("user_activity_stats").select("*").eq("user_id", userId).maybeSingle();
+      if (error) { console.warn("[sbStats.getUserStats]", error?.message); return null; }
+      return data;
+    });
+  },
+
+  /** Personal records (5K, 10K, HM, M) computed in Postgres */
+  async getPersonalRecords(userId) {
+    return cachedRpc(`prs:${userId}`, 60000, async () => {
+      const { data, error } = await sb.rpc("get_personal_records", { p_user_id: userId });
+      if (error) { console.warn("[sbStats.getPersonalRecords]", error?.message); return []; }
+      return data || [];
+    });
+  },
+
+  /** Monthly volume data for charts */
+  async getVolumeByMonth(userId, months = 12) {
+    return cachedRpc(`vol:${userId}:${months}`, 120000, async () => {
+      const { data, error } = await sb.rpc("get_volume_by_month", { p_user_id: userId, p_months: months });
+      if (error) { console.warn("[sbStats.getVolumeByMonth]", error?.message); return []; }
+      return data || [];
+    });
+  },
+
+  /** Year-over-year comparison */
+  async getYearCompare(userId) {
+    return cachedRpc(`yoy:${userId}`, 120000, async () => {
+      const { data, error } = await sb.rpc("get_year_compare", { p_user_id: userId });
+      if (error) { console.warn("[sbStats.getYearCompare]", error?.message); return []; }
+      return data || [];
+    });
+  },
+
+  /** Weekly pace trend */
+  async getPaceTrend(userId, months = 12) {
+    return cachedRpc(`pace:${userId}:${months}`, 120000, async () => {
+      const { data, error } = await sb.rpc("get_pace_trend", { p_user_id: userId, p_months: months });
+      if (error) { console.warn("[sbStats.getPaceTrend]", error?.message); return []; }
+      return data || [];
+    });
+  },
+
+  /** Cursor-based paginated activities (20 per page) */
+  async getActivitiesPaginated(userId, { cursor = null, limit = 20 } = {}) {
+    let q = sb.from("activities")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(limit + 1);
+    if (cursor) q = q.lt("created_at", cursor);
+    const { data, error } = await q;
+    if (error) throw error;
+    const items = data || [];
+    const hasMore = items.length > limit;
+    if (hasMore) items.pop();
+    const nextCursor = hasMore && items.length ? items[items.length - 1].created_at : null;
+    return { items, nextCursor, hasMore };
+  },
+
+  /** Refresh materialized view (call after import/sync) */
+  async refreshStats() {
+    try { await sb.rpc("refresh_user_activity_stats"); } catch (e) {
+      console.warn("[sbStats.refreshStats]", e?.message);
+    }
+  },
+
+  /** Invalidate client cache for a user */
+  invalidateCache: invalidateUserCache,
+};
+
 // Expose globally for app.js
 window.sb = sb;
 window.sbAuth = sbAuth;
 window.sbDb = sbDb;
+window.sbStats = sbStats;
