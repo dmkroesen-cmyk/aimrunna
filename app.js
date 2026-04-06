@@ -5809,35 +5809,97 @@ if (typeof window !== "undefined") {
 
 function renderStatisticsView(account) {
   const activities = normalizeActivities(account?.activities || []);
-  // Pre-filter activities by current range — all range-aware charts use this subset
   const rangedActivities = filterActivitiesByRange(activities, currentStatsRange);
-  // Activate current sub-tab cards
   setStatsSubTab(currentStatsSub);
-  // Volume/Sport charts generate their own buckets from range + full dataset
   renderVolumeChart(activities, currentStatsRange, currentStatsMetric);
   renderSportSplit(activities, currentStatsRange);
-  // Pace trend over time — needs full activity history within range
   renderPaceTrend(activities, currentStatsRange);
-  // PRs and year-compare are all-time by design
-  renderPersonalRecords(activities);
-  renderYearCompare(activities);
+  // PRs and year-compare: use server-side RPCs for full history
+  renderPersonalRecords(activities); // local fallback rendered first
+  renderYearCompare(activities);     // local fallback rendered first
+  _hydrateStatsFromServer(account);  // then overwrite with full server data
   renderMetricTimeSeries(account);
   renderHealthMetrics(account);
-  // Distributions + zones respect the selected range
   renderIntensityDistribution(rangedActivities);
   renderPaceDistribution(rangedActivities);
   renderPowerDistribution(rangedActivities);
   renderHrZones(rangedActivities);
   renderPaceZones(rangedActivities);
   renderPowerZones(rangedActivities);
-  // Load and consistency operate on recent windows — stay on full set
   renderLoadChart(activities);
   renderConsistencyChart(activities);
-  // Belastung tab deep cards
   renderFormFitnessChart(activities);
   renderMonotonyChart(activities);
   renderIntensityTimeline(activities);
   renderHardRhythm(activities);
+}
+
+// Fetch full-history stats from Supabase RPCs and re-render charts that need it
+async function _hydrateStatsFromServer(account) {
+  if (!account?.id || !window.sbStats) return;
+  try {
+    const [yearData, prData] = await Promise.all([
+      sbStats.getYearCompare(account.id),
+      sbStats.getPersonalRecords(account.id),
+    ]);
+    if (yearData?.length) _renderYearCompareFromServer(yearData);
+    if (prData?.length) _renderPersonalRecordsFromServer(prData);
+  } catch (e) { console.warn("[Stats] server hydration failed:", e); }
+}
+
+function _renderYearCompareFromServer(data) {
+  const body = document.getElementById("stats-year-compare-body");
+  if (!body) return;
+  const maxKm = Math.max(1, ...data.map((d) => Number(d.run_km) + Number(d.bike_km) + Number(d.swim_km)));
+  body.innerHTML = data.map((d) => {
+    const run = Number(d.run_km) || 0;
+    const bike = Number(d.bike_km) || 0;
+    const swim = Number(d.swim_km) || 0;
+    const total = run + bike + swim;
+    const pct = (total / maxKm) * 100;
+    const runPct = total > 0 ? (run / total) * 100 : 0;
+    const bikePct = total > 0 ? (bike / total) * 100 : 0;
+    const swimPct = total > 0 ? (swim / total) * 100 : 0;
+    return `
+      <div class="year-compare-row">
+        <span class="year-label">${d.year}</span>
+        <div class="year-bar-wrap">
+          <div class="year-bar" style="width:${pct}%">
+            <div class="year-bar-seg" style="width:${runPct}%;background:#aaf57c"></div>
+            <div class="year-bar-seg" style="width:${bikePct}%;background:#d0b2ff"></div>
+            <div class="year-bar-seg" style="width:${swimPct}%;background:#86d7ff"></div>
+          </div>
+        </div>
+        <span class="year-total">${Math.round(total)} km</span>
+        <span class="year-count">${d.count} act.</span>
+      </div>`;
+  }).join("");
+}
+
+function _renderPersonalRecordsFromServer(data) {
+  const host = document.getElementById("stats-prs-body");
+  if (!host) return;
+  const formatTime = (sec) => {
+    sec = Number(sec);
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+    return h > 0 ? `${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}` : `${m}:${String(s).padStart(2,"0")}`;
+  };
+  host.innerHTML = data.map((pr) => {
+    const pace = Number(pr.pace_sec_per_km || 0);
+    const pMin = Math.floor(pace / 60);
+    const pS = Math.round(pace % 60);
+    const d = pr.activity_date ? new Date(pr.activity_date) : null;
+    const dateStr = d ? d.toLocaleDateString("de-DE", { day: "numeric", month: "short", year: "numeric" }) : "";
+    return `
+      <div class="pr-row">
+        <span class="pr-dist">${pr.distance_label}</span>
+        <span class="pr-time">${formatTime(pr.best_time_sec)}</span>
+        <span class="pr-pace">${pMin}:${String(pS).padStart(2,"0")}/km</span>
+        <span class="pr-date">${dateStr}</span>
+      </div>`;
+  }).join("");
 }
 
 function filterActivitiesByRange(activities, range) {
@@ -20108,10 +20170,46 @@ document.addEventListener("click", (e) => {
     const host = document.getElementById("pp-pr-grid");
     if (!host) return;
     host.innerHTML = "";
+
+    // Use server-side PRs if available (computed over full history)
+    if (_ppServerPRs && _ppServerPRs.length) {
+      const prMap = new Map(_ppServerPRs.map((p) => [p.distance_label, p]));
+      for (const dist of STANDARD_DISTANCES) {
+        const labelMap = { "5k": "5K", "10k": "10K", "half": "HM", "m": "M" };
+        const serverLabel = labelMap[dist.code] || dist.label;
+        const pr = prMap.get(serverLabel);
+        const card = document.createElement("div");
+        card.className = "pp-pr-card" + (pr ? "" : " pp-pr-empty");
+        if (!pr) {
+          card.innerHTML = `<div class="pp-pr-label">${dist.label}</div><div class="pp-pr-time">—</div><div class="pp-pr-pace"></div><div class="pp-pr-ctx">noch kein PR</div>`;
+          host.appendChild(card);
+          continue;
+        }
+        const sec = Number(pr.best_time_sec);
+        const h = Math.floor(sec / 3600);
+        const m = Math.floor((sec % 3600) / 60);
+        const s = sec % 60;
+        const timeStr = h > 0 ? `${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}` : `${m}:${String(s).padStart(2,"0")}`;
+        const paceTotal = Number(pr.pace_sec_per_km || 0);
+        const paceMin = Math.floor(paceTotal / 60);
+        const paceS = Math.round(paceTotal % 60);
+        const paceStr = `${paceMin}:${String(paceS).padStart(2,"0")}/km`;
+        const bestDate = pr.activity_date ? new Date(pr.activity_date) : null;
+        const weeksAgo = bestDate ? (Date.now() - bestDate.getTime()) / (7 * 86400000) : 999;
+        let ctx = "";
+        if (weeksAgo <= 12) ctx = `vor ${Math.floor(weeksAgo)}W`;
+        else if (bestDate) ctx = bestDate.toLocaleDateString("de-DE", { month: "short", year: "2-digit" });
+        const freshBadge = weeksAgo <= 12 ? `<span class="pp-pr-fresh">NEU</span>` : "";
+        card.innerHTML = `${freshBadge}<div class="pp-pr-label">${dist.label}</div><div class="pp-pr-time">${escapeHtml(timeStr)}</div><div class="pp-pr-pace">${escapeHtml(paceStr)}</div><div class="pp-pr-ctx">${escapeHtml(ctx)}</div>`;
+        host.appendChild(card);
+      }
+      return;
+    }
+
+    // Fallback: client-side PRs from local activities
     const acts = activitiesList().filter((a) => sportOf(a) === "run" && a.moving_time_sec > 0 && a.distance_km > 0);
     for (const dist of STANDARD_DISTANCES) {
       const candidates = acts.filter((a) => Math.abs(a.distance_km - dist.km) <= dist.tol);
-      // Best = min moving_time_sec
       let best = null;
       for (const a of candidates) {
         if (!best || a.moving_time_sec < best.moving_time_sec) best = a;
@@ -20119,12 +20217,7 @@ document.addEventListener("click", (e) => {
       const card = document.createElement("div");
       card.className = "pp-pr-card" + (best ? "" : " pp-pr-empty");
       if (!best) {
-        card.innerHTML = `
-          <div class="pp-pr-label">${dist.label}</div>
-          <div class="pp-pr-time">—</div>
-          <div class="pp-pr-pace"></div>
-          <div class="pp-pr-ctx">noch kein PR</div>
-        `;
+        card.innerHTML = `<div class="pp-pr-label">${dist.label}</div><div class="pp-pr-time">—</div><div class="pp-pr-pace"></div><div class="pp-pr-ctx">noch kein PR</div>`;
         host.appendChild(card);
         continue;
       }
@@ -20137,18 +20230,12 @@ document.addEventListener("click", (e) => {
       const timeStr = h > 0 ? `${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}` : `${m}:${String(s).padStart(2,"0")}`;
       const paceStr = `${paceMin}:${String(paceS).padStart(2,"0")}/km`;
       const bestDate = new Date(best.created_at);
-      const weeksAgo = (Date.now() - bestDate.getTime()) / (1000 * 60 * 60 * 24 * 7);
+      const weeksAgo = (Date.now() - bestDate.getTime()) / (7 * 86400000);
       let ctx = "";
       if (weeksAgo <= 12) ctx = `vor ${Math.floor(weeksAgo)}W`;
       else ctx = bestDate.toLocaleDateString("de-DE", { month: "short", year: "2-digit" });
       const freshBadge = weeksAgo <= 12 ? `<span class="pp-pr-fresh">NEU</span>` : "";
-      card.innerHTML = `
-        ${freshBadge}
-        <div class="pp-pr-label">${dist.label}</div>
-        <div class="pp-pr-time">${escapeHtml(timeStr)}</div>
-        <div class="pp-pr-pace">${escapeHtml(paceStr)}</div>
-        <div class="pp-pr-ctx">${escapeHtml(ctx)}</div>
-      `;
+      card.innerHTML = `${freshBadge}<div class="pp-pr-label">${dist.label}</div><div class="pp-pr-time">${escapeHtml(timeStr)}</div><div class="pp-pr-pace">${escapeHtml(paceStr)}</div><div class="pp-pr-ctx">${escapeHtml(ctx)}</div>`;
       host.appendChild(card);
     }
   }
