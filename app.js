@@ -19944,6 +19944,40 @@ document.addEventListener("click", (e) => {
     return shelf;
   }
 
+  /** Render a premium SVG medal disc with ribbon, engraving, and metallic sheen */
+  function _renderMedalSvg(primary, secondary, emoji, shortName, year) {
+    const p = primary || "#E5A93D";
+    const s = secondary || "#1a1a1a";
+    // Abbreviation for engraving (max 5 chars)
+    const abbr = String(shortName || "").replace(/[^A-Za-z0-9]/g, "").slice(0, 5).toUpperCase();
+    return `<svg viewBox="0 0 80 90" xmlns="http://www.w3.org/2000/svg" class="medal-svg">
+      <defs>
+        <radialGradient id="mg_${abbr}${year}" cx="35%" cy="30%" r="60%">
+          <stop offset="0%" stop-color="${p}"/>
+          <stop offset="100%" stop-color="${s}"/>
+        </radialGradient>
+        <linearGradient id="mr_${abbr}${year}" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${p}" stop-opacity="0.9"/>
+          <stop offset="100%" stop-color="${s}" stop-opacity="0.7"/>
+        </linearGradient>
+      </defs>
+      <!-- Ribbon -->
+      <path d="M30,8 L26,0 L40,5 L54,0 L50,8" fill="url(#mr_${abbr}${year})" opacity="0.85"/>
+      <!-- Outer ring -->
+      <circle cx="40" cy="48" r="34" fill="none" stroke="${p}" stroke-width="1.5" opacity="0.3"/>
+      <!-- Medal body -->
+      <circle cx="40" cy="48" r="30" fill="url(#mg_${abbr}${year})"/>
+      <!-- Inner ring (engraving border) -->
+      <circle cx="40" cy="48" r="24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="0.8"/>
+      <!-- Shine highlight -->
+      <ellipse cx="33" cy="38" rx="12" ry="8" fill="rgba(255,255,255,0.12)"/>
+      <!-- Year engraving -->
+      <text x="40" y="45" text-anchor="middle" font-size="8" font-weight="700" fill="rgba(255,255,255,0.7)" font-family="Inter,sans-serif" letter-spacing="0.5">${year || ""}</text>
+      <!-- Emoji or abbreviation -->
+      <text x="40" y="58" text-anchor="middle" font-size="14">${emoji || "🏅"}</text>
+    </svg>`;
+  }
+
   function buildMedalCardEl(medal) {
     const card = document.createElement("div");
     card.className = "medal-card";
@@ -19957,30 +19991,34 @@ document.addEventListener("click", (e) => {
     const year = medal.event_year || yearFromDate(medal.finish_date) || "";
 
     const time = formatTime(medal.finish_time_sec);
+    const pace = medal.finish_time_sec && cat.distance_km
+      ? (() => { const p = (medal.finish_time_sec / 60) / cat.distance_km; const pm = Math.floor(p); const ps = Math.round((p - pm) * 60); return `${pm}:${String(ps).padStart(2,"0")}/km`; })()
+      : "";
     const positionMeta = [];
     if (medal.finish_position) positionMeta.push(`#${medal.finish_position}`);
     if (medal.age_group_position && medal.age_group) positionMeta.push(`${medal.age_group} #${medal.age_group_position}`);
     else if (medal.age_group_position) positionMeta.push(`AG #${medal.age_group_position}`);
-    if (medal.bib_number) positionMeta.push(`#${medal.bib_number}`);
+    if (medal.bib_number) positionMeta.push(`Bib ${medal.bib_number}`);
 
     card.innerHTML = `
       <div class="medal-card-inner">
         <div class="medal-card-front">
           ${medal.is_pr ? `<div class="medal-card-pr">PR</div>` : ""}
-          <div class="medal-disc" style="background: radial-gradient(circle at 35% 30%, ${primary}, ${secondary}); --medal-pri:${primary}; --medal-sec:${secondary};">${emoji}</div>
+          ${_renderMedalSvg(primary, secondary, emoji, shortName, year)}
           <div class="medal-card-label">${escapeHtml(shortName)}</div>
-          <div class="medal-card-year">${escapeHtml(String(year))}</div>
+          <div class="medal-card-year">${time || escapeHtml(String(year))}</div>
         </div>
         <div class="medal-card-back">
           <div class="medal-back-title">${escapeHtml(medal.event_name)}</div>
           <div class="medal-back-stats">
-            <div class="medal-back-time">${escapeHtml(time)}</div>
+            ${time ? `<div class="medal-back-time">${escapeHtml(time)}</div>` : ""}
+            ${pace ? `<div class="medal-back-meta">${escapeHtml(pace)}</div>` : ""}
             ${positionMeta.length ? `<div class="medal-back-meta">${escapeHtml(positionMeta.join(" · "))}</div>` : ""}
             <div class="medal-back-meta">${escapeHtml(formatShortDate(medal.finish_date))}</div>
           </div>
           <div class="medal-back-actions">
-            ${medal.activity_id ? `<button type="button" class="medal-view-activity-btn" data-activity-id="${medal.activity_id}">Aktivität</button>` : ""}
-            <button type="button" class="medal-delete-btn" data-delete-id="${medal.id}">Löschen</button>
+            ${medal.activity_id ? `<button type="button" class="medal-view-activity-btn" data-activity-id="${medal.activity_id}">Aktivität anzeigen</button>` : ""}
+            <button type="button" class="medal-delete-btn" data-delete-id="${medal.id}">Entfernen</button>
           </div>
         </div>
       </div>
