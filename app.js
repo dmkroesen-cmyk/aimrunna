@@ -5286,6 +5286,53 @@ function getActivitySportIcon(sportType) {
 let _remoteFriendsFeed = null;
 let _remoteFriendsFeedFetched = 0;
 
+/**
+ * Fetch combined feed: own recent activities + friends activities from Supabase.
+ * Populates both account.activities (for local use) and _remoteFriendsFeed.
+ */
+async function _fetchCombinedFeed(account) {
+  if (!account?.id || !_isUuid(account.id) || !window.sbDb) return;
+  try {
+    // Fetch own recent + friends in parallel
+    const [ownActivities, friendsFeed] = await Promise.all([
+      sbDb.getActivities(account.id, 50).catch((e) => { console.warn("[Feed] own activities:", e?.message); return []; }),
+      (sbDb.getFriendsFeed ? sbDb.getFriendsFeed(account.id, 60) : Promise.resolve([])).catch((e) => { console.warn("[Feed] friends:", e?.message); return []; }),
+    ]);
+    // Update account.activities with fresh data
+    if (ownActivities.length) {
+      account.activities = ownActivities.map((a) => {
+        const m = a.metrics || {};
+        return {
+          id: a.id, source: a.source, sourceExternalId: a.source_external_id,
+          createdAt: a.created_at, title: a.title, note: a.note, kind: a.kind,
+          sportType: a.sport_type, distanceKm: +a.distance_km || 0,
+          movingTimeSec: a.moving_time_sec, elevationGainM: a.elevation_gain_m,
+          imageDataUrl: a.image_url, polyline: a.polyline || null,
+          avgHeartrate: m.avg_heartrate || null, maxHeartrate: m.max_heartrate || null,
+          avgWatts: m.avg_watts || null, maxWatts: m.max_watts || null,
+          weightedAvgWatts: m.weighted_avg_watts || null, sufferScore: m.suffer_score || null,
+          avgCadence: m.avg_cadence || null, propsBy: [], metrics: m,
+        };
+      });
+    }
+    // Map friends feed
+    _remoteFriendsFeed = (friendsFeed || []).map((r) => ({
+      item: {
+        id: r.id, title: r.title, note: r.note, sportType: r.sport_type,
+        distanceKm: r.distance_km, movingTimeSec: r.moving_time_sec,
+        elevationGainM: r.elevation_gain_m, createdAt: r.created_at,
+        imageUrl: r.image_url, source: r.source, kind: r.kind, _remote: true,
+      },
+      actorEmail: r.profile?.email || "",
+      actorName: r.profile?.display_name || "",
+      actorAvatar: r.profile?.profile_image || null,
+    }));
+    _remoteFriendsFeedFetched = Date.now();
+  } catch (e) {
+    console.warn("[_fetchCombinedFeed]", e);
+  }
+}
+
 async function refreshRemoteFriendsFeed() {
   try {
     const user = await (window.sbAuth?.getUser?.() || Promise.resolve(null));
@@ -5422,24 +5469,30 @@ function renderHomeFeed(account) {
     homeFeedListEl.innerHTML = `<div class="empty-copy">Logge dich ein, um deinen Feed zu sehen.</div>`;
     return;
   }
-  // Combine own + friend activities (local + Supabase remote)
-  const friendEmails = account.friends || [];
-  const ownItems = (account.activities || []).map((item) => ({ item, actorEmail: account.email, actorName: resolveDisplayName(account), actorAvatar: account.profileImage || null }));
-  const localFriendItems = (appStore.accounts || [])
-    .filter((a) => friendEmails.includes(a.email))
-    .flatMap((a) => (a.activities || []).map((item) => ({ item, actorEmail: a.email, actorName: resolveDisplayName(a), actorAvatar: a.profileImage || null })));
-  const allItems = mergeFeedItems([...ownItems, ...localFriendItems], _remoteFriendsFeed || []).slice(0, 30);
+
+  // ── Build immediate local feed (own activities, last 7 days) ──
+  const FEED_DAYS = 7;
+  const cutoff = new Date(Date.now() - FEED_DAYS * 86400000).toISOString();
+  const ownRecent = (account.activities || [])
+    .filter((item) => (item.createdAt || "") >= cutoff)
+    .map((item) => ({ item, actorEmail: account.email, actorName: resolveDisplayName(account), actorAvatar: account.profileImage || null }));
+
+  // Merge local own + any already-fetched remote friends feed
+  const allItems = mergeFeedItems(ownRecent, _remoteFriendsFeed || [])
+    .filter((entry) => (entry.item.createdAt || "") >= cutoff)
+    .slice(0, 40);
+
+  // ── Async: fetch combined feed from Supabase (own + friends) ──
   if (!_remoteFriendsFeed || Date.now() - _remoteFriendsFeedFetched > 30000) {
-    // Prevent recursive loop: mark as fetched BEFORE the async call
     _remoteFriendsFeedFetched = Date.now();
-    refreshRemoteFriendsFeed().then(() => {
+    _fetchCombinedFeed(account).then(() => {
       const _acct = getCurrentAccount();
       if (_acct) renderHomeFeed(_acct);
     }).catch(() => {});
   }
 
   if (!allItems.length) {
-    homeFeedListEl.innerHTML = `<div class="empty-copy">Noch keine Aktivitäten. Verbinde Strava oder poste dein erstes Training.</div>`;
+    homeFeedListEl.innerHTML = `<div class="empty-copy">Noch keine Aktivitäten der letzten ${FEED_DAYS} Tage. Verbinde Strava oder poste dein erstes Training.</div>`;
   } else {
     homeFeedListEl.innerHTML = allItems.map((entry) => buildActivityCardHtml({
       ...entry,
@@ -20117,18 +20170,31 @@ document.addEventListener("click", (e) => {
   async function runScan() {
     const account = (typeof getCurrentAccount === "function") ? getCurrentAccount() : null;
     if (!account) { alert("Bitte zuerst einloggen."); return; }
-    // Load full history from Supabase for thorough medal detection
-    let activities = account?.activities || [];
-    if (window.sbDb?.getActivities && account.id) {
-      try {
-        const remote = await window.sbDb.getActivities(account.id, 10000);
-        if (remote.length > activities.length) activities = remote;
-      } catch (e) { console.warn("[MedalBoard] Supabase fetch for scan failed:", e); }
+    const scanBtn = document.getElementById("medal-scan-btn");
+    if (scanBtn) { scanBtn.disabled = true; scanBtn.textContent = "Scanne…"; }
+    try {
+      // Always fetch full history from Supabase for thorough medal detection
+      let activities = [];
+      if (window.sbDb?.getActivities && _isUuid(account.id)) {
+        try {
+          activities = await window.sbDb.getActivities(account.id, 10000);
+          console.log(`[MedalBoard] Fetched ${activities.length} activities for scan`);
+        } catch (e) { console.warn("[MedalBoard] Supabase fetch for scan failed:", e); }
+      }
+      // Fallback to local
+      if (!activities.length) activities = account?.activities || [];
+      if (!activities.length) { alert("Keine Aktivitäten zum Scannen gefunden."); return; }
+      if (!state.catalog.length) await loadCatalog();
+      if (!state.medals.length) await loadMedals();
+      const candidates = detectAllUnmatched(activities);
+      if (!candidates.length) {
+        alert(`Scan abgeschlossen: ${activities.length} Aktivitäten geprüft, keine neuen Medaillen erkannt.`);
+        return;
+      }
+      openDetectModal(candidates);
+    } finally {
+      if (scanBtn) { scanBtn.disabled = false; scanBtn.textContent = "🔍 Scannen"; }
     }
-    if (!activities.length) { alert("Keine Aktivitäten zum Scannen gefunden."); return; }
-    if (!state.catalog.length) await loadCatalog();
-    const candidates = detectAllUnmatched(activities);
-    openDetectModal(candidates);
   }
 
   // ── Event binding ──
@@ -20847,6 +20913,28 @@ document.addEventListener("click", (e) => {
     }
   }
 
+  // ── Race History (overview flip back-face) ──
+  function renderPPRaceHistory() {
+    const host = document.getElementById("pp-race-history-table");
+    if (!host) return;
+    const acts = activitiesList();
+    const races = acts
+      .filter((a) => (a.kind === "race" || a.workout_type === 1) && (a.distance_km || 0) > 0)
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    if (!races.length) {
+      host.innerHTML = `<div class="race-history-empty">Keine Rennen gefunden.<br><span style="font-size:11px;color:var(--muted-2)">Markiere Aktivitäten als "Wettkampf".</span></div>`;
+      return;
+    }
+    const fmtTime = (sec) => { sec = Number(sec) || 0; const h = Math.floor(sec / 3600); const m = Math.floor((sec % 3600) / 60); const s = Math.round(sec % 60); return h > 0 ? `${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}` : `${m}:${String(s).padStart(2,"0")}`; };
+    host.innerHTML = races.slice(0, 15).map((r) => {
+      const km = Number(r.distance_km) || 0;
+      const sec = Number(r.moving_time_sec) || 0;
+      const date = r.created_at ? new Date(r.created_at).toLocaleDateString("de-DE", { day: "numeric", month: "short", year: "numeric" }) : "";
+      const pace = sec && km ? (() => { const p = (sec / 60) / km; const pm = Math.floor(p); const ps = Math.round((p - pm) * 60); return `${pm}:${String(ps).padStart(2,"0")}/km`; })() : "";
+      return `<div class="race-history-row"><div><div class="race-history-name">${escapeHtml(r.title || "Wettkampf")}</div><div class="race-history-meta">${km.toFixed(1)} km${pace ? ` · ${pace}` : ""}</div></div><span class="race-history-time">${sec ? fmtTime(sec) : "–"}</span><span class="race-history-date">${date}</span></div>`;
+    }).join("");
+  }
+
   // ── Totals Ribbon ──
   function renderTotals() {
     const host = document.getElementById("pp-totals-grid");
@@ -20936,6 +21024,7 @@ document.addEventListener("click", (e) => {
     if (window.MainEvents?.render) { try { window.MainEvents.render(); } catch (e) { console.warn("[MainEvents] render:", e); } }
     renderHeroStats();
     renderPRVault();
+    renderPPRaceHistory();
     renderTotals();
     renderPhotoWall();
     // Fetch full history from Supabase in background, then re-render stats
