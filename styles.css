@@ -10074,3 +10074,172 @@ details[open] .fa-bd-summary { color: rgba(255,255,255,0.7); margin-bottom: 10px
 @media (max-width: 640px) {
   .athletes-drawer { width: 100%; max-width: 100%; }
 }
+
+/* ============================================================
+   COMPREHENSIVE MOBILE RESPONSIVE (2026-04-06)
+   Fills gaps for 320px-600px screens.
+   ============================================================ */
+
+/* ── 600px: Tablet-portrait / large phone ── */
+@media (max-width: 600px) {
+  /* Dashboard rings */
+  .dashboard-rings-container { gap: 16px; }
+  .dashboard-ring-primary { width: 150px; height: 150px; }
+  .dashboard-ring-secondary { width: 110px; height: 110px; }
+  .dashboard-quick-stats { gap: 16px; }
+
+  /* Grids collapse to 2 columns */
+  .profile-stats-grid,
+  .metric-grid,
+  .deep-metric-grid { grid-template-columns: repeat(2, 1fr); }
+  .stats-summary-row { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .stats-summary-6col { grid-template-columns: repeat(2, 1fr); }
+
+  /* PP totals */
+  .pp-totals-grid { gap: 8px; }
+  .pp-totals-val { font-size: 32px; }
+
+  /* PP hero */
+  .pp-hero-stats { padding: var(--space-lg) 14px; gap: 14px; }
+  .pp-hero-big { font-size: 40px; }
+
+  /* Activity cards */
+  .activity-card { padding: 14px 16px; }
+  .activity-card-stats { gap: 12px; flex-wrap: wrap; }
+
+  /* Profile view tabs */
+  .profile-view-tab { padding: 10px 14px; font-size: 12px; }
+
+  /* Content shell */
+  .content-shell { padding: 0 14px; }
+
+  /* Feed alignment */
+  .section-home-feed { padding: 0 14px; }
+
+  /* Medal detect modal */
+  .medal-detect-modal { padding: 16px; }
+  .medal-detect-stats { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ── 480px: Standard phone ── */
+@media (max-width: 480px) {
+  /* Dashboard rings stack vertically */
+  .dashboard-rings-container {
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  .dashboard-ring-primary { width: 140px; height: 140px; }
+  .dashboard-ring-secondary {
+    width: 100px;
+    height: 100px;
+    margin: 0;
+    position: static;
+  }
+
+  /* Grids to 2-col or 1-col */
+  .pp-pr-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .pp-pr-time { font-size: 18px; }
+  .pp-totals-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .pp-totals-val { font-size: 26px; }
+  .pp-totals-label { font-size: 8px; }
+
+  /* Hero stats */
+  .pp-hero-stats { grid-template-columns: 1fr 1fr; gap: 12px; padding: 14px 12px; }
+  .pp-hero-big { font-size: 36px; }
+  .pp-hero-label { font-size: 9px; }
+  .pp-form-value { font-size: 28px; }
+  .pp-name { font-size: 20px; }
+
+  /* Sections */
+  .pp-section { padding: 12px 10px; margin-top: 16px; }
+  .pp-section-title { font-size: 11px; }
+
+  /* Activity card */
+  .activity-card { padding: 12px; border-radius: 12px; }
+  .activity-card-header { gap: 8px; }
+  .activity-card-stats { gap: 8px; }
+  .activity-card-stat-val { font-size: 14px; }
+
+  /* Account bar */
+  .account-bar { padding: 0 10px; height: 48px; }
+  .account-pill { max-width: 110px; }
+
+  /* Landing */
+  .landing-panel { padding: 20px 16px; }
+  .scroll-stage-hero h1 { font-size: 32px; }
+
+  /* Profile tabs scroll hint */
+  .profile-view-tab { padding: 8px 12px; font-size: 11px; white-space: nowrap; }
+
+  /* Medal cards */
+  .medal-card-front,
+  .medal-card-back { padding: 8px 6px 6px; }
+  .medal-back-title { font-size: 10px; }
+  .medal-back-time { font-size: 12px; }
+  .medal-back-actions button { font-size: 8px; padding: 3px 5px; }
+
+  /* Content */
+  .content-shell { padding: 0 10px; }
+  .section-home-feed { padding: 0 10px; }
+  .surface-head h3 { font-size: 18px; }
+
+  /* Stats */
+  .stats-pace-summary { grid-template-columns: repeat(2, 1fr); }
+  .records-header,
+  .records-row { grid-template-columns: 1.5fr 1fr 1fr; font-size: 11px; }
+  .records-header span:nth-child(4),
+  .records-row span:nth-child(4) { display: none; }
+
+  /* Race history */
+  .race-history-row { grid-template-columns: 1fr auto; font-size: 12px; }
+  .race-history-date { display: none; }
+
+  /* PR flip */
+  .pr-flip-face { padding: 14px 12px; }
+  .pp-pr-vault.pr-flip-card .pr-flip-face { padding: 12px 10px; }
+
+  /* Charts - prevent overflow */
+  .chart-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+}
+
+/* ── 375px: Small phones (iPhone SE, etc.) ── */
+@media (max-width: 375px) {
+  .pp-hero-stats { grid-template-columns: 1fr; gap: 10px; }
+  .pp-hero-big { font-size: 32px; }
+  .pp-pr-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+  .pp-pr-card { aspect-ratio: auto; padding: 10px 8px; }
+  .pp-pr-time { font-size: 16px; }
+  .pp-totals-val { font-size: 22px; }
+
+  .dashboard-ring-primary { width: 120px; height: 120px; }
+  .dashboard-ring-secondary { width: 90px; height: 90px; }
+
+  .medal-shelf-grid { grid-template-columns: repeat(auto-fill, minmax(68px, 1fr)); gap: 4px; }
+  .medal-svg { width: 34px; height: 38px; }
+  .medal-card-label { font-size: 8px; }
+  .medal-card-year { font-size: 7px; }
+
+  .profile-stats-grid,
+  .metric-grid { grid-template-columns: 1fr; }
+
+  .account-bar { padding: 0 8px; }
+  .account-pill { max-width: 90px; font-size: 11px; }
+
+  .landing-panel { padding: 16px 12px; }
+  .scroll-stage-hero h1 { font-size: 26px; }
+}
+
+/* ── Safe area insets for notched phones ── */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .account-bar { padding-left: max(10px, env(safe-area-inset-left)); padding-right: max(10px, env(safe-area-inset-right)); }
+  body { padding-bottom: env(safe-area-inset-bottom); }
+}
+
+/* ── Touch-friendly tap targets ── */
+@media (pointer: coarse) {
+  .pr-flip-btn { width: 36px; height: 36px; }
+  .medal-back-actions button { min-height: 32px; }
+  .profile-view-tab { min-height: 40px; }
+  .ghost, .btn { min-height: 40px; }
+}
