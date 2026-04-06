@@ -3531,32 +3531,36 @@ function loadStore() {
   }
 }
 
-function persistStore() {
+// ── Debounced persist: localStorage write batched to max 1× per 2s ──
+const _PERSIST_SKIP_KEYS = new Set(["polyline", "metrics", "imageDataUrl"]);
+const _PERSIST_MAX_ACTIVITIES = 200;
+
+function _flushPersistStore() {
   if (!appStore) return;
-  appStore.currentAccountId = currentAccountId;
-  // Stamp settings updates so we can detect "newer-than-cloud" on reload
-  const acc = appStore.accounts.find((a) => a.id === currentAccountId);
-  if (acc && acc.settings) {
-    acc.settings._updatedAt = Date.now();
-  }
   try {
-    // Slim localStorage: cap activities at 200 per account, skip heavy fields.
-    // Use a replacer instead of deep-clone to avoid blocking the main thread.
-    const SKIP_KEYS = new Set(["polyline", "metrics", "imageDataUrl"]);
-    const MAX_PERSIST_ACTIVITIES = 200;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(appStore, function (key, value) {
-      if (SKIP_KEYS.has(key)) return undefined;
-      // Cap activities arrays
-      if (key === "activities" && Array.isArray(value) && value.length > MAX_PERSIST_ACTIVITIES) {
-        return value.slice(0, MAX_PERSIST_ACTIVITIES);
+      if (_PERSIST_SKIP_KEYS.has(key)) return undefined;
+      if (key === "activities" && Array.isArray(value) && value.length > _PERSIST_MAX_ACTIVITIES) {
+        return value.slice(0, _PERSIST_MAX_ACTIVITIES);
       }
       return value;
     }));
   } catch (e) {
     console.warn("persistStore failed:", e);
   }
-  // Debounced cloud sync of settings so they survive reload even if other
-  // code paths forget to call sbDb.updateProfile explicitly.
+}
+
+function persistStore() {
+  if (!appStore) return;
+  appStore.currentAccountId = currentAccountId;
+  const acc = appStore.accounts.find((a) => a.id === currentAccountId);
+  if (acc && acc.settings) {
+    acc.settings._updatedAt = Date.now();
+  }
+  // Debounce localStorage write — max 1× per 2 seconds
+  clearTimeout(persistStore._lsTimer);
+  persistStore._lsTimer = setTimeout(_flushPersistStore, 2000);
+  // Debounced cloud sync
   if (acc && typeof sbDb !== "undefined" && sbDb?.updateProfile) {
     clearTimeout(persistStore._cloudTimer);
     persistStore._cloudTimer = setTimeout(() => {
@@ -3564,6 +3568,8 @@ function persistStore() {
     }, 800);
   }
 }
+// Flush on page unload so nothing is lost
+window.addEventListener("beforeunload", _flushPersistStore);
 
 function getCurrentAccount() {
   if (!appStore || !currentAccountId) return null;
@@ -4014,7 +4020,17 @@ function addFriendByEmail(account, email) {
   return { ok: true, message: t("connected") };
 }
 
+// Debounce renderAccountUi: coalesce multiple calls into one rAF
+let _renderAccountUiScheduled = false;
 function renderAccountUi() {
+  if (_renderAccountUiScheduled) return;
+  _renderAccountUiScheduled = true;
+  requestAnimationFrame(() => {
+    _renderAccountUiScheduled = false;
+    _renderAccountUiImpl();
+  });
+}
+function _renderAccountUiImpl() {
   const account = getCurrentAccount();
   const isAuth = Boolean(account);
   if (!isAuth) {
@@ -4202,26 +4218,29 @@ function renderSavedPlansList(account) {
     )
     .join("");
 
-  savedPlansListEl.querySelectorAll("[data-load-plan-id]").forEach((btn) => {
-    btn.addEventListener("click", () => loadSavedPlanById(btn.getAttribute("data-load-plan-id")));
-  });
-  savedPlansListEl.querySelectorAll("[data-delete-plan-id]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const planId = btn.getAttribute("data-delete-plan-id");
-      const account = getCurrentAccount();
-      if (!account) return;
-      const plan = (account.plans || []).find((p) => p.id === planId);
-      const title = plan?.title || plan?.summary || "dieser Plan";
-      if (!window.confirm(`Plan "${title}" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.`)) return;
-      account.plans = (account.plans || []).filter((p) => p.id !== planId);
-      persistStore();
-      renderSavedPlansList(account);
-      // Also delete from Supabase
-      if (window.sbDb && planId) {
-        sbDb.deletePlan(planId).catch((e) => console.warn("[deletePlan] Supabase:", e?.message || e));
+  // Delegated plan button listeners (once)
+  if (!savedPlansListEl._delegated) {
+    savedPlansListEl._delegated = true;
+    savedPlansListEl.addEventListener("click", (e) => {
+      const loadBtn = e.target.closest("[data-load-plan-id]");
+      if (loadBtn) { loadSavedPlanById(loadBtn.getAttribute("data-load-plan-id")); return; }
+      const delBtn = e.target.closest("[data-delete-plan-id]");
+      if (delBtn) {
+        const planId = delBtn.getAttribute("data-delete-plan-id");
+        const account = getCurrentAccount();
+        if (!account) return;
+        const plan = (account.plans || []).find((p) => p.id === planId);
+        const title = plan?.title || plan?.summary || "dieser Plan";
+        if (!window.confirm(`Plan "${title}" wirklich löschen?`)) return;
+        account.plans = (account.plans || []).filter((p) => p.id !== planId);
+        persistStore();
+        renderSavedPlansList(account);
+        if (window.sbDb && planId) {
+          sbDb.deletePlan(planId).catch((e) => console.warn("[deletePlan] Supabase:", e?.message || e));
+        }
       }
     });
-  });
+  }
 }
 
 function renderFriendsList(account) {
@@ -4815,7 +4834,7 @@ function renderActivityFeed() {
   const container = document.getElementById("activity-feed-container");
   if (!container) return;
   const account = getCurrentAccount();
-  const activities = (account?.activities || []).slice().sort((a, b) => new Date(b.createdAt || b.date || b.start_date || 0) - new Date(a.createdAt || a.date || a.start_date || 0));
+  const activities = (account?.activities || []).slice(0, 30).sort((a, b) => new Date(b.createdAt || b.date || b.start_date || 0) - new Date(a.createdAt || a.date || a.start_date || 0));
 
   if (!activities.length) {
     container.innerHTML = '<div class="activity-feed-empty">Noch keine Aktivitaeten. Verbinde dein Geraet oder importiere Aktivitaeten.</div>';
@@ -4826,7 +4845,7 @@ function renderActivityFeed() {
   const initials = (displayName[0] || "A").toUpperCase();
   const actorAvatar = account.profileImage || null;
 
-  container.innerHTML = activities.map((item) => {
+  container.innerHTML = activities.map((item, _idx) => {
     const dateRaw = item.createdAt || item.date || item.start_date || item.start_date_local;
     const date = dateRaw ? new Date(dateRaw) : new Date();
     const dateValid = !isNaN(date.getTime());
@@ -4880,19 +4899,22 @@ function renderActivityFeed() {
         </div>
         <h3 class="activity-card-title">${escapeHtml(title)}</h3>
         ${statsHtml ? `<div class="activity-card-stats">${statsHtml}</div>` : ""}
-        ${item.polyline ? `<div class="activity-card-map">${renderRouteMapSvg(item, { width: 640, height: 160 })}</div>` : ""}
+        ${item.polyline && _idx < 5 ? `<div class="activity-card-map">${renderRouteMapSvg(item, { width: 640, height: 160 })}</div>` : ""}
       </article>
     `;
   }).join("");
 
-  // Bind card click to open detail
-  container.querySelectorAll(".activity-card[data-activity-id]").forEach((card) => {
-    card.addEventListener("click", (e) => {
+  // Event delegation — single listener, not per-card
+  if (!container._delegated) {
+    container._delegated = true;
+    container.addEventListener("click", (e) => {
+      const card = e.target.closest(".activity-card[data-activity-id]");
+      if (!card) return;
       const activityId = card.dataset.activityId;
       const ownerEmail = card.dataset.activityOwner;
       if (activityId) openActivityDetail(ownerEmail, activityId);
     });
-  });
+  }
 }
 
 function formatRelativeDate(date) {
@@ -5095,8 +5117,12 @@ function renderCrewFeed(account) {
     )
     .join("");
 
-  crewFeedListEl.querySelectorAll("[data-props-activity]").forEach((btn) => {
-    btn.addEventListener("click", () => {
+  // Delegated props listener (once)
+  if (!crewFeedListEl._propsDelegate) {
+    crewFeedListEl._propsDelegate = true;
+    crewFeedListEl.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-props-activity]");
+      if (!btn) return;
       const ownerEmail = btn.getAttribute("data-props-owner");
       const activityId = btn.getAttribute("data-props-activity");
       const viewer = getCurrentAccount();
@@ -5105,7 +5131,7 @@ function renderCrewFeed(account) {
       persistStore();
       renderAccountUi();
     });
-  });
+  }
 }
 
 function renderCrewRanking(account) {
@@ -5153,7 +5179,7 @@ function renderHomeFeed(account) {
   const localFriendItems = (appStore.accounts || [])
     .filter((a) => friendEmails.includes(a.email))
     .flatMap((a) => (a.activities || []).map((item) => ({ item, actorEmail: a.email, actorName: resolveDisplayName(a), actorAvatar: a.profileImage || null })));
-  const allItems = mergeFeedItems([...ownItems, ...localFriendItems], _remoteFriendsFeed || []).slice(0, 60);
+  const allItems = mergeFeedItems([...ownItems, ...localFriendItems], _remoteFriendsFeed || []).slice(0, 30);
   if (!_remoteFriendsFeed || Date.now() - _remoteFriendsFeedFetched > 30000) {
     refreshRemoteFriendsFeed().then(() => {
       const _acct = getCurrentAccount();
@@ -5170,9 +5196,12 @@ function renderHomeFeed(account) {
       viewerEmail: account.email,
       showPropsAction: entry.actorEmail !== account.email,
     })).join("");
-    // Props button handlers
-    homeFeedListEl.querySelectorAll(".props-btn[data-props-owner]").forEach((btn) => {
-      btn.addEventListener("click", () => {
+    // Props — delegated, not per-button
+    if (!homeFeedListEl._propsDelegate) {
+      homeFeedListEl._propsDelegate = true;
+      homeFeedListEl.addEventListener("click", (e) => {
+        const btn = e.target.closest(".props-btn[data-props-owner]");
+        if (!btn) return;
         const ownerEmail = btn.getAttribute("data-props-owner");
         const activityId = btn.getAttribute("data-props-activity");
         const viewer = getCurrentAccount();
@@ -5181,7 +5210,7 @@ function renderHomeFeed(account) {
         persistStore();
         renderAccountUi();
       });
-    });
+    }
   }
 
   // Render friends sidebar
@@ -5616,7 +5645,21 @@ document.addEventListener("submit", (e) => {
   }
 });
 
+// Memoize computeAccountStats — cache valid for 5 seconds
+const _statsCache = new Map();
 function computeAccountStats(account, { range = "all" } = {}) {
+  const actLen = (account?.activities || []).length;
+  const cacheKey = `${account?.id || account?.email || "?"}:${range}:${actLen}`;
+  const cached = _statsCache.get(cacheKey);
+  if (cached && Date.now() - cached._ts < 5000) return cached;
+  const result = _computeAccountStatsImpl(account, { range });
+  result._ts = Date.now();
+  _statsCache.set(cacheKey, result);
+  // Keep cache small
+  if (_statsCache.size > 30) { const first = _statsCache.keys().next().value; _statsCache.delete(first); }
+  return result;
+}
+function _computeAccountStatsImpl(account, { range = "all" } = {}) {
   const now = Date.now();
   const activities = (account?.activities || []).filter((a) => {
     if (range === "all") return true;
@@ -19545,7 +19588,7 @@ document.addEventListener("click", (e) => {
         list = acc?.activities || [];
         if (window.sbDb?.getActivities && acc?.id) {
           try {
-            const remote = await window.sbDb.getActivities(acc.id, 10000);
+            const remote = await window.sbDb.getActivities(acc.id, 2000);
             if (remote.length > list.length) list = remote;
           } catch (_) {}
         }
@@ -19665,7 +19708,7 @@ document.addEventListener("click", (e) => {
     if (!acc?.id || !window.sbDb?.getActivities) return;
     if (_ppActivitiesCacheUserId === acc.id && _ppActivitiesCache) return;
     try {
-      const remote = await window.sbDb.getActivities(acc.id, 10000);
+      const remote = await window.sbDb.getActivities(acc.id, 2000);
       if (remote.length) {
         _ppActivitiesCache = _normalizeActivities(remote);
         _ppActivitiesCacheUserId = acc.id;
