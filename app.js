@@ -4011,7 +4011,7 @@ async function autoSyncStravaOnLogin(account) {
     account.integrations.strava.lastImportAt = new Date().toISOString();
     persistStore();
     // Refresh server-side stats
-    if (window.sbStats) { sbStats.invalidateCache(account.id); sbStats.refreshStats().catch(() => {}); }
+    if (window.sbStats && _isUuid(account.id)) { sbStats.invalidateCache(account.id); sbStats.refreshStats().catch(() => {}); }
     // Notify user about new activities
     if (acts.length && typeof addNotification === "function") {
       const latest = acts[0];
@@ -6087,8 +6087,10 @@ function renderStatisticsView(account) {
 // Fetch full-history stats from Supabase RPCs and re-render charts that need it.
 // Each RPC is fetched in parallel, each render is individually try/catch guarded.
 // If any RPC fails, the others still render. If any render fails, local fallback remains.
+const _isUuid = (s) => typeof s === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
+
 async function _hydrateStatsFromServer(account) {
-  if (!account?.id || !window.sbStats) return;
+  if (!account?.id || !window.sbStats || !_isUuid(account.id)) return;
 
   const range = currentStatsRange || "12m";
   const monthsForRange = range === "ytd" ? new Date().getMonth() + 1
@@ -7998,7 +8000,7 @@ async function importStravaHistory() {
     setText(stravaProfileFetchStatusEl, `Import fertig: ${totalImported} Aktivitäten importiert.`);
     if (typeof addNotification === "function") addNotification("sync_complete", "Strava Sync abgeschlossen", `${totalImported} Aktivitäten importiert.`);
     // Refresh server-side stats + invalidate client cache
-    if (window.sbStats) {
+    if (window.sbStats && _isUuid(account.id)) {
       sbStats.invalidateCache(account.id);
       sbStats.refreshStats().catch(() => {});
     }
@@ -19590,14 +19592,14 @@ document.addEventListener("click", (e) => {
 
   async function loadMedals() {
     const userId = currentUserId();
-    if (!userId || !window.sbDb?.getMedals) { state.medals = []; return; }
+    if (!userId || !_isUuid(userId) || !window.sbDb?.getMedals) { state.medals = []; return; }
     try { state.medals = await window.sbDb.getMedals(userId); }
     catch (e) { console.warn("[MedalBoard] loadMedals:", e?.message || e); state.medals = []; }
   }
 
   async function loadBadges() {
     const userId = currentUserId();
-    if (!userId || !window.sbDb?.getUserBadges) { state.badges = []; return; }
+    if (!userId || !_isUuid(userId) || !window.sbDb?.getUserBadges) { state.badges = []; return; }
     try { state.badges = await window.sbDb.getUserBadges(userId); }
     catch (e) { console.warn("[MedalBoard] loadBadges:", e?.message || e); state.badges = []; }
   }
@@ -20387,7 +20389,7 @@ document.addEventListener("click", (e) => {
     _ppActivitiesCacheUserId = acc.id; // prevent duplicate calls
     try {
       // Use server-side stats if available (fast, no bulk data transfer)
-      if (window.sbStats) {
+      if (window.sbStats && _isUuid(acc.id)) {
         const [stats, prs] = await Promise.all([
           window.sbStats.getUserStats(acc.id).catch(() => null),
           window.sbStats.getPersonalRecords(acc.id).catch(() => null),
@@ -20404,6 +20406,7 @@ document.addEventListener("click", (e) => {
         return;
       }
       // Fallback: fetch activities directly (legacy path)
+      if (!_isUuid(acc.id)) return;
       const remote = await window.sbDb.getActivities(acc.id, 500);
       if (remote.length) {
         _ppActivitiesCache = _normalizeActivities(remote);
