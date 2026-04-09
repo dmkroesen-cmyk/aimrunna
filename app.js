@@ -1180,7 +1180,7 @@ form?.addEventListener("submit", (event) => {
     if (currentMode === "peak") {
       const acct = typeof getCurrentAccount === "function" ? getCurrentAccount() : null;
       if (!acct) {
-        if (typeof openOnboarding === "function") openOnboarding();
+        if (typeof window.openOnboarding === "function") window.openOnboarding();
         return;
       }
     }
@@ -7876,12 +7876,20 @@ function initDynamicGoalOptions() {
     if (suggested && quickGoalTimeInput) quickGoalTimeInput.value = suggested;
   });
   planModeSelect?.addEventListener("change", () => {
+    console.log("[PlanMode] change →", planModeSelect.value);
     if (planModeSelect.value === "peak") {
-      // Reset dropdown immediately so no UI flash of peak fields
+      // Reset dropdown back to quick immediately
       planModeSelect.value = "quick";
       syncPlanModeUI();
-      // Then open onboarding — the registration wall
-      openOnboarding();
+      // Open onboarding (deferred to next tick to avoid blocking UI sync)
+      console.log("[PlanMode] triggering openOnboarding, available:", typeof window.openOnboarding);
+      setTimeout(() => {
+        if (typeof window.openOnboarding === "function") {
+          window.openOnboarding();
+        } else {
+          console.error("[PlanMode] openOnboarding NOT available");
+        }
+      }, 0);
       return;
     }
     syncPlanModeUI();
@@ -24406,7 +24414,15 @@ document.addEventListener("click", (e) => {
     try {
       if (navigator.vibrate) { navigator.vibrate(ms || 10); return; }
     } catch (_) {}
-    if (_isIOS) _audioTick(180, 0.012);
+    if (_isIOS) {
+      // Ensure AudioContext is warm before playing tick
+      if (!_hapticCtx) _hapticCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (_hapticCtx.state === "suspended") {
+        _hapticCtx.resume().then(() => _audioTick(180, 0.012));
+      } else {
+        _audioTick(180, 0.012);
+      }
+    }
   }
 
   /** Stronger confirmation haptic — double-tap pattern for decisive actions */
@@ -25489,4 +25505,5 @@ document.addEventListener("click", (e) => {
   window.openOnboarding = open;
   window.closeOnboarding = close;
   window.peakPricing = PRICING;
+  console.log("[Onboarding] IIFE complete — openOnboarding ready");
 })();
