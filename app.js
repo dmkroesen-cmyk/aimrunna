@@ -24391,22 +24391,59 @@ document.addEventListener("click", (e) => {
 
   let currentIdx = 0;
 
-  // ── Haptic helper (vibrate on Android, audio tick on iOS) ──
+  // ── Haptic helper (vibrate on Android, audio click on iOS) ──
   let _hapticCtx = null;
   const _isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 
-  function _audioTick(freq, dur) {
+  function _ensureAudioCtx() {
+    if (!_hapticCtx) _hapticCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (_hapticCtx.state === "suspended") _hapticCtx.resume();
+    return _hapticCtx;
+  }
+
+  function _audioClick() {
     try {
-      if (!_hapticCtx) _hapticCtx = new (window.AudioContext || window.webkitAudioContext)();
-      if (_hapticCtx.state === "suspended") _hapticCtx.resume();
-      const o = _hapticCtx.createOscillator();
-      const g = _hapticCtx.createGain();
-      o.type = "sine";
-      o.frequency.value = freq || 200;
-      g.gain.value = 0.08;
-      g.gain.exponentialRampToValueAtTime(0.001, _hapticCtx.currentTime + (dur || 0.015));
-      o.connect(g).connect(_hapticCtx.destination);
-      o.start(); o.stop(_hapticCtx.currentTime + (dur || 0.015));
+      const ctx = _ensureAudioCtx();
+      const now = ctx.currentTime;
+      // Short noise burst — sounds like a physical click
+      const bufferSize = Math.round(ctx.sampleRate * 0.008); // 8ms
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        // Decaying noise burst
+        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.15));
+      }
+      const src = ctx.createBufferSource();
+      src.buffer = buffer;
+      // Bandpass filter to make it feel like a tap, not static
+      const filter = ctx.createBiquadFilter();
+      filter.type = "bandpass";
+      filter.frequency.value = 1800;
+      filter.Q.value = 1.2;
+      const gain = ctx.createGain();
+      gain.gain.value = 0.35;
+      src.connect(filter).connect(gain).connect(ctx.destination);
+      src.start(now);
+    } catch (_) {}
+  }
+
+  function _audioConfirm() {
+    try {
+      const ctx = _ensureAudioCtx();
+      const now = ctx.currentTime;
+      // Two-tone click: low then high
+      [0, 0.06].forEach((delay, i) => {
+        const freq = i === 0 ? 1600 : 2200;
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.type = "sine";
+        o.frequency.value = freq;
+        g.gain.setValueAtTime(0.25, now + delay);
+        g.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.025);
+        o.connect(g).connect(ctx.destination);
+        o.start(now + delay);
+        o.stop(now + delay + 0.025);
+      });
     } catch (_) {}
   }
 
@@ -24414,23 +24451,14 @@ document.addEventListener("click", (e) => {
     try {
       if (navigator.vibrate) { navigator.vibrate(ms || 10); return; }
     } catch (_) {}
-    if (_isIOS) {
-      // Ensure AudioContext is warm before playing tick
-      if (!_hapticCtx) _hapticCtx = new (window.AudioContext || window.webkitAudioContext)();
-      if (_hapticCtx.state === "suspended") {
-        _hapticCtx.resume().then(() => _audioTick(180, 0.012));
-      } else {
-        _audioTick(180, 0.012);
-      }
-    }
+    if (_isIOS) _audioClick();
   }
 
-  /** Stronger confirmation haptic — double-tap pattern for decisive actions */
   function hapticConfirm() {
     try {
       if (navigator.vibrate) { navigator.vibrate([15, 40, 25]); return; }
     } catch (_) {}
-    if (_isIOS) { _audioTick(220, 0.015); setTimeout(() => _audioTick(280, 0.02), 55); }
+    if (_isIOS) _audioConfirm();
   }
 
   // ── Distance options per discipline ──
