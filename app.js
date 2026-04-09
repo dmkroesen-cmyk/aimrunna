@@ -5492,7 +5492,7 @@ function renderActivityFeed() {
   const activities = (account?.activities || []).slice(0, 30).sort((a, b) => new Date(b.createdAt || b.date || b.start_date || 0) - new Date(a.createdAt || a.date || a.start_date || 0));
 
   if (!activities.length) {
-    container.innerHTML = '<div class="activity-feed-empty">Noch keine Aktivitaeten. Verbinde dein Geraet oder importiere Aktivitaeten.</div>';
+    container.innerHTML = '<div class="activity-feed-empty">Noch keine Aktivitäten. Verbinde dein Gerät oder importiere Aktivitäten.</div>';
     return;
   }
 
