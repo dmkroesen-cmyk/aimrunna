@@ -16,6 +16,7 @@
     <link rel="dns-prefetch" href="https://images.pexels.com" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
@@ -3120,33 +3121,23 @@
             <p class="ob-sub">Wähle deine Disziplin</p>
             <div class="ob-cards ob-cards-disc" id="ob-discipline-cards">
               <button type="button" class="ob-card is-active" data-value="running">
-                <span class="ob-card-icon">
-                  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="14" cy="4" r="1.8"/><path d="M7 21l3-4.5 2 1.5V21"/><path d="M16 21l-2.5-6-3.5 1 1-4 3-2.5 2 2.5 3-1"/><path d="M10 9.5L6.5 12"/></svg>
-                </span>
+                <span class="ob-card-icon"><i class="ti ti-run"></i></span>
                 <span class="ob-card-label">Laufen</span>
               </button>
               <button type="button" class="ob-card" data-value="triathlon">
-                <span class="ob-card-icon">
-                  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18l4-3 3 2 5-7 4 4"/><circle cx="18" cy="7" r="1.5"/><path d="M2 21h20"/></svg>
-                </span>
+                <span class="ob-card-icon"><i class="ti ti-swimming"></i></span>
                 <span class="ob-card-label">Triathlon</span>
               </button>
               <button type="button" class="ob-card" data-value="cycling">
-                <span class="ob-card-icon">
-                  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="17" r="3"/><circle cx="18" cy="17" r="3"/><path d="M6 17l4-7h4l2 3h2"/><circle cx="15" cy="5" r="1.5"/></svg>
-                </span>
+                <span class="ob-card-icon"><i class="ti ti-bike"></i></span>
                 <span class="ob-card-label">Rad</span>
               </button>
               <button type="button" class="ob-card" data-value="hyrox">
-                <span class="ob-card-icon">
-                  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7v10"/><path d="M20 7v10"/><path d="M7 9v6"/><path d="M17 9v6"/><path d="M7 12h10"/></svg>
-                </span>
+                <span class="ob-card-icon"><i class="ti ti-barbell"></i></span>
                 <span class="ob-card-label">Hyrox</span>
               </button>
               <button type="button" class="ob-card" data-value="shape">
-                <span class="ob-card-icon">
-                  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>
-                </span>
+                <span class="ob-card-icon"><i class="ti ti-heartbeat"></i></span>
                 <span class="ob-card-label">Shape</span>
               </button>
             </div>
@@ -3328,24 +3319,24 @@
                 <button type="button" class="ob-tier is-active" data-tier="beta">
                   <div class="ob-tier-badge">Beta</div>
                   <div class="ob-tier-price">
-                    <span class="ob-tier-amount">0 €</span>
+                    <span class="ob-tier-amount">0&thinsp;€</span>
                   </div>
                   <div class="ob-tier-label">Kostenlos</div>
-                  <div class="ob-tier-desc">Voller Zugang während der Beta-Phase. Du wirst rechtzeitig informiert, bevor sich etwas ändert.</div>
+                  <div class="ob-tier-desc">Voller Zugang während der Beta-Phase.</div>
                 </button>
                 <button type="button" class="ob-tier is-disabled" data-tier="monthly" disabled>
                   <div class="ob-tier-price">
-                    <span class="ob-tier-amount">12,50 €</span>
-                    <span class="ob-tier-cycle">/ Monat</span>
+                    <span class="ob-tier-amount">12,50&thinsp;€</span>
                   </div>
+                  <div class="ob-tier-cycle">/ Monat</div>
                   <div class="ob-tier-label">Monatlich</div>
                   <div class="ob-tier-soon">Bald verfügbar</div>
                 </button>
                 <button type="button" class="ob-tier is-disabled" data-tier="yearly" disabled>
                   <div class="ob-tier-price">
-                    <span class="ob-tier-amount">125 €</span>
-                    <span class="ob-tier-cycle">/ Jahr</span>
+                    <span class="ob-tier-amount">125&thinsp;€</span>
                   </div>
+                  <div class="ob-tier-cycle">/ Jahr</div>
                   <div class="ob-tier-label">Jährlich</div>
                   <div class="ob-tier-save">2 Monate gratis</div>
                   <div class="ob-tier-soon">Bald verfügbar</div>
@@ -3353,6 +3344,13 @@
               </div>
 
               <div class="ob-account-form">
+                <button type="button" class="ob-google-btn" id="ob-google-btn">
+                  <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                  <span>Mit Google fortfahren</span>
+                </button>
+
+                <div class="ob-or-divider"><span>oder</span></div>
+
                 <input type="email" class="ob-input" id="ob-email" placeholder="E-Mail" autocomplete="email" />
                 <input type="password" class="ob-input" id="ob-password" placeholder="Passwort (mind. 6 Zeichen)" minlength="6" autocomplete="new-password" />
                 <label class="ob-terms-row">
@@ -3360,15 +3358,8 @@
                   <span>Ich akzeptiere die <a href="#" data-open-legal="terms">Nutzungsbedingungen</a> & <a href="#" data-open-legal="privacy">Datenschutzerklärung</a></span>
                 </label>
                 <div class="ob-account-status" id="ob-account-status"></div>
-                <button type="button" class="ob-account-btn" id="ob-account-btn">Account erstellen — Kostenlos</button>
+                <button type="button" class="ob-account-btn" id="ob-account-btn">Account erstellen</button>
               </div>
-
-              <div class="ob-or-divider"><span>oder</span></div>
-
-              <button type="button" class="ob-guest-btn" id="ob-guest-btn">
-                Ohne Account weiter
-                <span class="ob-guest-note">Dein Plan bleibt lokal gespeichert</span>
-              </button>
             </div>
           </div>
 

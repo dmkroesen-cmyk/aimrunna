@@ -3159,6 +3159,12 @@ function initAccountUi() {
         syncConnectorButtons();
         updateConnectionStateCopy();
         closeAccountModal();
+        // Close onboarding if it was open (e.g. after Google OAuth redirect)
+        if (typeof window.closeOnboarding === "function") {
+          try { localStorage.setItem("peak_activated", "1"); } catch (_) {}
+          window.closeOnboarding();
+          if (typeof syncPlanModeUI === "function") syncPlanModeUI();
+        }
         if (typeof window._syncTabBar === "function") window._syncTabBar();
       } else if (event === "SIGNED_OUT") {
         currentAccountId = null;
@@ -25107,14 +25113,29 @@ document.addEventListener("click", (e) => {
     haptic(10);
   });
 
+  // Google OAuth login
+  document.getElementById("ob-google-btn")?.addEventListener("click", async () => {
+    const statusEl = document.getElementById("ob-account-status");
+    if (statusEl) { statusEl.textContent = "Weiterleitung zu Google..."; statusEl.className = "ob-account-status"; }
+    try {
+      // Mark peak as activated before redirect (OAuth redirects away)
+      try { localStorage.setItem("peak_activated", "1"); } catch (_) {}
+      applyToForm();
+      if (window.sbAuth?.signInWithGoogle) {
+        await window.sbAuth.signInWithGoogle();
+      } else {
+        if (statusEl) { statusEl.textContent = "Google Login nicht verfügbar."; statusEl.className = "ob-account-status is-error"; }
+      }
+    } catch (err) {
+      if (statusEl) { statusEl.textContent = err.message || "Fehler bei Google Login."; statusEl.className = "ob-account-status is-error"; }
+    }
+  });
+
   // Account creation → finalize with account
   document.getElementById("ob-account-btn")?.addEventListener("click", async () => {
     const ok = await handleAccountCreate();
     if (ok) setTimeout(finalize, 400);
   });
-
-  // Guest button → finalize without account (data already applied in transitionToAccount)
-  document.getElementById("ob-guest-btn")?.addEventListener("click", finalize);
 
   // Expose globals
   window.openOnboarding = open;
