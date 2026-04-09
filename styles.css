@@ -1006,17 +1006,32 @@ body.is-authenticated .account-dot {
   contain: layout paint;
 }
 
-/* Dark cinematic overlay — matches landing page hero treatment */
-.scroll-sticky::after {
-  content: "";
+/* Hero background — 3-image grid, identical to landing page */
+.hero-bg {
   position: absolute;
   inset: 0;
-  z-index: 3;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 4px;
+  opacity: 0.4;
+  z-index: 1;
+}
+
+.hero-bg-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
   pointer-events: none;
   background: linear-gradient(
     180deg,
     rgba(11, 15, 26, 0.3) 0%,
-    rgba(11, 15, 26, 0.55) 40%,
+    rgba(11, 15, 26, 0.6) 40%,
     rgba(11, 15, 26, 0.85) 100%
   );
 }
@@ -1029,13 +1044,7 @@ body.is-authenticated .account-dot {
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   contain: layout paint;
-  /* Force own compositor layer for jank-free parallax */
   isolation: isolate;
-}
-
-.photo-layer {
-  display: grid;
-  place-items: center;
 }
 
 .photo-strip {
