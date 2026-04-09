@@ -24610,9 +24610,16 @@ document.addEventListener("click", (e) => {
     container.addEventListener("click", e => {
       const card = e.target.closest(".ob-card");
       if (!card) return;
-      container.querySelectorAll(".ob-card").forEach(c => c.classList.remove("is-active"));
+      const wasActive = card.classList.contains("is-active");
+      container.querySelectorAll(".ob-card").forEach(c => {
+        c.classList.remove("is-active", "is-just-selected");
+      });
       card.classList.add("is-active");
-      haptic(10);
+      if (!wasActive) {
+        card.classList.add("is-just-selected");
+        card.addEventListener("animationend", () => card.classList.remove("is-just-selected"), { once: true });
+      }
+      haptic(12);
       if (onSelect) onSelect(card.dataset.value);
     });
   }
