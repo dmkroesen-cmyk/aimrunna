@@ -14,7 +14,7 @@
 
     :root {
       --bg: #FFFFFF;
-      --bg-dark: #0B0F1A;
+      --bg-dark: #1A1A1A;
       --bg-card: #F8F8FA;
       --text: #1A1A1A;
       --text-secondary: #6B7280;
@@ -111,7 +111,7 @@
       align-items: center;
       justify-content: center;
       overflow: hidden;
-      background: var(--bg-dark);
+      background: #FFFFFF;
     }
     .hero-bg {
       position: absolute;
@@ -131,9 +131,9 @@
       inset: 0;
       background: linear-gradient(
         180deg,
-        rgba(11,15,26,0.3) 0%,
-        rgba(11,15,26,0.6) 40%,
-        rgba(11,15,26,0.85) 100%
+        rgba(255,255,255,0.7) 0%,
+        rgba(255,255,255,0.85) 40%,
+        rgba(255,255,255,0.95) 100%
       );
     }
     .hero-content {
@@ -156,14 +156,14 @@
       font-weight: 800;
       letter-spacing: -0.03em;
       line-height: 1.05;
-      color: white;
+      color: var(--text);
       margin-bottom: 20px;
     }
     .hero-sub {
       font-size: 18px;
       font-weight: 400;
       line-height: 1.6;
-      color: rgba(255,255,255,0.6);
+      color: var(--text-secondary);
       max-width: 520px;
       margin: 0 auto 40px;
     }
@@ -197,14 +197,14 @@
       border-radius: 10px;
       font-size: 15px;
       font-weight: 600;
-      color: rgba(255,255,255,0.8);
-      background: rgba(255,255,255,0.1);
-      border: 1px solid rgba(255,255,255,0.15);
+      color: var(--text-secondary);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
       text-decoration: none;
       transition: all 0.15s;
       cursor: pointer;
     }
-    .btn-secondary:hover { background: rgba(255,255,255,0.15); }
+    .btn-secondary:hover { background: var(--bg-card); transform: translateY(-1px); }
 
     /* ── FEATURES ── */
     .features {
@@ -272,9 +272,9 @@
       line-height: 1.6;
     }
 
-    /* ── PLAN SECTION (dark) ── */
+    /* ── PLAN SECTION ── */
     .plan-section {
-      background: var(--bg-dark);
+      background: var(--bg-card);
       padding: 100px 24px;
       position: relative;
       overflow: hidden;
@@ -292,7 +292,7 @@
     .plan-section-overlay {
       position: absolute;
       inset: 0;
-      background: linear-gradient(180deg, rgba(11,15,26,0.7) 0%, rgba(11,15,26,0.9) 100%);
+      background: linear-gradient(180deg, rgba(248,248,250,0.7) 0%, rgba(248,248,250,0.9) 100%);
     }
     .plan-content {
       position: relative;
@@ -313,12 +313,12 @@
       font-size: clamp(32px, 5vw, 56px);
       font-weight: 800;
       letter-spacing: -0.03em;
-      color: white;
+      color: var(--text);
       margin-bottom: 16px;
     }
     .plan-sub {
       font-size: 16px;
-      color: rgba(255,255,255,0.5);
+      color: var(--text-secondary);
       margin-bottom: 40px;
       line-height: 1.6;
     }
@@ -418,18 +418,19 @@
       gap: 16px;
     }
     .analytics-card {
-      background: var(--bg-dark);
+      background: var(--bg-card);
       border-radius: var(--radius);
       padding: 24px;
-      color: white;
+      color: var(--text);
       overflow: hidden;
+      border: 1px solid var(--border);
     }
     .analytics-card-label {
       font-size: 11px;
       font-weight: 600;
       letter-spacing: 0.06em;
       text-transform: uppercase;
-      color: rgba(255,255,255,0.4);
+      color: var(--text-muted);
       margin-bottom: 12px;
     }
     .analytics-card-value {
@@ -439,21 +440,21 @@
     }
     .analytics-card-meta {
       font-size: 12px;
-      color: rgba(255,255,255,0.4);
+      color: var(--text-muted);
     }
     .analytics-card-wide {
       grid-column: 1 / -1;
     }
     .analytics-chart-placeholder {
       height: 120px;
-      background: rgba(255,255,255,0.03);
+      background: rgba(0,0,0,0.02);
       border-radius: 8px;
       margin-top: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 11px;
-      color: rgba(255,255,255,0.2);
+      color: var(--text-muted);
     }
 
     /* ── SPORTS ── */
@@ -713,16 +714,16 @@
           <div><div class="analytics-card-value" style="color:#F5A623;">neutral</div><div class="analytics-card-meta">Status</div></div>
         </div>
         <!-- CTL/ATL/TSB 12-Week Chart — Banister impulse-response model -->
-        <div class="analytics-chart" style="margin-top:12px;position:relative;height:120px;overflow:hidden;border-radius:8px;background:rgba(255,255,255,0.03);">
+        <div class="analytics-chart" style="margin-top:12px;position:relative;height:120px;overflow:hidden;border-radius:8px;background:rgba(0,0,0,0.03);">
           <svg viewBox="0 0 560 120" preserveAspectRatio="none" width="100%" height="100%" style="display:block;">
             <!-- Y-axis grid lines -->
-            <line x1="0" y1="20" x2="560" y2="20" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
-            <line x1="0" y1="50" x2="560" y2="50" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
-            <line x1="0" y1="80" x2="560" y2="80" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+            <line x1="0" y1="20" x2="560" y2="20" stroke="rgba(0,0,0,0.04)" stroke-width="1"/>
+            <line x1="0" y1="50" x2="560" y2="50" stroke="rgba(0,0,0,0.04)" stroke-width="1"/>
+            <line x1="0" y1="80" x2="560" y2="80" stroke="rgba(0,0,0,0.04)" stroke-width="1"/>
             <!-- TSB area fill (subtle blue) -->
             <path d="M0,62 L40,52 80,68 120,52 160,66 200,52 240,70 280,56 320,72 360,60 400,64 440,58 480,62 520,64 560,70 L560,80 L0,80 Z" fill="rgba(90,200,250,0.08)"/>
             <!-- Zero line for TSB -->
-            <line x1="0" y1="65" x2="560" y2="65" stroke="rgba(255,255,255,0.08)" stroke-width="1" stroke-dasharray="4,4"/>
+            <line x1="0" y1="65" x2="560" y2="65" stroke="rgba(0,0,0,0.06)" stroke-width="1" stroke-dasharray="4,4"/>
             <!-- CTL line (green, smooth rise 28→50) -->
             <polyline points="0,98 40,94 80,88 120,84 160,78 200,74 240,70 280,66 320,62 360,60 400,56 440,54 480,52 520,50 560,46" fill="none" stroke="#4CAF82" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
             <!-- ATL line (orange, volatile) -->
@@ -736,10 +737,10 @@
           </svg>
           <!-- Week labels -->
           <div style="position:absolute;bottom:2px;left:0;right:0;display:flex;justify-content:space-between;padding:0 4px;">
-            <span style="font-size:8px;color:rgba(255,255,255,0.15);">W1</span>
-            <span style="font-size:8px;color:rgba(255,255,255,0.15);">W4</span>
-            <span style="font-size:8px;color:rgba(255,255,255,0.15);">W8</span>
-            <span style="font-size:8px;color:rgba(255,255,255,0.15);">W12</span>
+            <span style="font-size:8px;color:rgba(0,0,0,0.12);">W1</span>
+            <span style="font-size:8px;color:rgba(0,0,0,0.12);">W4</span>
+            <span style="font-size:8px;color:rgba(0,0,0,0.12);">W8</span>
+            <span style="font-size:8px;color:rgba(0,0,0,0.12);">W12</span>
           </div>
         </div>
       </div>
@@ -748,7 +749,7 @@
         <div class="analytics-card-value">1.29</div>
         <div class="analytics-card-meta" style="color:#4CAF82;">Sweet Spot &#10003;</div>
         <!-- ACWR Ratio Chart — Acute:Chronic with danger zones -->
-        <div class="analytics-chart" style="margin-top:12px;position:relative;height:120px;overflow:hidden;border-radius:8px;background:rgba(255,255,255,0.03);">
+        <div class="analytics-chart" style="margin-top:12px;position:relative;height:120px;overflow:hidden;border-radius:8px;background:rgba(0,0,0,0.03);">
           <svg viewBox="0 0 280 120" preserveAspectRatio="none" width="100%" height="100%" style="display:block;">
             <!-- Danger zone (ACWR > 1.5) -->
             <rect x="0" y="0" width="280" height="20" fill="rgba(255,82,82,0.06)"/>
@@ -758,7 +759,7 @@
             <text x="4" y="14" fill="rgba(255,82,82,0.25)" font-size="7" font-family="Inter,sans-serif">DANGER &gt;1.5</text>
             <text x="4" y="54" fill="rgba(76,175,130,0.25)" font-size="7" font-family="Inter,sans-serif">SWEET SPOT</text>
             <!-- 1.0 baseline -->
-            <line x1="0" y1="50" x2="280" y2="50" stroke="rgba(255,255,255,0.06)" stroke-width="1" stroke-dasharray="3,3"/>
+            <line x1="0" y1="50" x2="280" y2="50" stroke="rgba(0,0,0,0.06)" stroke-width="1" stroke-dasharray="3,3"/>
             <!-- ACWR ratio line over 12 weeks -->
             <polyline points="0,52 20,48 40,38 60,55 80,42 100,34 120,48 140,36 160,30 180,44 200,38 220,28 240,42 260,34 280,30" fill="none" stroke="#D4850F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
             <!-- Acute load bars (subtle) -->
@@ -782,28 +783,28 @@
       <div class="analytics-card">
         <div class="analytics-card-label">Prognosen</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
-          <div><div style="font-size:10px;color:rgba(255,255,255,0.3);">5K</div><div style="font-size:20px;font-weight:800;">19:28</div></div>
-          <div><div style="font-size:10px;color:rgba(255,255,255,0.3);">10K</div><div style="font-size:20px;font-weight:800;">41:51</div></div>
-          <div><div style="font-size:10px;color:rgba(255,255,255,0.3);">HM</div><div style="font-size:20px;font-weight:800;">1:40:12</div></div>
-          <div><div style="font-size:10px;color:rgba(255,255,255,0.3);">Marathon</div><div style="font-size:20px;font-weight:800;">3:51:08</div></div>
+          <div><div style="font-size:10px;color:rgba(0,0,0,0.25);">5K</div><div style="font-size:20px;font-weight:800;">19:28</div></div>
+          <div><div style="font-size:10px;color:rgba(0,0,0,0.25);">10K</div><div style="font-size:20px;font-weight:800;">41:51</div></div>
+          <div><div style="font-size:10px;color:rgba(0,0,0,0.25);">HM</div><div style="font-size:20px;font-weight:800;">1:40:12</div></div>
+          <div><div style="font-size:10px;color:rgba(0,0,0,0.25);">Marathon</div><div style="font-size:20px;font-weight:800;">3:51:08</div></div>
         </div>
         <!-- VDOT Trend sparkline -->
-        <div style="margin-top:12px;border-radius:8px;background:rgba(255,255,255,0.03);padding:8px 0 4px;overflow:hidden;">
-          <div style="font-size:8px;color:rgba(255,255,255,0.2);padding:0 8px;margin-bottom:4px;">VDOT TREND (12 WOCHEN)</div>
+        <div style="margin-top:12px;border-radius:8px;background:rgba(0,0,0,0.03);padding:8px 0 4px;overflow:hidden;">
+          <div style="font-size:8px;color:rgba(0,0,0,0.15);padding:0 8px;margin-bottom:4px;">VDOT TREND (12 WOCHEN)</div>
           <svg viewBox="0 0 240 40" preserveAspectRatio="none" width="100%" height="40" style="display:block;">
             <defs>
               <linearGradient id="vdot-grad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="rgba(255,255,255,0.1)"/>
+                <stop offset="0%" stop-color="rgba(0,0,0,0.08)"/>
                 <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
               </linearGradient>
             </defs>
             <path d="M0,32 L20,30 40,28 60,27 80,26 100,24 120,23 140,21 160,19 180,18 200,16 220,14 240,12 L240,40 L0,40 Z" fill="url(#vdot-grad)"/>
-            <polyline points="0,32 20,30 40,28 60,27 80,26 100,24 120,23 140,21 160,19 180,18 200,16 220,14 240,12" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5" stroke-linecap="round"/>
-            <circle cx="240" cy="12" r="3" fill="white"/>
+            <polyline points="0,32 20,30 40,28 60,27 80,26 100,24 120,23 140,21 160,19 180,18 200,16 220,14 240,12" fill="none" stroke="rgba(0,0,0,0.35)" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="240" cy="12" r="3" fill="#1A1A1A"/>
           </svg>
           <div style="display:flex;justify-content:space-between;padding:0 8px;">
-            <span style="font-size:8px;color:rgba(255,255,255,0.15);">VDOT 42.1</span>
-            <span style="font-size:8px;color:rgba(255,255,255,0.3);">VDOT 44.8 ↑</span>
+            <span style="font-size:8px;color:rgba(0,0,0,0.12);">VDOT 42.1</span>
+            <span style="font-size:8px;color:rgba(0,0,0,0.25);">VDOT 44.8 ↑</span>
           </div>
         </div>
       </div>
@@ -812,7 +813,7 @@
         <div class="analytics-card-value">92%</div>
         <div class="analytics-card-meta">6.2 Einheiten/Woche &middot; 15 Tage Serie</div>
         <!-- Heatmap Grid — 12 weeks x 7 days -->
-        <div class="analytics-chart" style="margin-top:12px;border-radius:8px;background:rgba(255,255,255,0.03);padding:8px;">
+        <div class="analytics-chart" style="margin-top:12px;border-radius:8px;background:rgba(0,0,0,0.03);padding:8px;">
           <div style="display:grid;grid-template-columns:repeat(12,1fr);gap:3px;">
             <!-- Week 1 (Mo-So) -->
             <div style="display:grid;gap:3px;">
@@ -822,7 +823,7 @@
               <div style="aspect-ratio:1;border-radius:2px;background:rgba(76,175,130,0.8);"></div>
               <div style="aspect-ratio:1;border-radius:2px;background:rgba(76,175,130,0.6);"></div>
               <div style="aspect-ratio:1;border-radius:2px;background:rgba(76,175,130,0.9);"></div>
-              <div style="aspect-ratio:1;border-radius:2px;background:rgba(255,255,255,0.04);"></div>
+              <div style="aspect-ratio:1;border-radius:2px;background:rgba(0,0,0,0.04);"></div>
             </div>
             <!-- Week 2 -->
             <div style="display:grid;gap:3px;">
@@ -830,7 +831,7 @@
               <div style="aspect-ratio:1;border-radius:2px;background:rgba(76,175,130,0.5);"></div>
               <div style="aspect-ratio:1;border-radius:2px;background:rgba(76,175,130,0.9);"></div>
               <div style="aspect-ratio:1;border-radius:2px;background:rgba(76,175,130,0.7);"></div>
-              <div style="aspect-ratio:1;border-radius:2px;background:rgba(255,255,255,0.04);"></div>
+              <div style="aspect-ratio:1;border-radius:2px;background:rgba(0,0,0,0.04);"></div>
               <div style="aspect-ratio:1;border-radius:2px;background:rgba(76,175,130,0.8);"></div>
               <div style="aspect-ratio:1;border-radius:2px;background:rgba(76,175,130,0.6);"></div>
             </div>
@@ -848,10 +849,10 @@
             <div style="display:grid;gap:3px;">
               <div style="aspect-ratio:1;border-radius:2px;background:rgba(76,175,130,0.5);"></div>
               <div style="aspect-ratio:1;border-radius:2px;background:rgba(76,175,130,0.3);"></div>
-              <div style="aspect-ratio:1;border-radius:2px;background:rgba(255,255,255,0.04);"></div>
+              <div style="aspect-ratio:1;border-radius:2px;background:rgba(0,0,0,0.04);"></div>
               <div style="aspect-ratio:1;border-radius:2px;background:rgba(76,175,130,0.4);"></div>
               <div style="aspect-ratio:1;border-radius:2px;background:rgba(76,175,130,0.6);"></div>
-              <div style="aspect-ratio:1;border-radius:2px;background:rgba(255,255,255,0.04);"></div>
+              <div style="aspect-ratio:1;border-radius:2px;background:rgba(0,0,0,0.04);"></div>
               <div style="aspect-ratio:1;border-radius:2px;background:rgba(76,175,130,0.5);"></div>
             </div>
             <!-- Week 5 -->
@@ -879,7 +880,7 @@
               <div style="aspect-ratio:1;border-radius:2px;background:rgba(76,175,130,0.7);"></div>
               <div style="aspect-ratio:1;border-radius:2px;background:rgba(76,175,130,0.9);"></div>
               <div style="aspect-ratio:1;border-radius:2px;background:rgba(76,175,130,0.8);"></div>
-              <div style="aspect-ratio:1;border-radius:2px;background:rgba(255,255,255,0.04);"></div>
+              <div style="aspect-ratio:1;border-radius:2px;background:rgba(0,0,0,0.04);"></div>
               <div style="aspect-ratio:1;border-radius:2px;background:rgba(76,175,130,0.6);"></div>
               <div style="aspect-ratio:1;border-radius:2px;background:rgba(76,175,130,0.9);"></div>
               <div style="aspect-ratio:1;border-radius:2px;background:rgba(76,175,130,0.5);"></div>
@@ -888,11 +889,11 @@
             <div style="display:grid;gap:3px;">
               <div style="aspect-ratio:1;border-radius:2px;background:rgba(76,175,130,0.4);"></div>
               <div style="aspect-ratio:1;border-radius:2px;background:rgba(76,175,130,0.6);"></div>
-              <div style="aspect-ratio:1;border-radius:2px;background:rgba(255,255,255,0.04);"></div>
+              <div style="aspect-ratio:1;border-radius:2px;background:rgba(0,0,0,0.04);"></div>
               <div style="aspect-ratio:1;border-radius:2px;background:rgba(76,175,130,0.5);"></div>
               <div style="aspect-ratio:1;border-radius:2px;background:rgba(76,175,130,0.3);"></div>
               <div style="aspect-ratio:1;border-radius:2px;background:rgba(76,175,130,0.6);"></div>
-              <div style="aspect-ratio:1;border-radius:2px;background:rgba(255,255,255,0.04);"></div>
+              <div style="aspect-ratio:1;border-radius:2px;background:rgba(0,0,0,0.04);"></div>
             </div>
             <!-- Week 9 -->
             <div style="display:grid;gap:3px;">
@@ -930,15 +931,15 @@
               <div style="aspect-ratio:1;border-radius:2px;background:rgba(76,175,130,0.8);"></div>
               <div style="aspect-ratio:1;border-radius:2px;background:rgba(76,175,130,0.7);"></div>
               <div style="aspect-ratio:1;border-radius:2px;background:rgba(76,175,130,0.9);"></div>
-              <div style="aspect-ratio:1;border-radius:2px;background:rgba(255,255,255,0.06);border:1px dashed rgba(255,255,255,0.1);"></div>
-              <div style="aspect-ratio:1;border-radius:2px;background:rgba(255,255,255,0.03);"></div>
-              <div style="aspect-ratio:1;border-radius:2px;background:rgba(255,255,255,0.03);"></div>
+              <div style="aspect-ratio:1;border-radius:2px;background:rgba(0,0,0,0.06);border:1px dashed rgba(0,0,0,0.08);"></div>
+              <div style="aspect-ratio:1;border-radius:2px;background:rgba(0,0,0,0.03);"></div>
+              <div style="aspect-ratio:1;border-radius:2px;background:rgba(0,0,0,0.03);"></div>
             </div>
           </div>
           <div style="display:flex;justify-content:space-between;margin-top:6px;">
-            <span style="font-size:7px;color:rgba(255,255,255,0.15);">W1</span>
-            <span style="font-size:7px;color:rgba(255,255,255,0.15);">W6</span>
-            <span style="font-size:7px;color:rgba(255,255,255,0.15);">W12</span>
+            <span style="font-size:7px;color:rgba(0,0,0,0.12);">W1</span>
+            <span style="font-size:7px;color:rgba(0,0,0,0.12);">W6</span>
+            <span style="font-size:7px;color:rgba(0,0,0,0.12);">W12</span>
           </div>
         </div>
       </div>
@@ -947,7 +948,7 @@
         <div class="analytics-card-value">82%</div>
         <div class="analytics-card-meta">Compliance &middot; 3 Violations in 12 Wochen</div>
         <!-- Hard/Easy Pattern — last 21 days -->
-        <div style="margin-top:12px;border-radius:8px;background:rgba(255,255,255,0.03);padding:10px 8px 6px;overflow:hidden;">
+        <div style="margin-top:12px;border-radius:8px;background:rgba(0,0,0,0.03);padding:10px 8px 6px;overflow:hidden;">
           <div style="display:flex;align-items:flex-end;gap:3px;height:60px;">
             <!-- Day bars: tall=hard, short=easy, red border=violation -->
             <div style="flex:1;height:85%;border-radius:2px 2px 0 0;background:rgba(245,166,35,0.6);"></div>
@@ -956,14 +957,14 @@
             <div style="flex:1;height:25%;border-radius:2px 2px 0 0;background:rgba(76,175,130,0.4);"></div>
             <div style="flex:1;height:90%;border-radius:2px 2px 0 0;background:rgba(245,166,35,0.6);"></div>
             <div style="flex:1;height:35%;border-radius:2px 2px 0 0;background:rgba(76,175,130,0.4);"></div>
-            <div style="flex:1;height:15%;border-radius:2px 2px 0 0;background:rgba(255,255,255,0.06);"></div>
+            <div style="flex:1;height:15%;border-radius:2px 2px 0 0;background:rgba(0,0,0,0.06);"></div>
             <div style="flex:1;height:80%;border-radius:2px 2px 0 0;background:rgba(245,166,35,0.6);"></div>
             <div style="flex:1;height:70%;border-radius:2px 2px 0 0;background:rgba(255,82,82,0.5);box-shadow:inset 0 0 0 1px rgba(255,82,82,0.6);"></div>
             <div style="flex:1;height:85%;border-radius:2px 2px 0 0;background:rgba(245,166,35,0.6);"></div>
             <div style="flex:1;height:30%;border-radius:2px 2px 0 0;background:rgba(76,175,130,0.4);"></div>
             <div style="flex:1;height:75%;border-radius:2px 2px 0 0;background:rgba(245,166,35,0.6);"></div>
             <div style="flex:1;height:28%;border-radius:2px 2px 0 0;background:rgba(76,175,130,0.4);"></div>
-            <div style="flex:1;height:15%;border-radius:2px 2px 0 0;background:rgba(255,255,255,0.06);"></div>
+            <div style="flex:1;height:15%;border-radius:2px 2px 0 0;background:rgba(0,0,0,0.06);"></div>
             <div style="flex:1;height:90%;border-radius:2px 2px 0 0;background:rgba(245,166,35,0.6);"></div>
             <div style="flex:1;height:32%;border-radius:2px 2px 0 0;background:rgba(76,175,130,0.4);"></div>
             <div style="flex:1;height:80%;border-radius:2px 2px 0 0;background:rgba(245,166,35,0.6);"></div>
@@ -973,9 +974,9 @@
             <div style="flex:1;height:82%;border-radius:2px 2px 0 0;background:rgba(245,166,35,0.6);"></div>
           </div>
           <div style="display:flex;gap:12px;margin-top:8px;">
-            <div style="display:flex;align-items:center;gap:4px;"><div style="width:8px;height:8px;border-radius:2px;background:rgba(245,166,35,0.6);"></div><span style="font-size:8px;color:rgba(255,255,255,0.25);">Hard</span></div>
-            <div style="display:flex;align-items:center;gap:4px;"><div style="width:8px;height:8px;border-radius:2px;background:rgba(76,175,130,0.4);"></div><span style="font-size:8px;color:rgba(255,255,255,0.25);">Easy</span></div>
-            <div style="display:flex;align-items:center;gap:4px;"><div style="width:8px;height:8px;border-radius:2px;background:rgba(255,82,82,0.5);"></div><span style="font-size:8px;color:rgba(255,255,255,0.25);">Violation</span></div>
+            <div style="display:flex;align-items:center;gap:4px;"><div style="width:8px;height:8px;border-radius:2px;background:rgba(245,166,35,0.6);"></div><span style="font-size:8px;color:rgba(0,0,0,0.2);">Hard</span></div>
+            <div style="display:flex;align-items:center;gap:4px;"><div style="width:8px;height:8px;border-radius:2px;background:rgba(76,175,130,0.4);"></div><span style="font-size:8px;color:rgba(0,0,0,0.2);">Easy</span></div>
+            <div style="display:flex;align-items:center;gap:4px;"><div style="width:8px;height:8px;border-radius:2px;background:rgba(255,82,82,0.5);"></div><span style="font-size:8px;color:rgba(0,0,0,0.2);">Violation</span></div>
           </div>
         </div>
       </div>

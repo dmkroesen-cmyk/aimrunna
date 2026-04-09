@@ -992,7 +992,7 @@ body.is-authenticated .account-dot {
 .scroll-stage {
   height: 148svh;
   position: relative;
-  background: #0B0F1A;
+  background: #FFFFFF;
 }
 
 .scroll-sticky {
@@ -1030,9 +1030,9 @@ body.is-authenticated .account-dot {
   pointer-events: none;
   background: linear-gradient(
     180deg,
-    rgba(11, 15, 26, 0.3) 0%,
-    rgba(11, 15, 26, 0.6) 40%,
-    rgba(11, 15, 26, 0.85) 100%
+    rgba(255, 255, 255, 0.7) 0%,
+    rgba(255, 255, 255, 0.85) 40%,
+    rgba(255, 255, 255, 0.95) 100%
   );
 }
 
@@ -1207,7 +1207,7 @@ body.is-authenticated .account-dot {
   letter-spacing: -0.04em;
   line-height: 1;
   font-weight: 800;
-  color: #FFFFFF;
+  color: var(--text, #1A1A1A);
 }
 
 .intake-form {
@@ -1216,14 +1216,14 @@ body.is-authenticated .account-dot {
   gap: 16px;
 }
 
-/* Intake form on dark hero background — white inputs with subtle shadow */
+/* Intake form inputs */
 .intake-form input:not([type="checkbox"]),
 .intake-form select,
 .intake-form textarea {
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  color: #1A1A1A;
+  background: #FFFFFF;
+  border: 1.5px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  color: var(--text, #1A1A1A);
 }
 
 .quick-grid {
@@ -1466,7 +1466,7 @@ select {
 .advanced-toggle {
   border: 0;
   background: transparent;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-secondary, #6B7280);
   font-size: 12px;
   letter-spacing: 0.04em;
   cursor: pointer;
@@ -1475,7 +1475,7 @@ select {
 }
 
 .advanced-toggle:hover {
-  color: rgba(0, 0, 0, 0.7);
+  color: var(--text, #1A1A1A);
 }
 
 .tuning-toggle-row {
@@ -14030,23 +14030,9 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
   animation: ob-choice-select 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+/* Desktop: fullscreen like mobile — same system state, not a floating card */
 @media (min-width: 768px) {
-  .ob-shell {
-    inset: 0;
-    max-width: 440px;
-    max-height: 88vh;
-    margin: auto;
-    border-radius: 24px;
-    box-shadow: 0 40px 120px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.06);
-  }
-  .ob-shell::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.55);
-    z-index: -1;
-  }
-  .ob-nav {
-    border-radius: 0 0 24px 24px;
+  .ob-screen-inner {
+    max-width: 380px;
   }
 }
