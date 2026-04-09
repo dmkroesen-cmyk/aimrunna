@@ -131,7 +131,7 @@
                     <span data-i18n="field_mode">Modus</span>
                     <select name="planMode" id="plan-mode-select" required>
                       <option value="quick" selected data-i18n="mode_quick">quick.</option>
-                      <option value="pro" data-i18n="mode_pro">peak.</option>
+                      <option value="peak" data-i18n="mode_pro">peak.</option>
                     </select>
                   </label>
                 </div>
@@ -3098,228 +3098,247 @@
       </button>
     </nav>
 
-    <!-- ═══ ONBOARDING MODAL ═══ -->
-    <div class="onboarding-backdrop" id="onboarding-backdrop" hidden>
-      <div class="onboarding-modal" id="onboarding-modal">
-        <div class="onboarding-header">
-          <div class="onboarding-progress">
-            <div class="onboarding-progress-bar" id="onboarding-progress-bar"></div>
-          </div>
-          <div class="onboarding-header-row">
-            <span class="onboarding-step-label" id="onboarding-step-label">Schritt 1 von 5</span>
-            <button type="button" class="onboarding-close" id="onboarding-close" aria-label="Schließen">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-            </button>
-          </div>
+    <!-- ═══ ONBOARDING — Guided Activation Experience ═══ -->
+    <div class="ob-shell" id="ob-shell" hidden>
+      <!-- Progress -->
+      <div class="ob-chrome">
+        <div class="ob-progress-track">
+          <div class="ob-progress-fill" id="ob-progress-fill"></div>
         </div>
+        <button type="button" class="ob-close" id="ob-close" aria-label="Schließen">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
 
-        <div class="onboarding-body" id="onboarding-body">
-          <!-- Step 1: Disziplin & Ziel -->
-          <div class="onboarding-step" data-step="1">
-            <h2 class="onboarding-title">Was ist dein Ziel?</h2>
-            <p class="onboarding-desc">Wähle deine Disziplin und definiere dein nächstes Rennen.</p>
-            <div class="onboarding-fields">
-              <label class="onboarding-field">
-                <span>Disziplin</span>
-                <select id="ob-discipline">
-                  <option value="running">Laufen</option>
-                  <option value="triathlon">Triathlon</option>
-                  <option value="cycling">Rad</option>
-                  <option value="hyrox">Hyrox</option>
-                  <option value="shape">Shape</option>
-                </select>
-              </label>
-              <label class="onboarding-field">
-                <span>Zielformat</span>
-                <select id="ob-goal-distance"></select>
-              </label>
-              <label class="onboarding-field">
-                <span>Zielzeit</span>
-                <input type="text" id="ob-goal-time" placeholder="z. B. 3:45:00" />
-              </label>
-              <label class="onboarding-field">
-                <span>Race Day</span>
-                <input type="date" id="ob-race-date" />
-              </label>
-            </div>
-          </div>
+      <!-- Screens container -->
+      <div class="ob-screens" id="ob-screens">
 
-          <!-- Step 2: Über dich -->
-          <div class="onboarding-step" data-step="2" hidden>
-            <h2 class="onboarding-title">Über dich</h2>
-            <p class="onboarding-desc">Hilft uns, Zonen und Belastung genauer zu berechnen.</p>
-            <div class="onboarding-fields">
-              <label class="onboarding-field">
-                <span>Geschlecht</span>
-                <select id="ob-sex">
-                  <option value="">— optional —</option>
-                  <option value="female">Weiblich</option>
-                  <option value="male">Männlich</option>
-                </select>
-              </label>
-              <div class="onboarding-field-row">
-                <label class="onboarding-field">
-                  <span>Geburtsjahr</span>
-                  <input type="number" id="ob-birth-year" placeholder="z. B. 1990" min="1940" max="2012" />
-                </label>
-                <label class="onboarding-field">
-                  <span>Gewicht (kg)</span>
-                  <input type="number" id="ob-weight" placeholder="z. B. 72" min="35" max="180" step="0.1" />
-                </label>
-              </div>
-              <div class="onboarding-field-row">
-                <label class="onboarding-field">
-                  <span>Größe (cm)</span>
-                  <input type="number" id="ob-height" placeholder="z. B. 178" min="130" max="230" step="1" />
-                </label>
-                <label class="onboarding-field">
-                  <span>Level</span>
-                  <select id="ob-level">
-                    <option value="starter">Einsteiger</option>
-                    <option value="intermediate" selected>Fortgeschritten</option>
-                    <option value="advanced">Leistung</option>
-                  </select>
-                </label>
-              </div>
-              <label class="onboarding-field">
-                <span>Erfahrung</span>
-                <select id="ob-experience">
-                  <option value="lt1">Unter 1 Jahr</option>
-                  <option value="1to3" selected>1–3 Jahre</option>
-                  <option value="3to5">3–5 Jahre</option>
-                  <option value="5plus">5+ Jahre</option>
-                </select>
-              </label>
-            </div>
-          </div>
-
-          <!-- Step 3: Schwellenwerte -->
-          <div class="onboarding-step" data-step="3" hidden>
-            <h2 class="onboarding-title">Deine Schwellenwerte</h2>
-            <p class="onboarding-desc">Optional — macht deinen Plan präziser. Alles was du nicht weißt, überspringen.</p>
-            <div class="onboarding-fields" id="ob-thresholds">
-              <!-- Dynamisch befüllt je nach Disziplin -->
-            </div>
-          </div>
-
-          <!-- Step 4: Bestzeiten -->
-          <div class="onboarding-step" data-step="4" hidden>
-            <h2 class="onboarding-title">Letzte Bestzeiten</h2>
-            <p class="onboarding-desc">Hilft uns, deinen aktuellen VDOT und Leistungsstand einzuschätzen.</p>
-            <div class="onboarding-fields">
-              <div class="onboarding-pb-row">
-                <label class="onboarding-field onboarding-field-sm">
-                  <span>Distanz</span>
-                  <select id="ob-pb1-distance"></select>
-                </label>
-                <label class="onboarding-field">
-                  <span>Zeit</span>
-                  <input type="text" id="ob-pb1-time" placeholder="z. B. 21:30" />
-                </label>
-              </div>
-              <div class="onboarding-pb-row">
-                <label class="onboarding-field onboarding-field-sm">
-                  <span>Distanz</span>
-                  <select id="ob-pb2-distance"></select>
-                </label>
-                <label class="onboarding-field">
-                  <span>Zeit</span>
-                  <input type="text" id="ob-pb2-time" placeholder="z. B. 1:48:00" />
-                </label>
-              </div>
-            </div>
-          </div>
-
-          <!-- Step 5: Trainings-Setup -->
-          <div class="onboarding-step" data-step="5" hidden>
-            <h2 class="onboarding-title">Dein Trainings-Setup</h2>
-            <p class="onboarding-desc">Wie viel Zeit hast du, und wie soll deine Woche aussehen?</p>
-            <div class="onboarding-fields">
-              <label class="onboarding-field">
-                <span>Stunden pro Woche</span>
-                <input type="number" id="ob-weekly-hours" value="8" min="2" max="30" step="1" />
-              </label>
-              <label class="onboarding-field" id="ob-long-run-day-field">
-                <span>Long Run Tag</span>
-                <select id="ob-long-run-day">
-                  <option value="sunday" selected>Sonntag</option>
-                  <option value="saturday">Samstag</option>
-                  <option value="wednesday">Mittwoch</option>
-                  <option value="friday">Freitag</option>
-                  <option value="never">Keiner</option>
-                </select>
-              </label>
-              <label class="onboarding-field" id="ob-bike-outdoor-day-field" hidden>
-                <span>Outdoor Ride Tag</span>
-                <select id="ob-bike-outdoor-day">
-                  <option value="sunday" selected>Sonntag</option>
-                  <option value="saturday">Samstag</option>
-                  <option value="wednesday">Mittwoch</option>
-                  <option value="friday">Freitag</option>
-                  <option value="never">Keiner</option>
-                </select>
-              </label>
-              <label class="onboarding-field">
-                <span>Planhorizont</span>
-                <select id="ob-ltad-mode">
-                  <option value="off" selected>Standard</option>
-                  <option value="one_year">Season (1 Jahr)</option>
-                  <option value="two_year">LTAD (2 Jahre)</option>
-                </select>
-              </label>
-            </div>
-          </div>
-
-          <!-- Step 6: Zusammenfassung & Account -->
-          <div class="onboarding-step" data-step="6" hidden>
-            <h2 class="onboarding-title">Fast geschafft.</h2>
-            <p class="onboarding-desc">Dein Plan wird aus diesen Daten generiert. Erstelle einen Account, um deinen Plan zu speichern und die volle App zu nutzen.</p>
-
-            <!-- Summary -->
-            <div class="onboarding-summary" id="ob-summary"></div>
-
-            <!-- Account creation -->
-            <div class="onboarding-account-section" id="ob-account-section">
-              <div class="onboarding-account-card">
-                <div class="onboarding-account-header">
-                  <div class="onboarding-account-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                  </div>
-                  <span>Account erstellen</span>
-                </div>
-                <div class="onboarding-fields" style="gap:10px;">
-                  <label class="onboarding-field">
-                    <span>E-Mail</span>
-                    <input type="email" id="ob-email" placeholder="deine@email.com" autocomplete="email" />
-                  </label>
-                  <label class="onboarding-field">
-                    <span>Passwort</span>
-                    <input type="password" id="ob-password" placeholder="Mind. 6 Zeichen" minlength="6" autocomplete="new-password" />
-                  </label>
-                  <label class="onboarding-terms">
-                    <input type="checkbox" id="ob-accept-terms" />
-                    <span>Ich akzeptiere die <a href="#" data-open-legal="terms" target="_blank">Nutzungsbedingungen</a> und <a href="#" data-open-legal="privacy" target="_blank">Datenschutzerklärung</a></span>
-                  </label>
-                </div>
-                <div class="onboarding-account-status" id="ob-account-status"></div>
-              </div>
-
-              <div class="onboarding-divider">
-                <span>oder</span>
-              </div>
-
-              <button type="button" class="onboarding-guest-btn" id="ob-guest-btn">
-                Ohne Account fortfahren
-                <span class="onboarding-guest-note">Plan wird nur lokal gespeichert</span>
+        <!-- S1 — Discipline -->
+        <div class="ob-screen" data-screen="discipline">
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline">Was trainierst du?</h2>
+            <div class="ob-cards" id="ob-discipline-cards">
+              <button type="button" class="ob-card is-active" data-value="running">
+                <span class="ob-card-icon">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="17" cy="4" r="2"/><path d="M15.59 13.51l-1.76-2.52a1 1 0 0 0-1.42-.22L9.2 13.2a1 1 0 0 1-1.24-.06L5 10.5"/><path d="M5.38 18.46L8 16l2.78 2.78a1 1 0 0 0 1.42 0l4.3-4.3"/></svg>
+                </span>
+                <span class="ob-card-label">Laufen</span>
+              </button>
+              <button type="button" class="ob-card" data-value="triathlon">
+                <span class="ob-card-icon">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20"/><path d="M5 17l3-7 4 4 4-8 3 7"/></svg>
+                </span>
+                <span class="ob-card-label">Triathlon</span>
+              </button>
+              <button type="button" class="ob-card" data-value="cycling">
+                <span class="ob-card-icon">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-3 11.5V14l-3-3 4-3 2 3h3"/></svg>
+                </span>
+                <span class="ob-card-label">Rad</span>
+              </button>
+              <button type="button" class="ob-card" data-value="hyrox">
+                <span class="ob-card-icon">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4v16"/><path d="M18 4v16"/><path d="M6 12h12"/></svg>
+                </span>
+                <span class="ob-card-label">Hyrox</span>
+              </button>
+              <button type="button" class="ob-card" data-value="shape">
+                <span class="ob-card-icon">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                </span>
+                <span class="ob-card-label">Shape</span>
               </button>
             </div>
           </div>
         </div>
 
-        <div class="onboarding-footer">
-          <button type="button" class="onboarding-btn-back" id="onboarding-btn-back" hidden>Zurück</button>
-          <button type="button" class="onboarding-btn-next" id="onboarding-btn-next">Weiter</button>
+        <!-- S2 — Distance -->
+        <div class="ob-screen" data-screen="distance" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline">Dein Ziel</h2>
+            <p class="ob-sub">Welche Distanz steht an?</p>
+            <div class="ob-cards ob-cards-list" id="ob-distance-cards">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
         </div>
+
+        <!-- S3 — Goal Time (Wheel Picker) -->
+        <div class="ob-screen" data-screen="goaltime" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline">Deine Zielzeit</h2>
+            <p class="ob-sub">Scroll zur gewünschten Zeit</p>
+            <div class="ob-wheel-group">
+              <div class="ob-wheel-col">
+                <span class="ob-wheel-label">Std</span>
+                <div class="ob-wheel" id="ob-wheel-hours" data-field="hours">
+                  <div class="ob-wheel-track"></div>
+                </div>
+              </div>
+              <span class="ob-wheel-sep">:</span>
+              <div class="ob-wheel-col">
+                <span class="ob-wheel-label">Min</span>
+                <div class="ob-wheel" id="ob-wheel-minutes" data-field="minutes">
+                  <div class="ob-wheel-track"></div>
+                </div>
+              </div>
+              <span class="ob-wheel-sep">:</span>
+              <div class="ob-wheel-col">
+                <span class="ob-wheel-label">Sek</span>
+                <div class="ob-wheel" id="ob-wheel-seconds" data-field="seconds">
+                  <div class="ob-wheel-track"></div>
+                </div>
+              </div>
+            </div>
+            <button type="button" class="ob-skip-link" id="ob-skip-goaltime">Überspringen</button>
+          </div>
+        </div>
+
+        <!-- S4 — Race Day -->
+        <div class="ob-screen" data-screen="raceday" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline">Race Day</h2>
+            <p class="ob-sub">Wann ist dein Wettkampf?</p>
+            <input type="date" class="ob-date-input" id="ob-race-date" />
+            <button type="button" class="ob-skip-link" id="ob-skip-raceday">Kein festes Datum</button>
+          </div>
+        </div>
+
+        <!-- S5 — Level -->
+        <div class="ob-screen" data-screen="level" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline">Dein Level</h2>
+            <p class="ob-sub">Wo stehst du gerade?</p>
+            <div class="ob-cards ob-cards-level" id="ob-level-cards">
+              <button type="button" class="ob-card ob-card-wide" data-value="starter">
+                <span class="ob-card-label">Einsteiger</span>
+                <span class="ob-card-desc">Weniger als 1 Jahr strukturiertes Training</span>
+              </button>
+              <button type="button" class="ob-card ob-card-wide is-active" data-value="intermediate">
+                <span class="ob-card-label">Fortgeschritten</span>
+                <span class="ob-card-desc">1–3 Jahre regelmäßiges Training</span>
+              </button>
+              <button type="button" class="ob-card ob-card-wide" data-value="advanced">
+                <span class="ob-card-label">Leistung</span>
+                <span class="ob-card-desc">3+ Jahre mit Wettkampferfahrung</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- S6 — Body Data (Wheel Pickers) -->
+        <div class="ob-screen" data-screen="body" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline">Über dich</h2>
+            <p class="ob-sub">Für präzise Zonen und Belastungssteuerung</p>
+            <div class="ob-body-grid">
+              <div class="ob-body-item">
+                <span class="ob-body-label">Geschlecht</span>
+                <div class="ob-toggle-row" id="ob-sex-toggle">
+                  <button type="button" class="ob-toggle-btn" data-value="female">W</button>
+                  <button type="button" class="ob-toggle-btn is-active" data-value="">—</button>
+                  <button type="button" class="ob-toggle-btn" data-value="male">M</button>
+                </div>
+              </div>
+              <div class="ob-body-item">
+                <span class="ob-body-label">Geburtsjahr</span>
+                <div class="ob-wheel ob-wheel-sm" id="ob-wheel-birthyear" data-field="birthyear">
+                  <div class="ob-wheel-track"></div>
+                </div>
+              </div>
+              <div class="ob-body-item">
+                <span class="ob-body-label">Gewicht</span>
+                <div class="ob-wheel ob-wheel-sm" id="ob-wheel-weight" data-field="weight">
+                  <div class="ob-wheel-track"></div>
+                </div>
+                <span class="ob-body-unit">kg</span>
+              </div>
+              <div class="ob-body-item">
+                <span class="ob-body-label">Größe</span>
+                <div class="ob-wheel ob-wheel-sm" id="ob-wheel-height" data-field="height">
+                  <div class="ob-wheel-track"></div>
+                </div>
+                <span class="ob-body-unit">cm</span>
+              </div>
+            </div>
+            <button type="button" class="ob-skip-link" id="ob-skip-body">Überspringen</button>
+          </div>
+        </div>
+
+        <!-- S7 — Weekly Hours (Wheel Picker) -->
+        <div class="ob-screen" data-screen="hours" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline">Deine Zeit</h2>
+            <p class="ob-sub">Stunden pro Woche fürs Training</p>
+            <div class="ob-wheel-group ob-wheel-single">
+              <div class="ob-wheel-col">
+                <div class="ob-wheel ob-wheel-lg" id="ob-wheel-hours-weekly" data-field="weeklyhours">
+                  <div class="ob-wheel-track"></div>
+                </div>
+                <span class="ob-wheel-label">Stunden / Woche</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- S8 — Final: Activation + Account (unified) -->
+        <div class="ob-screen ob-screen-final" data-screen="final" hidden>
+
+          <!-- Phase 1: Activation moment -->
+          <div class="ob-final-phase ob-final-activate" id="ob-phase-activate">
+            <div class="ob-screen-inner ob-activate-inner">
+              <div class="ob-activate-badge">peak.</div>
+              <h2 class="ob-headline ob-headline-lg">Bereit.</h2>
+              <p class="ob-activate-summary" id="ob-activate-summary"></p>
+              <button type="button" class="ob-activate-btn" id="ob-activate-btn">
+                <span>Go Peak</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </button>
+              <p class="ob-beta-note">Kostenlos während der Beta. Kein Abo. Keine Kreditkarte.</p>
+            </div>
+          </div>
+
+          <!-- Phase 2: Account creation (slides in after activation) -->
+          <div class="ob-final-phase ob-final-account" id="ob-phase-account">
+            <div class="ob-screen-inner">
+              <div class="ob-activate-badge ob-activate-badge-sm">peak.</div>
+              <h2 class="ob-headline">Dein System ist aktiv.</h2>
+              <p class="ob-sub">Sichere deinen Fortschritt mit einem Account.</p>
+
+              <div class="ob-account-form">
+                <input type="email" class="ob-input" id="ob-email" placeholder="E-Mail" autocomplete="email" />
+                <input type="password" class="ob-input" id="ob-password" placeholder="Passwort (mind. 6 Zeichen)" minlength="6" autocomplete="new-password" />
+                <label class="ob-terms-row">
+                  <input type="checkbox" id="ob-accept-terms" />
+                  <span>Ich akzeptiere die <a href="#" data-open-legal="terms">Nutzungsbedingungen</a> & <a href="#" data-open-legal="privacy">Datenschutzerklärung</a></span>
+                </label>
+                <div class="ob-account-status" id="ob-account-status"></div>
+                <button type="button" class="ob-account-btn" id="ob-account-btn">Account erstellen</button>
+              </div>
+
+              <div class="ob-beta-banner" id="ob-beta-banner">
+                <p class="ob-beta-banner-text">peak. ist aktuell in der <strong>Beta</strong> und komplett kostenlos. Bevor sich daran etwas ändert, wirst du rechtzeitig informiert.</p>
+              </div>
+
+              <div class="ob-or-divider"><span>oder</span></div>
+
+              <button type="button" class="ob-guest-btn" id="ob-guest-btn">
+                Ohne Account weiter
+                <span class="ob-guest-note">Dein Plan bleibt lokal gespeichert</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Navigation -->
+      <div class="ob-nav" id="ob-nav">
+        <button type="button" class="ob-nav-back" id="ob-nav-back" hidden>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <button type="button" class="ob-nav-next" id="ob-nav-next">Weiter</button>
       </div>
     </div>
 

@@ -1505,7 +1505,7 @@ profileSettingsNavButtons.forEach((btn) =>
     const hash = window.location.hash;
     const params = new URLSearchParams(window.location.search);
     const mode = params.get("mode");
-    if (hash === "#peakplan" && (mode === "quick" || mode === "pro")) {
+    if (hash === "#peakplan" && (mode === "quick" || mode === "peak")) {
       // Activate peakplan tab
       setActiveTab("peakplan");
       // Set the plan mode select
@@ -7864,7 +7864,7 @@ function initDynamicGoalOptions() {
     if (suggested && quickGoalTimeInput) quickGoalTimeInput.value = suggested;
   });
   planModeSelect?.addEventListener("change", () => {
-    if (planModeSelect.value === "pro") {
+    if (planModeSelect.value === "peak") {
       openOnboarding();
       return;
     }
@@ -7910,13 +7910,32 @@ function syncQuickGoalOptions(discipline = disciplineSelect?.value) {
 function syncPlanModeUI() {
   const mode = String(planModeSelect?.value || "quick");
   const isQuick = mode === "quick";
-  if (quickPlanFieldsEl) quickPlanFieldsEl.hidden = !isQuick;
-  if (advancedSettingsEl) {
-    advancedSettingsEl.classList.toggle("is-quick-hidden", isQuick);
-    advancedSettingsEl.hidden = isQuick;
+
+  // peak. mode requires registration — gate advanced settings behind auth
+  let peakUnlocked = false;
+  if (!isQuick) {
+    try {
+      // Check localStorage for persisted Supabase session (sync, instant)
+      const stored = localStorage.getItem("sb-tpnfkumkvxnrurjuaxdq-auth-token");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        // Supabase v2 stores { access_token, user, ... } or { currentSession: { user } }
+        peakUnlocked = !!(parsed?.user || parsed?.currentSession?.user || parsed?.access_token);
+      }
+    } catch (_) {
+      peakUnlocked = false;
+    }
+    // Async fallback — covers edge cases where localStorage is stale
+    if (!peakUnlocked && window.sbAuth?.getUser) {
+      window.sbAuth.getUser().then(u => {
+        if (u) _applyPeakVisibility(true);
+      }).catch(() => {});
+    }
   }
-  if (tuningToggleRowEl) tuningToggleRowEl.hidden = isQuick;
-  if (tuningPanelHostEl && isQuick) tuningPanelHostEl.hidden = true;
+
+  const showAdvanced = !isQuick && peakUnlocked;
+  if (quickPlanFieldsEl) quickPlanFieldsEl.hidden = !isQuick;
+  _applyPeakVisibility(showAdvanced);
 
   if (quickGoalDistanceSelect) quickGoalDistanceSelect.disabled = !isQuick;
   if (quickGoalTimeInput) quickGoalTimeInput.disabled = !isQuick;
@@ -7926,6 +7945,16 @@ function syncPlanModeUI() {
   if (quickGoalTimeInput) quickGoalTimeInput.required = isQuick;
   if (quickRaceDateInput) quickRaceDateInput.required = isQuick;
   normalizeFieldLabels();
+}
+
+/** Controls visibility of peak. advanced settings (tuning tabs + panels) */
+function _applyPeakVisibility(show) {
+  if (advancedSettingsEl) {
+    advancedSettingsEl.classList.toggle("is-quick-hidden", !show);
+    advancedSettingsEl.hidden = !show;
+  }
+  if (tuningToggleRowEl) tuningToggleRowEl.hidden = !show;
+  if (tuningPanelHostEl && !show) tuningPanelHostEl.hidden = true;
 }
 
 function applyQuickModeToPrimaryGoalFields() {
@@ -24282,45 +24311,53 @@ document.addEventListener("click", (e) => {
 })();
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   ONBOARDING SYSTEM — Step-by-step guided questionnaire for peak. mode
+   ONBOARDING — Guided Activation Experience (mobile-first, wheel pickers)
    ═══════════════════════════════════════════════════════════════════════════ */
 (function initOnboarding() {
-  const backdrop = document.getElementById("onboarding-backdrop");
-  const modal = document.getElementById("onboarding-modal");
-  const progressBar = document.getElementById("onboarding-progress-bar");
-  const stepLabel = document.getElementById("onboarding-step-label");
-  const btnNext = document.getElementById("onboarding-btn-next");
-  const btnBack = document.getElementById("onboarding-btn-back");
-  const closeBtn = document.getElementById("onboarding-close");
-  const bodyEl = document.getElementById("onboarding-body");
+  const shell = document.getElementById("ob-shell");
+  const screens = document.getElementById("ob-screens");
+  const progressFill = document.getElementById("ob-progress-fill");
+  const btnNext = document.getElementById("ob-nav-next");
+  const btnBack = document.getElementById("ob-nav-back");
+  const closeBtn = document.getElementById("ob-close");
 
-  if (!backdrop || !modal) return;
+  if (!shell || !screens) return;
 
-  const TOTAL_STEPS = 6;
-  let currentStep = 1;
+  // ── Screen order (final = activation + account in one screen) ──
+  const SCREEN_ORDER = [
+    "discipline", "distance", "goaltime", "raceday",
+    "level", "body", "hours", "final"
+  ];
+  let currentIdx = 0;
 
-  // ── Onboarding field references ──
-  const obDiscipline = document.getElementById("ob-discipline");
-  const obGoalDist = document.getElementById("ob-goal-distance");
-  const obGoalTime = document.getElementById("ob-goal-time");
-  const obRaceDate = document.getElementById("ob-race-date");
-  const obSex = document.getElementById("ob-sex");
-  const obBirthYear = document.getElementById("ob-birth-year");
-  const obWeight = document.getElementById("ob-weight");
-  const obHeight = document.getElementById("ob-height");
-  const obLevel = document.getElementById("ob-level");
-  const obExperience = document.getElementById("ob-experience");
-  const obThresholds = document.getElementById("ob-thresholds");
-  const obPb1Dist = document.getElementById("ob-pb1-distance");
-  const obPb1Time = document.getElementById("ob-pb1-time");
-  const obPb2Dist = document.getElementById("ob-pb2-distance");
-  const obPb2Time = document.getElementById("ob-pb2-time");
-  const obWeeklyHours = document.getElementById("ob-weekly-hours");
-  const obLongRunDay = document.getElementById("ob-long-run-day");
-  const obBikeOutdoorDay = document.getElementById("ob-bike-outdoor-day");
-  const obLtadMode = document.getElementById("ob-ltad-mode");
-  const obLongRunField = document.getElementById("ob-long-run-day-field");
-  const obBikeOutdoorField = document.getElementById("ob-bike-outdoor-day-field");
+  // ── Monetization config (subscription-ready, currently inactive) ──
+  const PRICING = Object.freeze({
+    monthly: 12.5,
+    yearly: 125,
+    currency: "EUR",
+    beta: true,          // true = free, no paywall
+    betaLabel: "Beta",
+    gracePeriodDays: 30, // advance notice before pricing activates
+  });
+
+  // ── Collected data ──
+  const data = {
+    discipline: "running",
+    distance: "",
+    goalHours: 0, goalMinutes: 0, goalSeconds: 0,
+    raceDate: "",
+    level: "intermediate",
+    sex: "",
+    birthYear: 1990,
+    weight: 72,
+    height: 178,
+    weeklyHours: 8,
+  };
+
+  // ── Haptic helper ──
+  function haptic(ms) {
+    try { if (navigator.vibrate) navigator.vibrate(ms || 10); } catch (_) {}
+  }
 
   // ── Distance options per discipline ──
   function distOpts(disc) {
@@ -24353,201 +24390,436 @@ document.addEventListener("click", (e) => {
     return map[disc] || map.running;
   }
 
-  function populateSel(sel, disc) {
-    const opts = distOpts(disc);
-    sel.innerHTML = opts.map(o => `<option value="${o.value}">${o.label}</option>`).join("");
-  }
+  // ══════════════════════════════════════════════════════════
+  //  WHEEL PICKER ENGINE
+  // ══════════════════════════════════════════════════════════
+  const wheels = {};
 
-  function syncDisciplineUI() {
-    const disc = obDiscipline?.value || "running";
-    populateSel(obGoalDist, disc);
-    populateSel(obPb1Dist, disc === "shape" ? "running" : disc);
-    populateSel(obPb2Dist, disc === "shape" ? "running" : disc);
+  function initWheel(containerId, values, defaultVal, onChange) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    const track = container.querySelector(".ob-wheel-track");
+    if (!track) return;
 
-    const isBike = disc === "triathlon" || disc === "cycling";
-    const isRun = disc === "running" || disc === "triathlon";
-    if (obLongRunField) obLongRunField.hidden = !isRun;
-    if (obBikeOutdoorField) obBikeOutdoorField.hidden = !isBike;
+    const itemH = container.classList.contains("ob-wheel-lg") ? 48
+                : container.classList.contains("ob-wheel-sm") ? 34 : 40;
+    const visibleItems = Math.floor(container.clientHeight / itemH);
+    const padCount = Math.floor(visibleItems / 2);
 
-    buildThresholdFields(disc);
+    // Build items
+    const padded = [];
+    for (let i = 0; i < padCount; i++) padded.push("");
+    values.forEach(v => padded.push(v));
+    for (let i = 0; i < padCount; i++) padded.push("");
 
-    if (obGoalTime && !obGoalTime.value) {
-      const ph = { running: "3:45:00", triathlon: "5:30:00", cycling: "3:00:00", hyrox: "1:30:00", shape: "" };
-      obGoalTime.placeholder = ph[disc] || "z. B. 3:45:00";
+    track.innerHTML = padded.map((v, i) =>
+      `<div class="ob-wheel-item" data-idx="${i}" data-value="${v}">${v}</div>`
+    ).join("");
+
+    let selectedIdx = padCount; // default to first real item
+    const defaultI = values.indexOf(String(defaultVal));
+    if (defaultI >= 0) selectedIdx = defaultI + padCount;
+
+    let startY = 0, startTranslate = 0, currentTranslate = 0, isDragging = false;
+
+    function scrollTo(idx, animate) {
+      idx = Math.max(padCount, Math.min(idx, padCount + values.length - 1));
+      selectedIdx = idx;
+      const offset = -(idx * itemH) + (padCount * itemH);
+      currentTranslate = offset;
+      track.style.transition = animate ? "transform 200ms cubic-bezier(0.25,1,0.5,1)" : "none";
+      track.style.transform = `translateY(${offset}px)`;
+
+      // Highlight
+      track.querySelectorAll(".ob-wheel-item").forEach((el, i) => {
+        el.classList.toggle("is-selected", i === idx);
+      });
+
+      const val = values[idx - padCount];
+      if (onChange) onChange(val);
+      haptic(8);
     }
-  }
 
-  function buildThresholdFields(disc) {
-    if (!obThresholds) return;
-    let h = "";
-    const isRun = disc === "running" || disc === "triathlon" || disc === "hyrox" || disc === "shape";
-    const isBike = disc === "triathlon" || disc === "cycling";
-    const isSwim = disc === "triathlon";
+    function onStart(y) {
+      isDragging = true;
+      startY = y;
+      startTranslate = currentTranslate;
+      track.style.transition = "none";
+    }
 
-    if (isRun) {
-      h += '<label class="onboarding-field"><span>Lauf Schwellenpace (/km) <span class="onboarding-optional">optional</span></span><input type="text" id="ob-run-thr-pace" placeholder="z. B. 4:30" /></label>';
-      h += '<div class="onboarding-field-row"><label class="onboarding-field"><span>Lauf Schwellen-HF (bpm)</span><input type="number" id="ob-run-thr-hr" placeholder="z. B. 172" min="100" max="210" /></label>';
-      h += '<label class="onboarding-field"><span>Max HF (bpm)</span><input type="number" id="ob-max-hr" placeholder="z. B. 192" min="120" max="230" /></label></div>';
+    function onMove(y) {
+      if (!isDragging) return;
+      const delta = y - startY;
+      currentTranslate = startTranslate + delta;
+      track.style.transform = `translateY(${currentTranslate}px)`;
     }
-    if (isBike) {
-      h += '<label class="onboarding-field"><span>FTP Bike (Watt) <span class="onboarding-optional">optional</span></span><input type="number" id="ob-bike-ftp" placeholder="z. B. 265" min="90" max="550" /></label>';
-      h += '<label class="onboarding-field"><span>Bike Schwellen-HF (bpm)</span><input type="number" id="ob-bike-thr-hr" placeholder="z. B. 168" min="100" max="210" /></label>';
-    }
-    if (isSwim) {
-      h += '<label class="onboarding-field"><span>Swim CSS (/100m) <span class="onboarding-optional">optional</span></span><input type="text" id="ob-swim-css" placeholder="z. B. 1:42" /></label>';
-    }
-    if (!h) {
-      h = '<p class="onboarding-desc" style="margin:0;">Für diese Disziplin sind keine Schwellenwerte nötig. Einfach weiter.</p>';
-    }
-    obThresholds.innerHTML = h;
-  }
 
-  // ── Step navigation ──
-  function showStep(n) {
-    currentStep = Math.max(1, Math.min(n, TOTAL_STEPS));
-    const steps = bodyEl.querySelectorAll(".onboarding-step");
-    steps.forEach(s => {
-      const sn = parseInt(s.dataset.step);
-      s.hidden = sn !== currentStep;
-      if (sn === currentStep) {
-        s.style.animation = "none";
-        void s.offsetHeight;
-        s.style.animation = "";
+    function onEnd() {
+      if (!isDragging) return;
+      isDragging = false;
+      // Snap to nearest
+      const rawIdx = Math.round(-currentTranslate / itemH + padCount);
+      scrollTo(rawIdx, true);
+    }
+
+    // Touch
+    container.addEventListener("touchstart", e => { onStart(e.touches[0].clientY); }, { passive: true });
+    container.addEventListener("touchmove", e => { onMove(e.touches[0].clientY); }, { passive: true });
+    container.addEventListener("touchend", onEnd);
+
+    // Mouse
+    container.addEventListener("mousedown", e => { e.preventDefault(); onStart(e.clientY); });
+    window.addEventListener("mousemove", e => { if (isDragging) onMove(e.clientY); });
+    window.addEventListener("mouseup", () => { if (isDragging) onEnd(); });
+
+    // Click on item
+    track.addEventListener("click", e => {
+      const item = e.target.closest(".ob-wheel-item");
+      if (item) {
+        const idx = parseInt(item.dataset.idx);
+        if (!isNaN(idx) && idx >= padCount && idx < padCount + values.length) {
+          scrollTo(idx, true);
+        }
       }
     });
-    progressBar.style.width = ((currentStep / TOTAL_STEPS) * 100) + "%";
-    stepLabel.textContent = "Schritt " + currentStep + " von " + TOTAL_STEPS;
-    btnBack.hidden = currentStep === 1;
-    if (currentStep === TOTAL_STEPS) {
-      btnNext.textContent = "Plan erstellen";
-    } else if (currentStep === TOTAL_STEPS - 1) {
-      btnNext.textContent = "Zusammenfassung";
-    } else {
-      btnNext.textContent = "Weiter";
+
+    // Mouse wheel
+    container.addEventListener("wheel", e => {
+      e.preventDefault();
+      const dir = e.deltaY > 0 ? 1 : -1;
+      scrollTo(selectedIdx + dir, true);
+    }, { passive: false });
+
+    // Initial position
+    requestAnimationFrame(() => scrollTo(selectedIdx, false));
+
+    wheels[containerId] = {
+      getValue: () => values[selectedIdx - padCount],
+      setValue: (v) => {
+        const i = values.indexOf(String(v));
+        if (i >= 0) scrollTo(i + padCount, false);
+      },
+      destroy: () => { track.innerHTML = ""; }
+    };
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  CARD SELECTION HELPERS
+  // ══════════════════════════════════════════════════════════
+  function initCards(containerId, onSelect) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.addEventListener("click", e => {
+      const card = e.target.closest(".ob-card");
+      if (!card) return;
+      container.querySelectorAll(".ob-card").forEach(c => c.classList.remove("is-active"));
+      card.classList.add("is-active");
+      haptic(10);
+      if (onSelect) onSelect(card.dataset.value);
+    });
+  }
+
+  function initToggle(containerId, onSelect) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.addEventListener("click", e => {
+      const btn = e.target.closest(".ob-toggle-btn");
+      if (!btn) return;
+      container.querySelectorAll(".ob-toggle-btn").forEach(b => b.classList.remove("is-active"));
+      btn.classList.add("is-active");
+      haptic(10);
+      if (onSelect) onSelect(btn.dataset.value);
+    });
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  SCREEN NAVIGATION
+  // ══════════════════════════════════════════════════════════
+  function currentScreen() { return SCREEN_ORDER[currentIdx]; }
+
+  function showScreen(idx, direction) {
+    const oldIdx = currentIdx;
+    currentIdx = Math.max(0, Math.min(idx, SCREEN_ORDER.length - 1));
+
+    const allScreens = screens.querySelectorAll(".ob-screen");
+    const oldName = SCREEN_ORDER[oldIdx];
+    const newName = SCREEN_ORDER[currentIdx];
+
+    allScreens.forEach(s => {
+      const name = s.dataset.screen;
+      if (name === oldName && oldIdx !== currentIdx) {
+        s.classList.remove("is-entering", "is-entering-reverse");
+        s.classList.add("is-leaving");
+        setTimeout(() => { s.hidden = true; s.classList.remove("is-leaving"); }, 220);
+      } else if (name === newName) {
+        s.hidden = false;
+        s.classList.remove("is-leaving");
+        s.classList.add(direction === "back" ? "is-entering-reverse" : "is-entering");
+        setTimeout(() => s.classList.remove("is-entering", "is-entering-reverse"), 320);
+      } else if (name !== oldName) {
+        s.hidden = true;
+      }
+    });
+
+    // Progress
+    const progress = ((currentIdx + 1) / SCREEN_ORDER.length) * 100;
+    progressFill.style.width = progress + "%";
+
+    // Nav buttons
+    btnBack.hidden = currentIdx === 0;
+
+    const isFinal = newName === "final";
+    const navEl = document.getElementById("ob-nav");
+    if (navEl) navEl.hidden = isFinal;
+
+    // Prepare screen-specific content
+    if (newName === "distance") populateDistanceCards();
+    if (newName === "goaltime") initTimeWheels();
+    if (newName === "body") initBodyWheels();
+    if (newName === "hours") initHoursWheel();
+    if (newName === "final") prepareFinalScreen();
+  }
+
+  function goNext() {
+    if (currentIdx < SCREEN_ORDER.length - 1) {
+      showScreen(currentIdx + 1, "forward");
     }
   }
 
-  // ── Transfer onboarding values into the plan form ──
+  function goBack() {
+    if (currentIdx > 0) {
+      showScreen(currentIdx - 1, "back");
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  DISCIPLINE CARDS
+  // ══════════════════════════════════════════════════════════
+  initCards("ob-discipline-cards", val => { data.discipline = val; });
+
+  // ══════════════════════════════════════════════════════════
+  //  DISTANCE CARDS (dynamic)
+  // ══════════════════════════════════════════════════════════
+  function populateDistanceCards() {
+    const container = document.getElementById("ob-distance-cards");
+    if (!container) return;
+    const opts = distOpts(data.discipline);
+    container.innerHTML = opts.map((o, i) =>
+      `<button type="button" class="ob-card ob-card-wide${i === 0 ? " is-active" : ""}" data-value="${o.value}">
+        <span class="ob-card-label">${o.label}</span>
+      </button>`
+    ).join("");
+    data.distance = opts[0]?.value || "";
+    // Re-attach card listener
+    container.addEventListener("click", e => {
+      const card = e.target.closest(".ob-card");
+      if (!card) return;
+      container.querySelectorAll(".ob-card").forEach(c => c.classList.remove("is-active"));
+      card.classList.add("is-active");
+      data.distance = card.dataset.value;
+      haptic(10);
+    });
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  LEVEL CARDS
+  // ══════════════════════════════════════════════════════════
+  initCards("ob-level-cards", val => { data.level = val; });
+
+  // ══════════════════════════════════════════════════════════
+  //  SEX TOGGLE
+  // ══════════════════════════════════════════════════════════
+  initToggle("ob-sex-toggle", val => { data.sex = val; });
+
+  // ══════════════════════════════════════════════════════════
+  //  WHEEL INIT FUNCTIONS (lazy — only when screen shown)
+  // ══════════════════════════════════════════════════════════
+  let wheelsInitialized = { time: false, body: false, hours: false };
+
+  function initTimeWheels() {
+    if (wheelsInitialized.time) return;
+    wheelsInitialized.time = true;
+
+    const hours = [];
+    for (let i = 0; i <= 12; i++) hours.push(String(i));
+    const minSec = [];
+    for (let i = 0; i < 60; i++) minSec.push(String(i).padStart(2, "0"));
+
+    // Default based on discipline
+    const defaults = {
+      running: [3, 45, 0], triathlon: [5, 30, 0], cycling: [3, 0, 0],
+      hyrox: [1, 30, 0], shape: [0, 0, 0]
+    };
+    const def = defaults[data.discipline] || [3, 45, 0];
+
+    initWheel("ob-wheel-hours", hours, String(def[0]), v => { data.goalHours = parseInt(v) || 0; });
+    initWheel("ob-wheel-minutes", minSec, String(def[1]).padStart(2, "0"), v => { data.goalMinutes = parseInt(v) || 0; });
+    initWheel("ob-wheel-seconds", minSec, String(def[2]).padStart(2, "0"), v => { data.goalSeconds = parseInt(v) || 0; });
+
+    data.goalHours = def[0];
+    data.goalMinutes = def[1];
+    data.goalSeconds = def[2];
+  }
+
+  function initBodyWheels() {
+    if (wheelsInitialized.body) return;
+    wheelsInitialized.body = true;
+
+    const years = [];
+    for (let y = 2010; y >= 1940; y--) years.push(String(y));
+    const weights = [];
+    for (let w = 40; w <= 150; w++) weights.push(String(w));
+    const heights = [];
+    for (let h = 140; h <= 220; h++) heights.push(String(h));
+
+    initWheel("ob-wheel-birthyear", years, "1990", v => { data.birthYear = parseInt(v) || 1990; });
+    initWheel("ob-wheel-weight", weights, "72", v => { data.weight = parseInt(v) || 72; });
+    initWheel("ob-wheel-height", heights, "178", v => { data.height = parseInt(v) || 178; });
+  }
+
+  function initHoursWheel() {
+    if (wheelsInitialized.hours) return;
+    wheelsInitialized.hours = true;
+
+    const hrs = [];
+    for (let h = 2; h <= 30; h++) hrs.push(String(h));
+    initWheel("ob-wheel-hours-weekly", hrs, "8", v => { data.weeklyHours = parseInt(v) || 8; });
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  FINAL SCREEN (Activation + Account, single screen)
+  // ══════════════════════════════════════════════════════════
+  const discLabels = { running: "Laufen", triathlon: "Triathlon", cycling: "Rad", hyrox: "Hyrox", shape: "Shape" };
+
+  function prepareFinalScreen() {
+    const finalScreen = screens.querySelector('[data-screen="final"]');
+    if (finalScreen) {
+      // Always start in activation phase
+      finalScreen.classList.remove("is-phase-account");
+    }
+    buildActivationSummary();
+  }
+
+  function buildActivationSummary() {
+    const el = document.getElementById("ob-activate-summary");
+    if (!el) return;
+
+    const opts = distOpts(data.discipline);
+    const distLabel = opts.find(o => o.value === data.distance)?.label || data.distance;
+
+    let timeStr = "";
+    if (data.goalHours || data.goalMinutes || data.goalSeconds) {
+      timeStr = (data.goalHours ? data.goalHours + ":" : "") +
+                String(data.goalMinutes).padStart(2, "0") + ":" +
+                String(data.goalSeconds).padStart(2, "0");
+    }
+
+    let dateStr = "";
+    if (data.raceDate) {
+      const d = new Date(data.raceDate);
+      const now = new Date();
+      const weeks = Math.max(1, Math.round((d - now) / (7 * 24 * 60 * 60 * 1000)));
+      dateStr = "in " + weeks + " Wochen";
+    }
+
+    let parts = [distLabel];
+    if (timeStr) parts.push(timeStr);
+    if (dateStr) parts.push(dateStr);
+    parts.push(data.weeklyHours + "h/Woche");
+
+    el.textContent = parts.join(" — ");
+
+    // Pulse animation on the button
+    const btn = document.getElementById("ob-activate-btn");
+    if (btn) {
+      btn.classList.remove("is-ready");
+      requestAnimationFrame(() => requestAnimationFrame(() => btn.classList.add("is-ready")));
+    }
+  }
+
+  /** Transition from activation phase → account phase within the same screen */
+  function transitionToAccount() {
+    // Apply onboarding data to plan form immediately (system is "activated")
+    applyToForm();
+
+    // Seamlessly swap phase
+    const finalScreen = screens.querySelector('[data-screen="final"]');
+    if (finalScreen) {
+      finalScreen.classList.add("is-phase-account");
+    }
+
+    // Fill progress to 100%
+    progressFill.style.width = "100%";
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  APPLY DATA TO PLAN FORM
+  // ══════════════════════════════════════════════════════════
   function applyToForm() {
     const f = document.getElementById("plan-form");
     if (!f) return;
 
     const modeSelect = document.getElementById("plan-mode-select");
-    if (modeSelect) modeSelect.value = "pro";
+    if (modeSelect) modeSelect.value = "peak";
 
     const disc = f.elements?.discipline;
-    if (disc) { disc.value = obDiscipline?.value || "running"; disc.dispatchEvent(new Event("change", { bubbles: true })); }
+    if (disc) { disc.value = data.discipline; disc.dispatchEvent(new Event("change", { bubbles: true })); }
 
     const setF = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
     const setN = (name, val) => { const el = f.elements?.[name]; if (el && val) el.value = val; };
 
-    setF("goal-distance-select", obGoalDist?.value);
-    setF("goal-time-input", obGoalTime?.value);
-    setN("raceDate", obRaceDate?.value);
-    setF("quick-goal-distance-select", obGoalDist?.value);
-    setF("quick-goal-time-input", obGoalTime?.value);
-    setF("quick-race-date-input", obRaceDate?.value);
+    setF("goal-distance-select", data.distance);
+    const goalTimeStr = (data.goalHours || data.goalMinutes || data.goalSeconds)
+      ? (data.goalHours ? data.goalHours + ":" : "") + String(data.goalMinutes).padStart(2, "0") + ":" + String(data.goalSeconds).padStart(2, "0")
+      : "";
+    setF("goal-time-input", goalTimeStr);
+    setN("raceDate", data.raceDate);
+    setF("quick-goal-distance-select", data.distance);
+    setF("quick-goal-time-input", goalTimeStr);
+    setF("quick-race-date-input", data.raceDate);
 
-    setF("sex-field", obSex?.value);
-    if (obBirthYear?.value) setF("plan-birth-year", obBirthYear.value);
-    setN("weightKg", obWeight?.value);
-    setN("heightCm", obHeight?.value);
+    setF("sex-field", data.sex);
+    if (data.birthYear) setF("plan-birth-year", String(data.birthYear));
+    setN("weightKg", String(data.weight));
+    setN("heightCm", String(data.height));
 
-    setF("level-field", obLevel?.value);
-    setF("experience-field", obExperience?.value);
-    setF("weekly-hours-field", obWeeklyHours?.value);
-
-    setF("run-thr-pace-field", document.getElementById("ob-run-thr-pace")?.value);
-    setF("run-thr-hr-field", document.getElementById("ob-run-thr-hr")?.value);
-    setF("bike-ftp-field", document.getElementById("ob-bike-ftp")?.value);
-    setF("bike-thr-hr-field", document.getElementById("ob-bike-thr-hr")?.value);
-    setF("swim-css-field", document.getElementById("ob-swim-css")?.value);
-    const maxHrOb = document.getElementById("ob-max-hr");
-    if (maxHrOb?.value) setN("maxHr", maxHrOb.value);
-
-    setF("pb1-distance-select", obPb1Dist?.value);
-    setN("pb1Time", obPb1Time?.value);
-    setF("pb2-distance-select", obPb2Dist?.value);
-    setN("pb2Time", obPb2Time?.value);
-
-    setF("long-run-day-select", obLongRunDay?.value);
-    setF("bike-outdoor-day-select", obBikeOutdoorDay?.value);
-    setF("ltad-mode-select", obLtadMode?.value);
+    setF("level-field", data.level);
+    // Map level to experience
+    const expMap = { starter: "lt1", intermediate: "1to3", advanced: "5plus" };
+    setF("experience-field", expMap[data.level] || "1to3");
+    setF("weekly-hours-field", String(data.weeklyHours));
 
     if (typeof syncPlanModeUI === "function") syncPlanModeUI();
-    if (typeof syncDisciplineSpecificFields === "function") syncDisciplineSpecificFields(obDiscipline?.value);
+    if (typeof syncDisciplineSpecificFields === "function") syncDisciplineSpecificFields(data.discipline);
   }
 
-  // ── Open / Close ──
-  function open() {
-    const mainDisc = document.querySelector('#plan-form select[name="discipline"]');
-    if (mainDisc?.value && obDiscipline) obDiscipline.value = mainDisc.value;
-    syncDisciplineUI();
-    currentStep = 1;
-    showStep(1);
-    backdrop.hidden = false;
-    document.body.style.overflow = "hidden";
-  }
-
-  function close() {
-    backdrop.hidden = true;
-    document.body.style.overflow = "";
-    const modeSelect = document.getElementById("plan-mode-select");
-    if (modeSelect && modeSelect.value === "pro") {
-      modeSelect.value = "quick";
-      if (typeof syncPlanModeUI === "function") syncPlanModeUI();
-    }
-  }
-
-  // ── Summary builder ──
-  const discLabels = { running: "Laufen", triathlon: "Triathlon", cycling: "Rad", hyrox: "Hyrox", shape: "Shape" };
-  const levelLabels = { starter: "Einsteiger", intermediate: "Fortgeschritten", advanced: "Leistung" };
-  const expLabels = { lt1: "<1 Jahr", "1to3": "1–3 Jahre", "3to5": "3–5 Jahre", "5plus": "5+ Jahre" };
-
-  function buildSummary() {
-    const summaryEl = document.getElementById("ob-summary");
-    if (!summaryEl) return;
-    const disc = obDiscipline?.value || "running";
-    const items = [
-      ["Disziplin", discLabels[disc] || disc],
-      ["Ziel", obGoalDist?.selectedOptions?.[0]?.textContent || "—"],
-      ["Zielzeit", obGoalTime?.value || "—"],
-      ["Race Day", obRaceDate?.value ? new Date(obRaceDate.value).toLocaleDateString("de-DE") : "—"],
-      ["Level", levelLabels[obLevel?.value] || "—"],
-      ["Erfahrung", expLabels[obExperience?.value] || "—"],
-      ["Std/Woche", obWeeklyHours?.value ? obWeeklyHours.value + "h" : "—"],
-      ["Gewicht", obWeight?.value ? obWeight.value + " kg" : "—"],
-    ];
-    summaryEl.innerHTML = items.map(([label, value]) =>
-      `<div class="ob-summary-item"><span class="ob-summary-label">${label}</span><span class="ob-summary-value">${value}</span></div>`
-    ).join("");
-  }
-
-  // ── Account registration from onboarding ──
+  // ══════════════════════════════════════════════════════════
+  //  ACCOUNT CREATION
+  // ══════════════════════════════════════════════════════════
   async function handleAccountCreate() {
     const email = document.getElementById("ob-email")?.value?.trim().toLowerCase();
     const password = document.getElementById("ob-password")?.value;
     const terms = document.getElementById("ob-accept-terms")?.checked;
     const statusEl = document.getElementById("ob-account-status");
+    const btn = document.getElementById("ob-account-btn");
 
     if (!email || !email.includes("@")) {
-      if (statusEl) { statusEl.textContent = "Bitte gültige E-Mail eingeben."; statusEl.className = "onboarding-account-status is-error"; }
+      if (statusEl) { statusEl.textContent = "Bitte gültige E-Mail eingeben."; statusEl.className = "ob-account-status is-error"; }
       return false;
     }
     if (!password || password.length < 6) {
-      if (statusEl) { statusEl.textContent = "Passwort muss mind. 6 Zeichen haben."; statusEl.className = "onboarding-account-status is-error"; }
+      if (statusEl) { statusEl.textContent = "Passwort muss mind. 6 Zeichen haben."; statusEl.className = "ob-account-status is-error"; }
       return false;
     }
     if (!terms) {
-      if (statusEl) { statusEl.textContent = "Bitte Nutzungsbedingungen akzeptieren."; statusEl.className = "onboarding-account-status is-error"; }
+      if (statusEl) { statusEl.textContent = "Bitte Nutzungsbedingungen akzeptieren."; statusEl.className = "ob-account-status is-error"; }
       return false;
     }
 
-    if (statusEl) { statusEl.textContent = "Erstelle Account..."; statusEl.className = "onboarding-account-status"; }
-    btnNext.disabled = true;
+    if (statusEl) { statusEl.textContent = "Erstelle Account..."; statusEl.className = "ob-account-status"; }
+    if (btn) btn.disabled = true;
 
     try {
-      // Persist consent
       try {
         localStorage.setItem("aimrunna_terms_consent", JSON.stringify({
           acceptedAt: new Date().toISOString(),
@@ -24557,57 +24829,116 @@ document.addEventListener("click", (e) => {
 
       const result = await (typeof registerAccount === "function" ? registerAccount(email, password) : { ok: false, message: "Auth nicht verfügbar." });
       if (result.ok) {
-        if (statusEl) { statusEl.textContent = "Account erstellt ✓"; statusEl.className = "onboarding-account-status is-success"; }
+        if (statusEl) { statusEl.textContent = "Account erstellt"; statusEl.className = "ob-account-status is-success"; }
         if (typeof renderAccountUi === "function") renderAccountUi();
         if (typeof syncConnectorButtons === "function") syncConnectorButtons();
         return true;
       } else {
-        if (statusEl) { statusEl.textContent = result.message || "Fehler."; statusEl.className = "onboarding-account-status is-error"; }
+        if (statusEl) { statusEl.textContent = result.message || "Fehler."; statusEl.className = "ob-account-status is-error"; }
         return false;
       }
     } catch (err) {
-      if (statusEl) { statusEl.textContent = err.message || "Fehler."; statusEl.className = "onboarding-account-status is-error"; }
+      if (statusEl) { statusEl.textContent = err.message || "Fehler."; statusEl.className = "ob-account-status is-error"; }
       return false;
     } finally {
-      btnNext.disabled = false;
+      if (btn) btn.disabled = false;
     }
   }
 
   function finalize() {
     applyToForm();
-    backdrop.hidden = true;
-    document.body.style.overflow = "";
+    shell.classList.add("is-closing");
+    setTimeout(() => {
+      shell.hidden = true;
+      shell.classList.remove("is-closing");
+      document.body.style.overflow = "";
+    }, 260);
   }
 
-  // ── Event handlers ──
-  btnNext?.addEventListener("click", async () => {
-    if (currentStep === 5) {
-      // Moving to Step 6 — build summary
-      buildSummary();
-      showStep(6);
-    } else if (currentStep === 6) {
-      // Final step — check if account fields are filled
-      const email = document.getElementById("ob-email")?.value?.trim();
-      if (email) {
-        const ok = await handleAccountCreate();
-        if (ok) setTimeout(finalize, 400);
-      } else {
-        // No email → treat as guest
-        finalize();
-      }
-    } else {
-      showStep(currentStep + 1);
+  // ══════════════════════════════════════════════════════════
+  //  OPEN / CLOSE
+  // ══════════════════════════════════════════════════════════
+  function open() {
+    // Pre-populate discipline from plan form if set
+    const mainDisc = document.querySelector('#plan-form select[name="discipline"]');
+    if (mainDisc?.value) data.discipline = mainDisc.value;
+
+    // Reset to first screen
+    currentIdx = 0;
+    wheelsInitialized = { time: false, body: false, hours: false };
+
+    // Reset final screen phase
+    const finalScreen = screens?.querySelector('[data-screen="final"]');
+    if (finalScreen) finalScreen.classList.remove("is-phase-account");
+
+    // Activate discipline card
+    const discCards = document.getElementById("ob-discipline-cards");
+    if (discCards) {
+      discCards.querySelectorAll(".ob-card").forEach(c => {
+        c.classList.toggle("is-active", c.dataset.value === data.discipline);
+      });
     }
+
+    showScreen(0, "forward");
+    shell.hidden = false;
+    shell.classList.remove("is-closing");
+    document.body.style.overflow = "hidden";
+  }
+
+  function close() {
+    shell.classList.add("is-closing");
+    setTimeout(() => {
+      shell.hidden = true;
+      shell.classList.remove("is-closing");
+      document.body.style.overflow = "";
+    }, 260);
+
+    const modeSelect = document.getElementById("plan-mode-select");
+    if (modeSelect && modeSelect.value === "peak") {
+      modeSelect.value = "quick";
+      if (typeof syncPlanModeUI === "function") syncPlanModeUI();
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  EVENT HANDLERS
+  // ══════════════════════════════════════════════════════════
+  btnNext?.addEventListener("click", () => { haptic(12); goNext(); });
+  btnBack?.addEventListener("click", () => { haptic(8); goBack(); });
+  closeBtn?.addEventListener("click", close);
+
+  // Race date
+  const raceDateInput = document.getElementById("ob-race-date");
+  raceDateInput?.addEventListener("change", () => { data.raceDate = raceDateInput.value; });
+
+  // Skip buttons
+  document.getElementById("ob-skip-goaltime")?.addEventListener("click", () => {
+    data.goalHours = 0; data.goalMinutes = 0; data.goalSeconds = 0;
+    goNext();
+  });
+  document.getElementById("ob-skip-raceday")?.addEventListener("click", () => {
+    data.raceDate = "";
+    goNext();
+  });
+  document.getElementById("ob-skip-body")?.addEventListener("click", goNext);
+
+  // Activation button → seamless transition to account phase (same screen)
+  document.getElementById("ob-activate-btn")?.addEventListener("click", () => {
+    haptic(25);
+    transitionToAccount();
   });
 
-  // Guest button
+  // Account creation → finalize with account
+  document.getElementById("ob-account-btn")?.addEventListener("click", async () => {
+    const ok = await handleAccountCreate();
+    if (ok) setTimeout(finalize, 400);
+  });
+
+  // Guest button → finalize without account (data already applied in transitionToAccount)
   document.getElementById("ob-guest-btn")?.addEventListener("click", finalize);
 
-  btnBack?.addEventListener("click", () => { if (currentStep > 1) showStep(currentStep - 1); });
-  closeBtn?.addEventListener("click", close);
-  backdrop?.addEventListener("click", (e) => { if (e.target === backdrop) close(); });
-  obDiscipline?.addEventListener("change", syncDisciplineUI);
-
+  // Expose globals
   window.openOnboarding = open;
   window.closeOnboarding = close;
+  window.peakPricing = PRICING;
 })();
