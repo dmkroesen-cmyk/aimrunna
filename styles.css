@@ -13252,6 +13252,17 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
   min-width: 0;
 }
 
+/* Distance list cards (no icon, just label) */
+.ob-card-list {
+  padding: 16px 20px;
+  text-align: center;
+}
+
+.ob-card-list .ob-card-label {
+  font-size: 15px;
+  font-weight: 700;
+}
+
 .ob-card-wide {
   flex-direction: row;
   align-items: center;
@@ -13282,7 +13293,7 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
   align-items: center;
   gap: 10px;
   flex: 1;
-  max-width: 140px;
+  max-width: 160px;
 }
 
 .ob-wheel-label {
@@ -13315,6 +13326,8 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
   background: #FFFFFF;
   border: 1.5px solid rgba(0, 0, 0, 0.05);
   touch-action: none;
+  -webkit-touch-callout: none;
+  user-select: none;
   -webkit-mask-image: linear-gradient(to bottom,
     transparent 0%, rgba(0,0,0,0.1) 12%, black 28%, black 72%, rgba(0,0,0,0.1) 88%, transparent 100%);
   mask-image: linear-gradient(to bottom,
@@ -14006,10 +14019,10 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
   .ob-cards-disc { grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 8px; }
   .ob-card { padding: 18px 10px 16px; }
   .ob-card-icon { width: 46px; height: 46px; }
-  .ob-body-grid { grid-template-columns: 1fr 1fr; gap: 20px 12px; }
+  .ob-body-grid { grid-template-columns: 1fr 1fr; gap: 16px 10px; }
   .ob-body-label { font-size: 10px; }
   .ob-wheel { height: 200px; }
-  .ob-wheel-sm { height: 140px; }
+  .ob-wheel-sm { height: 120px; }
   .ob-wheel-lg { height: 240px; }
   .ob-wheel-sep { height: 200px; padding-top: 20px; font-size: 26px; }
   .ob-activate-summary { font-size: 14px; max-width: 280px; }

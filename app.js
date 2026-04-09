@@ -24419,9 +24419,19 @@ document.addEventListener("click", (e) => {
     const itemH = container.classList.contains("ob-wheel-lg") ? 56
                 : container.classList.contains("ob-wheel-sm") ? 42 : 50;
 
-    // Use fixed pad count based on expected container size (robust, no clientHeight dependency)
-    const padCount = container.classList.contains("ob-wheel-lg") ? 2
-                   : container.classList.contains("ob-wheel-sm") ? 2 : 2;
+    // Padding items above/below real values (enough to fill half the container)
+    const padCount = 3;
+
+    // Center offset: places selected item in the vertical center of the container.
+    // Computed from actual rendered height (via rAF), with CSS-based fallback.
+    const defaultH = container.classList.contains("ob-wheel-lg") ? 260
+                   : container.classList.contains("ob-wheel-sm") ? 160 : 220;
+    let centerY = (defaultH - itemH) / 2;
+
+    function updateCenterY() {
+      const ch = container.clientHeight;
+      if (ch > 0) centerY = (ch - itemH) / 2;
+    }
 
     // Build items
     const padded = [];
@@ -24441,12 +24451,16 @@ document.addEventListener("click", (e) => {
     let isDragging = false, lastY = 0, lastTime = 0, velocity = 0;
     let momentumRaf = 0;
 
+    function idxFromTranslate(t) {
+      return Math.round((centerY - t) / itemH);
+    }
+
     function scrollTo(idx, animate, duration) {
       idx = Math.max(padCount, Math.min(idx, padCount + values.length - 1));
-      if (idx === selectedIdx && animate) return; // skip redundant
+      if (idx === selectedIdx && animate) return;
       const prev = selectedIdx;
       selectedIdx = idx;
-      const offset = -(idx * itemH) + (padCount * itemH);
+      const offset = -(idx * itemH) + centerY;
       currentTranslate = offset;
       const dur = duration || (animate ? 200 : 0);
       track.style.transition = dur ? `transform ${dur}ms cubic-bezier(0.25, 1, 0.5, 1)` : "none";
@@ -24492,25 +24506,22 @@ document.addEventListener("click", (e) => {
       // Momentum: apply velocity decay
       const absVel = Math.abs(velocity);
       if (absVel > 0.3) {
-        // Estimate how many extra items to coast
-        const coasting = Math.round(velocity * 120 / itemH); // ~120ms decel window
-        const targetIdx = Math.round(-currentTranslate / itemH + padCount) - coasting;
+        const coasting = Math.round(velocity * 120 / itemH);
+        const targetIdx = idxFromTranslate(currentTranslate) - coasting;
         const dur = Math.min(500, Math.max(200, Math.abs(coasting) * 80));
         scrollTo(targetIdx, true, dur);
       } else {
-        // Simple snap
-        const rawIdx = Math.round(-currentTranslate / itemH + padCount);
-        scrollTo(rawIdx, true);
+        scrollTo(idxFromTranslate(currentTranslate), true);
       }
     }
 
-    // Touch events (on container only) — passive: false to prevent page scroll
+    // Touch events — passive: false to prevent page scroll
     const onTouchStart = e => { e.preventDefault(); onStart(e.touches[0].clientY); };
     const onTouchMove = e => { e.preventDefault(); onMove(e.touches[0].clientY); };
     const onTouchEnd = () => onEnd();
     container.addEventListener("touchstart", onTouchStart, { passive: false });
     container.addEventListener("touchmove", onTouchMove, { passive: false });
-    container.addEventListener("touchend", onTouchEnd);
+    container.addEventListener("touchend", onTouchEnd, { passive: false });
 
     // Mouse events (window-level, tracked for cleanup)
     const onMouseDown = e => { e.preventDefault(); onStart(e.clientY); };
@@ -24548,9 +24559,12 @@ document.addEventListener("click", (e) => {
     };
     container.addEventListener("keydown", onKeyDown);
 
-    // Deferred initial position (after layout)
+    // Deferred initial position (after layout — use actual height)
     const initRaf = requestAnimationFrame(() => {
-      requestAnimationFrame(() => scrollTo(selectedIdx, false));
+      requestAnimationFrame(() => {
+        updateCenterY();
+        scrollTo(selectedIdx, false);
+      });
     });
 
     // Cleanup function
@@ -24700,7 +24714,7 @@ document.addEventListener("click", (e) => {
     if (!container) return;
     const opts = distOpts(data.discipline);
     container.innerHTML = opts.map((o, i) =>
-      `<button type="button" class="ob-card ob-card-wide${i === 0 ? " is-active" : ""}" data-value="${o.value}">
+      `<button type="button" class="ob-card ob-card-list${i === 0 ? " is-active" : ""}" data-value="${o.value}">
         <span class="ob-card-label">${o.label}</span>
       </button>`
     ).join("");
@@ -24839,6 +24853,9 @@ document.addEventListener("click", (e) => {
     // Apply onboarding data to plan form immediately (system is "activated")
     applyToForm();
 
+    // Clean up all wheel pickers (no longer needed)
+    destroyAllWheels();
+
     // Seamlessly swap phase
     const finalScreen = screens.querySelector('[data-screen="final"]');
     if (finalScreen) {
@@ -24848,9 +24865,16 @@ document.addEventListener("click", (e) => {
     // Hide nav bar completely in account phase
     const navEl = document.getElementById("ob-nav");
     if (navEl) navEl.hidden = true;
+    if (btnBack) btnBack.hidden = true;
 
     // Fill progress to 100%
     progressFill.style.width = "100%";
+
+    // Focus the account headline for keyboard/screen reader users
+    setTimeout(() => {
+      const accountHeadline = document.querySelector('[data-screen="final"] .ob-final-account .ob-headline');
+      if (accountHeadline) accountHeadline.focus({ preventScroll: true });
+    }, 420);
   }
 
   // ══════════════════════════════════════════════════════════
