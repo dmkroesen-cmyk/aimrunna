@@ -24335,22 +24335,6 @@ document.addEventListener("click", (e) => {
   let _screenOrder = [...SCREEN_ORDER_BASE];
   function getScreenOrder() { return _screenOrder; }
 
-  function rebuildScreenOrder() {
-    const disc = data.discipline;
-    const isShape = disc === "shape";
-    const order = [];
-    order.push("discipline");
-    if (!isShape) order.push("distance", "goaltime", "raceday");
-    order.push("level", "body", "hours");
-    if (!isShape) order.push("schedule", "pb");
-    if (isShape) order.push("shapefocus");
-    order.push("final");
-    _screenOrder = order;
-  }
-  rebuildScreenOrder();
-
-  let currentIdx = 0;
-
   // ── Monetization config (subscription-ready, currently inactive) ──
   const PRICING = Object.freeze({
     monthly: 12.5,
@@ -24379,6 +24363,23 @@ document.addEventListener("click", (e) => {
     shapeFocus: "fat_loss",
     selectedTier: "beta",
   };
+
+  // ── Screen order (dynamic — some screens conditional on discipline) ──
+  function rebuildScreenOrder() {
+    const disc = data.discipline;
+    const isShape = disc === "shape";
+    const order = [];
+    order.push("discipline");
+    if (!isShape) order.push("distance", "goaltime", "raceday");
+    order.push("level", "body", "hours");
+    if (!isShape) order.push("schedule", "pb");
+    if (isShape) order.push("shapefocus");
+    order.push("final");
+    _screenOrder = order;
+  }
+  rebuildScreenOrder();
+
+  let currentIdx = 0;
 
   // ── Haptic helper ──
   function haptic(ms) {
