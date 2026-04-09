@@ -24391,13 +24391,38 @@ document.addEventListener("click", (e) => {
 
   let currentIdx = 0;
 
-  // ── Haptic helper (vibrate API — Android only, no-op on iOS) ──
+  // ── Haptic helper (vibrate API on Android, checkbox-switch trick on iOS 18+) ──
+  const _isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                 (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+  function _iosHapticTick() {
+    // Safari 17.4+: <input type="checkbox" switch> emits native haptic on toggle
+    try {
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.setAttribute("switch", "");
+      cb.style.cssText = "position:fixed;top:-99px;left:-99px;opacity:0;pointer-events:none";
+      const lbl = document.createElement("label");
+      lbl.style.cssText = cb.style.cssText;
+      lbl.appendChild(cb);
+      document.body.appendChild(lbl);
+      lbl.click();
+      requestAnimationFrame(() => lbl.remove());
+    } catch (_) {}
+  }
+
+  let _lastHapticT = 0;
   function haptic(ms) {
-    try { if (navigator.vibrate) navigator.vibrate(ms || 10); } catch (_) {}
+    const now = performance.now();
+    if (now - _lastHapticT < 50) return;
+    _lastHapticT = now;
+    if (navigator.vibrate) { try { navigator.vibrate(ms || 10); } catch (_) {} return; }
+    if (_isiOS) _iosHapticTick();
   }
 
   function hapticConfirm() {
-    try { if (navigator.vibrate) navigator.vibrate([15, 40, 25]); } catch (_) {}
+    if (navigator.vibrate) { try { navigator.vibrate([15, 40, 25]); } catch (_) {} return; }
+    if (_isiOS) { _iosHapticTick(); setTimeout(_iosHapticTick, 60); }
   }
 
   // ── Distance options per discipline ──
