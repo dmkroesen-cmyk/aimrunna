@@ -1220,18 +1220,8 @@ form?.addEventListener("submit", (event) => {
       persistStore();
     }
 
-    // Goal realism check — only show modal for logged-in users (pre-login: just generate)
-    const hasAuthForGoalCheck = !!getCurrentAccount();
-    if (hasAuthForGoalCheck) {
-      const realismCheck = checkGoalRealismBeforePlan(profile);
-      if (realismCheck?.block) {
-        openGoalRealismModal({
-          ...realismCheck,
-          forceProfile: profile,
-        });
-        return;
-      }
-    }
+    // Goal realism check — disabled on this page (always pre-login / public landing)
+    // The in-app planner will have its own realism check
 
     generatePlanFromProfile(profile);
   } catch (err) {
@@ -7877,22 +7867,7 @@ function initDynamicGoalOptions() {
   });
   planModeSelect?.addEventListener("change", () => {
     if (planModeSelect.value === "peak") {
-      // Check if user is logged in via Supabase
-      let hasAuth = false;
-      try {
-        const stored = localStorage.getItem("sb-tpnfkumkvxnrurjuaxdq-auth-token");
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          hasAuth = !!(parsed?.user || parsed?.currentSession?.user || parsed?.access_token);
-        }
-      } catch (_) {}
-
-      if (hasAuth) {
-        // Already logged in — just show peak UI
-        syncPlanModeUI();
-        return;
-      }
-      // Not logged in — open onboarding for activation + registration
+      // This page is always pre-login — peak. always opens onboarding
       openOnboarding();
       return;
     }
@@ -7939,27 +7914,10 @@ function syncPlanModeUI() {
   const mode = String(planModeSelect?.value || "quick");
   const isQuick = mode === "quick";
 
-  // peak. mode requires registration — check Supabase auth session
-  let peakUnlocked = false;
-  if (!isQuick) {
-    // Check Supabase auth session (localStorage for instant sync check)
-    try {
-      const stored = localStorage.getItem("sb-tpnfkumkvxnrurjuaxdq-auth-token");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        peakUnlocked = !!(parsed?.user || parsed?.currentSession?.user || parsed?.access_token);
-      }
-    } catch (_) {}
-
-    // Async fallback — covers edge cases where localStorage is stale
-    if (!peakUnlocked && window.sbAuth?.getUser) {
-      window.sbAuth.getUser().then(u => {
-        if (u) _applyPeakVisibility(true);
-      }).catch(() => {});
-    }
-  }
-
-  const showAdvanced = !isQuick && peakUnlocked;
+  // This page is always pre-login (public landing page).
+  // peak. features are only available inside the app after login.
+  // On this page, advanced settings are always hidden.
+  const showAdvanced = false;
   if (quickPlanFieldsEl) quickPlanFieldsEl.hidden = !isQuick;
   _applyPeakVisibility(showAdvanced);
 
@@ -25059,9 +25017,9 @@ document.addEventListener("click", (e) => {
       document.body.style.overflow = "";
     }, 260);
 
-    // Always reset to quick. when closing onboarding without completing registration
+    // Reset to quick. — this page is always pre-login
     const modeSelect = document.getElementById("plan-mode-select");
-    if (modeSelect && modeSelect.value === "peak") {
+    if (modeSelect) {
       modeSelect.value = "quick";
       if (typeof syncPlanModeUI === "function") syncPlanModeUI();
     }
