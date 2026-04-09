@@ -24795,6 +24795,35 @@ document.addEventListener("click", (e) => {
   // ══════════════════════════════════════════════════════════
   let wheelsInitialized = { time: false, body: false, hours: false };
 
+  // ── Distance-aware default goal times (slightly ambitious, realistic) ──
+  function getDefaultGoalTime() {
+    const d = data.distance;
+    const disc = data.discipline;
+    const map = {
+      running: { "5k": [0, 23, 0], "10k": [0, 48, 0], half: [1, 45, 0], marathon: [3, 30, 0] },
+      triathlon: { sprint: [1, 20, 0], olympic: [2, 35, 0], "703": [5, 15, 0], ironman: [11, 0, 0] },
+      cycling: { crit: [1, 0, 0], tt40: [0, 58, 0], granfondo: [5, 30, 0], century: [5, 40, 0] },
+      hyrox: { open: [1, 20, 0], pro: [1, 12, 0], doubles: [1, 0, 0], doublespro: [0, 55, 0], relay: [0, 54, 0] },
+    };
+    return map[disc]?.[d] || map[disc]?.[Object.keys(map[disc] || {})[0]] || [3, 30, 0];
+  }
+
+  // ── Pace display helper ──
+  const paceEl = document.getElementById("ob-pace-display");
+  const DIST_KM = { "5k": 5, "10k": 10, half: 21.0975, marathon: 42.195 };
+
+  function updatePaceDisplay() {
+    if (!paceEl) return;
+    const km = DIST_KM[data.distance];
+    if (!km || data.discipline !== "running") { paceEl.textContent = ""; return; }
+    const totalSec = data.goalHours * 3600 + data.goalMinutes * 60 + data.goalSeconds;
+    if (totalSec <= 0) { paceEl.textContent = ""; return; }
+    const paceSec = totalSec / km;
+    const pMin = Math.floor(paceSec / 60);
+    const pSec = Math.round(paceSec % 60);
+    paceEl.textContent = `≈ ${pMin}:${String(pSec).padStart(2, "0")} min/km`;
+  }
+
   function initTimeWheels() {
     if (wheelsInitialized.time) return;
     wheelsInitialized.time = true;
@@ -24804,20 +24833,16 @@ document.addEventListener("click", (e) => {
     const minSec = [];
     for (let i = 0; i < 60; i++) minSec.push(String(i).padStart(2, "0"));
 
-    // Default based on discipline
-    const defaults = {
-      running: [3, 45, 0], triathlon: [5, 30, 0], cycling: [3, 0, 0],
-      hyrox: [1, 30, 0], shape: [0, 0, 0]
-    };
-    const def = defaults[data.discipline] || [3, 45, 0];
+    const def = getDefaultGoalTime();
 
-    initWheel("ob-wheel-hours", hours, String(def[0]), v => { data.goalHours = parseInt(v) || 0; });
-    initWheel("ob-wheel-minutes", minSec, String(def[1]).padStart(2, "0"), v => { data.goalMinutes = parseInt(v) || 0; });
-    initWheel("ob-wheel-seconds", minSec, String(def[2]).padStart(2, "0"), v => { data.goalSeconds = parseInt(v) || 0; });
+    initWheel("ob-wheel-hours", hours, String(def[0]), v => { data.goalHours = parseInt(v) || 0; updatePaceDisplay(); });
+    initWheel("ob-wheel-minutes", minSec, String(def[1]).padStart(2, "0"), v => { data.goalMinutes = parseInt(v) || 0; updatePaceDisplay(); });
+    initWheel("ob-wheel-seconds", minSec, String(def[2]).padStart(2, "0"), v => { data.goalSeconds = parseInt(v) || 0; updatePaceDisplay(); });
 
     data.goalHours = def[0];
     data.goalMinutes = def[1];
     data.goalSeconds = def[2];
+    updatePaceDisplay();
   }
 
   function initBodyWheels() {
