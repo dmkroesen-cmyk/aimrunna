@@ -1220,13 +1220,17 @@ form?.addEventListener("submit", (event) => {
       persistStore();
     }
 
-    const realismCheck = checkGoalRealismBeforePlan(profile);
-    if (realismCheck?.block) {
-      openGoalRealismModal({
-        ...realismCheck,
-        forceProfile: profile,
-      });
-      return;
+    // Goal realism check — only show modal for logged-in users (pre-login: just generate)
+    const hasAuthForGoalCheck = !!getCurrentAccount();
+    if (hasAuthForGoalCheck) {
+      const realismCheck = checkGoalRealismBeforePlan(profile);
+      if (realismCheck?.block) {
+        openGoalRealismModal({
+          ...realismCheck,
+          forceProfile: profile,
+        });
+        return;
+      }
     }
 
     generatePlanFromProfile(profile);
@@ -3161,8 +3165,10 @@ function initAccountUi() {
         closeAccountModal();
         // Close onboarding if it was open (e.g. after Google OAuth redirect)
         if (typeof window.closeOnboarding === "function") {
-          try { localStorage.setItem("peak_activated", "1"); } catch (_) {}
-          window.closeOnboarding();
+          const obShell = document.getElementById("ob-shell");
+          if (obShell && !obShell.hidden) {
+            window.closeOnboarding();
+          }
           if (typeof syncPlanModeUI === "function") syncPlanModeUI();
         }
         if (typeof window._syncTabBar === "function") window._syncTabBar();
@@ -7871,8 +7877,7 @@ function initDynamicGoalOptions() {
   });
   planModeSelect?.addEventListener("change", () => {
     if (planModeSelect.value === "peak") {
-      // If user already activated peak. (guest or registered), just show the UI
-      const peakActivated = localStorage.getItem("peak_activated") === "1";
+      // Check if user is logged in via Supabase
       let hasAuth = false;
       try {
         const stored = localStorage.getItem("sb-tpnfkumkvxnrurjuaxdq-auth-token");
@@ -7882,11 +7887,12 @@ function initDynamicGoalOptions() {
         }
       } catch (_) {}
 
-      if (peakActivated || hasAuth) {
+      if (hasAuth) {
+        // Already logged in — just show peak UI
         syncPlanModeUI();
         return;
       }
-      // First time: open onboarding for activation
+      // Not logged in — open onboarding for activation + registration
       openOnboarding();
       return;
     }
@@ -7933,26 +7939,19 @@ function syncPlanModeUI() {
   const mode = String(planModeSelect?.value || "quick");
   const isQuick = mode === "quick";
 
-  // peak. mode requires activation (via onboarding) — check auth OR guest activation
+  // peak. mode requires registration — check Supabase auth session
   let peakUnlocked = false;
   if (!isQuick) {
-    // 1. Check if user completed onboarding (guest or registered)
+    // Check Supabase auth session (localStorage for instant sync check)
     try {
-      if (localStorage.getItem("peak_activated") === "1") peakUnlocked = true;
+      const stored = localStorage.getItem("sb-tpnfkumkvxnrurjuaxdq-auth-token");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        peakUnlocked = !!(parsed?.user || parsed?.currentSession?.user || parsed?.access_token);
+      }
     } catch (_) {}
 
-    // 2. Check Supabase auth session
-    if (!peakUnlocked) {
-      try {
-        const stored = localStorage.getItem("sb-tpnfkumkvxnrurjuaxdq-auth-token");
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          peakUnlocked = !!(parsed?.user || parsed?.currentSession?.user || parsed?.access_token);
-        }
-      } catch (_) {}
-    }
-
-    // 3. Async fallback — covers edge cases where localStorage is stale
+    // Async fallback — covers edge cases where localStorage is stale
     if (!peakUnlocked && window.sbAuth?.getUser) {
       window.sbAuth.getUser().then(u => {
         if (u) _applyPeakVisibility(true);
@@ -7970,7 +7969,7 @@ function syncPlanModeUI() {
 
   if (quickGoalDistanceSelect) quickGoalDistanceSelect.required = isQuick;
   if (quickGoalTimeInput) quickGoalTimeInput.required = isQuick;
-  if (quickRaceDateInput) quickRaceDateInput.required = isQuick;
+  // quickRaceDate is optional — default to 12 weeks if empty
   normalizeFieldLabels();
 }
 
@@ -7995,8 +7994,14 @@ function applyQuickModeToPrimaryGoalFields() {
   if (quickGoalTimeInput?.value && goalTimeInputEl) {
     goalTimeInputEl.value = quickGoalTimeInput.value;
   }
-  if (quickRaceDateInput?.value && form?.elements?.raceDate) {
-    form.elements.raceDate.value = quickRaceDateInput.value;
+  if (form?.elements?.raceDate) {
+    if (quickRaceDateInput?.value) {
+      form.elements.raceDate.value = quickRaceDateInput.value;
+    } else {
+      // Default: 12 weeks from today
+      const d = new Date(); d.setDate(d.getDate() + 84);
+      form.elements.raceDate.value = d.toISOString().split("T")[0];
+    }
   }
   if (Array.isArray(draftRaceEvents) && draftRaceEvents.length) {
     const options = raceEventDistanceOptions(primaryDiscipline);
@@ -25000,13 +25005,10 @@ document.addEventListener("click", (e) => {
     }
   }
 
-  function finalize(isGuest) {
-    // Mark peak. as activated — guest or registered
-    try { localStorage.setItem("peak_activated", "1"); } catch (_) {}
-
+  function finalize() {
     applyToForm();
 
-    // After applying form, force peak visibility (bypass auth gate for this session)
+    // After applying form, ensure peak visibility (user is now registered)
     if (typeof _applyPeakVisibility === "function") _applyPeakVisibility(true);
 
     shell.classList.add("is-closing");
@@ -25057,15 +25059,10 @@ document.addEventListener("click", (e) => {
       document.body.style.overflow = "";
     }, 260);
 
-    // Only reset to quick. if the user hasn't previously activated peak.
-    // (If they completed onboarding before, keep peak. mode accessible)
-    const peakActivated = localStorage.getItem("peak_activated") === "1";
+    // Always reset to quick. when closing onboarding without completing registration
     const modeSelect = document.getElementById("plan-mode-select");
-    if (modeSelect && modeSelect.value === "peak" && !peakActivated) {
+    if (modeSelect && modeSelect.value === "peak") {
       modeSelect.value = "quick";
-      if (typeof syncPlanModeUI === "function") syncPlanModeUI();
-    } else if (modeSelect && modeSelect.value === "peak" && peakActivated) {
-      // Keep peak. mode, just sync the UI
       if (typeof syncPlanModeUI === "function") syncPlanModeUI();
     }
   }
@@ -25118,8 +25115,7 @@ document.addEventListener("click", (e) => {
     const statusEl = document.getElementById("ob-account-status");
     if (statusEl) { statusEl.textContent = "Weiterleitung zu Google..."; statusEl.className = "ob-account-status"; }
     try {
-      // Mark peak as activated before redirect (OAuth redirects away)
-      try { localStorage.setItem("peak_activated", "1"); } catch (_) {}
+      // Apply onboarding data before OAuth redirect
       applyToForm();
       if (window.sbAuth?.signInWithGoogle) {
         await window.sbAuth.signInWithGoogle();
