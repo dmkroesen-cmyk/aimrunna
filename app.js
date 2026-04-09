@@ -9611,29 +9611,29 @@ function formatSocialSportLabel(sportType) {
 function defaultGoalTimeFor(discipline, goalDistance) {
   const map = {
     running: {
-      "5k": "00:24:00",
-      "10k": "00:52:00",
-      half: "01:55:00",
-      marathon: "03:45:00",
+      "5k": "00:23:00",
+      "10k": "00:48:00",
+      half: "01:45:00",
+      marathon: "03:30:00",
     },
     triathlon: {
-      sprint: "01:25:00",
-      olympic: "02:45:00",
-      "703": "05:35:00",
-      ironman: "11:30:00",
+      sprint: "01:20:00",
+      olympic: "02:35:00",
+      "703": "05:15:00",
+      ironman: "11:00:00",
     },
     cycling: {
-      crit: "01:05:00",
-      tt40: "01:03:00",
-      granfondo: "05:45:00",
-      century: "05:55:00",
+      crit: "01:00:00",
+      tt40: "00:58:00",
+      granfondo: "05:30:00",
+      century: "05:40:00",
     },
     hyrox: {
-      open: "01:25:00",
-      pro: "01:18:00",
-      doubles: "01:05:00",
-      doublespro: "00:59:00",
-      relay: "00:58:00",
+      open: "01:20:00",
+      pro: "01:12:00",
+      doubles: "01:00:00",
+      doublespro: "00:55:00",
+      relay: "00:54:00",
     },
     shape: {
       fatloss: "-4 kg",
@@ -24719,6 +24719,7 @@ document.addEventListener("click", (e) => {
     // Prepare screen-specific content
     if (newName === "distance") populateDistanceCards();
     if (newName === "goaltime") initTimeWheels();
+    if (newName === "raceday") prefillRaceDate();
     if (newName === "body") initBodyWheels();
     if (newName === "hours") initHoursWheel();
     if (newName === "pb") populatePbDistances();
@@ -24776,6 +24777,9 @@ document.addEventListener("click", (e) => {
         }
         data.distance = choice.dataset.value;
         haptic(12);
+        // Re-sync dependent defaults
+        resetTimeWheelsToDefaults();
+        prefillRaceDate();
       });
     }
   }
@@ -24808,20 +24812,61 @@ document.addEventListener("click", (e) => {
     return map[disc]?.[d] || map[disc]?.[Object.keys(map[disc] || {})[0]] || [3, 30, 0];
   }
 
-  // ── Pace display helper ──
+  // ── Pace / speed display helper ──
   const paceEl = document.getElementById("ob-pace-display");
-  const DIST_KM = { "5k": 5, "10k": 10, half: 21.0975, marathon: 42.195 };
+
+  // Distance in km per discipline+distance
+  const DIST_KM = {
+    running: { "5k": 5, "10k": 10, half: 21.0975, marathon: 42.195 },
+    triathlon: { sprint: 25.75, olympic: 51.5, "703": 113, ironman: 226 }, // total km (swim+bike+run)
+    cycling: { crit: 40, tt40: 40, granfondo: 150, century: 160.9 },
+    hyrox: { open: 8, pro: 8, doubles: 8, doublespro: 8, relay: 8 }, // ~8km running total
+  };
 
   function updatePaceDisplay() {
     if (!paceEl) return;
-    const km = DIST_KM[data.distance];
-    if (!km || data.discipline !== "running") { paceEl.textContent = ""; return; }
+    const disc = data.discipline;
     const totalSec = data.goalHours * 3600 + data.goalMinutes * 60 + data.goalSeconds;
     if (totalSec <= 0) { paceEl.textContent = ""; return; }
-    const paceSec = totalSec / km;
-    const pMin = Math.floor(paceSec / 60);
-    const pSec = Math.round(paceSec % 60);
-    paceEl.textContent = `≈ ${pMin}:${String(pSec).padStart(2, "0")} min/km`;
+
+    const km = DIST_KM[disc]?.[data.distance];
+    if (!km) { paceEl.textContent = ""; return; }
+
+    if (disc === "running") {
+      const paceSec = totalSec / km;
+      const pMin = Math.floor(paceSec / 60);
+      const pSec = Math.round(paceSec % 60);
+      paceEl.textContent = `≈ ${pMin}:${String(pSec).padStart(2, "0")} min/km`;
+    } else if (disc === "cycling") {
+      const kmh = (km / totalSec * 3600).toFixed(1);
+      paceEl.textContent = `≈ ${kmh} km/h Ø`;
+    } else if (disc === "triathlon") {
+      const h = Math.floor(totalSec / 3600);
+      const m = Math.floor((totalSec % 3600) / 60);
+      paceEl.textContent = `${h}h ${m}min Gesamtzeit`;
+    } else if (disc === "hyrox") {
+      const runSec = totalSec * 0.55; // ~55% running
+      const paceSec = runSec / km;
+      const pMin = Math.floor(paceSec / 60);
+      const pSec = Math.round(paceSec % 60);
+      paceEl.textContent = `≈ ${pMin}:${String(pSec).padStart(2, "0")} min/km Laufpace`;
+    }
+  }
+
+  // ── Smart race date default (weeks out based on distance) ──
+  const WEEKS_OUT = {
+    running: { "5k": 8, "10k": 10, half: 14, marathon: 18 },
+    triathlon: { sprint: 10, olympic: 14, "703": 20, ironman: 30 },
+    cycling: { crit: 8, tt40: 10, granfondo: 16, century: 16 },
+    hyrox: { open: 10, pro: 12, doubles: 10, doublespro: 12, relay: 8 },
+  };
+
+  function getDefaultRaceDate() {
+    const weeks = WEEKS_OUT[data.discipline]?.[data.distance] || 12;
+    const d = new Date();
+    d.setDate(d.getDate() + weeks * 7);
+    // Format YYYY-MM-DD
+    return d.toISOString().split("T")[0];
   }
 
   function initTimeWheels() {
@@ -24842,6 +24887,36 @@ document.addEventListener("click", (e) => {
     data.goalHours = def[0];
     data.goalMinutes = def[1];
     data.goalSeconds = def[2];
+    updatePaceDisplay();
+  }
+
+  /** Re-sync time wheels to new defaults when distance changes */
+  function resetTimeWheelsToDefaults() {
+    if (!wheelsInitialized.time) return; // will init fresh when screen shows
+    const def = getDefaultGoalTime();
+    data.goalHours = def[0]; data.goalMinutes = def[1]; data.goalSeconds = def[2];
+    // Scroll wheels to new values
+    const scrollWheel = (id, val) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const items = el.querySelectorAll(".ob-wheel-item");
+      items.forEach(item => {
+        if (item.textContent.trim() === val) {
+          item.classList.add("is-selected");
+          const track = el.querySelector(".ob-wheel-track");
+          if (track) {
+            const idx = Array.from(items).indexOf(item);
+            const itemH = item.offsetHeight;
+            track.scrollTo({ top: idx * itemH, behavior: "smooth" });
+          }
+        } else {
+          item.classList.remove("is-selected");
+        }
+      });
+    };
+    scrollWheel("ob-wheel-hours", String(def[0]));
+    scrollWheel("ob-wheel-minutes", String(def[1]).padStart(2, "0"));
+    scrollWheel("ob-wheel-seconds", String(def[2]).padStart(2, "0"));
     updatePaceDisplay();
   }
 
@@ -25137,12 +25212,19 @@ document.addEventListener("click", (e) => {
   btnBack?.addEventListener("click", () => { haptic(8); goBack(); });
   closeBtn?.addEventListener("click", close);
 
-  // Race date — set minimum to today
+  // Race date — set minimum to today, smart default
   const raceDateInput = document.getElementById("ob-race-date");
   if (raceDateInput) {
     const today = new Date().toISOString().split("T")[0];
     raceDateInput.min = today;
     raceDateInput.addEventListener("change", () => { data.raceDate = raceDateInput.value; });
+  }
+
+  function prefillRaceDate() {
+    if (!raceDateInput) return;
+    const defDate = getDefaultRaceDate();
+    raceDateInput.value = defDate;
+    data.raceDate = defDate;
   }
 
   // Skip buttons
