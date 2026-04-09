@@ -475,12 +475,13 @@ body.home-feed-mode .section-data {
 
 /* PeakPlan mode — force landing hero + plan form even when authenticated */
 body.peakplan-mode .section-home-feed,
-body.peakplan-mode #public-profile-section {
+body.peakplan-mode #public-profile-section,
+body.peakplan-mode #crew-section,
+body.peakplan-mode .section-data {
   display: none !important;
 }
 body.peakplan-mode .scroll-stage,
 body.peakplan-mode .section-calendar,
-body.peakplan-mode .section-data,
 body.peakplan-mode .content-shell {
   display: block !important;
 }
@@ -1139,14 +1140,12 @@ body.is-authenticated .account-dot {
 .brand-mark {
   width: 32px;
   height: 32px;
-  border-radius: 10px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.025));
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  border-radius: 8px;
+  background: #1A1A1A;
   display: grid;
   place-items: center;
-  color: #1A1A1A;
-  font-weight: 700;
+  color: #FFFFFF;
+  font-weight: 800;
   font-size: 18px;
   letter-spacing: -0.05em;
 }
@@ -1170,16 +1169,17 @@ body.is-authenticated .account-dot {
 
 .landing-copy h1 {
   margin: 0;
-  font-size: clamp(2.2rem, 5.5vw, 3.8rem);
-  letter-spacing: -0.055em;
-  line-height: 0.92;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  letter-spacing: -0.04em;
+  line-height: 1;
   font-weight: 800;
+  color: var(--text-primary, #1A1A1A);
 }
 
 .intake-form {
-  margin-top: 18px;
+  margin-top: 24px;
   display: grid;
-  gap: 12px;
+  gap: 16px;
 }
 
 .quick-grid {
@@ -1208,11 +1208,11 @@ body.is-authenticated .account-dot {
 }
 
 .field > span {
-  font-size: 10px;
-  color: rgba(0, 0, 0, 0.5);
-  letter-spacing: 0.08em;
+  font-size: 12px;
+  color: var(--text-secondary, #6B7280);
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .field-checkbox {
@@ -1313,11 +1313,13 @@ button {
 input:not([type="checkbox"]),
 select {
   width: 100%;
-  height: 46px;
+  height: 48px;
   color: var(--text);
-  border: 1px solid var(--border-subtle);
+  font-size: 15px;
+  font-weight: 500;
+  border: 1px solid var(--border-default, rgba(0,0,0,0.10));
   border-radius: 12px;
-  background: rgba(0, 0, 0, 0.015);
+  background: var(--bg-secondary, #F8F8FA);
   padding: 12px 14px;
   outline: none;
   transition: border-color 130ms ease, background-color 130ms ease, box-shadow 130ms ease;
@@ -1431,27 +1433,30 @@ select {
 
 .tuning-toggle-btn {
   width: 100%;
-  height: 34px;
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  height: 38px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 10px;
-  background: rgba(0, 0, 0, 0.015);
-  color: rgba(0, 0, 0, 0.7);
+  background: var(--bg-secondary, #F8F8FA);
+  color: var(--text-secondary, #6B7280);
   text-align: center;
-  font-size: 11px;
-  letter-spacing: 0.06em;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
+  cursor: pointer;
   transition: border-color 130ms ease, background-color 130ms ease, color 130ms ease;
 }
 
 .tuning-toggle-btn:hover {
-  color: rgba(0, 0, 0, 0.8);
-  border-color: rgba(0, 0, 0, 0.12);
+  color: var(--text-primary, #1A1A1A);
+  border-color: rgba(0, 0, 0, 0.15);
+  background: var(--bg-tertiary, #F0F0F3);
 }
 
 .tuning-toggle-btn.is-active {
-  border-color: rgba(0, 0, 0, 0.2);
-  background: var(--surface-highlight);
-  color: rgba(0, 0, 0, 0.9);
+  border-color: var(--accent-fit, #D4850F);
+  background: rgba(212, 133, 15, 0.08);
+  color: var(--accent-fit, #D4850F);
 }
 
 .advanced-settings {
@@ -1681,14 +1686,15 @@ select {
 .cta {
   border: 0;
   border-radius: 12px;
-  padding: 14px 22px;
-  background: linear-gradient(145deg, rgba(0, 0, 0, 0.9), rgba(245, 247, 251, 0.9));
-  color: #090b0d;
+  padding: 16px 28px;
+  background: #1A1A1A;
+  color: #FFFFFF;
+  font-size: 16px;
   font-weight: 700;
-  letter-spacing: 0.01em;
+  letter-spacing: -0.01em;
   cursor: pointer;
-  transition: transform 240ms var(--transition-smooth), box-shadow 240ms var(--transition-smooth), background 200ms ease;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.06);
+  transition: transform 200ms var(--transition-smooth), box-shadow 200ms ease, background 200ms ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   position: relative;
   overflow: hidden;
 }
@@ -1698,7 +1704,7 @@ select {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(135deg, rgba(212, 133, 15, 0.12), transparent 60%);
+  background: linear-gradient(135deg, rgba(212, 133, 15, 0.15), transparent 60%);
   opacity: 0;
   transition: opacity 200ms ease;
   pointer-events: none;
@@ -1709,13 +1715,12 @@ select {
 }
 
 .cta-race {
-  color: #000;
   text-transform: lowercase;
 }
 
 .cta:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(212, 133, 15,0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
 }
 
 .cta:active {
