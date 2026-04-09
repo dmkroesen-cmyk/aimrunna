@@ -3117,34 +3117,35 @@
         <div class="ob-screen" data-screen="discipline">
           <div class="ob-screen-inner">
             <h2 class="ob-headline" tabindex="-1">Was trainierst du?</h2>
-            <div class="ob-cards" id="ob-discipline-cards">
+            <p class="ob-sub">Wähle deine Disziplin</p>
+            <div class="ob-cards ob-cards-disc" id="ob-discipline-cards">
               <button type="button" class="ob-card is-active" data-value="running">
                 <span class="ob-card-icon">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="17" cy="4" r="2"/><path d="M15.59 13.51l-1.76-2.52a1 1 0 0 0-1.42-.22L9.2 13.2a1 1 0 0 1-1.24-.06L5 10.5"/><path d="M5.38 18.46L8 16l2.78 2.78a1 1 0 0 0 1.42 0l4.3-4.3"/></svg>
+                  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="14" cy="4" r="1.8"/><path d="M7 21l3-4.5 2 1.5V21"/><path d="M16 21l-2.5-6-3.5 1 1-4 3-2.5 2 2.5 3-1"/><path d="M10 9.5L6.5 12"/></svg>
                 </span>
                 <span class="ob-card-label">Laufen</span>
               </button>
               <button type="button" class="ob-card" data-value="triathlon">
                 <span class="ob-card-icon">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20"/><path d="M5 17l3-7 4 4 4-8 3 7"/></svg>
+                  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18l4-3 3 2 5-7 4 4"/><circle cx="18" cy="7" r="1.5"/><path d="M2 21h20"/></svg>
                 </span>
                 <span class="ob-card-label">Triathlon</span>
               </button>
               <button type="button" class="ob-card" data-value="cycling">
                 <span class="ob-card-icon">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-3 11.5V14l-3-3 4-3 2 3h3"/></svg>
+                  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="17" r="3"/><circle cx="18" cy="17" r="3"/><path d="M6 17l4-7h4l2 3h2"/><circle cx="15" cy="5" r="1.5"/></svg>
                 </span>
                 <span class="ob-card-label">Rad</span>
               </button>
               <button type="button" class="ob-card" data-value="hyrox">
                 <span class="ob-card-icon">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4v16"/><path d="M18 4v16"/><path d="M6 12h12"/></svg>
+                  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7v10"/><path d="M20 7v10"/><path d="M7 9v6"/><path d="M17 9v6"/><path d="M7 12h10"/></svg>
                 </span>
                 <span class="ob-card-label">Hyrox</span>
               </button>
               <button type="button" class="ob-card" data-value="shape">
                 <span class="ob-card-icon">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>
                 </span>
                 <span class="ob-card-label">Shape</span>
               </button>
@@ -3155,8 +3156,8 @@
         <!-- S2 — Distance -->
         <div class="ob-screen" data-screen="distance" hidden>
           <div class="ob-screen-inner">
-            <h2 class="ob-headline" tabindex="-1">Dein Ziel</h2>
-            <p class="ob-sub">Welche Distanz steht an?</p>
+            <h2 class="ob-headline" tabindex="-1">Deine Distanz</h2>
+            <p class="ob-sub">Was steht als Nächstes an?</p>
             <div class="ob-cards ob-cards-list" id="ob-distance-cards">
               <!-- Populated dynamically -->
             </div>
@@ -3166,8 +3167,8 @@
         <!-- S3 — Goal Time (Wheel Picker) -->
         <div class="ob-screen" data-screen="goaltime" hidden>
           <div class="ob-screen-inner">
-            <h2 class="ob-headline" tabindex="-1">Deine Zielzeit</h2>
-            <p class="ob-sub">Scroll zur gewünschten Zeit</p>
+            <h2 class="ob-headline" tabindex="-1">Zielzeit</h2>
+            <p class="ob-sub">Scrolle zur gewünschten Finish-Time</p>
             <div class="ob-wheel-group">
               <div class="ob-wheel-col">
                 <span class="ob-wheel-label">Std</span>
@@ -3211,16 +3212,31 @@
             <p class="ob-sub">Wo stehst du gerade?</p>
             <div class="ob-cards ob-cards-level" id="ob-level-cards">
               <button type="button" class="ob-card ob-card-wide" data-value="starter">
-                <span class="ob-card-label">Einsteiger</span>
-                <span class="ob-card-desc">Weniger als 1 Jahr strukturiertes Training</span>
+                <span class="ob-card-level-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 20V10"/></svg>
+                </span>
+                <span class="ob-card-wide-text">
+                  <span class="ob-card-label">Einsteiger</span>
+                  <span class="ob-card-desc">Weniger als 1 Jahr strukturiertes Training</span>
+                </span>
               </button>
               <button type="button" class="ob-card ob-card-wide is-active" data-value="intermediate">
-                <span class="ob-card-label">Fortgeschritten</span>
-                <span class="ob-card-desc">1–3 Jahre regelmäßiges Training</span>
+                <span class="ob-card-level-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 20V12"/><path d="M16 20V8"/></svg>
+                </span>
+                <span class="ob-card-wide-text">
+                  <span class="ob-card-label">Fortgeschritten</span>
+                  <span class="ob-card-desc">1–3 Jahre regelmäßiges Training</span>
+                </span>
               </button>
               <button type="button" class="ob-card ob-card-wide" data-value="advanced">
-                <span class="ob-card-label">Leistung</span>
-                <span class="ob-card-desc">3+ Jahre mit Wettkampferfahrung</span>
+                <span class="ob-card-level-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 20V14"/><path d="M12 20V8"/><path d="M18 20V4"/></svg>
+                </span>
+                <span class="ob-card-wide-text">
+                  <span class="ob-card-label">Leistung</span>
+                  <span class="ob-card-desc">3+ Jahre mit Wettkampferfahrung</span>
+                </span>
               </button>
             </div>
           </div>
@@ -3230,7 +3246,7 @@
         <div class="ob-screen" data-screen="body" hidden>
           <div class="ob-screen-inner">
             <h2 class="ob-headline" tabindex="-1">Über dich</h2>
-            <p class="ob-sub">Für präzise Zonen und Belastungssteuerung</p>
+            <p class="ob-sub">Für präzise Zonen & Belastungssteuerung</p>
             <div class="ob-body-grid">
               <div class="ob-body-item">
                 <span class="ob-body-label">Geschlecht</span>
@@ -3268,8 +3284,8 @@
         <!-- S7 — Weekly Hours (Wheel Picker) -->
         <div class="ob-screen" data-screen="hours" hidden>
           <div class="ob-screen-inner">
-            <h2 class="ob-headline" tabindex="-1">Deine Zeit</h2>
-            <p class="ob-sub">Stunden pro Woche fürs Training</p>
+            <h2 class="ob-headline" tabindex="-1">Dein Zeitbudget</h2>
+            <p class="ob-sub">Wie viele Stunden trainierst du pro Woche?</p>
             <div class="ob-wheel-group ob-wheel-single">
               <div class="ob-wheel-col">
                 <div class="ob-wheel ob-wheel-lg" id="ob-wheel-hours-weekly" data-field="weeklyhours">
@@ -3287,14 +3303,16 @@
           <!-- Phase 1: Activation moment -->
           <div class="ob-final-phase ob-final-activate" id="ob-phase-activate">
             <div class="ob-screen-inner ob-activate-inner">
+              <div class="ob-activate-glow"></div>
               <div class="ob-activate-badge">peak.</div>
               <h2 class="ob-headline ob-headline-lg" tabindex="-1">Bereit.</h2>
               <p class="ob-activate-summary" id="ob-activate-summary"></p>
               <button type="button" class="ob-activate-btn" id="ob-activate-btn">
                 <span>Go Peak</span>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 5l7 7-7 7"/></svg>
               </button>
-              <p class="ob-beta-note">Kostenlos während der Beta. Kein Abo. Keine Kreditkarte.</p>
+              <p class="ob-beta-note">Kostenlos während der Beta-Phase</p>
+              <p class="ob-beta-sub">Kein Abo. Keine Kreditkarte.</p>
             </div>
           </div>
 
@@ -3361,9 +3379,12 @@
       <!-- Navigation -->
       <div class="ob-nav" id="ob-nav">
         <button type="button" class="ob-nav-back" id="ob-nav-back" hidden>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
         </button>
-        <button type="button" class="ob-nav-next" id="ob-nav-next">Weiter</button>
+        <button type="button" class="ob-nav-next" id="ob-nav-next">
+          <span>Weiter</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 5l7 7-7 7"/></svg>
+        </button>
       </div>
     </div>
 
