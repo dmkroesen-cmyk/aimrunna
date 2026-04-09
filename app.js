@@ -7865,6 +7865,22 @@ function initDynamicGoalOptions() {
   });
   planModeSelect?.addEventListener("change", () => {
     if (planModeSelect.value === "peak") {
+      // If user already activated peak. (guest or registered), just show the UI
+      const peakActivated = localStorage.getItem("peak_activated") === "1";
+      let hasAuth = false;
+      try {
+        const stored = localStorage.getItem("sb-tpnfkumkvxnrurjuaxdq-auth-token");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          hasAuth = !!(parsed?.user || parsed?.currentSession?.user || parsed?.access_token);
+        }
+      } catch (_) {}
+
+      if (peakActivated || hasAuth) {
+        syncPlanModeUI();
+        return;
+      }
+      // First time: open onboarding for activation
       openOnboarding();
       return;
     }
@@ -7911,21 +7927,26 @@ function syncPlanModeUI() {
   const mode = String(planModeSelect?.value || "quick");
   const isQuick = mode === "quick";
 
-  // peak. mode requires registration — gate advanced settings behind auth
+  // peak. mode requires activation (via onboarding) — check auth OR guest activation
   let peakUnlocked = false;
   if (!isQuick) {
+    // 1. Check if user completed onboarding (guest or registered)
     try {
-      // Check localStorage for persisted Supabase session (sync, instant)
-      const stored = localStorage.getItem("sb-tpnfkumkvxnrurjuaxdq-auth-token");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        // Supabase v2 stores { access_token, user, ... } or { currentSession: { user } }
-        peakUnlocked = !!(parsed?.user || parsed?.currentSession?.user || parsed?.access_token);
-      }
-    } catch (_) {
-      peakUnlocked = false;
+      if (localStorage.getItem("peak_activated") === "1") peakUnlocked = true;
+    } catch (_) {}
+
+    // 2. Check Supabase auth session
+    if (!peakUnlocked) {
+      try {
+        const stored = localStorage.getItem("sb-tpnfkumkvxnrurjuaxdq-auth-token");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          peakUnlocked = !!(parsed?.user || parsed?.currentSession?.user || parsed?.access_token);
+        }
+      } catch (_) {}
     }
-    // Async fallback — covers edge cases where localStorage is stale
+
+    // 3. Async fallback — covers edge cases where localStorage is stale
     if (!peakUnlocked && window.sbAuth?.getUser) {
       window.sbAuth.getUser().then(u => {
         if (u) _applyPeakVisibility(true);
@@ -24973,8 +24994,15 @@ document.addEventListener("click", (e) => {
     }
   }
 
-  function finalize() {
+  function finalize(isGuest) {
+    // Mark peak. as activated — guest or registered
+    try { localStorage.setItem("peak_activated", "1"); } catch (_) {}
+
     applyToForm();
+
+    // After applying form, force peak visibility (bypass auth gate for this session)
+    if (typeof _applyPeakVisibility === "function") _applyPeakVisibility(true);
+
     shell.classList.add("is-closing");
     setTimeout(() => {
       shell.hidden = true;
@@ -25023,9 +25051,15 @@ document.addEventListener("click", (e) => {
       document.body.style.overflow = "";
     }, 260);
 
+    // Only reset to quick. if the user hasn't previously activated peak.
+    // (If they completed onboarding before, keep peak. mode accessible)
+    const peakActivated = localStorage.getItem("peak_activated") === "1";
     const modeSelect = document.getElementById("plan-mode-select");
-    if (modeSelect && modeSelect.value === "peak") {
+    if (modeSelect && modeSelect.value === "peak" && !peakActivated) {
       modeSelect.value = "quick";
+      if (typeof syncPlanModeUI === "function") syncPlanModeUI();
+    } else if (modeSelect && modeSelect.value === "peak" && peakActivated) {
+      // Keep peak. mode, just sync the UI
       if (typeof syncPlanModeUI === "function") syncPlanModeUI();
     }
   }
