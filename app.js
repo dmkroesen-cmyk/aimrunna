@@ -1175,12 +1175,11 @@ function _showPlanToast(msg, isError = true) {
 form?.addEventListener("submit", (event) => {
   event.preventDefault();
   try {
-    // ── Auth gate: peak. plans require login ──
+    // ── Auth gate: peak. plans require login — silently redirect to onboarding ──
     const currentMode = String(planModeSelect?.value || "quick");
     if (currentMode === "peak") {
       const acct = typeof getCurrentAccount === "function" ? getCurrentAccount() : null;
       if (!acct) {
-        _showPlanToast("Peak-Pläne erfordern einen Account. Bitte zuerst registrieren oder einloggen.");
         if (typeof openOnboarding === "function") openOnboarding();
         return;
       }
@@ -7878,7 +7877,10 @@ function initDynamicGoalOptions() {
   });
   planModeSelect?.addEventListener("change", () => {
     if (planModeSelect.value === "peak") {
-      // This page is always pre-login — peak. always opens onboarding
+      // Reset dropdown immediately so no UI flash of peak fields
+      planModeSelect.value = "quick";
+      syncPlanModeUI();
+      // Then open onboarding — the registration wall
       openOnboarding();
       return;
     }
