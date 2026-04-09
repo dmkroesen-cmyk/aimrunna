@@ -3116,7 +3116,7 @@
         <!-- S1 — Discipline -->
         <div class="ob-screen" data-screen="discipline">
           <div class="ob-screen-inner">
-            <h2 class="ob-headline">Was trainierst du?</h2>
+            <h2 class="ob-headline" tabindex="-1">Was trainierst du?</h2>
             <div class="ob-cards" id="ob-discipline-cards">
               <button type="button" class="ob-card is-active" data-value="running">
                 <span class="ob-card-icon">
@@ -3155,7 +3155,7 @@
         <!-- S2 — Distance -->
         <div class="ob-screen" data-screen="distance" hidden>
           <div class="ob-screen-inner">
-            <h2 class="ob-headline">Dein Ziel</h2>
+            <h2 class="ob-headline" tabindex="-1">Dein Ziel</h2>
             <p class="ob-sub">Welche Distanz steht an?</p>
             <div class="ob-cards ob-cards-list" id="ob-distance-cards">
               <!-- Populated dynamically -->
@@ -3166,7 +3166,7 @@
         <!-- S3 — Goal Time (Wheel Picker) -->
         <div class="ob-screen" data-screen="goaltime" hidden>
           <div class="ob-screen-inner">
-            <h2 class="ob-headline">Deine Zielzeit</h2>
+            <h2 class="ob-headline" tabindex="-1">Deine Zielzeit</h2>
             <p class="ob-sub">Scroll zur gewünschten Zeit</p>
             <div class="ob-wheel-group">
               <div class="ob-wheel-col">
@@ -3197,9 +3197,9 @@
         <!-- S4 — Race Day -->
         <div class="ob-screen" data-screen="raceday" hidden>
           <div class="ob-screen-inner">
-            <h2 class="ob-headline">Race Day</h2>
+            <h2 class="ob-headline" tabindex="-1">Race Day</h2>
             <p class="ob-sub">Wann ist dein Wettkampf?</p>
-            <input type="date" class="ob-date-input" id="ob-race-date" />
+            <input type="date" class="ob-date-input" id="ob-race-date" min="" />
             <button type="button" class="ob-skip-link" id="ob-skip-raceday">Kein festes Datum</button>
           </div>
         </div>
@@ -3207,7 +3207,7 @@
         <!-- S5 — Level -->
         <div class="ob-screen" data-screen="level" hidden>
           <div class="ob-screen-inner">
-            <h2 class="ob-headline">Dein Level</h2>
+            <h2 class="ob-headline" tabindex="-1">Dein Level</h2>
             <p class="ob-sub">Wo stehst du gerade?</p>
             <div class="ob-cards ob-cards-level" id="ob-level-cards">
               <button type="button" class="ob-card ob-card-wide" data-value="starter">
@@ -3229,15 +3229,15 @@
         <!-- S6 — Body Data (Wheel Pickers) -->
         <div class="ob-screen" data-screen="body" hidden>
           <div class="ob-screen-inner">
-            <h2 class="ob-headline">Über dich</h2>
+            <h2 class="ob-headline" tabindex="-1">Über dich</h2>
             <p class="ob-sub">Für präzise Zonen und Belastungssteuerung</p>
             <div class="ob-body-grid">
               <div class="ob-body-item">
                 <span class="ob-body-label">Geschlecht</span>
                 <div class="ob-toggle-row" id="ob-sex-toggle">
-                  <button type="button" class="ob-toggle-btn" data-value="female">W</button>
-                  <button type="button" class="ob-toggle-btn is-active" data-value="">—</button>
-                  <button type="button" class="ob-toggle-btn" data-value="male">M</button>
+                  <button type="button" class="ob-toggle-btn" data-value="female" aria-label="Weiblich">W</button>
+                  <button type="button" class="ob-toggle-btn is-active" data-value="" aria-label="Keine Angabe">—</button>
+                  <button type="button" class="ob-toggle-btn" data-value="male" aria-label="Männlich">M</button>
                 </div>
               </div>
               <div class="ob-body-item">
@@ -3268,7 +3268,7 @@
         <!-- S7 — Weekly Hours (Wheel Picker) -->
         <div class="ob-screen" data-screen="hours" hidden>
           <div class="ob-screen-inner">
-            <h2 class="ob-headline">Deine Zeit</h2>
+            <h2 class="ob-headline" tabindex="-1">Deine Zeit</h2>
             <p class="ob-sub">Stunden pro Woche fürs Training</p>
             <div class="ob-wheel-group ob-wheel-single">
               <div class="ob-wheel-col">
@@ -3288,7 +3288,7 @@
           <div class="ob-final-phase ob-final-activate" id="ob-phase-activate">
             <div class="ob-screen-inner ob-activate-inner">
               <div class="ob-activate-badge">peak.</div>
-              <h2 class="ob-headline ob-headline-lg">Bereit.</h2>
+              <h2 class="ob-headline ob-headline-lg" tabindex="-1">Bereit.</h2>
               <p class="ob-activate-summary" id="ob-activate-summary"></p>
               <button type="button" class="ob-activate-btn" id="ob-activate-btn">
                 <span>Go Peak</span>
@@ -3302,7 +3302,7 @@
           <div class="ob-final-phase ob-final-account" id="ob-phase-account">
             <div class="ob-screen-inner">
               <div class="ob-activate-badge ob-activate-badge-sm">peak.</div>
-              <h2 class="ob-headline">Wähle deinen Zugang.</h2>
+              <h2 class="ob-headline" tabindex="-1">Wähle deinen Zugang.</h2>
               <p class="ob-sub">Erstelle einen Account und sichere deinen Fortschritt.</p>
 
               <!-- Pricing Tiers -->

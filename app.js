@@ -24392,20 +24392,36 @@ document.addEventListener("click", (e) => {
   }
 
   // ══════════════════════════════════════════════════════════
-  //  WHEEL PICKER ENGINE
+  //  WHEEL PICKER ENGINE (v2 — momentum, cleanup, robust)
   // ══════════════════════════════════════════════════════════
   const wheels = {};
+  const _globalWheelCleanups = [];
+
+  function destroyAllWheels() {
+    Object.keys(wheels).forEach(id => { wheels[id]?.destroy(); delete wheels[id]; });
+    _globalWheelCleanups.forEach(fn => fn());
+    _globalWheelCleanups.length = 0;
+  }
 
   function initWheel(containerId, values, defaultVal, onChange) {
+    // Clean up previous instance if exists
+    if (wheels[containerId]) {
+      wheels[containerId].destroy();
+      delete wheels[containerId];
+    }
+
     const container = document.getElementById(containerId);
     if (!container) return;
     const track = container.querySelector(".ob-wheel-track");
     if (!track) return;
 
+    // Determine item height from CSS (reliable)
     const itemH = container.classList.contains("ob-wheel-lg") ? 48
                 : container.classList.contains("ob-wheel-sm") ? 34 : 40;
-    const visibleItems = Math.floor(container.clientHeight / itemH);
-    const padCount = Math.floor(visibleItems / 2);
+
+    // Use fixed pad count based on expected container size (robust, no clientHeight dependency)
+    const padCount = container.classList.contains("ob-wheel-lg") ? 2
+                   : container.classList.contains("ob-wheel-sm") ? 2 : 2;
 
     // Build items
     const padded = [];
@@ -24417,64 +24433,95 @@ document.addEventListener("click", (e) => {
       `<div class="ob-wheel-item" data-idx="${i}" data-value="${v}">${v}</div>`
     ).join("");
 
-    let selectedIdx = padCount; // default to first real item
+    let selectedIdx = padCount;
     const defaultI = values.indexOf(String(defaultVal));
     if (defaultI >= 0) selectedIdx = defaultI + padCount;
 
-    let startY = 0, startTranslate = 0, currentTranslate = 0, isDragging = false;
+    let startY = 0, startTranslate = 0, currentTranslate = 0;
+    let isDragging = false, lastY = 0, lastTime = 0, velocity = 0;
+    let momentumRaf = 0;
 
-    function scrollTo(idx, animate) {
+    function scrollTo(idx, animate, duration) {
       idx = Math.max(padCount, Math.min(idx, padCount + values.length - 1));
+      if (idx === selectedIdx && animate) return; // skip redundant
+      const prev = selectedIdx;
       selectedIdx = idx;
       const offset = -(idx * itemH) + (padCount * itemH);
       currentTranslate = offset;
-      track.style.transition = animate ? "transform 200ms cubic-bezier(0.25,1,0.5,1)" : "none";
+      const dur = duration || (animate ? 200 : 0);
+      track.style.transition = dur ? `transform ${dur}ms cubic-bezier(0.25, 1, 0.5, 1)` : "none";
       track.style.transform = `translateY(${offset}px)`;
 
       // Highlight
-      track.querySelectorAll(".ob-wheel-item").forEach((el, i) => {
-        el.classList.toggle("is-selected", i === idx);
-      });
+      const items = track.querySelectorAll(".ob-wheel-item");
+      items.forEach((el, i) => el.classList.toggle("is-selected", i === idx));
 
-      const val = values[idx - padCount];
-      if (onChange) onChange(val);
-      haptic(8);
+      if (prev !== idx) {
+        const val = values[idx - padCount];
+        if (onChange) onChange(val);
+        haptic(8);
+      }
     }
 
     function onStart(y) {
+      cancelAnimationFrame(momentumRaf);
       isDragging = true;
       startY = y;
+      lastY = y;
+      lastTime = Date.now();
+      velocity = 0;
       startTranslate = currentTranslate;
       track.style.transition = "none";
     }
 
     function onMove(y) {
       if (!isDragging) return;
-      const delta = y - startY;
-      currentTranslate = startTranslate + delta;
+      const now = Date.now();
+      const dt = Math.max(1, now - lastTime);
+      velocity = (y - lastY) / dt; // px/ms
+      lastY = y;
+      lastTime = now;
+      currentTranslate = startTranslate + (y - startY);
       track.style.transform = `translateY(${currentTranslate}px)`;
     }
 
     function onEnd() {
       if (!isDragging) return;
       isDragging = false;
-      // Snap to nearest
-      const rawIdx = Math.round(-currentTranslate / itemH + padCount);
-      scrollTo(rawIdx, true);
+
+      // Momentum: apply velocity decay
+      const absVel = Math.abs(velocity);
+      if (absVel > 0.3) {
+        // Estimate how many extra items to coast
+        const coasting = Math.round(velocity * 120 / itemH); // ~120ms decel window
+        const targetIdx = Math.round(-currentTranslate / itemH + padCount) - coasting;
+        const dur = Math.min(500, Math.max(200, Math.abs(coasting) * 80));
+        scrollTo(targetIdx, true, dur);
+      } else {
+        // Simple snap
+        const rawIdx = Math.round(-currentTranslate / itemH + padCount);
+        scrollTo(rawIdx, true);
+      }
     }
 
-    // Touch
-    container.addEventListener("touchstart", e => { onStart(e.touches[0].clientY); }, { passive: true });
-    container.addEventListener("touchmove", e => { onMove(e.touches[0].clientY); }, { passive: true });
-    container.addEventListener("touchend", onEnd);
+    // Touch events (on container only)
+    const onTouchStart = e => onStart(e.touches[0].clientY);
+    const onTouchMove = e => onMove(e.touches[0].clientY);
+    const onTouchEnd = () => onEnd();
+    container.addEventListener("touchstart", onTouchStart, { passive: true });
+    container.addEventListener("touchmove", onTouchMove, { passive: true });
+    container.addEventListener("touchend", onTouchEnd);
 
-    // Mouse
-    container.addEventListener("mousedown", e => { e.preventDefault(); onStart(e.clientY); });
-    window.addEventListener("mousemove", e => { if (isDragging) onMove(e.clientY); });
-    window.addEventListener("mouseup", () => { if (isDragging) onEnd(); });
+    // Mouse events (window-level, tracked for cleanup)
+    const onMouseDown = e => { e.preventDefault(); onStart(e.clientY); };
+    const onMouseMove = e => { if (isDragging) onMove(e.clientY); };
+    const onMouseUp = () => { if (isDragging) onEnd(); };
+    container.addEventListener("mousedown", onMouseDown);
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
 
     // Click on item
-    track.addEventListener("click", e => {
+    const onTrackClick = e => {
       const item = e.target.closest(".ob-wheel-item");
       if (item) {
         const idx = parseInt(item.dataset.idx);
@@ -24482,17 +24529,52 @@ document.addEventListener("click", (e) => {
           scrollTo(idx, true);
         }
       }
-    });
+    };
+    track.addEventListener("click", onTrackClick);
 
     // Mouse wheel
-    container.addEventListener("wheel", e => {
+    const onWheel = e => {
       e.preventDefault();
-      const dir = e.deltaY > 0 ? 1 : -1;
-      scrollTo(selectedIdx + dir, true);
-    }, { passive: false });
+      scrollTo(selectedIdx + (e.deltaY > 0 ? 1 : -1), true);
+    };
+    container.addEventListener("wheel", onWheel, { passive: false });
 
-    // Initial position
-    requestAnimationFrame(() => scrollTo(selectedIdx, false));
+    // Keyboard (arrow keys)
+    container.setAttribute("tabindex", "0");
+    container.setAttribute("role", "listbox");
+    const onKeyDown = e => {
+      if (e.key === "ArrowDown") { e.preventDefault(); scrollTo(selectedIdx + 1, true); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); scrollTo(selectedIdx - 1, true); }
+    };
+    container.addEventListener("keydown", onKeyDown);
+
+    // Deferred initial position (after layout)
+    const initRaf = requestAnimationFrame(() => {
+      requestAnimationFrame(() => scrollTo(selectedIdx, false));
+    });
+
+    // Cleanup function
+    function destroy() {
+      cancelAnimationFrame(momentumRaf);
+      cancelAnimationFrame(initRaf);
+      container.removeEventListener("touchstart", onTouchStart);
+      container.removeEventListener("touchmove", onTouchMove);
+      container.removeEventListener("touchend", onTouchEnd);
+      container.removeEventListener("mousedown", onMouseDown);
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+      track.removeEventListener("click", onTrackClick);
+      container.removeEventListener("wheel", onWheel);
+      container.removeEventListener("keydown", onKeyDown);
+      track.innerHTML = "";
+    }
+
+    // Track global cleanup
+    const globalClean = () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+    };
+    _globalWheelCleanups.push(globalClean);
 
     wheels[containerId] = {
       getValue: () => values[selectedIdx - padCount],
@@ -24500,7 +24582,7 @@ document.addEventListener("click", (e) => {
         const i = values.indexOf(String(v));
         if (i >= 0) scrollTo(i + padCount, false);
       },
-      destroy: () => { track.innerHTML = ""; }
+      destroy
     };
   }
 
@@ -24569,9 +24651,12 @@ document.addEventListener("click", (e) => {
     // Nav buttons
     btnBack.hidden = currentIdx === 0;
 
+    // Hide next button on final screen, but keep back button visible (activation phase only)
     const isFinal = newName === "final";
     const navEl = document.getElementById("ob-nav");
-    if (navEl) navEl.hidden = isFinal;
+    if (navEl) navEl.hidden = false;
+    if (btnNext) btnNext.hidden = isFinal;
+    if (isFinal) btnBack.hidden = false;
 
     // Prepare screen-specific content
     if (newName === "distance") populateDistanceCards();
@@ -24579,6 +24664,13 @@ document.addEventListener("click", (e) => {
     if (newName === "body") initBodyWheels();
     if (newName === "hours") initHoursWheel();
     if (newName === "final") prepareFinalScreen();
+
+    // Focus management — move focus to new screen's headline
+    setTimeout(() => {
+      const active = screens.querySelector(`.ob-screen[data-screen="${newName}"]`);
+      const target = active?.querySelector(".ob-headline, .ob-card.is-active, .ob-wheel, .ob-activate-btn");
+      if (target && target.focus) target.focus({ preventScroll: true });
+    }, 350);
   }
 
   function goNext() {
@@ -24601,6 +24693,8 @@ document.addEventListener("click", (e) => {
   // ══════════════════════════════════════════════════════════
   //  DISTANCE CARDS (dynamic)
   // ══════════════════════════════════════════════════════════
+  // Distance card click handler (attached ONCE, delegates)
+  let _distCardsBound = false;
   function populateDistanceCards() {
     const container = document.getElementById("ob-distance-cards");
     if (!container) return;
@@ -24611,15 +24705,17 @@ document.addEventListener("click", (e) => {
       </button>`
     ).join("");
     data.distance = opts[0]?.value || "";
-    // Re-attach card listener
-    container.addEventListener("click", e => {
-      const card = e.target.closest(".ob-card");
-      if (!card) return;
-      container.querySelectorAll(".ob-card").forEach(c => c.classList.remove("is-active"));
-      card.classList.add("is-active");
-      data.distance = card.dataset.value;
-      haptic(10);
-    });
+    if (!_distCardsBound) {
+      _distCardsBound = true;
+      container.addEventListener("click", e => {
+        const card = e.target.closest(".ob-card");
+        if (!card) return;
+        container.querySelectorAll(".ob-card").forEach(c => c.classList.remove("is-active"));
+        card.classList.add("is-active");
+        data.distance = card.dataset.value;
+        haptic(10);
+      });
+    }
   }
 
   // ══════════════════════════════════════════════════════════
@@ -24749,6 +24845,10 @@ document.addEventListener("click", (e) => {
       finalScreen.classList.add("is-phase-account");
     }
 
+    // Hide nav bar completely in account phase
+    const navEl = document.getElementById("ob-nav");
+    if (navEl) navEl.hidden = true;
+
     // Fill progress to 100%
     progressFill.style.width = "100%";
   }
@@ -24804,7 +24904,10 @@ document.addEventListener("click", (e) => {
     const statusEl = document.getElementById("ob-account-status");
     const btn = document.getElementById("ob-account-btn");
 
-    if (!email || !email.includes("@")) {
+    // Clear previous status
+    if (statusEl) { statusEl.textContent = ""; statusEl.className = "ob-account-status"; }
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       if (statusEl) { statusEl.textContent = "Bitte gültige E-Mail eingeben."; statusEl.className = "ob-account-status is-error"; }
       return false;
     }
@@ -24864,8 +24967,9 @@ document.addEventListener("click", (e) => {
     const mainDisc = document.querySelector('#plan-form select[name="discipline"]');
     if (mainDisc?.value) data.discipline = mainDisc.value;
 
-    // Reset to first screen
+    // Reset to first screen — clean up previous wheel instances
     currentIdx = 0;
+    destroyAllWheels();
     wheelsInitialized = { time: false, body: false, hours: false };
 
     // Reset final screen phase
@@ -24887,6 +24991,7 @@ document.addEventListener("click", (e) => {
   }
 
   function close() {
+    destroyAllWheels();
     shell.classList.add("is-closing");
     setTimeout(() => {
       shell.hidden = true;
@@ -24908,9 +25013,13 @@ document.addEventListener("click", (e) => {
   btnBack?.addEventListener("click", () => { haptic(8); goBack(); });
   closeBtn?.addEventListener("click", close);
 
-  // Race date
+  // Race date — set minimum to today
   const raceDateInput = document.getElementById("ob-race-date");
-  raceDateInput?.addEventListener("change", () => { data.raceDate = raceDateInput.value; });
+  if (raceDateInput) {
+    const today = new Date().toISOString().split("T")[0];
+    raceDateInput.min = today;
+    raceDateInput.addEventListener("change", () => { data.raceDate = raceDateInput.value; });
+  }
 
   // Skip buttons
   document.getElementById("ob-skip-goaltime")?.addEventListener("click", () => {

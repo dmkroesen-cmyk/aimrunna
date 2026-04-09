@@ -13030,7 +13030,7 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
   height: 100%;
   width: 0%;
   background: #D4850F;
-  border-radius: 0 3px 3px 0;
+  border-radius: 3px;
   transition: width 400ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -13109,6 +13109,13 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
   color: var(--text, #1A1A1A);
   margin: 0 0 8px;
   line-height: 1.15;
+  outline: none;
+}
+
+.ob-headline[tabindex]:focus-visible {
+  outline: 2px solid rgba(212, 133, 15, 0.3);
+  outline-offset: 4px;
+  border-radius: 4px;
 }
 
 .ob-headline-lg {
@@ -13164,6 +13171,11 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
 
 .ob-card:active { transform: scale(0.97); }
 
+.ob-card:focus-visible {
+  outline: 2px solid #D4850F;
+  outline-offset: 2px;
+}
+
 .ob-card.is-active {
   border-color: #D4850F;
   background: rgba(212, 133, 15, 0.04);
@@ -13215,10 +13227,10 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
 /* ── Wheel Picker ── */
 .ob-wheel-group {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  gap: 4px;
-  margin-bottom: 16px;
+  gap: 2px;
+  margin-bottom: 20px;
 }
 
 .ob-wheel-single { gap: 0; }
@@ -13227,7 +13239,7 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .ob-wheel-label {
@@ -13243,7 +13255,11 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
   font-weight: 700;
   color: var(--text-muted, #9CA3AF);
   margin: 0 2px;
-  padding-bottom: 22px;
+  /* Vertically center with wheel: label(~14px) + gap(8px) + half wheel height */
+  padding-top: 22px;
+  height: 160px;
+  display: flex;
+  align-items: center;
 }
 
 .ob-wheel {
@@ -13261,6 +13277,12 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
 
 .ob-wheel-sm { width: 72px; height: 120px; }
 .ob-wheel-lg { width: 100px; height: 200px; }
+
+.ob-wheel:focus-visible {
+  outline: 2px solid rgba(212, 133, 15, 0.4);
+  outline-offset: 2px;
+  border-radius: 12px;
+}
 
 .ob-wheel::after {
   content: "";
@@ -13528,7 +13550,7 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
 }
 
 .ob-activate-btn.is-ready {
-  animation: ob-activate-pulse 2s ease infinite;
+  animation: ob-activate-pulse 2s ease 3;
 }
 
 .ob-beta-note {
@@ -13543,9 +13565,9 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
 .ob-tiers {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 8px;
+  gap: 10px;
   width: 100%;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .ob-tier {
@@ -13553,7 +13575,7 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  padding: 14px 8px 12px;
+  padding: 16px 10px 14px;
   border: 2px solid rgba(0, 0, 0, 0.06);
   border-radius: 14px;
   background: #FFFFFF;
@@ -13647,34 +13669,7 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
   margin-top: 2px;
 }
 
-@media (max-width: 520px) {
-  .ob-tiers {
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-  .ob-tier {
-    flex-direction: row;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 14px;
-    text-align: left;
-  }
-  .ob-tier-badge {
-    margin-bottom: 0;
-  }
-  .ob-tier-price {
-    margin-left: auto;
-  }
-  .ob-tier-desc,
-  .ob-tier-save,
-  .ob-tier-soon {
-    display: none;
-  }
-  .ob-tier.is-active .ob-tier-desc,
-  .ob-tier.is-active .ob-tier-save {
-    display: block;
-  }
-}
+/* Tier cards responsive handled in main mobile query above */
 
 /* ── Account form (inside final screen) ── */
 .ob-account-form {
@@ -13703,6 +13698,12 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
 .ob-input:focus {
   border-color: rgba(212, 133, 15, 0.4);
   box-shadow: 0 0 0 4px rgba(212, 133, 15, 0.08);
+  outline: none;
+}
+
+.ob-input:focus-visible {
+  outline: 2px solid #D4850F;
+  outline-offset: 1px;
 }
 
 .ob-input::placeholder { color: var(--text-muted, #9CA3AF); }
@@ -13745,21 +13746,23 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
 
 .ob-account-btn {
   width: 100%;
-  height: 50px;
+  height: 52px;
   border: 0;
-  border-radius: 12px;
+  border-radius: 14px;
   background: #1A1A1A;
   color: #FFFFFF;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   font-family: inherit;
   cursor: pointer;
   transition: transform 150ms ease, box-shadow 150ms ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+  -webkit-tap-highlight-color: transparent;
 }
 
-.ob-account-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.16); }
-.ob-account-btn:active { transform: translateY(0); }
+.ob-account-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18); }
+.ob-account-btn:active { transform: scale(0.98) translateY(0); }
+.ob-account-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
 /* ── Beta trust banner ── */
 .ob-beta-banner {
@@ -13888,12 +13891,17 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
   .ob-screen { padding: 16px; }
   .ob-headline { font-size: 24px; }
   .ob-headline-lg { font-size: 34px; }
+  .ob-sub { font-size: 14px; }
   .ob-cards { grid-template-columns: repeat(auto-fit, minmax(85px, 1fr)); gap: 8px; }
   .ob-card { padding: 16px 10px; }
-  .ob-body-grid { gap: 14px 10px; }
-  .ob-wheel { width: 70px; height: 140px; }
-  .ob-wheel-sm { width: 64px; height: 110px; }
+  .ob-body-grid { grid-template-columns: 1fr 1fr; gap: 16px 12px; }
+  .ob-body-label { font-size: 11px; }
+  .ob-wheel { width: 72px; height: 140px; }
+  .ob-wheel-sm { width: 66px; height: 112px; }
   .ob-wheel-lg { width: 90px; height: 180px; }
+  .ob-wheel-sep { height: 140px; padding-top: 18px; font-size: 24px; }
+  .ob-activate-summary { font-size: 14px; max-width: 280px; }
+  .ob-tiers { grid-template-columns: 1fr; gap: 8px; }
 }
 
 @media (min-width: 768px) {
