@@ -24394,36 +24394,30 @@ document.addEventListener("click", (e) => {
   // ── Haptic helper (vibrate API on Android, checkbox-switch trick on iOS 18+) ──
   const _isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
                  (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-
-  // Persistent checkbox-switch for iOS haptic — reuse instead of create/destroy
-  let _hapticCb = null, _hapticLbl = null;
-  function _ensureHapticEl() {
-    if (_hapticLbl) return;
-    try {
-      _hapticCb = document.createElement("input");
-      _hapticCb.type = "checkbox";
-      _hapticCb.setAttribute("switch", "");
-      _hapticCb.style.cssText = "position:fixed;top:-99px;left:-99px;opacity:0;pointer-events:none";
-      _hapticLbl = document.createElement("label");
-      _hapticLbl.style.cssText = _hapticCb.style.cssText;
-      _hapticLbl.appendChild(_hapticCb);
-      document.body.appendChild(_hapticLbl);
-    } catch (_) {}
-  }
+  const _hiddenCSS = "position:fixed;top:-99px;left:-99px;opacity:0;pointer-events:none;width:0;height:0";
 
   function _iosHapticTick() {
+    // Fresh element each time — unchecked→checked always triggers haptic
     try {
-      _ensureHapticEl();
-      if (_hapticLbl) _hapticLbl.click();
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.setAttribute("switch", "");
+      cb.style.cssText = _hiddenCSS;
+      const lbl = document.createElement("label");
+      lbl.style.cssText = _hiddenCSS;
+      lbl.appendChild(cb);
+      document.body.appendChild(lbl);
+      lbl.click();
+      lbl.remove();
     } catch (_) {}
   }
 
   let _lastHapticT = 0;
-  function haptic(ms) {
+  function haptic() {
     const now = performance.now();
-    if (now - _lastHapticT < 50) return;
+    if (now - _lastHapticT < 35) return;
     _lastHapticT = now;
-    if (navigator.vibrate) { try { navigator.vibrate(ms || 10); } catch (_) {} return; }
+    if (navigator.vibrate) { try { navigator.vibrate(10); } catch (_) {} return; }
     if (_isiOS) _iosHapticTick();
   }
 
