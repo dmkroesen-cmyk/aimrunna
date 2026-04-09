@@ -25219,7 +25219,7 @@ document.addEventListener("click", (e) => {
   if (raceDateInput) {
     const today = new Date().toISOString().split("T")[0];
     raceDateInput.min = today;
-    raceDateInput.addEventListener("change", () => { data.raceDate = raceDateInput.value; });
+    raceDateInput.addEventListener("change", () => { data.raceDate = raceDateInput.value; haptic(10); });
   }
 
   function prefillRaceDate() {
@@ -25286,13 +25286,13 @@ document.addEventListener("click", (e) => {
   // Skip buttons
   document.getElementById("ob-skip-goaltime")?.addEventListener("click", () => {
     data.goalHours = 0; data.goalMinutes = 0; data.goalSeconds = 0;
-    goNext();
+    haptic(8); goNext();
   });
   document.getElementById("ob-skip-raceday")?.addEventListener("click", () => {
     data.raceDate = "";
-    goNext();
+    haptic(8); goNext();
   });
-  document.getElementById("ob-skip-body")?.addEventListener("click", goNext);
+  document.getElementById("ob-skip-body")?.addEventListener("click", () => { haptic(8); goNext(); });
 
   // Schedule cards
   initCards("ob-schedule-cards", val => { data.longDay = val; });
@@ -25303,11 +25303,11 @@ document.addEventListener("click", (e) => {
   // PB screen
   document.getElementById("ob-skip-pb")?.addEventListener("click", () => {
     data.pbDistance = ""; data.pbTime = "";
-    goNext();
+    haptic(8); goNext();
   });
   const pbDistSelect = document.getElementById("ob-pb-distance");
   const pbTimeInput = document.getElementById("ob-pb-time");
-  if (pbDistSelect) pbDistSelect.addEventListener("change", () => { data.pbDistance = pbDistSelect.value; });
+  if (pbDistSelect) pbDistSelect.addEventListener("change", () => { data.pbDistance = pbDistSelect.value; haptic(10); });
   if (pbTimeInput) pbTimeInput.addEventListener("input", () => { data.pbTime = pbTimeInput.value; });
 
   // Populate PB distance options based on discipline
