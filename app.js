@@ -24320,17 +24320,35 @@ document.addEventListener("click", (e) => {
   const shell = document.getElementById("ob-shell");
   const screens = document.getElementById("ob-screens");
   const progressFill = document.getElementById("ob-progress-fill");
+  const stepEl = document.getElementById("ob-step");
   const btnNext = document.getElementById("ob-nav-next");
   const btnBack = document.getElementById("ob-nav-back");
   const closeBtn = document.getElementById("ob-close");
 
   if (!shell || !screens) return;
 
-  // ── Screen order (final = activation + account in one screen) ──
-  const SCREEN_ORDER = [
+  // ── Screen order (dynamic — some screens conditional on discipline) ──
+  const SCREEN_ORDER_BASE = [
     "discipline", "distance", "goaltime", "raceday",
-    "level", "body", "hours", "final"
+    "level", "body", "hours", "schedule", "pb", "final"
   ];
+  let _screenOrder = [...SCREEN_ORDER_BASE];
+  function getScreenOrder() { return _screenOrder; }
+
+  function rebuildScreenOrder() {
+    const disc = data.discipline;
+    const isShape = disc === "shape";
+    const order = [];
+    order.push("discipline");
+    if (!isShape) order.push("distance", "goaltime", "raceday");
+    order.push("level", "body", "hours");
+    if (!isShape) order.push("schedule", "pb");
+    if (isShape) order.push("shapefocus");
+    order.push("final");
+    _screenOrder = order;
+  }
+  rebuildScreenOrder();
+
   let currentIdx = 0;
 
   // ── Monetization config (subscription-ready, currently inactive) ──
@@ -24355,6 +24373,10 @@ document.addEventListener("click", (e) => {
     weight: 72,
     height: 178,
     weeklyHours: 8,
+    longDay: "sunday",
+    pbDistance: "",
+    pbTime: "",
+    shapeFocus: "fat_loss",
     selectedTier: "beta",
   };
 
@@ -24647,15 +24669,15 @@ document.addEventListener("click", (e) => {
   // ══════════════════════════════════════════════════════════
   //  SCREEN NAVIGATION
   // ══════════════════════════════════════════════════════════
-  function currentScreen() { return SCREEN_ORDER[currentIdx]; }
+  function currentScreen() { return _screenOrder[currentIdx]; }
 
   function showScreen(idx, direction) {
     const oldIdx = currentIdx;
-    currentIdx = Math.max(0, Math.min(idx, SCREEN_ORDER.length - 1));
+    currentIdx = Math.max(0, Math.min(idx, _screenOrder.length - 1));
 
     const allScreens = screens.querySelectorAll(".ob-screen");
-    const oldName = SCREEN_ORDER[oldIdx];
-    const newName = SCREEN_ORDER[currentIdx];
+    const oldName = _screenOrder[oldIdx];
+    const newName = _screenOrder[currentIdx];
 
     allScreens.forEach(s => {
       const name = s.dataset.screen;
@@ -24674,8 +24696,14 @@ document.addEventListener("click", (e) => {
     });
 
     // Progress
-    const progress = ((currentIdx + 1) / SCREEN_ORDER.length) * 100;
+    const progress = ((currentIdx + 1) / _screenOrder.length) * 100;
     progressFill.style.width = progress + "%";
+
+    // Step indicator
+    const isFinalScreen = newName === "final";
+    if (stepEl) {
+      stepEl.textContent = isFinalScreen ? "" : `Schritt ${currentIdx + 1} von ${_screenOrder.length - 1}`;
+    }
 
     // Nav buttons
     btnBack.hidden = currentIdx === 0;
@@ -24692,6 +24720,7 @@ document.addEventListener("click", (e) => {
     if (newName === "goaltime") initTimeWheels();
     if (newName === "body") initBodyWheels();
     if (newName === "hours") initHoursWheel();
+    if (newName === "pb") populatePbDistances();
     if (newName === "final") prepareFinalScreen();
 
     // Focus management — move focus to new screen's headline
@@ -24703,7 +24732,7 @@ document.addEventListener("click", (e) => {
   }
 
   function goNext() {
-    if (currentIdx < SCREEN_ORDER.length - 1) {
+    if (currentIdx < _screenOrder.length - 1) {
       showScreen(currentIdx + 1, "forward");
     }
   }
@@ -24717,7 +24746,7 @@ document.addEventListener("click", (e) => {
   // ══════════════════════════════════════════════════════════
   //  DISCIPLINE CARDS
   // ══════════════════════════════════════════════════════════
-  initCards("ob-discipline-cards", val => { data.discipline = val; });
+  initCards("ob-discipline-cards", val => { data.discipline = val; rebuildScreenOrder(); });
 
   // ══════════════════════════════════════════════════════════
   //  DISTANCE CARDS (dynamic)
@@ -24932,6 +24961,25 @@ document.addEventListener("click", (e) => {
     setF("experience-field", expMap[data.level] || "1to3");
     setF("weekly-hours-field", String(data.weeklyHours));
 
+    // Schedule preference → long run / outdoor day
+    const dayMap = { saturday: "saturday", sunday: "sunday", flexible: "" };
+    const longDayVal = dayMap[data.longDay] ?? "sunday";
+    setF("long-run-day-select", longDayVal);
+    setF("bike-outdoor-day-select", longDayVal);
+
+    // PB data
+    if (data.pbDistance && data.pbTime) {
+      setF("pb1-discipline-select", data.discipline === "triathlon" ? "running" : data.discipline);
+      setF("pb1-distance-select", data.pbDistance);
+      const pb1Time = f.elements?.pb1Time;
+      if (pb1Time) pb1Time.value = data.pbTime;
+    }
+
+    // Shape focus
+    if (data.discipline === "shape" && data.shapeFocus) {
+      setF("shape-target-focus-select", data.shapeFocus);
+    }
+
     if (typeof syncPlanModeUI === "function") syncPlanModeUI();
     if (typeof syncDisciplineSpecificFields === "function") syncDisciplineSpecificFields(data.discipline);
   }
@@ -25022,6 +25070,9 @@ document.addEventListener("click", (e) => {
     const finalScreen = screens?.querySelector('[data-screen="final"]');
     if (finalScreen) finalScreen.classList.remove("is-phase-account");
 
+    // Rebuild screen order based on current discipline
+    rebuildScreenOrder();
+
     // Activate discipline choice
     const discCards = document.getElementById("ob-discipline-cards");
     if (discCards) {
@@ -25078,6 +25129,30 @@ document.addEventListener("click", (e) => {
     goNext();
   });
   document.getElementById("ob-skip-body")?.addEventListener("click", goNext);
+
+  // Schedule cards
+  initCards("ob-schedule-cards", val => { data.longDay = val; });
+
+  // Shape focus cards
+  initCards("ob-shapefocus-cards", val => { data.shapeFocus = val; });
+
+  // PB screen
+  document.getElementById("ob-skip-pb")?.addEventListener("click", () => {
+    data.pbDistance = ""; data.pbTime = "";
+    goNext();
+  });
+  const pbDistSelect = document.getElementById("ob-pb-distance");
+  const pbTimeInput = document.getElementById("ob-pb-time");
+  if (pbDistSelect) pbDistSelect.addEventListener("change", () => { data.pbDistance = pbDistSelect.value; });
+  if (pbTimeInput) pbTimeInput.addEventListener("input", () => { data.pbTime = pbTimeInput.value; });
+
+  // Populate PB distance options based on discipline
+  function populatePbDistances() {
+    if (!pbDistSelect) return;
+    const opts = distOpts(data.discipline);
+    pbDistSelect.innerHTML = '<option value="">Distanz wählen</option>' +
+      opts.map(o => `<option value="${o.value}">${o.label}</option>`).join("");
+  }
 
   // Activation button → seamless transition to account phase (same screen)
   document.getElementById("ob-activate-btn")?.addEventListener("click", () => {

@@ -3106,6 +3106,7 @@
         <div class="ob-progress-track">
           <div class="ob-progress-fill" id="ob-progress-fill"></div>
         </div>
+        <span class="ob-step" id="ob-step"></span>
         <button type="button" class="ob-close" id="ob-close" aria-label="Schließen">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </button>
@@ -3253,7 +3254,56 @@
           </div>
         </div>
 
-        <!-- S8 — Final: Activation + Account (unified) -->
+        <!-- S8 — Schedule Preferences -->
+        <div class="ob-screen" data-screen="schedule" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline" tabindex="-1">Dein langer Tag.</h2>
+            <p class="ob-sub">Welcher Tag passt für die lange Einheit?</p>
+            <div class="ob-choices" id="ob-schedule-cards">
+              <button type="button" class="ob-choice" data-value="saturday">Samstag</button>
+              <button type="button" class="ob-choice is-active" data-value="sunday">Sonntag</button>
+              <button type="button" class="ob-choice" data-value="flexible">Flexibel</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- S9 — Personal Best -->
+        <div class="ob-screen" data-screen="pb" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline" tabindex="-1">Aktuelle Bestzeit?</h2>
+            <p class="ob-sub">Hilft bei der Zonenberechnung</p>
+            <div class="ob-pb-form">
+              <select class="ob-select" id="ob-pb-distance">
+                <option value="">Distanz wählen</option>
+              </select>
+              <input type="text" class="ob-input" id="ob-pb-time" placeholder="z.B. 52:30 oder 3:45:00" inputmode="numeric" />
+            </div>
+            <button type="button" class="ob-skip-link" id="ob-skip-pb">Keine Bestzeit</button>
+          </div>
+        </div>
+
+        <!-- S10 — Shape Focus (only for shape discipline) -->
+        <div class="ob-screen" data-screen="shapefocus" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline" tabindex="-1">Dein Fokus.</h2>
+            <div class="ob-choices" id="ob-shapefocus-cards">
+              <button type="button" class="ob-choice ob-choice--has-desc is-active" data-value="fat_loss">
+                <span class="ob-choice-label">Abnehmen</span>
+                <span class="ob-choice-desc">Fettabbau durch Ausdauer & Kraft</span>
+              </button>
+              <button type="button" class="ob-choice ob-choice--has-desc" data-value="toning">
+                <span class="ob-choice-label">Toning</span>
+                <span class="ob-choice-desc">Körper straffen & definieren</span>
+              </button>
+              <button type="button" class="ob-choice ob-choice--has-desc" data-value="fitness">
+                <span class="ob-choice-label">Allgemeine Fitness</span>
+                <span class="ob-choice-desc">Ausdauer, Kraft & Beweglichkeit</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- S11 — Final: Activation + Account (unified) -->
         <div class="ob-screen ob-screen-final" data-screen="final" hidden>
 
           <!-- Phase 1: Activation moment -->
