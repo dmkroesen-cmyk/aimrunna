@@ -24383,14 +24383,38 @@ document.addEventListener("click", (e) => {
 
   let currentIdx = 0;
 
-  // ── Haptic helper ──
+  // ── Haptic helper (vibrate on Android, audio tick on iOS) ──
+  let _hapticCtx = null;
+  const _isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+  function _audioTick(freq, dur) {
+    try {
+      if (!_hapticCtx) _hapticCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (_hapticCtx.state === "suspended") _hapticCtx.resume();
+      const o = _hapticCtx.createOscillator();
+      const g = _hapticCtx.createGain();
+      o.type = "sine";
+      o.frequency.value = freq || 200;
+      g.gain.value = 0.08;
+      g.gain.exponentialRampToValueAtTime(0.001, _hapticCtx.currentTime + (dur || 0.015));
+      o.connect(g).connect(_hapticCtx.destination);
+      o.start(); o.stop(_hapticCtx.currentTime + (dur || 0.015));
+    } catch (_) {}
+  }
+
   function haptic(ms) {
-    try { if (navigator.vibrate) navigator.vibrate(ms || 10); } catch (_) {}
+    try {
+      if (navigator.vibrate) { navigator.vibrate(ms || 10); return; }
+    } catch (_) {}
+    if (_isIOS) _audioTick(180, 0.012);
   }
 
   /** Stronger confirmation haptic — double-tap pattern for decisive actions */
   function hapticConfirm() {
-    try { if (navigator.vibrate) navigator.vibrate([15, 40, 25]); } catch (_) {}
+    try {
+      if (navigator.vibrate) { navigator.vibrate([15, 40, 25]); return; }
+    } catch (_) {}
+    if (_isIOS) { _audioTick(220, 0.015); setTimeout(() => _audioTick(280, 0.02), 55); }
   }
 
   // ── Distance options per discipline ──
@@ -25234,35 +25258,48 @@ document.addEventListener("click", (e) => {
   const raceSuggestionsEl = document.getElementById("ob-race-suggestions");
   let _raceCatalogCache = null;
 
-  // Map our discipline names to catalog series
-  const DISC_SERIES_MAP = {
-    running: ["marathon_majors", "iconic_marathon", "iconic_running"],
-    triathlon: ["ironman", "iconic_triathlon"],
-    cycling: ["iconic_cycling"],
-    hyrox: ["hyrox"],
+  // Map discipline to sport_type in catalog + distance_label matching
+  const DISC_SPORT_MAP = {
+    running: "run", triathlon: "tri", cycling: "bike", hyrox: "hyrox",
+  };
+
+  // Map onboarding distance → catalog distance_label(s) for relevance scoring
+  const DIST_LABEL_MAP = {
+    "5k": ["5k"], "10k": ["10k"], half: ["half_marathon"],
+    marathon: ["marathon"], sprint: ["sprint_tri"], olympic: ["olympic_tri"],
+    "703": ["ironman_70_3", "70.3"], ironman: ["ironman_full", "ironman"],
+    crit: ["crit"], tt40: ["40k_tt"], granfondo: ["gran_fondo"], century: ["century"],
+    open: ["hyrox"], pro: ["hyrox"], doubles: ["hyrox"], doublespro: ["hyrox"], relay: ["hyrox"],
   };
 
   async function loadRaceSuggestions() {
     if (!raceSuggestionsEl || !window.sbDb?.getRaceCatalog) return;
     try {
       if (!_raceCatalogCache) _raceCatalogCache = await window.sbDb.getRaceCatalog();
-      const series = DISC_SERIES_MAP[data.discipline] || [];
-      if (!series.length) { raceSuggestionsEl.innerHTML = ""; return; }
+      const sportType = DISC_SPORT_MAP[data.discipline];
+      if (!sportType) { raceSuggestionsEl.innerHTML = ""; return; }
 
-      // Filter catalog by discipline series, sorted by iconic_level
-      const matches = _raceCatalogCache
-        .filter(r => series.includes(r.series))
-        .sort((a, b) => (b.iconic_level || 0) - (a.iconic_level || 0))
-        .slice(0, 5);
+      // Filter by sport_type
+      let pool = _raceCatalogCache.filter(r => (r.sport_type || "run") === sportType);
 
-      if (!matches.length) { raceSuggestionsEl.innerHTML = ""; return; }
+      // Score: prefer matching distance_label, then iconic_level
+      const distLabels = DIST_LABEL_MAP[data.distance] || [];
+      pool = pool.map(r => {
+        const distMatch = distLabels.some(d =>
+          (r.distance_label || "").toLowerCase().includes(d.toLowerCase())
+        ) ? 100 : 0;
+        return { ...r, _score: distMatch + (r.iconic_level || 0) };
+      }).sort((a, b) => b._score - a._score).slice(0, 6);
 
-      raceSuggestionsEl.innerHTML = matches.map(r => {
-        const city = r.event_city || r.country_code || "";
-        const dist = r.distance_label || "";
-        const meta = [dist, city].filter(Boolean).join(" · ");
-        return `<button type="button" class="ob-race-suggestion" data-race-name="${(r.event_name || "").replace(/"/g, "&quot;")}" data-race-city="${city}">
-          <span class="ob-race-name">${r.short_name || r.event_name}</span>
+      if (!pool.length) { raceSuggestionsEl.innerHTML = ""; return; }
+
+      raceSuggestionsEl.innerHTML = pool.map(r => {
+        const city = r.city || r.event_city || r.country_code || "";
+        const dist = r.distance_label ? r.distance_label.replace(/_/g, " ") : "";
+        const meta = [city, dist].filter(Boolean).join(" · ");
+        const name = r.short_name || r.event_name || "";
+        return `<button type="button" class="ob-race-suggestion" data-race-name="${(r.event_name || "").replace(/"/g, "&quot;")}" data-race-city="${city}" data-catalog-id="${r.id || ""}">
+          <span class="ob-race-name">${name}</span>
           <span class="ob-race-meta">${meta}</span>
         </button>`;
       }).join("");
