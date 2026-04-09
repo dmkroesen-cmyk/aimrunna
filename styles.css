@@ -13042,17 +13042,17 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
   position: absolute;
   top: 12px;
   right: 14px;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border: 0;
   border-radius: 50%;
-  background: transparent;
+  background: rgba(0, 0, 0, 0.04);
   color: var(--text-muted, #9CA3AF);
   cursor: pointer;
   display: grid;
   place-items: center;
   transition: background 150ms, color 150ms;
-  z-index: 2;
+  z-index: 10;
 }
 
 .ob-close:hover { background: rgba(0, 0, 0, 0.05); color: var(--text, #1A1A1A); }
@@ -13954,6 +13954,34 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
   height: 1px;
   background: rgba(0, 0, 0, 0.06);
 }
+
+/* ── Login button (same style as account-btn, shown in login mode) ── */
+.ob-login-btn[hidden] { display: none; }
+
+/* ── Auth toggle (signup ↔ login switch) ── */
+.ob-auth-toggle {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  padding: 6px 0;
+  border: 0;
+  background: none;
+  color: var(--text-secondary, #6B7280);
+  font-size: 13px;
+  font-weight: 400;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: center;
+  transition: color 180ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ob-auth-toggle strong {
+  font-weight: 700;
+  color: var(--text, #1A1A1A);
+}
+
+.ob-auth-toggle:hover { color: var(--text, #1A1A1A); }
 
 /* guest-btn removed — registration required */
 

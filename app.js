@@ -25085,6 +25085,74 @@ document.addEventListener("click", (e) => {
     }
   });
 
+  // ── Auth toggle: switch between signup and login modes ──
+  let _isLoginMode = false;
+  const authToggle = document.getElementById("ob-auth-toggle");
+  const loginBtn = document.getElementById("ob-login-btn");
+  const accountBtn = document.getElementById("ob-account-btn");
+  const termsRow = document.getElementById("ob-terms-row");
+  const passwordInput = document.getElementById("ob-password");
+
+  function setAuthMode(login) {
+    _isLoginMode = login;
+    if (login) {
+      if (termsRow) termsRow.hidden = true;
+      if (accountBtn) accountBtn.hidden = true;
+      if (loginBtn) loginBtn.hidden = false;
+      if (passwordInput) { passwordInput.placeholder = "Passwort"; passwordInput.autocomplete = "current-password"; }
+      if (authToggle) authToggle.innerHTML = 'Noch kein Account? <strong>Registrieren</strong>';
+    } else {
+      if (termsRow) termsRow.hidden = false;
+      if (accountBtn) accountBtn.hidden = false;
+      if (loginBtn) loginBtn.hidden = true;
+      if (passwordInput) { passwordInput.placeholder = "Passwort (mind. 6 Zeichen)"; passwordInput.autocomplete = "new-password"; }
+      if (authToggle) authToggle.innerHTML = 'Schon registriert? <strong>Einloggen</strong>';
+    }
+    // Clear status on mode switch
+    const statusEl = document.getElementById("ob-account-status");
+    if (statusEl) { statusEl.textContent = ""; statusEl.className = "ob-account-status"; }
+  }
+
+  authToggle?.addEventListener("click", () => { setAuthMode(!_isLoginMode); });
+
+  // ── Login handler ──
+  loginBtn?.addEventListener("click", async () => {
+    const email = document.getElementById("ob-email")?.value?.trim().toLowerCase();
+    const pw = document.getElementById("ob-password")?.value;
+    const statusEl = document.getElementById("ob-account-status");
+
+    if (statusEl) { statusEl.textContent = ""; statusEl.className = "ob-account-status"; }
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      if (statusEl) { statusEl.textContent = "Bitte gültige E-Mail eingeben."; statusEl.className = "ob-account-status is-error"; }
+      return;
+    }
+    if (!pw) {
+      if (statusEl) { statusEl.textContent = "Bitte Passwort eingeben."; statusEl.className = "ob-account-status is-error"; }
+      return;
+    }
+
+    if (statusEl) { statusEl.textContent = "Einloggen..."; statusEl.className = "ob-account-status"; }
+    loginBtn.disabled = true;
+
+    try {
+      if (window.sbAuth?.signIn) {
+        await window.sbAuth.signIn(email, pw);
+        if (statusEl) { statusEl.textContent = "Eingeloggt ✓"; statusEl.className = "ob-account-status is-success"; }
+        if (typeof renderAccountUi === "function") renderAccountUi();
+        if (typeof syncConnectorButtons === "function") syncConnectorButtons();
+        setTimeout(finalize, 400);
+      } else {
+        if (statusEl) { statusEl.textContent = "Auth nicht verfügbar."; statusEl.className = "ob-account-status is-error"; }
+      }
+    } catch (err) {
+      const msg = err.message || "Login fehlgeschlagen.";
+      if (statusEl) { statusEl.textContent = msg; statusEl.className = "ob-account-status is-error"; }
+    } finally {
+      loginBtn.disabled = false;
+    }
+  });
+
   // Account creation → finalize with account
   document.getElementById("ob-account-btn")?.addEventListener("click", async () => {
     const ok = await handleAccountCreate();

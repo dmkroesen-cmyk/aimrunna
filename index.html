@@ -3353,12 +3353,17 @@
 
                 <input type="email" class="ob-input" id="ob-email" placeholder="E-Mail" autocomplete="email" />
                 <input type="password" class="ob-input" id="ob-password" placeholder="Passwort (mind. 6 Zeichen)" minlength="6" autocomplete="new-password" />
-                <label class="ob-terms-row">
+                <label class="ob-terms-row" id="ob-terms-row">
                   <input type="checkbox" id="ob-accept-terms" />
                   <span>Ich akzeptiere die <a href="#" data-open-legal="terms">Nutzungsbedingungen</a> & <a href="#" data-open-legal="privacy">Datenschutzerklärung</a></span>
                 </label>
                 <div class="ob-account-status" id="ob-account-status"></div>
                 <button type="button" class="ob-account-btn" id="ob-account-btn">Account erstellen</button>
+                <button type="button" class="ob-account-btn ob-login-btn" id="ob-login-btn" hidden>Einloggen</button>
+
+                <button type="button" class="ob-auth-toggle" id="ob-auth-toggle">
+                  Schon registriert? <strong>Einloggen</strong>
+                </button>
               </div>
             </div>
           </div>
