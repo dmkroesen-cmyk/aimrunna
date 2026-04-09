@@ -992,7 +992,7 @@ body.is-authenticated .account-dot {
 .scroll-stage {
   height: 148svh;
   position: relative;
-  background: #FFFFFF;
+  background: #0B0F1A;
 }
 
 .scroll-sticky {
@@ -1030,9 +1030,9 @@ body.is-authenticated .account-dot {
   pointer-events: none;
   background: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.7) 0%,
-    rgba(255, 255, 255, 0.85) 40%,
-    rgba(255, 255, 255, 0.95) 100%
+    rgba(11, 15, 26, 0.3) 0%,
+    rgba(11, 15, 26, 0.6) 40%,
+    rgba(11, 15, 26, 0.85) 100%
   );
 }
 
@@ -1207,7 +1207,7 @@ body.is-authenticated .account-dot {
   letter-spacing: -0.04em;
   line-height: 1;
   font-weight: 800;
-  color: var(--text, #1A1A1A);
+  color: #FFFFFF;
 }
 
 .intake-form {
@@ -1216,14 +1216,14 @@ body.is-authenticated .account-dot {
   gap: 16px;
 }
 
-/* Intake form inputs */
+/* Intake form on dark cinematic hero */
 .intake-form input:not([type="checkbox"]),
 .intake-form select,
 .intake-form textarea {
-  background: #FFFFFF;
-  border: 1.5px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-  color: var(--text, #1A1A1A);
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  color: #1A1A1A;
 }
 
 .quick-grid {
@@ -1466,7 +1466,7 @@ select {
 .advanced-toggle {
   border: 0;
   background: transparent;
-  color: var(--text-secondary, #6B7280);
+  color: rgba(255, 255, 255, 0.5);
   font-size: 12px;
   letter-spacing: 0.04em;
   cursor: pointer;
@@ -1475,7 +1475,7 @@ select {
 }
 
 .advanced-toggle:hover {
-  color: var(--text, #1A1A1A);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .tuning-toggle-row {
@@ -1741,14 +1741,14 @@ select {
   border: 0;
   border-radius: 12px;
   padding: 16px 28px;
-  background: #1A1A1A;
-  color: #FFFFFF;
+  background: #FFFFFF;
+  color: #1A1A1A;
   font-size: 16px;
   font-weight: 700;
   letter-spacing: -0.01em;
   cursor: pointer;
   transition: transform 200ms var(--transition-smooth), box-shadow 200ms ease, background 200ms ease;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
   position: relative;
   overflow: hidden;
 }
@@ -1770,19 +1770,20 @@ select {
 
 .cta-race {
   text-transform: lowercase;
-  background: #FFFFFF;
-  color: #1A1A1A;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  background: #1A1A1A;
+  color: #FFFFFF;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
 .cta:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  background: #F0F0F0;
 }
 
 .cta:active {
   transform: translateY(0);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
 .content-shell {
@@ -5398,7 +5399,14 @@ body.has-output .section-data { border-color: var(--border-default); }
 
   body::before {
     height: var(--global-header-mask-height);
-    background: transparent;
+    background:
+      linear-gradient(
+        to bottom,
+        rgba(6, 7, 9, 0.99) 0%,
+        rgba(6, 7, 9, 0.97) 70%,
+        rgba(6, 7, 9, 0.89) 86%,
+        rgba(6, 7, 9, 0) 100%
+      );
   }
 
   body::after {
