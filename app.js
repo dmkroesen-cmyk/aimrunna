@@ -24352,6 +24352,7 @@ document.addEventListener("click", (e) => {
     weight: 72,
     height: 178,
     weeklyHours: 8,
+    selectedTier: "beta",
   };
 
   // ── Haptic helper ──
@@ -24926,6 +24927,17 @@ document.addEventListener("click", (e) => {
   document.getElementById("ob-activate-btn")?.addEventListener("click", () => {
     haptic(25);
     transitionToAccount();
+  });
+
+  // ── Pricing tier selection ──
+  const tiersContainer = document.getElementById("ob-tiers");
+  tiersContainer?.addEventListener("click", e => {
+    const tier = e.target.closest(".ob-tier");
+    if (!tier || tier.disabled || tier.classList.contains("is-disabled")) return;
+    tiersContainer.querySelectorAll(".ob-tier").forEach(t => t.classList.remove("is-active"));
+    tier.classList.add("is-active");
+    data.selectedTier = tier.dataset.tier;
+    haptic(10);
   });
 
   // Account creation → finalize with account

@@ -3302,8 +3302,37 @@
           <div class="ob-final-phase ob-final-account" id="ob-phase-account">
             <div class="ob-screen-inner">
               <div class="ob-activate-badge ob-activate-badge-sm">peak.</div>
-              <h2 class="ob-headline">Dein System ist aktiv.</h2>
-              <p class="ob-sub">Sichere deinen Fortschritt mit einem Account.</p>
+              <h2 class="ob-headline">Wähle deinen Zugang.</h2>
+              <p class="ob-sub">Erstelle einen Account und sichere deinen Fortschritt.</p>
+
+              <!-- Pricing Tiers -->
+              <div class="ob-tiers" id="ob-tiers">
+                <button type="button" class="ob-tier is-active" data-tier="beta">
+                  <div class="ob-tier-badge">Beta</div>
+                  <div class="ob-tier-price">
+                    <span class="ob-tier-amount">0 €</span>
+                  </div>
+                  <div class="ob-tier-label">Kostenlos</div>
+                  <div class="ob-tier-desc">Voller Zugang während der Beta-Phase. Du wirst rechtzeitig informiert, bevor sich etwas ändert.</div>
+                </button>
+                <button type="button" class="ob-tier is-disabled" data-tier="monthly" disabled>
+                  <div class="ob-tier-price">
+                    <span class="ob-tier-amount">12,50 €</span>
+                    <span class="ob-tier-cycle">/ Monat</span>
+                  </div>
+                  <div class="ob-tier-label">Monatlich</div>
+                  <div class="ob-tier-soon">Bald verfügbar</div>
+                </button>
+                <button type="button" class="ob-tier is-disabled" data-tier="yearly" disabled>
+                  <div class="ob-tier-price">
+                    <span class="ob-tier-amount">125 €</span>
+                    <span class="ob-tier-cycle">/ Jahr</span>
+                  </div>
+                  <div class="ob-tier-label">Jährlich</div>
+                  <div class="ob-tier-save">2 Monate gratis</div>
+                  <div class="ob-tier-soon">Bald verfügbar</div>
+                </button>
+              </div>
 
               <div class="ob-account-form">
                 <input type="email" class="ob-input" id="ob-email" placeholder="E-Mail" autocomplete="email" />
@@ -3313,11 +3342,7 @@
                   <span>Ich akzeptiere die <a href="#" data-open-legal="terms">Nutzungsbedingungen</a> & <a href="#" data-open-legal="privacy">Datenschutzerklärung</a></span>
                 </label>
                 <div class="ob-account-status" id="ob-account-status"></div>
-                <button type="button" class="ob-account-btn" id="ob-account-btn">Account erstellen</button>
-              </div>
-
-              <div class="ob-beta-banner" id="ob-beta-banner">
-                <p class="ob-beta-banner-text">peak. ist aktuell in der <strong>Beta</strong> und komplett kostenlos. Bevor sich daran etwas ändert, wirst du rechtzeitig informiert.</p>
+                <button type="button" class="ob-account-btn" id="ob-account-btn">Account erstellen — Kostenlos</button>
               </div>
 
               <div class="ob-or-divider"><span>oder</span></div>

@@ -13539,6 +13539,143 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
   line-height: 1.4;
 }
 
+/* ── Pricing Tiers ── */
+.ob-tiers {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.ob-tier {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 8px 12px;
+  border: 2px solid rgba(0, 0, 0, 0.06);
+  border-radius: 14px;
+  background: #FFFFFF;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+  text-align: center;
+}
+
+.ob-tier:hover:not(.is-disabled) {
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+.ob-tier.is-active {
+  border-color: #D4850F;
+  background: rgba(212, 133, 15, 0.03);
+  box-shadow: 0 0 0 3px rgba(212, 133, 15, 0.1);
+}
+
+.ob-tier.is-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: rgba(0, 0, 0, 0.015);
+}
+
+.ob-tier-badge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #FFFFFF;
+  background: #D4850F;
+  border-radius: 6px;
+  padding: 2px 8px;
+  margin-bottom: 4px;
+}
+
+.ob-tier-price {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+.ob-tier-amount {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text, #1A1A1A);
+}
+
+.ob-tier-cycle {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted, #9CA3AF);
+}
+
+.ob-tier-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text-secondary, #6B7280);
+}
+
+.ob-tier-desc {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--text-muted, #9CA3AF);
+  line-height: 1.4;
+  margin-top: 2px;
+}
+
+.ob-tier-save {
+  font-size: 9px;
+  font-weight: 700;
+  color: #2E7D32;
+  background: rgba(46, 125, 50, 0.08);
+  border-radius: 4px;
+  padding: 1px 6px;
+  margin-top: 2px;
+}
+
+.ob-tier-soon {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted, #9CA3AF);
+  margin-top: 2px;
+}
+
+@media (max-width: 520px) {
+  .ob-tiers {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .ob-tier {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    text-align: left;
+  }
+  .ob-tier-badge {
+    margin-bottom: 0;
+  }
+  .ob-tier-price {
+    margin-left: auto;
+  }
+  .ob-tier-desc,
+  .ob-tier-save,
+  .ob-tier-soon {
+    display: none;
+  }
+  .ob-tier.is-active .ob-tier-desc,
+  .ob-tier.is-active .ob-tier-save {
+    display: block;
+  }
+}
+
 /* ── Account form (inside final screen) ── */
 .ob-account-form {
   width: 100%;
