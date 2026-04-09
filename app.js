@@ -24296,7 +24296,7 @@ document.addEventListener("click", (e) => {
 
   if (!backdrop || !modal) return;
 
-  const TOTAL_STEPS = 5;
+  const TOTAL_STEPS = 6;
   let currentStep = 1;
 
   // ── Onboarding field references ──
@@ -24418,7 +24418,13 @@ document.addEventListener("click", (e) => {
     progressBar.style.width = ((currentStep / TOTAL_STEPS) * 100) + "%";
     stepLabel.textContent = "Schritt " + currentStep + " von " + TOTAL_STEPS;
     btnBack.hidden = currentStep === 1;
-    btnNext.textContent = currentStep === TOTAL_STEPS ? "Plan erstellen" : "Weiter";
+    if (currentStep === TOTAL_STEPS) {
+      btnNext.textContent = "Plan erstellen";
+    } else if (currentStep === TOTAL_STEPS - 1) {
+      btnNext.textContent = "Zusammenfassung";
+    } else {
+      btnNext.textContent = "Weiter";
+    }
   }
 
   // ── Transfer onboarding values into the plan form ──
@@ -24493,15 +24499,109 @@ document.addEventListener("click", (e) => {
     }
   }
 
-  btnNext?.addEventListener("click", () => {
-    if (currentStep < TOTAL_STEPS) {
-      showStep(currentStep + 1);
+  // ── Summary builder ──
+  const discLabels = { running: "Laufen", triathlon: "Triathlon", cycling: "Rad", hyrox: "Hyrox", shape: "Shape" };
+  const levelLabels = { starter: "Einsteiger", intermediate: "Fortgeschritten", advanced: "Leistung" };
+  const expLabels = { lt1: "<1 Jahr", "1to3": "1–3 Jahre", "3to5": "3–5 Jahre", "5plus": "5+ Jahre" };
+
+  function buildSummary() {
+    const summaryEl = document.getElementById("ob-summary");
+    if (!summaryEl) return;
+    const disc = obDiscipline?.value || "running";
+    const items = [
+      ["Disziplin", discLabels[disc] || disc],
+      ["Ziel", obGoalDist?.selectedOptions?.[0]?.textContent || "—"],
+      ["Zielzeit", obGoalTime?.value || "—"],
+      ["Race Day", obRaceDate?.value ? new Date(obRaceDate.value).toLocaleDateString("de-DE") : "—"],
+      ["Level", levelLabels[obLevel?.value] || "—"],
+      ["Erfahrung", expLabels[obExperience?.value] || "—"],
+      ["Std/Woche", obWeeklyHours?.value ? obWeeklyHours.value + "h" : "—"],
+      ["Gewicht", obWeight?.value ? obWeight.value + " kg" : "—"],
+    ];
+    summaryEl.innerHTML = items.map(([label, value]) =>
+      `<div class="ob-summary-item"><span class="ob-summary-label">${label}</span><span class="ob-summary-value">${value}</span></div>`
+    ).join("");
+  }
+
+  // ── Account registration from onboarding ──
+  async function handleAccountCreate() {
+    const email = document.getElementById("ob-email")?.value?.trim().toLowerCase();
+    const password = document.getElementById("ob-password")?.value;
+    const terms = document.getElementById("ob-accept-terms")?.checked;
+    const statusEl = document.getElementById("ob-account-status");
+
+    if (!email || !email.includes("@")) {
+      if (statusEl) { statusEl.textContent = "Bitte gültige E-Mail eingeben."; statusEl.className = "onboarding-account-status is-error"; }
+      return false;
+    }
+    if (!password || password.length < 6) {
+      if (statusEl) { statusEl.textContent = "Passwort muss mind. 6 Zeichen haben."; statusEl.className = "onboarding-account-status is-error"; }
+      return false;
+    }
+    if (!terms) {
+      if (statusEl) { statusEl.textContent = "Bitte Nutzungsbedingungen akzeptieren."; statusEl.className = "onboarding-account-status is-error"; }
+      return false;
+    }
+
+    if (statusEl) { statusEl.textContent = "Erstelle Account..."; statusEl.className = "onboarding-account-status"; }
+    btnNext.disabled = true;
+
+    try {
+      // Persist consent
+      try {
+        localStorage.setItem("aimrunna_terms_consent", JSON.stringify({
+          acceptedAt: new Date().toISOString(),
+          termsVersion: "2026-04-05", privacyVersion: "2026-04-05", disclaimerVersion: "2026-04-05",
+        }));
+      } catch (_) {}
+
+      const result = await (typeof registerAccount === "function" ? registerAccount(email, password) : { ok: false, message: "Auth nicht verfügbar." });
+      if (result.ok) {
+        if (statusEl) { statusEl.textContent = "Account erstellt ✓"; statusEl.className = "onboarding-account-status is-success"; }
+        if (typeof renderAccountUi === "function") renderAccountUi();
+        if (typeof syncConnectorButtons === "function") syncConnectorButtons();
+        return true;
+      } else {
+        if (statusEl) { statusEl.textContent = result.message || "Fehler."; statusEl.className = "onboarding-account-status is-error"; }
+        return false;
+      }
+    } catch (err) {
+      if (statusEl) { statusEl.textContent = err.message || "Fehler."; statusEl.className = "onboarding-account-status is-error"; }
+      return false;
+    } finally {
+      btnNext.disabled = false;
+    }
+  }
+
+  function finalize() {
+    applyToForm();
+    backdrop.hidden = true;
+    document.body.style.overflow = "";
+  }
+
+  // ── Event handlers ──
+  btnNext?.addEventListener("click", async () => {
+    if (currentStep === 5) {
+      // Moving to Step 6 — build summary
+      buildSummary();
+      showStep(6);
+    } else if (currentStep === 6) {
+      // Final step — check if account fields are filled
+      const email = document.getElementById("ob-email")?.value?.trim();
+      if (email) {
+        const ok = await handleAccountCreate();
+        if (ok) setTimeout(finalize, 400);
+      } else {
+        // No email → treat as guest
+        finalize();
+      }
     } else {
-      applyToForm();
-      backdrop.hidden = true;
-      document.body.style.overflow = "";
+      showStep(currentStep + 1);
     }
   });
+
+  // Guest button
+  document.getElementById("ob-guest-btn")?.addEventListener("click", finalize);
 
   btnBack?.addEventListener("click", () => { if (currentStep > 1) showStep(currentStep - 1); });
   closeBtn?.addEventListener("click", close);

@@ -3269,6 +3269,51 @@
               </label>
             </div>
           </div>
+
+          <!-- Step 6: Zusammenfassung & Account -->
+          <div class="onboarding-step" data-step="6" hidden>
+            <h2 class="onboarding-title">Fast geschafft.</h2>
+            <p class="onboarding-desc">Dein Plan wird aus diesen Daten generiert. Erstelle einen Account, um deinen Plan zu speichern und die volle App zu nutzen.</p>
+
+            <!-- Summary -->
+            <div class="onboarding-summary" id="ob-summary"></div>
+
+            <!-- Account creation -->
+            <div class="onboarding-account-section" id="ob-account-section">
+              <div class="onboarding-account-card">
+                <div class="onboarding-account-header">
+                  <div class="onboarding-account-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  </div>
+                  <span>Account erstellen</span>
+                </div>
+                <div class="onboarding-fields" style="gap:10px;">
+                  <label class="onboarding-field">
+                    <span>E-Mail</span>
+                    <input type="email" id="ob-email" placeholder="deine@email.com" autocomplete="email" />
+                  </label>
+                  <label class="onboarding-field">
+                    <span>Passwort</span>
+                    <input type="password" id="ob-password" placeholder="Mind. 6 Zeichen" minlength="6" autocomplete="new-password" />
+                  </label>
+                  <label class="onboarding-terms">
+                    <input type="checkbox" id="ob-accept-terms" />
+                    <span>Ich akzeptiere die <a href="#" data-open-legal="terms" target="_blank">Nutzungsbedingungen</a> und <a href="#" data-open-legal="privacy" target="_blank">Datenschutzerklärung</a></span>
+                  </label>
+                </div>
+                <div class="onboarding-account-status" id="ob-account-status"></div>
+              </div>
+
+              <div class="onboarding-divider">
+                <span>oder</span>
+              </div>
+
+              <button type="button" class="onboarding-guest-btn" id="ob-guest-btn">
+                Ohne Account fortfahren
+                <span class="onboarding-guest-note">Plan wird nur lokal gespeichert</span>
+              </button>
+            </div>
+          </div>
         </div>
 
         <div class="onboarding-footer">
