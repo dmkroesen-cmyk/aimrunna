@@ -17862,12 +17862,24 @@ function initScrollFx() {
     document.documentElement.style.setProperty("--hero-glint", `${-25 + progress * 120}%`);
   };
 
+  // Cached values to avoid layout thrashing
+  let cachedStageTop = 0;
+  let cachedStageHeight = 0;
+  let cachedViewport = window.innerHeight || 1;
+  const measureStage = () => {
+    const rect = scrollStage.getBoundingClientRect();
+    cachedStageTop = rect.top + window.scrollY;
+    cachedStageHeight = rect.height;
+    cachedViewport = window.innerHeight || 1;
+  };
+  measureStage();
+  window.addEventListener("resize", measureStage);
+
   const update = () => {
     scrollFxRaf = 0;
-    const rect = scrollStage.getBoundingClientRect();
-    const viewport = window.innerHeight || 1;
-    const total = Math.max(1, rect.height - viewport);
-    const progress = clamp(-rect.top / total, 0, 1);
+    const scrollTop = window.scrollY;
+    const total = Math.max(1, cachedStageHeight - cachedViewport);
+    const progress = clamp((scrollTop - cachedStageTop) / total, 0, 1);
     applyProgress(progress);
   };
 

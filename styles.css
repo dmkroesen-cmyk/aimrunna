@@ -10,7 +10,7 @@
   --line-soft: rgba(0, 0, 0, 0.04);
   --surface: rgba(0, 0, 0, 0.02);
   --surface-2: rgba(0, 0, 0, 0.035);
-  --shadow: 0 24px 64px rgba(0, 0, 0, 0.08);
+  --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
   --accent-fit: #D4850F;
   --accent-fatigue: #D4850F;
   --accent-fresh: #16A34A;
@@ -18,7 +18,7 @@
   --accent-vo2: #D4850F;
   --container: 1240px;
   --radius-sm: 10px;
-  --radius-md: 16px;
+  --radius-md: 12px;
   --radius-lg: 24px;
   --radius-xl: 28px;
   --transition-smooth: cubic-bezier(0.16, 1, 0.3, 1);
@@ -131,7 +131,7 @@
   /* Shadows (elevation) — light theme */
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
   --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
-  --shadow-lg: 0 12px 40px rgba(0,0,0,0.10);
+  --shadow-lg: 0 4px 24px rgba(0, 0, 0, 0.08);
   --shadow-glow-green: 0 0 24px rgba(22,163,74,0.12);
   --shadow-glow-cyan: 0 0 24px rgba(212,133,15,0.12);
 
@@ -245,7 +245,7 @@ body {
   justify-content: center;
   padding: 40px 16px;
   overflow-y: auto;
-  backdrop-filter: blur(6px);
+  /* perf: backdrop-filter removed */
 }
 
 /* Modal card */
@@ -255,7 +255,7 @@ body {
   border-radius: 18px;
   max-width: 640px;
   width: 100%;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   border: 1px solid rgba(148, 163, 184, 0.15);
   overflow: hidden;
 }
@@ -664,11 +664,11 @@ body.profile-view-playbook #profile-card-plan-results {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 60px;
-  padding: 0 24px;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(20px) saturate(1.4);
-  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  height: 64px;
+  padding: 0 32px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 
@@ -777,7 +777,7 @@ body.is-authenticated .account-dot {
 .nav-cta:hover::after { opacity: 1; }
 .nav-cta:hover {
   transform: translateY(-1px);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(212, 133, 15,0.22);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(212, 133, 15,0.22);
 }
 .nav-cta:active { transform: translateY(0); }
 .nav-cta-race { text-transform: lowercase; }
@@ -808,7 +808,7 @@ body.is-authenticated .account-dot {
   top: 102px;
   z-index: 16;
   background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(12px);
+  /* perf: backdrop-filter removed */
   padding-top: 8px;
 }
 
@@ -852,8 +852,8 @@ body.is-authenticated .account-dot {
   top: 60px;
   z-index: 20;
   background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(20px) saturate(1.4);
-  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  /* perf: backdrop-filter removed */
+  /* perf: backdrop-filter removed */
   padding: 14px 0 16px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.04);
 }
@@ -1744,11 +1744,11 @@ select {
 .surface {
   border-radius: var(--radius-xl);
   border: 1px solid var(--border-subtle);
-  background: linear-gradient(180deg, var(--surface-2), var(--surface));
-  backdrop-filter: none;
-  box-shadow: 0 24px 64px rgba(0,0,0,0.35), 0 0 0 1px rgba(0, 0, 0, 0.015), inset 0 1px 0 rgba(0, 0, 0, 0.025);
+  background: var(--bg-card, #FFFFFF);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   padding: 20px;
-  transition: opacity 220ms ease, border-color 220ms ease, background-color 220ms ease, box-shadow 280ms ease;
+  contain: layout style;
+  transition: opacity 220ms ease, border-color 220ms ease;
   position: relative;
   z-index: 11;
 }
@@ -2106,7 +2106,7 @@ body.profile-view-activities #profile-card-feed {
 .connector-status-card {
   margin-bottom: 12px;
   border: 1px solid var(--border-subtle);
-  border-radius: 16px;
+  border-radius: 12px;
   background: var(--surface);
   padding: 16px;
 }
@@ -3841,7 +3841,7 @@ body.profile-view-settings .profile-settings-card.is-active {
 
 .chart-wrap {
   margin-top: 12px;
-  border-radius: 16px;
+  border-radius: 12px;
   border: 1px solid var(--border-subtle);
   background:
     radial-gradient(circle at 18% -5%, rgba(103, 230, 255, 0.08), transparent 44%),
@@ -4247,7 +4247,7 @@ body.profile-view-settings .profile-settings-card.is-active {
   border: 1px solid rgba(0, 0, 0, 0.15);
   background: rgba(0, 0, 0, 0.4);
   box-shadow: 0 12px 26px rgba(0, 0, 0, 0.42);
-  backdrop-filter: blur(8px);
+  /* perf: backdrop-filter removed */
   pointer-events: none;
 }
 
@@ -4578,7 +4578,7 @@ body.profile-view-settings .profile-settings-card.is-active {
   position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(4px);
+  /* perf: backdrop-filter removed */
 }
 
 .session-modal-card {
@@ -4611,7 +4611,7 @@ body.profile-view-settings .profile-settings-card.is-active {
   position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(4px);
+  /* perf: backdrop-filter removed */
 }
 
 .account-modal-card {
@@ -5699,7 +5699,7 @@ body.has-output .section-data { border-color: var(--border-default); }
   }
 
   .surface {
-    border-radius: 16px;
+    border-radius: 12px;
     padding: 12px;
   }
 
@@ -5935,7 +5935,7 @@ body.has-output .section-data { border-color: var(--border-default); }
 @media (hover: hover) and (pointer: fine) {
   .week-card:hover {
     border-color: rgba(212, 133, 15, 0.15);
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28), 0 0 20px rgba(212, 133, 15, 0.04);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 0 20px rgba(212, 133, 15, 0.04);
   }
 
   .day-card:hover {
@@ -6627,8 +6627,8 @@ button:focus-visible {
   align-items: center;
   justify-content: center;
   background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  /* perf: backdrop-filter removed */
+  /* perf: backdrop-filter removed */
   opacity: 0;
   animation: loginOverlayIn 0.5s ease forwards, loginOverlayOut 0.5s ease 2.2s forwards;
 }
@@ -7975,8 +7975,8 @@ img, video, canvas, svg {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.72);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  /* perf: backdrop-filter removed */
+  /* perf: backdrop-filter removed */
   z-index: 1000;
   display: flex;
   align-items: flex-end;
@@ -8418,8 +8418,8 @@ details[open] .fa-bd-summary { color: rgba(0, 0, 0, 0.5); margin-bottom: 10px; }
   padding: 16px;
   background: linear-gradient(180deg, rgba(15,18,24,0.96), rgba(10,12,16,0.98));
   border-top: 1px solid rgba(0, 0, 0, 0.06);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  /* perf: backdrop-filter removed */
+  /* perf: backdrop-filter removed */
   box-shadow: 0 -8px 32px rgba(0,0,0,0.4);
   animation: cc-slide-up 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -8842,8 +8842,8 @@ details[open] .fa-bd-summary { color: rgba(0, 0, 0, 0.5); margin-bottom: 10px; }
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  /* perf: backdrop-filter removed */
+  /* perf: backdrop-filter removed */
   z-index: 9998;
   display: flex;
   align-items: center;
@@ -8856,7 +8856,7 @@ details[open] .fa-bd-summary { color: rgba(0, 0, 0, 0.5); margin-bottom: 10px; }
 .medal-detect-modal {
   background: #FFFFFF;
   border: 1px solid rgba(212, 133, 15, 0.25);
-  border-radius: 16px;
+  border-radius: 12px;
   max-width: 560px;
   width: 100%;
   max-height: 90vh;
@@ -9239,8 +9239,8 @@ details[open] .fa-bd-summary { color: rgba(0, 0, 0, 0.5); margin-bottom: 10px; }
 }
 .pp-identity.pp-hero-stuck {
   background: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(16px) saturate(1.4);
-  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  /* perf: backdrop-filter removed */
+  /* perf: backdrop-filter removed */
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.025), 0 4px 16px rgba(0, 0, 0, 0.4);
   padding-top: var(--space-sm);
   padding-bottom: var(--space-sm);
@@ -10104,8 +10104,8 @@ details[open] .fa-bd-summary { color: rgba(0, 0, 0, 0.5); margin-bottom: 10px; }
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  /* perf: backdrop-filter removed */
+  /* perf: backdrop-filter removed */
   z-index: 10000;
   display: flex;
   align-items: center;
@@ -10510,8 +10510,8 @@ details[open] .fa-bd-summary { color: rgba(0, 0, 0, 0.5); margin-bottom: 10px; }
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  /* perf: backdrop-filter removed */
+  /* perf: backdrop-filter removed */
   z-index: 9500;
   opacity: 1;
   transition: opacity 0.2s;
@@ -11209,11 +11209,11 @@ details[open] .fa-bd-summary { color: rgba(0, 0, 0, 0.5); margin-bottom: 10px; }
 /* Modal shared components */
 .sota-modal-overlay {
   position: fixed; inset: 0; background: rgba(15,18,30,.78);
-  backdrop-filter: blur(6px); z-index: 9998;
+  /* perf: backdrop-filter removed */
   display: flex; align-items: center; justify-content: center; padding: 20px;
 }
 .sota-modal-card {
-  background: #F8F8FA; border: 1px solid rgba(0, 0, 0, 0.08); border-radius: 16px;
+  background: #F8F8FA; border: 1px solid rgba(0, 0, 0, 0.08); border-radius: 12px;
   width: 100%; padding: 22px 20px; max-height: 92vh; overflow-y: auto;
   color: #e5e7eb; font-family: system-ui, -apple-system, sans-serif;
 }
@@ -12680,7 +12680,7 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
 .heute-decision-badge {
   margin: 20px 20px 0;
   padding: 20px 28px;
-  border-radius: 16px;
+  border-radius: 12px;
   font-size: 28px;
   font-weight: 800;
   text-align: center;
@@ -12819,7 +12819,7 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
   padding: 24px;
   max-width: 520px;
   width: 100%;
-  box-shadow: var(--shadow-lg, 0 12px 40px rgba(0,0,0,0.10));
+  box-shadow: var(--shadow-lg, 0 4px 24px rgba(0, 0, 0, 0.08));
   border: 1px solid var(--border, rgba(0,0,0,0.08));
 }
 
