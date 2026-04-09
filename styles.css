@@ -992,6 +992,7 @@ body.is-authenticated .account-dot {
 .scroll-stage {
   height: 148svh;
   position: relative;
+  background: #0B0F1A;
 }
 
 .scroll-sticky {
@@ -1003,6 +1004,21 @@ body.is-authenticated .account-dot {
   place-items: center;
   transform: translateZ(0);
   contain: layout paint;
+}
+
+/* Dark cinematic overlay — matches landing page hero treatment */
+.scroll-sticky::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(11, 15, 26, 0.3) 0%,
+    rgba(11, 15, 26, 0.55) 40%,
+    rgba(11, 15, 26, 0.85) 100%
+  );
 }
 
 .hero-layer {
@@ -1026,8 +1042,8 @@ body.is-authenticated .account-dot {
   width: min(1420px, 100%);
   display: grid;
   grid-template-columns: 0.75fr 1.15fr 0.8fr;
-  gap: 0;
-  opacity: 0.5;
+  gap: 4px;
+  opacity: 0.4;
   transform: rotate(-1.6deg) translateZ(0);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
@@ -1036,7 +1052,7 @@ body.is-authenticated .account-dot {
 .photo-strip.alt {
   width: min(1480px, 100%);
   transform: rotate(1.4deg) translateY(34px) translateZ(0);
-  opacity: 0.34;
+  opacity: 0.28;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
@@ -1046,11 +1062,9 @@ body.is-authenticated .account-dot {
   border-radius: 0;
   border: 0;
   background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.5)),
     var(--photo) var(--photo-pos, center) / var(--photo-size, cover) no-repeat;
   box-shadow: none;
   overflow: hidden;
-  filter: grayscale(1) brightness(0.94);
   transform: translateZ(0);
   contain: paint;
 }
@@ -1059,9 +1073,7 @@ body.is-authenticated .account-dot {
   content: "";
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.62) 0%, rgba(0, 0, 0, 0.18) 36%, rgba(0, 0, 0, 0.56) 100%),
-    radial-gradient(circle at 50% 10%, rgba(0, 0, 0, 0.42), transparent 48%);
+  background: transparent;
 }
 
 .photo-card span {
@@ -1069,7 +1081,7 @@ body.is-authenticated .account-dot {
   left: 14px;
   bottom: 12px;
   z-index: 1;
-  color: rgba(0, 0, 0, 0.8);
+  color: rgba(255, 255, 255, 0.7);
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.14em;
@@ -1186,13 +1198,23 @@ body.is-authenticated .account-dot {
   letter-spacing: -0.04em;
   line-height: 1;
   font-weight: 800;
-  color: var(--text-primary, #1A1A1A);
+  color: #FFFFFF;
 }
 
 .intake-form {
   margin-top: 24px;
   display: grid;
   gap: 16px;
+}
+
+/* Intake form on dark hero background — white inputs with subtle shadow */
+.intake-form input:not([type="checkbox"]),
+.intake-form select,
+.intake-form textarea {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  color: #1A1A1A;
 }
 
 .quick-grid {
@@ -1222,10 +1244,10 @@ body.is-authenticated .account-dot {
 
 .field > span {
   font-size: 12px;
-  color: var(--text-secondary, #6B7280);
-  letter-spacing: 0.04em;
+  color: var(--accent, #D4850F);
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .field-checkbox {
@@ -1425,7 +1447,7 @@ select {
 .advanced-toggle {
   border: 0;
   background: transparent;
-  color: rgba(0, 0, 0, 0.5);
+  color: rgba(255, 255, 255, 0.5);
   font-size: 12px;
   letter-spacing: 0.04em;
   cursor: pointer;
@@ -1729,6 +1751,9 @@ select {
 
 .cta-race {
   text-transform: lowercase;
+  background: #FFFFFF;
+  color: #1A1A1A;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
 }
 
 .cta:hover {
