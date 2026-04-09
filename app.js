@@ -24447,7 +24447,13 @@ document.addEventListener("click", (e) => {
     } catch (_) {}
   }
 
+  let _lastHapticTime = 0;
+
   function haptic(ms) {
+    // Throttle: max one haptic per 40ms to avoid AudioContext overload
+    const now = performance.now();
+    if (now - _lastHapticTime < 40) return;
+    _lastHapticTime = now;
     try {
       if (navigator.vibrate) { navigator.vibrate(ms || 10); return; }
     } catch (_) {}
@@ -24589,6 +24595,7 @@ document.addEventListener("click", (e) => {
       track.style.transition = "none";
     }
 
+    let _dragSnapIdx = -1;
     function onMove(y) {
       if (!isDragging) return;
       const now = Date.now();
@@ -24598,6 +24605,12 @@ document.addEventListener("click", (e) => {
       lastTime = now;
       currentTranslate = startTranslate + (y - startY);
       track.style.transform = `translateY(${currentTranslate}px)`;
+      // Haptic tick when crossing an item boundary during drag
+      const snapIdx = idxFromTranslate(currentTranslate);
+      if (snapIdx !== _dragSnapIdx && snapIdx >= padCount && snapIdx < padCount + values.length) {
+        _dragSnapIdx = snapIdx;
+        haptic(6);
+      }
     }
 
     function onEnd() {
