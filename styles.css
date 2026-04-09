@@ -13026,16 +13026,16 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
 }
 
 .ob-progress-track {
-  height: 2px;
-  background: rgba(0, 0, 0, 0.03);
+  height: 1.5px;
+  background: rgba(0, 0, 0, 0.04);
 }
 
 .ob-progress-fill {
   height: 100%;
   width: 0%;
   background: var(--text, #1A1A1A);
-  border-radius: 2px;
-  transition: width 600ms cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 1px;
+  transition: width 700ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .ob-close {
@@ -13087,37 +13087,37 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
 }
 
 @keyframes ob-screen-in {
-  from { opacity: 0; transform: translateX(50px); }
+  from { opacity: 0; transform: translateX(32px); }
   to   { opacity: 1; transform: translateX(0); }
 }
 
 @keyframes ob-screen-out-left {
   from { opacity: 1; transform: translateX(0); }
-  to   { opacity: 0; transform: translateX(-40px); }
+  to   { opacity: 0; transform: translateX(-24px); }
 }
 
 @keyframes ob-screen-in-reverse {
-  from { opacity: 0; transform: translateX(-50px); }
+  from { opacity: 0; transform: translateX(-32px); }
   to   { opacity: 1; transform: translateX(0); }
 }
 
-.ob-screen.is-entering { animation: ob-screen-in 340ms cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-.ob-screen.is-leaving  { animation: ob-screen-out-left 200ms ease forwards; pointer-events: none; }
-.ob-screen.is-entering-reverse { animation: ob-screen-in-reverse 340ms cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.ob-screen.is-entering { animation: ob-screen-in 380ms cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.ob-screen.is-leaving  { animation: ob-screen-out-left 180ms ease forwards; pointer-events: none; }
+.ob-screen.is-entering-reverse { animation: ob-screen-in-reverse 380ms cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
-/* ── Typography — dominant question, minimal sub ── */
+/* ── Typography — the question IS the interface ── */
 .ob-headline {
-  font-size: 30px;
+  font-size: 32px;
   font-weight: 800;
   letter-spacing: -0.04em;
   color: var(--text, #1A1A1A);
-  margin: 0 0 6px;
+  margin: 0 0 48px;
   line-height: 1.1;
   outline: none;
 }
 
 .ob-headline[tabindex]:focus-visible {
-  outline: 2px solid rgba(212, 133, 15, 0.3);
+  outline: 2px solid rgba(0, 0, 0, 0.15);
   outline-offset: 4px;
   border-radius: 4px;
 }
@@ -13131,194 +13131,104 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
 .ob-sub {
   font-size: 13px;
   color: var(--text-muted, #9CA3AF);
-  margin: 0 0 40px;
+  margin: -36px 0 40px;
   line-height: 1.5;
   font-weight: 400;
   letter-spacing: -0.01em;
 }
 
 .ob-sub:empty {
-  margin: 0 0 36px;
+  display: none;
 }
 
-/* ── Selection Cards — Premium Redesign ── */
-.ob-cards {
+/* ═══════════════════════════════════════════════════════════
+   CHOICE SYSTEM — Typography-first selection
+   No cards. No grids. No icons. Just intention.
+   ═══════════════════════════════════════════════════════════ */
+
+.ob-choices {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
   width: 100%;
 }
 
-.ob-cards-disc {
-  flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-}
-
-.ob-cards-disc .ob-card {
-  flex: 0 0 calc(50% - 5px);
-  max-width: calc(50% - 5px);
-}
-
-/* Last card in odd-count grids: centered solo */
-.ob-cards-disc .ob-card:last-child:nth-child(odd) {
-  flex: 0 0 calc(50% - 5px);
-  max-width: calc(50% - 5px);
-}
-
-.ob-cards-list {
-  gap: 6px;
-}
-
-.ob-cards-level {
-  gap: 6px;
-}
-
-.ob-card {
+.ob-choice {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 20px 12px 16px;
-  border: 1.5px solid rgba(0, 0, 0, 0.05);
-  border-radius: 16px;
-  background: #FFFFFF;
-  color: var(--text-secondary, #6B7280);
+  width: 100%;
+  padding: 16px 22px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--text-muted, #9CA3AF);
   font-family: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
   cursor: pointer;
-  transition: transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1),
-              border-color 200ms ease,
-              box-shadow 200ms ease,
-              background 200ms ease,
-              color 200ms ease;
+  transition: transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1),
+              background 180ms ease,
+              color 180ms ease,
+              box-shadow 180ms ease;
   -webkit-tap-highlight-color: transparent;
-  box-shadow: none;
   will-change: transform;
+  text-align: left;
+  line-height: 1.2;
 }
 
-.ob-card:hover {
-  border-color: rgba(0, 0, 0, 0.1);
+.ob-choice:hover {
   color: var(--text, #1A1A1A);
+  background: rgba(0, 0, 0, 0.02);
 }
 
-.ob-card:active {
-  transform: scale(0.97);
-  transition-duration: 80ms;
+.ob-choice:active {
+  transform: scale(0.98);
+  transition-duration: 60ms;
 }
 
-.ob-card:focus-visible {
-  outline: 2px solid #D4850F;
+.ob-choice:focus-visible {
+  outline: 2px solid var(--text, #1A1A1A);
   outline-offset: 2px;
 }
 
-/* ── SELECTED STATE — locked-in, confident ── */
-.ob-card.is-active {
-  border-color: var(--text, #1A1A1A);
+/* ── SELECTED — decisive, locked-in ── */
+.ob-choice.is-active {
   background: var(--text, #1A1A1A);
   color: #FFFFFF;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06);
-  transform: scale(1.02);
-}
-
-.ob-card.is-active:hover {
-  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.16), 0 3px 8px rgba(0, 0, 0, 0.08);
-}
-
-.ob-card-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
-  background: rgba(0, 0, 0, 0.04);
-  color: inherit;
-  transition: all 250ms ease;
-}
-
-.ob-card-icon .ti {
-  font-size: 24px;
-  line-height: 1;
-}
-
-.ob-card.is-active .ob-card-icon {
-  background: rgba(255, 255, 255, 0.15);
-  color: #FFFFFF;
-}
-
-.ob-card-label {
-  font-size: 13px;
   font-weight: 700;
-  letter-spacing: -0.01em;
-  transition: color 200ms ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  transform: scale(1.01);
 }
 
-.ob-card.is-active .ob-card-label {
-  color: #FFFFFF;
+.ob-choice.is-active:hover {
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.16);
 }
 
-.ob-card-desc {
-  font-size: 12px;
-  font-weight: 400;
-  color: var(--text-muted, #9CA3AF);
-  line-height: 1.4;
-  transition: color 200ms ease;
-}
-
-.ob-card.is-active .ob-card-desc {
-  color: rgba(255, 255, 255, 0.6);
-}
-
-/* ── Level card icon container ── */
-.ob-card-level-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: rgba(0, 0, 0, 0.04);
-  color: var(--text-muted, #9CA3AF);
-  flex-shrink: 0;
-  transition: all 250ms ease;
-}
-
-.ob-card.is-active .ob-card-level-icon {
-  background: rgba(255, 255, 255, 0.15);
-  color: #FFFFFF;
-}
-
-.ob-card-wide-text {
-  display: flex;
+/* ── Choice with description (level cards) ── */
+.ob-choice--has-desc {
   flex-direction: column;
   align-items: flex-start;
   gap: 2px;
-  min-width: 0;
+  padding: 18px 22px;
 }
 
-/* ── Distance list cards ── */
-.ob-card-list {
-  padding: 14px 20px;
-  text-align: center;
+.ob-choice-label {
+  font-size: 17px;
+  font-weight: inherit;
+  letter-spacing: -0.02em;
 }
 
-.ob-card-list .ob-card-label {
-  font-size: 15px;
-  font-weight: 700;
+.ob-choice-desc {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-muted, #9CA3AF);
+  letter-spacing: 0;
+  transition: color 180ms ease;
 }
 
-/* ── Wide cards (level) ── */
-.ob-card-wide {
-  flex-direction: row;
-  align-items: center;
-  gap: 14px;
-  padding: 16px 18px;
-  text-align: left;
-}
-
-.ob-card-wide .ob-card-label {
-  font-size: 15px;
+.ob-choice.is-active .ob-choice-desc {
+  color: rgba(255, 255, 255, 0.5);
 }
 
 /* ── Wheel Picker ── */
@@ -14098,14 +14008,13 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
 
 /* ── Responsive ── */
 @media (max-width: 520px) {
-  .ob-screen { padding: 24px 18px; }
-  .ob-headline { font-size: 26px; }
+  .ob-screen { padding: 24px 20px; }
+  .ob-headline { font-size: 28px; margin-bottom: 40px; }
   .ob-headline-lg { font-size: 38px; }
-  .ob-sub { font-size: 12px; margin-bottom: 32px; }
-  .ob-cards-disc .ob-card { flex: 0 0 calc(50% - 5px); max-width: calc(50% - 5px); }
-  .ob-card { padding: 16px 10px 14px; }
-  .ob-card-icon { width: 42px; height: 42px; }
-  .ob-card-icon .ti { font-size: 22px; }
+  .ob-sub { font-size: 12px; }
+  .ob-choice { font-size: 16px; padding: 14px 18px; }
+  .ob-choice--has-desc { padding: 16px 18px; }
+  .ob-choice-label { font-size: 16px; }
   .ob-body-grid { grid-template-columns: 1fr 1fr; gap: 16px 10px; }
   .ob-body-label { font-size: 10px; }
   .ob-wheel { height: 200px; }
@@ -14118,14 +14027,14 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
 }
 
 /* ── Selection micro-animation ── */
-@keyframes ob-card-select {
-  0%   { transform: scale(0.97); }
-  50%  { transform: scale(1.04); }
-  100% { transform: scale(1.02); }
+@keyframes ob-choice-select {
+  0%   { transform: scale(0.98); }
+  50%  { transform: scale(1.02); }
+  100% { transform: scale(1.01); }
 }
 
-.ob-card.is-active.is-just-selected {
-  animation: ob-card-select 350ms cubic-bezier(0.34, 1.56, 0.64, 1);
+.ob-choice.is-active.is-just-selected {
+  animation: ob-choice-select 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 @media (min-width: 768px) {

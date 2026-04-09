@@ -24608,19 +24608,19 @@ document.addEventListener("click", (e) => {
     const container = document.getElementById(containerId);
     if (!container) return;
     container.addEventListener("click", e => {
-      const card = e.target.closest(".ob-card");
-      if (!card) return;
-      const wasActive = card.classList.contains("is-active");
-      container.querySelectorAll(".ob-card").forEach(c => {
+      const choice = e.target.closest(".ob-choice");
+      if (!choice) return;
+      const wasActive = choice.classList.contains("is-active");
+      container.querySelectorAll(".ob-choice").forEach(c => {
         c.classList.remove("is-active", "is-just-selected");
       });
-      card.classList.add("is-active");
+      choice.classList.add("is-active");
       if (!wasActive) {
-        card.classList.add("is-just-selected");
-        card.addEventListener("animationend", () => card.classList.remove("is-just-selected"), { once: true });
+        choice.classList.add("is-just-selected");
+        choice.addEventListener("animationend", () => choice.classList.remove("is-just-selected"), { once: true });
       }
       haptic(12);
-      if (onSelect) onSelect(card.dataset.value);
+      if (onSelect) onSelect(choice.dataset.value);
     });
   }
 
@@ -24690,7 +24690,7 @@ document.addEventListener("click", (e) => {
     // Focus management — move focus to new screen's headline
     setTimeout(() => {
       const active = screens.querySelector(`.ob-screen[data-screen="${newName}"]`);
-      const target = active?.querySelector(".ob-headline, .ob-card.is-active, .ob-wheel, .ob-activate-btn");
+      const target = active?.querySelector(".ob-headline, .ob-choice.is-active, .ob-wheel, .ob-activate-btn");
       if (target && target.focus) target.focus({ preventScroll: true });
     }, 350);
   }
@@ -24722,20 +24722,23 @@ document.addEventListener("click", (e) => {
     if (!container) return;
     const opts = distOpts(data.discipline);
     container.innerHTML = opts.map((o, i) =>
-      `<button type="button" class="ob-card ob-card-list${i === 0 ? " is-active" : ""}" data-value="${o.value}">
-        <span class="ob-card-label">${o.label}</span>
-      </button>`
+      `<button type="button" class="ob-choice${i === 0 ? " is-active" : ""}" data-value="${o.value}">${o.label}</button>`
     ).join("");
     data.distance = opts[0]?.value || "";
     if (!_distCardsBound) {
       _distCardsBound = true;
       container.addEventListener("click", e => {
-        const card = e.target.closest(".ob-card");
-        if (!card) return;
-        container.querySelectorAll(".ob-card").forEach(c => c.classList.remove("is-active"));
-        card.classList.add("is-active");
-        data.distance = card.dataset.value;
-        haptic(10);
+        const choice = e.target.closest(".ob-choice");
+        if (!choice) return;
+        const wasActive = choice.classList.contains("is-active");
+        container.querySelectorAll(".ob-choice").forEach(c => c.classList.remove("is-active", "is-just-selected"));
+        choice.classList.add("is-active");
+        if (!wasActive) {
+          choice.classList.add("is-just-selected");
+          choice.addEventListener("animationend", () => choice.classList.remove("is-just-selected"), { once: true });
+        }
+        data.distance = choice.dataset.value;
+        haptic(12);
       });
     }
   }
@@ -25012,10 +25015,10 @@ document.addEventListener("click", (e) => {
     const finalScreen = screens?.querySelector('[data-screen="final"]');
     if (finalScreen) finalScreen.classList.remove("is-phase-account");
 
-    // Activate discipline card
+    // Activate discipline choice
     const discCards = document.getElementById("ob-discipline-cards");
     if (discCards) {
-      discCards.querySelectorAll(".ob-card").forEach(c => {
+      discCards.querySelectorAll(".ob-choice").forEach(c => {
         c.classList.toggle("is-active", c.dataset.value === data.discipline);
       });
     }
