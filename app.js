@@ -24395,55 +24395,77 @@ document.addEventListener("click", (e) => {
   let _hapticCtx = null;
   const _isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 
+  let _audioReady = false;
+
   function _ensureAudioCtx() {
-    if (!_hapticCtx) _hapticCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (_hapticCtx.state === "suspended") _hapticCtx.resume();
+    if (!_hapticCtx) {
+      _hapticCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (_hapticCtx.state === "suspended") {
+      _hapticCtx.resume().then(() => { _audioReady = true; });
+    } else {
+      _audioReady = true;
+    }
     return _hapticCtx;
+  }
+
+  function _playClick(ctx) {
+    const now = ctx.currentTime;
+    const bufferSize = Math.round(ctx.sampleRate * 0.008);
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const d = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.15));
+    }
+    const src = ctx.createBufferSource();
+    src.buffer = buffer;
+    const filter = ctx.createBiquadFilter();
+    filter.type = "bandpass";
+    filter.frequency.value = 1800;
+    filter.Q.value = 1.2;
+    const gain = ctx.createGain();
+    gain.gain.value = 0.35;
+    src.connect(filter).connect(gain).connect(ctx.destination);
+    src.start(now);
   }
 
   function _audioClick() {
     try {
       const ctx = _ensureAudioCtx();
-      const now = ctx.currentTime;
-      // Short noise burst — sounds like a physical click
-      const bufferSize = Math.round(ctx.sampleRate * 0.008); // 8ms
-      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-      const data = buffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) {
-        // Decaying noise burst
-        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.15));
+      if (_audioReady && ctx.state === "running") {
+        _playClick(ctx);
+      } else {
+        // Context not ready yet — wait for resume then play
+        const p = ctx.state === "suspended" ? ctx.resume() : Promise.resolve();
+        p.then(() => { _audioReady = true; _playClick(ctx); });
       }
-      const src = ctx.createBufferSource();
-      src.buffer = buffer;
-      // Bandpass filter to make it feel like a tap, not static
-      const filter = ctx.createBiquadFilter();
-      filter.type = "bandpass";
-      filter.frequency.value = 1800;
-      filter.Q.value = 1.2;
-      const gain = ctx.createGain();
-      gain.gain.value = 0.35;
-      src.connect(filter).connect(gain).connect(ctx.destination);
-      src.start(now);
     } catch (_) {}
   }
 
   function _audioConfirm() {
     try {
       const ctx = _ensureAudioCtx();
-      const now = ctx.currentTime;
-      // Two-tone click: low then high
-      [0, 0.06].forEach((delay, i) => {
-        const freq = i === 0 ? 1600 : 2200;
-        const o = ctx.createOscillator();
-        const g = ctx.createGain();
-        o.type = "sine";
-        o.frequency.value = freq;
-        g.gain.setValueAtTime(0.25, now + delay);
-        g.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.025);
-        o.connect(g).connect(ctx.destination);
-        o.start(now + delay);
-        o.stop(now + delay + 0.025);
-      });
+      const play = () => {
+        const now = ctx.currentTime;
+        [0, 0.06].forEach((delay, i) => {
+          const freq = i === 0 ? 1600 : 2200;
+          const o = ctx.createOscillator();
+          const g = ctx.createGain();
+          o.type = "sine";
+          o.frequency.value = freq;
+          g.gain.setValueAtTime(0.25, now + delay);
+          g.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.025);
+          o.connect(g).connect(ctx.destination);
+          o.start(now + delay);
+          o.stop(now + delay + 0.025);
+        });
+      };
+      if (_audioReady && ctx.state === "running") {
+        play();
+      } else {
+        const p = ctx.state === "suspended" ? ctx.resume() : Promise.resolve();
+        p.then(() => { _audioReady = true; play(); });
+      }
     } catch (_) {}
   }
 
@@ -25241,6 +25263,9 @@ document.addEventListener("click", (e) => {
   //  OPEN / CLOSE
   // ══════════════════════════════════════════════════════════
   function open() {
+    // Warm up AudioContext on user gesture (iOS requires this)
+    if (_isIOS) _ensureAudioCtx();
+
     // Pre-populate discipline from plan form if set
     const mainDisc = document.querySelector('#plan-form select[name="discipline"]');
     if (mainDisc?.value) data.discipline = mainDisc.value;
