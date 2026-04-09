@@ -24361,6 +24361,8 @@ document.addEventListener("click", (e) => {
     pbDistance: "",
     pbTime: "",
     shapeFocus: "fat_loss",
+    raceName: "",
+    raceCity: "",
     selectedTier: "beta",
   };
 
@@ -25225,7 +25227,61 @@ document.addEventListener("click", (e) => {
     const defDate = getDefaultRaceDate();
     raceDateInput.value = defDate;
     data.raceDate = defDate;
+    loadRaceSuggestions();
   }
+
+  // ── Race catalog suggestions ──
+  const raceSuggestionsEl = document.getElementById("ob-race-suggestions");
+  let _raceCatalogCache = null;
+
+  // Map our discipline names to catalog series
+  const DISC_SERIES_MAP = {
+    running: ["marathon_majors", "iconic_marathon", "iconic_running"],
+    triathlon: ["ironman", "iconic_triathlon"],
+    cycling: ["iconic_cycling"],
+    hyrox: ["hyrox"],
+  };
+
+  async function loadRaceSuggestions() {
+    if (!raceSuggestionsEl || !window.sbDb?.getRaceCatalog) return;
+    try {
+      if (!_raceCatalogCache) _raceCatalogCache = await window.sbDb.getRaceCatalog();
+      const series = DISC_SERIES_MAP[data.discipline] || [];
+      if (!series.length) { raceSuggestionsEl.innerHTML = ""; return; }
+
+      // Filter catalog by discipline series, sorted by iconic_level
+      const matches = _raceCatalogCache
+        .filter(r => series.includes(r.series))
+        .sort((a, b) => (b.iconic_level || 0) - (a.iconic_level || 0))
+        .slice(0, 5);
+
+      if (!matches.length) { raceSuggestionsEl.innerHTML = ""; return; }
+
+      raceSuggestionsEl.innerHTML = matches.map(r => {
+        const city = r.event_city || r.country_code || "";
+        const dist = r.distance_label || "";
+        const meta = [dist, city].filter(Boolean).join(" · ");
+        return `<button type="button" class="ob-race-suggestion" data-race-name="${(r.event_name || "").replace(/"/g, "&quot;")}" data-race-city="${city}">
+          <span class="ob-race-name">${r.short_name || r.event_name}</span>
+          <span class="ob-race-meta">${meta}</span>
+        </button>`;
+      }).join("");
+    } catch (e) {
+      console.warn("[Onboarding] race suggestions:", e);
+      raceSuggestionsEl.innerHTML = "";
+    }
+  }
+
+  // Click on race suggestion → set as race name context (for plan generation)
+  raceSuggestionsEl?.addEventListener("click", e => {
+    const btn = e.target.closest(".ob-race-suggestion");
+    if (!btn) return;
+    raceSuggestionsEl.querySelectorAll(".ob-race-suggestion").forEach(b => b.classList.remove("is-active"));
+    btn.classList.add("is-active");
+    data.raceName = btn.dataset.raceName || "";
+    data.raceCity = btn.dataset.raceCity || "";
+    haptic(12);
+  });
 
   // Skip buttons
   document.getElementById("ob-skip-goaltime")?.addEventListener("click", () => {
@@ -25255,9 +25311,26 @@ document.addEventListener("click", (e) => {
   if (pbTimeInput) pbTimeInput.addEventListener("input", () => { data.pbTime = pbTimeInput.value; });
 
   // Populate PB distance options based on discipline
+  // For triathlon & hyrox: offer running distances (relevant for zone calculation)
   function populatePbDistances() {
     if (!pbDistSelect) return;
-    const opts = distOpts(data.discipline);
+    const disc = data.discipline;
+    const useRunning = disc === "triathlon" || disc === "hyrox";
+    const opts = useRunning ? distOpts("running") : distOpts(disc);
+
+    // Update PB screen headline for triathlon/hyrox
+    const pbScreen = screens?.querySelector('[data-screen="pb"]');
+    const pbHeadline = pbScreen?.querySelector(".ob-headline");
+    const pbSub = pbScreen?.querySelector(".ob-sub");
+    if (pbHeadline) {
+      pbHeadline.textContent = useRunning ? "Deine Lauf-Bestzeit?" : "Aktuelle Bestzeit?";
+    }
+    if (pbSub) {
+      pbSub.textContent = useRunning
+        ? "Hilft bei der Berechnung deiner Laufzonen"
+        : "Hilft bei der Zonenberechnung";
+    }
+
     pbDistSelect.innerHTML = '<option value="">Distanz wählen</option>' +
       opts.map(o => `<option value="${o.value}">${o.label}</option>`).join("");
   }
