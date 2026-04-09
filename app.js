@@ -24391,102 +24391,13 @@ document.addEventListener("click", (e) => {
 
   let currentIdx = 0;
 
-  // ── Haptic helper (vibrate on Android, audio click on iOS) ──
-  let _hapticCtx = null;
-  const _isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-
-  let _audioReady = false;
-
-  function _ensureAudioCtx() {
-    if (!_hapticCtx) {
-      _hapticCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    if (_hapticCtx.state === "suspended") {
-      _hapticCtx.resume().then(() => { _audioReady = true; });
-    } else {
-      _audioReady = true;
-    }
-    return _hapticCtx;
-  }
-
-  function _playClick(ctx) {
-    const now = ctx.currentTime;
-    const bufferSize = Math.round(ctx.sampleRate * 0.008);
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const d = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.15));
-    }
-    const src = ctx.createBufferSource();
-    src.buffer = buffer;
-    const filter = ctx.createBiquadFilter();
-    filter.type = "bandpass";
-    filter.frequency.value = 1800;
-    filter.Q.value = 1.2;
-    const gain = ctx.createGain();
-    gain.gain.value = 0.35;
-    src.connect(filter).connect(gain).connect(ctx.destination);
-    src.start(now);
-  }
-
-  function _audioClick() {
-    try {
-      const ctx = _ensureAudioCtx();
-      if (_audioReady && ctx.state === "running") {
-        _playClick(ctx);
-      } else {
-        // Context not ready yet — wait for resume then play
-        const p = ctx.state === "suspended" ? ctx.resume() : Promise.resolve();
-        p.then(() => { _audioReady = true; _playClick(ctx); });
-      }
-    } catch (_) {}
-  }
-
-  function _audioConfirm() {
-    try {
-      const ctx = _ensureAudioCtx();
-      const play = () => {
-        const now = ctx.currentTime;
-        [0, 0.06].forEach((delay, i) => {
-          const freq = i === 0 ? 1600 : 2200;
-          const o = ctx.createOscillator();
-          const g = ctx.createGain();
-          o.type = "sine";
-          o.frequency.value = freq;
-          g.gain.setValueAtTime(0.25, now + delay);
-          g.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.025);
-          o.connect(g).connect(ctx.destination);
-          o.start(now + delay);
-          o.stop(now + delay + 0.025);
-        });
-      };
-      if (_audioReady && ctx.state === "running") {
-        play();
-      } else {
-        const p = ctx.state === "suspended" ? ctx.resume() : Promise.resolve();
-        p.then(() => { _audioReady = true; play(); });
-      }
-    } catch (_) {}
-  }
-
-  let _lastHapticTime = 0;
-
+  // ── Haptic helper (vibrate API — Android only, no-op on iOS) ──
   function haptic(ms) {
-    // Throttle: max one haptic per 40ms to avoid AudioContext overload
-    const now = performance.now();
-    if (now - _lastHapticTime < 40) return;
-    _lastHapticTime = now;
-    try {
-      if (navigator.vibrate) { navigator.vibrate(ms || 10); return; }
-    } catch (_) {}
-    if (_isIOS) _audioClick();
+    try { if (navigator.vibrate) navigator.vibrate(ms || 10); } catch (_) {}
   }
 
   function hapticConfirm() {
-    try {
-      if (navigator.vibrate) { navigator.vibrate([15, 40, 25]); return; }
-    } catch (_) {}
-    if (_isIOS) _audioConfirm();
+    try { if (navigator.vibrate) navigator.vibrate([15, 40, 25]); } catch (_) {}
   }
 
   // ── Distance options per discipline ──
@@ -25263,9 +25174,6 @@ document.addEventListener("click", (e) => {
   //  OPEN / CLOSE
   // ══════════════════════════════════════════════════════════
   function open() {
-    // Warm up AudioContext on user gesture (iOS requires this)
-    if (_isIOS) _ensureAudioCtx();
-
     // Pre-populate discipline from plan form if set
     const mainDisc = document.querySelector('#plan-form select[name="discipline"]');
     if (mainDisc?.value) data.discipline = mainDisc.value;
