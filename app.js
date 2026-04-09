@@ -606,8 +606,8 @@ const I18N = {
     hero_title: "Plan your next race.",
     field_discipline: "Disziplin",
     field_mode: "Modus",
-    mode_quick: "Quick",
-    mode_pro: "Pro",
+    mode_quick: "quick.",
+    mode_pro: "peak.",
     field_level: "Level",
     field_experience: "Erfahrung",
     field_hours: "Std/Woche",
@@ -763,8 +763,8 @@ const I18N = {
     hero_title: "Plan your next race.",
     field_discipline: "Discipline",
     field_mode: "Mode",
-    mode_quick: "Quick",
-    mode_pro: "Pro",
+    mode_quick: "quick.",
+    mode_pro: "peak.",
     field_level: "Level",
     field_experience: "Experience",
     field_hours: "Hours/week",
@@ -17878,7 +17878,6 @@ function initScrollFx() {
     cachedViewport = window.innerHeight || 1;
   };
   measureStage();
-  window.addEventListener("resize", measureStage);
 
   let animating = false;
   const tick = () => {
@@ -17888,6 +17887,7 @@ function initScrollFx() {
       currentProgress = targetProgress;
       applyProgress(currentProgress);
       animating = false;
+      scrollFxRaf = 0;
       return;
     }
     currentProgress += diff * LERP_FACTOR;
@@ -17901,11 +17901,13 @@ function initScrollFx() {
     targetProgress = clamp((scrollTop - cachedStageTop) / total, 0, 1);
     if (!animating) {
       animating = true;
+      if (scrollFxRaf) cancelAnimationFrame(scrollFxRaf);
       scrollFxRaf = window.requestAnimationFrame(tick);
     }
   };
 
   window.addEventListener("scroll", update, { passive: true });
+  // Single resize handler — measure + update (no duplicate)
   window.addEventListener("resize", () => { measureStage(); update(); });
   // Initialize immediately
   currentProgress = targetProgress;
