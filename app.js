@@ -1175,6 +1175,17 @@ function _showPlanToast(msg, isError = true) {
 form?.addEventListener("submit", (event) => {
   event.preventDefault();
   try {
+    // ── Auth gate: peak. plans require login ──
+    const currentMode = String(planModeSelect?.value || "quick");
+    if (currentMode === "peak") {
+      const acct = typeof getCurrentAccount === "function" ? getCurrentAccount() : null;
+      if (!acct) {
+        _showPlanToast("Peak-Pläne erfordern einen Account. Bitte zuerst registrieren oder einloggen.");
+        if (typeof openOnboarding === "function") openOnboarding();
+        return;
+      }
+    }
+
     syncShapeGoalConsistency();
     applyQuickModeToPrimaryGoalFields();
     if (typeof form.reportValidity === "function" && !form.reportValidity()) {
