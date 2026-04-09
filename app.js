@@ -24395,19 +24395,26 @@ document.addEventListener("click", (e) => {
   const _isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
                  (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 
-  function _iosHapticTick() {
-    // Safari 17.4+: <input type="checkbox" switch> emits native haptic on toggle
+  // Persistent checkbox-switch for iOS haptic — reuse instead of create/destroy
+  let _hapticCb = null, _hapticLbl = null;
+  function _ensureHapticEl() {
+    if (_hapticLbl) return;
     try {
-      const cb = document.createElement("input");
-      cb.type = "checkbox";
-      cb.setAttribute("switch", "");
-      cb.style.cssText = "position:fixed;top:-99px;left:-99px;opacity:0;pointer-events:none";
-      const lbl = document.createElement("label");
-      lbl.style.cssText = cb.style.cssText;
-      lbl.appendChild(cb);
-      document.body.appendChild(lbl);
-      lbl.click();
-      requestAnimationFrame(() => lbl.remove());
+      _hapticCb = document.createElement("input");
+      _hapticCb.type = "checkbox";
+      _hapticCb.setAttribute("switch", "");
+      _hapticCb.style.cssText = "position:fixed;top:-99px;left:-99px;opacity:0;pointer-events:none";
+      _hapticLbl = document.createElement("label");
+      _hapticLbl.style.cssText = _hapticCb.style.cssText;
+      _hapticLbl.appendChild(_hapticCb);
+      document.body.appendChild(_hapticLbl);
+    } catch (_) {}
+  }
+
+  function _iosHapticTick() {
+    try {
+      _ensureHapticEl();
+      if (_hapticLbl) _hapticLbl.click();
     } catch (_) {}
   }
 
@@ -25249,8 +25256,8 @@ document.addEventListener("click", (e) => {
   // ══════════════════════════════════════════════════════════
   //  EVENT HANDLERS
   // ══════════════════════════════════════════════════════════
-  btnNext?.addEventListener("click", () => { haptic(15); goNext(); });
-  btnBack?.addEventListener("click", () => { haptic(8); goBack(); });
+  btnNext?.addEventListener("click", () => { goNext(); });
+  btnBack?.addEventListener("click", () => { goBack(); });
   closeBtn?.addEventListener("click", close);
 
   // Race date — set minimum to today, smart default
