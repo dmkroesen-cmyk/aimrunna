@@ -13663,47 +13663,55 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
 }
 
 /* ── Pricing Tiers ── */
-.ob-tiers {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 8px;
+/* ── Tier scroll-snap track ── */
+.ob-tiers-track {
+  display: flex;
+  gap: 12px;
   width: 100%;
-  margin-bottom: 24px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  padding: 8px 0 12px;
+  margin-bottom: 20px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
+.ob-tiers-track::-webkit-scrollbar { display: none; }
 
-.ob-tier {
+.ob-tier-snap {
+  flex: 0 0 72%;
+  scroll-snap-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 16px 8px 14px;
+  gap: 6px;
+  padding: 24px 16px 20px;
   border: 1.5px solid rgba(0, 0, 0, 0.06);
-  border-radius: 14px;
+  border-radius: 16px;
   background: #FFFFFF;
   font-family: inherit;
   cursor: pointer;
-  transition: all 200ms ease;
-  -webkit-tap-highlight-color: transparent;
-  position: relative;
   text-align: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  position: relative;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  transition: transform 320ms cubic-bezier(0.34, 1.56, 0.64, 1),
+              border-color 200ms ease,
+              box-shadow 200ms ease,
+              opacity 200ms ease;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.ob-tier:hover:not(.is-disabled) {
-  border-color: rgba(0, 0, 0, 0.12);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+.ob-tier-snap.is-active {
+  transform: scale(1.03);
+  border-color: var(--text, #1A1A1A);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.10), 0 0 0 2px rgba(26, 26, 26, 0.06);
 }
 
-.ob-tier.is-active {
-  border-color: #D4850F;
-  background: #FFFFFF;
-  box-shadow: 0 0 0 3px rgba(212, 133, 15, 0.1), 0 4px 12px rgba(212, 133, 15, 0.06);
-}
-
-.ob-tier.is-disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-  background: rgba(0, 0, 0, 0.01);
+.ob-tier-snap.is-locked {
+  opacity: 0.38;
+  cursor: default;
+  pointer-events: none;
 }
 
 .ob-tier-badge {
@@ -13713,21 +13721,14 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #FFFFFF;
-  background: #D4850F;
+  background: var(--text, #1A1A1A);
   border-radius: 6px;
   padding: 3px 8px;
-  margin-bottom: 4px;
-}
-
-.ob-tier-price {
-  display: flex;
-  align-items: baseline;
-  gap: 2px;
-  white-space: nowrap;
+  margin-bottom: 2px;
 }
 
 .ob-tier-amount {
-  font-size: 22px;
+  font-size: 28px;
   font-weight: 800;
   letter-spacing: -0.03em;
   color: var(--text, #1A1A1A);
@@ -13735,21 +13736,22 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
 }
 
 .ob-tier-cycle {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--text-muted, #9CA3AF);
   white-space: nowrap;
+  margin-top: -4px;
 }
 
 .ob-tier-label {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.02em;
   color: var(--text-secondary, #6B7280);
 }
 
 .ob-tier-desc {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 400;
   color: var(--text-muted, #9CA3AF);
   line-height: 1.4;
@@ -13773,6 +13775,12 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
   text-transform: uppercase;
   color: var(--text-muted, #9CA3AF);
   margin-top: 2px;
+}
+
+/* Desktop: all three visible, no scroll needed */
+@media (min-width: 768px) {
+  .ob-tier-snap { flex: 1 1 0; min-width: 0; }
+  .ob-tiers-track { overflow-x: visible; }
 }
 
 /* ── Account form (inside final screen) ── */
@@ -14061,7 +14069,7 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
   .ob-wheel-lg { height: 240px; }
   .ob-wheel-sep { height: 200px; padding-top: 20px; font-size: 26px; }
   .ob-activate-summary { font-size: 14px; max-width: 280px; }
-  .ob-tiers { grid-template-columns: 1fr; gap: 8px; }
+  .ob-tiers-track { gap: 10px; }
   .ob-activate-glow { width: 240px; height: 240px; }
 }
 

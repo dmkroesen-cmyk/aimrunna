@@ -3329,33 +3329,27 @@
               <h2 class="ob-headline" tabindex="-1">Wähle deinen Zugang.</h2>
               <p class="ob-sub">Erstelle einen Account und sichere deinen Fortschritt.</p>
 
-              <!-- Pricing Tiers -->
-              <div class="ob-tiers" id="ob-tiers">
-                <button type="button" class="ob-tier is-active" data-tier="beta">
+              <!-- Pricing Tiers — scroll-snap selection -->
+              <div class="ob-tiers-track" id="ob-tiers">
+                <div class="ob-tier-snap is-active" data-tier="beta" role="button" tabindex="0">
                   <div class="ob-tier-badge">Beta</div>
-                  <div class="ob-tier-price">
-                    <span class="ob-tier-amount">0&thinsp;€</span>
-                  </div>
+                  <div class="ob-tier-amount">0&thinsp;€</div>
                   <div class="ob-tier-label">Kostenlos</div>
                   <div class="ob-tier-desc">Voller Zugang während der Beta-Phase.</div>
-                </button>
-                <button type="button" class="ob-tier is-disabled" data-tier="monthly" disabled>
-                  <div class="ob-tier-price">
-                    <span class="ob-tier-amount">12,50&thinsp;€</span>
-                  </div>
+                </div>
+                <div class="ob-tier-snap is-locked" data-tier="monthly" role="button" tabindex="-1">
+                  <div class="ob-tier-amount">12,50&thinsp;€</div>
                   <div class="ob-tier-cycle">/ Monat</div>
                   <div class="ob-tier-label">Monatlich</div>
                   <div class="ob-tier-soon">Bald verfügbar</div>
-                </button>
-                <button type="button" class="ob-tier is-disabled" data-tier="yearly" disabled>
-                  <div class="ob-tier-price">
-                    <span class="ob-tier-amount">125&thinsp;€</span>
-                  </div>
+                </div>
+                <div class="ob-tier-snap is-locked" data-tier="yearly" role="button" tabindex="-1">
+                  <div class="ob-tier-amount">125&thinsp;€</div>
                   <div class="ob-tier-cycle">/ Jahr</div>
                   <div class="ob-tier-label">Jährlich</div>
                   <div class="ob-tier-save">2 Monate gratis</div>
                   <div class="ob-tier-soon">Bald verfügbar</div>
-                </button>
+                </div>
               </div>
 
               <div class="ob-account-form">

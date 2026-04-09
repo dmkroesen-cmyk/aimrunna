@@ -25160,16 +25160,45 @@ document.addEventListener("click", (e) => {
     transitionToAccount();
   });
 
-  // ── Pricing tier selection ──
-  const tiersContainer = document.getElementById("ob-tiers");
-  tiersContainer?.addEventListener("click", e => {
-    const tier = e.target.closest(".ob-tier");
-    if (!tier || tier.disabled || tier.classList.contains("is-disabled")) return;
-    tiersContainer.querySelectorAll(".ob-tier").forEach(t => t.classList.remove("is-active"));
-    tier.classList.add("is-active");
-    data.selectedTier = tier.dataset.tier;
-    haptic(10);
-  });
+  // ── Pricing tier scroll-snap selection ──
+  const tiersTrack = document.getElementById("ob-tiers");
+  if (tiersTrack) {
+    // Click handler for tier selection (non-locked tiers)
+    tiersTrack.addEventListener("click", e => {
+      const snap = e.target.closest(".ob-tier-snap");
+      if (!snap || snap.classList.contains("is-locked")) return;
+      tiersTrack.querySelectorAll(".ob-tier-snap").forEach(t => t.classList.remove("is-active"));
+      snap.classList.add("is-active");
+      data.selectedTier = snap.dataset.tier;
+      hapticConfirm();
+      // Scroll to center the selected tier
+      snap.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+    });
+
+    // Scroll-snap haptic feedback
+    let _snapTimer = null;
+    tiersTrack.addEventListener("scroll", () => {
+      clearTimeout(_snapTimer);
+      _snapTimer = setTimeout(() => {
+        // Detect which tier is most centered
+        const trackRect = tiersTrack.getBoundingClientRect();
+        const center = trackRect.left + trackRect.width / 2;
+        let closest = null, minDist = Infinity;
+        tiersTrack.querySelectorAll(".ob-tier-snap").forEach(t => {
+          const r = t.getBoundingClientRect();
+          const d = Math.abs((r.left + r.width / 2) - center);
+          if (d < minDist) { minDist = d; closest = t; }
+        });
+        if (closest && !closest.classList.contains("is-locked")) {
+          const wasDifferent = !closest.classList.contains("is-active");
+          tiersTrack.querySelectorAll(".ob-tier-snap").forEach(t => t.classList.remove("is-active"));
+          closest.classList.add("is-active");
+          data.selectedTier = closest.dataset.tier;
+          if (wasDifferent) haptic(8);
+        }
+      }, 80);
+    }, { passive: true });
+  }
 
   // Google OAuth login
   document.getElementById("ob-google-btn")?.addEventListener("click", async () => {
