@@ -24415,9 +24415,9 @@ document.addEventListener("click", (e) => {
     const track = container.querySelector(".ob-wheel-track");
     if (!track) return;
 
-    // Determine item height from CSS (reliable)
-    const itemH = container.classList.contains("ob-wheel-lg") ? 48
-                : container.classList.contains("ob-wheel-sm") ? 34 : 40;
+    // Determine item height from CSS (must match .ob-wheel-item height)
+    const itemH = container.classList.contains("ob-wheel-lg") ? 56
+                : container.classList.contains("ob-wheel-sm") ? 42 : 50;
 
     // Use fixed pad count based on expected container size (robust, no clientHeight dependency)
     const padCount = container.classList.contains("ob-wheel-lg") ? 2
@@ -24504,12 +24504,12 @@ document.addEventListener("click", (e) => {
       }
     }
 
-    // Touch events (on container only)
-    const onTouchStart = e => onStart(e.touches[0].clientY);
-    const onTouchMove = e => onMove(e.touches[0].clientY);
+    // Touch events (on container only) — passive: false to prevent page scroll
+    const onTouchStart = e => { e.preventDefault(); onStart(e.touches[0].clientY); };
+    const onTouchMove = e => { e.preventDefault(); onMove(e.touches[0].clientY); };
     const onTouchEnd = () => onEnd();
-    container.addEventListener("touchstart", onTouchStart, { passive: true });
-    container.addEventListener("touchmove", onTouchMove, { passive: true });
+    container.addEventListener("touchstart", onTouchStart, { passive: false });
+    container.addEventListener("touchmove", onTouchMove, { passive: false });
     container.addEventListener("touchend", onTouchEnd);
 
     // Mouse events (window-level, tracked for cleanup)

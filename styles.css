@@ -13269,8 +13269,9 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  gap: 4px;
+  gap: 0;
   margin-bottom: 24px;
+  width: 100%;
 }
 
 .ob-wheel-single { gap: 0; }
@@ -13280,69 +13281,73 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
   flex-direction: column;
   align-items: center;
   gap: 10px;
+  flex: 1;
+  max-width: 140px;
 }
 
 .ob-wheel-label {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-muted, #9CA3AF);
 }
 
 .ob-wheel-sep {
-  font-size: 26px;
+  font-size: 30px;
   font-weight: 800;
-  color: #D4850F;
-  margin: 0 2px;
+  color: var(--text, #1A1A1A);
+  margin: 0;
   padding-top: 24px;
-  height: 160px;
+  height: 220px;
   display: flex;
   align-items: center;
-  opacity: 0.5;
+  opacity: 0.15;
+  flex-shrink: 0;
 }
 
 .ob-wheel {
   position: relative;
-  width: 84px;
-  height: 160px;
+  width: 100%;
+  height: 220px;
   overflow: hidden;
-  border-radius: 14px;
+  border-radius: 16px;
   background: #FFFFFF;
   border: 1.5px solid rgba(0, 0, 0, 0.05);
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.03);
+  touch-action: none;
   -webkit-mask-image: linear-gradient(to bottom,
-    transparent 0%, rgba(0,0,0,0.15) 15%, black 30%, black 70%, rgba(0,0,0,0.15) 85%, transparent 100%);
+    transparent 0%, rgba(0,0,0,0.1) 12%, black 28%, black 72%, rgba(0,0,0,0.1) 88%, transparent 100%);
   mask-image: linear-gradient(to bottom,
-    transparent 0%, rgba(0,0,0,0.15) 15%, black 30%, black 70%, rgba(0,0,0,0.15) 85%, transparent 100%);
+    transparent 0%, rgba(0,0,0,0.1) 12%, black 28%, black 72%, rgba(0,0,0,0.1) 88%, transparent 100%);
 }
 
-.ob-wheel-sm { width: 74px; height: 120px; }
-.ob-wheel-lg { width: 100px; height: 200px; }
+.ob-wheel-sm { width: 100%; height: 160px; }
+.ob-wheel-lg { width: 100%; height: 260px; max-width: 160px; }
 
 .ob-wheel:focus-visible {
   outline: 2px solid rgba(212, 133, 15, 0.4);
   outline-offset: 2px;
-  border-radius: 14px;
+  border-radius: 16px;
 }
 
 .ob-wheel::after {
   content: "";
   position: absolute;
-  left: 4px;
-  right: 4px;
+  left: 0;
+  right: 0;
   top: 50%;
-  height: 40px;
+  height: 50px;
   transform: translateY(-50%);
-  border-radius: 10px;
-  border: 1.5px solid rgba(212, 133, 15, 0.25);
-  background: rgba(212, 133, 15, 0.04);
+  border-radius: 0;
+  border-top: 1.5px solid rgba(0, 0, 0, 0.06);
+  border-bottom: 1.5px solid rgba(0, 0, 0, 0.06);
+  background: rgba(0, 0, 0, 0.02);
   pointer-events: none;
   z-index: 2;
 }
 
-.ob-wheel-sm::after { height: 34px; }
-.ob-wheel-lg::after { height: 48px; }
+.ob-wheel-sm::after { height: 42px; }
+.ob-wheel-lg::after { height: 56px; }
 
 .ob-wheel-track {
   position: absolute;
@@ -13360,26 +13365,26 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 40px;
-  font-size: 20px;
+  height: 50px;
+  font-size: 24px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--text, #1A1A1A);
-  opacity: 0.2;
-  transition: opacity 150ms ease, transform 150ms ease;
+  opacity: 0.18;
+  transition: opacity 120ms ease, transform 120ms ease;
   user-select: none;
   flex-shrink: 0;
   cursor: pointer;
 }
 
-.ob-wheel-sm .ob-wheel-item { height: 34px; font-size: 17px; }
-.ob-wheel-lg .ob-wheel-item { height: 48px; font-size: 26px; }
+.ob-wheel-sm .ob-wheel-item { height: 42px; font-size: 20px; }
+.ob-wheel-lg .ob-wheel-item { height: 56px; font-size: 32px; }
 
 .ob-wheel-item.is-selected {
   opacity: 1;
   font-weight: 800;
-  color: #D4850F;
-  transform: scale(1.05);
+  color: var(--text, #1A1A1A);
+  transform: scale(1.08);
 }
 
 /* ── Date Input ── */
@@ -14003,10 +14008,10 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
   .ob-card-icon { width: 46px; height: 46px; }
   .ob-body-grid { grid-template-columns: 1fr 1fr; gap: 20px 12px; }
   .ob-body-label { font-size: 10px; }
-  .ob-wheel { width: 76px; height: 140px; }
-  .ob-wheel-sm { width: 68px; height: 112px; }
-  .ob-wheel-lg { width: 92px; height: 180px; }
-  .ob-wheel-sep { height: 140px; padding-top: 20px; font-size: 22px; }
+  .ob-wheel { height: 200px; }
+  .ob-wheel-sm { height: 140px; }
+  .ob-wheel-lg { height: 240px; }
+  .ob-wheel-sep { height: 200px; padding-top: 20px; font-size: 26px; }
   .ob-activate-summary { font-size: 14px; max-width: 280px; }
   .ob-tiers { grid-template-columns: 1fr; gap: 8px; }
   .ob-activate-glow { width: 240px; height: 240px; }
