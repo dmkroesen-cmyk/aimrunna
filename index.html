@@ -3098,6 +3098,186 @@
       </button>
     </nav>
 
+    <!-- ═══ ONBOARDING MODAL ═══ -->
+    <div class="onboarding-backdrop" id="onboarding-backdrop" hidden>
+      <div class="onboarding-modal" id="onboarding-modal">
+        <div class="onboarding-header">
+          <div class="onboarding-progress">
+            <div class="onboarding-progress-bar" id="onboarding-progress-bar"></div>
+          </div>
+          <div class="onboarding-header-row">
+            <span class="onboarding-step-label" id="onboarding-step-label">Schritt 1 von 5</span>
+            <button type="button" class="onboarding-close" id="onboarding-close" aria-label="Schließen">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="onboarding-body" id="onboarding-body">
+          <!-- Step 1: Disziplin & Ziel -->
+          <div class="onboarding-step" data-step="1">
+            <h2 class="onboarding-title">Was ist dein Ziel?</h2>
+            <p class="onboarding-desc">Wähle deine Disziplin und definiere dein nächstes Rennen.</p>
+            <div class="onboarding-fields">
+              <label class="onboarding-field">
+                <span>Disziplin</span>
+                <select id="ob-discipline">
+                  <option value="running">Laufen</option>
+                  <option value="triathlon">Triathlon</option>
+                  <option value="cycling">Rad</option>
+                  <option value="hyrox">Hyrox</option>
+                  <option value="shape">Shape</option>
+                </select>
+              </label>
+              <label class="onboarding-field">
+                <span>Zielformat</span>
+                <select id="ob-goal-distance"></select>
+              </label>
+              <label class="onboarding-field">
+                <span>Zielzeit</span>
+                <input type="text" id="ob-goal-time" placeholder="z. B. 3:45:00" />
+              </label>
+              <label class="onboarding-field">
+                <span>Race Day</span>
+                <input type="date" id="ob-race-date" />
+              </label>
+            </div>
+          </div>
+
+          <!-- Step 2: Über dich -->
+          <div class="onboarding-step" data-step="2" hidden>
+            <h2 class="onboarding-title">Über dich</h2>
+            <p class="onboarding-desc">Hilft uns, Zonen und Belastung genauer zu berechnen.</p>
+            <div class="onboarding-fields">
+              <label class="onboarding-field">
+                <span>Geschlecht</span>
+                <select id="ob-sex">
+                  <option value="">— optional —</option>
+                  <option value="female">Weiblich</option>
+                  <option value="male">Männlich</option>
+                </select>
+              </label>
+              <div class="onboarding-field-row">
+                <label class="onboarding-field">
+                  <span>Geburtsjahr</span>
+                  <input type="number" id="ob-birth-year" placeholder="z. B. 1990" min="1940" max="2012" />
+                </label>
+                <label class="onboarding-field">
+                  <span>Gewicht (kg)</span>
+                  <input type="number" id="ob-weight" placeholder="z. B. 72" min="35" max="180" step="0.1" />
+                </label>
+              </div>
+              <div class="onboarding-field-row">
+                <label class="onboarding-field">
+                  <span>Größe (cm)</span>
+                  <input type="number" id="ob-height" placeholder="z. B. 178" min="130" max="230" step="1" />
+                </label>
+                <label class="onboarding-field">
+                  <span>Level</span>
+                  <select id="ob-level">
+                    <option value="starter">Einsteiger</option>
+                    <option value="intermediate" selected>Fortgeschritten</option>
+                    <option value="advanced">Leistung</option>
+                  </select>
+                </label>
+              </div>
+              <label class="onboarding-field">
+                <span>Erfahrung</span>
+                <select id="ob-experience">
+                  <option value="lt1">Unter 1 Jahr</option>
+                  <option value="1to3" selected>1–3 Jahre</option>
+                  <option value="3to5">3–5 Jahre</option>
+                  <option value="5plus">5+ Jahre</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <!-- Step 3: Schwellenwerte -->
+          <div class="onboarding-step" data-step="3" hidden>
+            <h2 class="onboarding-title">Deine Schwellenwerte</h2>
+            <p class="onboarding-desc">Optional — macht deinen Plan präziser. Alles was du nicht weißt, überspringen.</p>
+            <div class="onboarding-fields" id="ob-thresholds">
+              <!-- Dynamisch befüllt je nach Disziplin -->
+            </div>
+          </div>
+
+          <!-- Step 4: Bestzeiten -->
+          <div class="onboarding-step" data-step="4" hidden>
+            <h2 class="onboarding-title">Letzte Bestzeiten</h2>
+            <p class="onboarding-desc">Hilft uns, deinen aktuellen VDOT und Leistungsstand einzuschätzen.</p>
+            <div class="onboarding-fields">
+              <div class="onboarding-pb-row">
+                <label class="onboarding-field onboarding-field-sm">
+                  <span>Distanz</span>
+                  <select id="ob-pb1-distance"></select>
+                </label>
+                <label class="onboarding-field">
+                  <span>Zeit</span>
+                  <input type="text" id="ob-pb1-time" placeholder="z. B. 21:30" />
+                </label>
+              </div>
+              <div class="onboarding-pb-row">
+                <label class="onboarding-field onboarding-field-sm">
+                  <span>Distanz</span>
+                  <select id="ob-pb2-distance"></select>
+                </label>
+                <label class="onboarding-field">
+                  <span>Zeit</span>
+                  <input type="text" id="ob-pb2-time" placeholder="z. B. 1:48:00" />
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 5: Trainings-Setup -->
+          <div class="onboarding-step" data-step="5" hidden>
+            <h2 class="onboarding-title">Dein Trainings-Setup</h2>
+            <p class="onboarding-desc">Wie viel Zeit hast du, und wie soll deine Woche aussehen?</p>
+            <div class="onboarding-fields">
+              <label class="onboarding-field">
+                <span>Stunden pro Woche</span>
+                <input type="number" id="ob-weekly-hours" value="8" min="2" max="30" step="1" />
+              </label>
+              <label class="onboarding-field" id="ob-long-run-day-field">
+                <span>Long Run Tag</span>
+                <select id="ob-long-run-day">
+                  <option value="sunday" selected>Sonntag</option>
+                  <option value="saturday">Samstag</option>
+                  <option value="wednesday">Mittwoch</option>
+                  <option value="friday">Freitag</option>
+                  <option value="never">Keiner</option>
+                </select>
+              </label>
+              <label class="onboarding-field" id="ob-bike-outdoor-day-field" hidden>
+                <span>Outdoor Ride Tag</span>
+                <select id="ob-bike-outdoor-day">
+                  <option value="sunday" selected>Sonntag</option>
+                  <option value="saturday">Samstag</option>
+                  <option value="wednesday">Mittwoch</option>
+                  <option value="friday">Freitag</option>
+                  <option value="never">Keiner</option>
+                </select>
+              </label>
+              <label class="onboarding-field">
+                <span>Planhorizont</span>
+                <select id="ob-ltad-mode">
+                  <option value="off" selected>Standard</option>
+                  <option value="one_year">Season (1 Jahr)</option>
+                  <option value="two_year">LTAD (2 Jahre)</option>
+                </select>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="onboarding-footer">
+          <button type="button" class="onboarding-btn-back" id="onboarding-btn-back" hidden>Zurück</button>
+          <button type="button" class="onboarding-btn-next" id="onboarding-btn-next">Weiter</button>
+        </div>
+      </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="./supabase-client.js"></script>

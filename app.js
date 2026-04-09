@@ -7864,11 +7864,8 @@ function initDynamicGoalOptions() {
     if (suggested && quickGoalTimeInput) quickGoalTimeInput.value = suggested;
   });
   planModeSelect?.addEventListener("change", () => {
-    if (planModeSelect.value === "pro" && !getCurrentAccount()) {
-      planModeSelect.value = "quick";
-      syncPlanModeUI();
-      openAccountModal("register");
-      setText(accountFormStatusEl, "Erstelle einen Account, um den Pro-Modus zu nutzen.");
+    if (planModeSelect.value === "pro") {
+      openOnboarding();
       return;
     }
     syncPlanModeUI();
@@ -24282,4 +24279,235 @@ document.addEventListener("click", (e) => {
   } else {
     init();
   }
+})();
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ONBOARDING SYSTEM — Step-by-step guided questionnaire for peak. mode
+   ═══════════════════════════════════════════════════════════════════════════ */
+(function initOnboarding() {
+  const backdrop = document.getElementById("onboarding-backdrop");
+  const modal = document.getElementById("onboarding-modal");
+  const progressBar = document.getElementById("onboarding-progress-bar");
+  const stepLabel = document.getElementById("onboarding-step-label");
+  const btnNext = document.getElementById("onboarding-btn-next");
+  const btnBack = document.getElementById("onboarding-btn-back");
+  const closeBtn = document.getElementById("onboarding-close");
+  const bodyEl = document.getElementById("onboarding-body");
+
+  if (!backdrop || !modal) return;
+
+  const TOTAL_STEPS = 5;
+  let currentStep = 1;
+
+  // ── Onboarding field references ──
+  const obDiscipline = document.getElementById("ob-discipline");
+  const obGoalDist = document.getElementById("ob-goal-distance");
+  const obGoalTime = document.getElementById("ob-goal-time");
+  const obRaceDate = document.getElementById("ob-race-date");
+  const obSex = document.getElementById("ob-sex");
+  const obBirthYear = document.getElementById("ob-birth-year");
+  const obWeight = document.getElementById("ob-weight");
+  const obHeight = document.getElementById("ob-height");
+  const obLevel = document.getElementById("ob-level");
+  const obExperience = document.getElementById("ob-experience");
+  const obThresholds = document.getElementById("ob-thresholds");
+  const obPb1Dist = document.getElementById("ob-pb1-distance");
+  const obPb1Time = document.getElementById("ob-pb1-time");
+  const obPb2Dist = document.getElementById("ob-pb2-distance");
+  const obPb2Time = document.getElementById("ob-pb2-time");
+  const obWeeklyHours = document.getElementById("ob-weekly-hours");
+  const obLongRunDay = document.getElementById("ob-long-run-day");
+  const obBikeOutdoorDay = document.getElementById("ob-bike-outdoor-day");
+  const obLtadMode = document.getElementById("ob-ltad-mode");
+  const obLongRunField = document.getElementById("ob-long-run-day-field");
+  const obBikeOutdoorField = document.getElementById("ob-bike-outdoor-day-field");
+
+  // ── Distance options per discipline ──
+  function distOpts(disc) {
+    if (typeof window.raceEventDistanceOptions === "function") {
+      return window.raceEventDistanceOptions(disc);
+    }
+    const map = {
+      running: [
+        { value: "5k", label: "5 km" }, { value: "10k", label: "10 km" },
+        { value: "half", label: "Halbmarathon" }, { value: "marathon", label: "Marathon" },
+        { value: "ultra50k", label: "Ultra 50K" }, { value: "ultra100k", label: "Ultra 100K" }
+      ],
+      triathlon: [
+        { value: "sprint", label: "Sprint" }, { value: "olympic", label: "Olympisch" },
+        { value: "703", label: "70.3" }, { value: "ironman", label: "Ironman" }
+      ],
+      cycling: [
+        { value: "50k", label: "50 km" }, { value: "100k", label: "100 km" },
+        { value: "160k", label: "160 km" }, { value: "200k", label: "200+ km" }
+      ],
+      hyrox: [
+        { value: "hyrox_single", label: "Hyrox Single" }, { value: "hyrox_doubles", label: "Hyrox Doubles" },
+        { value: "hyrox_relay", label: "Hyrox Relay" }, { value: "hyrox_pro", label: "Hyrox Pro" }
+      ],
+      shape: [
+        { value: "8weeks", label: "8 Wochen" }, { value: "12weeks", label: "12 Wochen" },
+        { value: "16weeks", label: "16 Wochen" }
+      ]
+    };
+    return map[disc] || map.running;
+  }
+
+  function populateSel(sel, disc) {
+    const opts = distOpts(disc);
+    sel.innerHTML = opts.map(o => `<option value="${o.value}">${o.label}</option>`).join("");
+  }
+
+  function syncDisciplineUI() {
+    const disc = obDiscipline?.value || "running";
+    populateSel(obGoalDist, disc);
+    populateSel(obPb1Dist, disc === "shape" ? "running" : disc);
+    populateSel(obPb2Dist, disc === "shape" ? "running" : disc);
+
+    const isBike = disc === "triathlon" || disc === "cycling";
+    const isRun = disc === "running" || disc === "triathlon";
+    if (obLongRunField) obLongRunField.hidden = !isRun;
+    if (obBikeOutdoorField) obBikeOutdoorField.hidden = !isBike;
+
+    buildThresholdFields(disc);
+
+    if (obGoalTime && !obGoalTime.value) {
+      const ph = { running: "3:45:00", triathlon: "5:30:00", cycling: "3:00:00", hyrox: "1:30:00", shape: "" };
+      obGoalTime.placeholder = ph[disc] || "z. B. 3:45:00";
+    }
+  }
+
+  function buildThresholdFields(disc) {
+    if (!obThresholds) return;
+    let h = "";
+    const isRun = disc === "running" || disc === "triathlon" || disc === "hyrox" || disc === "shape";
+    const isBike = disc === "triathlon" || disc === "cycling";
+    const isSwim = disc === "triathlon";
+
+    if (isRun) {
+      h += '<label class="onboarding-field"><span>Lauf Schwellenpace (/km) <span class="onboarding-optional">optional</span></span><input type="text" id="ob-run-thr-pace" placeholder="z. B. 4:30" /></label>';
+      h += '<div class="onboarding-field-row"><label class="onboarding-field"><span>Lauf Schwellen-HF (bpm)</span><input type="number" id="ob-run-thr-hr" placeholder="z. B. 172" min="100" max="210" /></label>';
+      h += '<label class="onboarding-field"><span>Max HF (bpm)</span><input type="number" id="ob-max-hr" placeholder="z. B. 192" min="120" max="230" /></label></div>';
+    }
+    if (isBike) {
+      h += '<label class="onboarding-field"><span>FTP Bike (Watt) <span class="onboarding-optional">optional</span></span><input type="number" id="ob-bike-ftp" placeholder="z. B. 265" min="90" max="550" /></label>';
+      h += '<label class="onboarding-field"><span>Bike Schwellen-HF (bpm)</span><input type="number" id="ob-bike-thr-hr" placeholder="z. B. 168" min="100" max="210" /></label>';
+    }
+    if (isSwim) {
+      h += '<label class="onboarding-field"><span>Swim CSS (/100m) <span class="onboarding-optional">optional</span></span><input type="text" id="ob-swim-css" placeholder="z. B. 1:42" /></label>';
+    }
+    if (!h) {
+      h = '<p class="onboarding-desc" style="margin:0;">Für diese Disziplin sind keine Schwellenwerte nötig. Einfach weiter.</p>';
+    }
+    obThresholds.innerHTML = h;
+  }
+
+  // ── Step navigation ──
+  function showStep(n) {
+    currentStep = Math.max(1, Math.min(n, TOTAL_STEPS));
+    const steps = bodyEl.querySelectorAll(".onboarding-step");
+    steps.forEach(s => {
+      const sn = parseInt(s.dataset.step);
+      s.hidden = sn !== currentStep;
+      if (sn === currentStep) {
+        s.style.animation = "none";
+        void s.offsetHeight;
+        s.style.animation = "";
+      }
+    });
+    progressBar.style.width = ((currentStep / TOTAL_STEPS) * 100) + "%";
+    stepLabel.textContent = "Schritt " + currentStep + " von " + TOTAL_STEPS;
+    btnBack.hidden = currentStep === 1;
+    btnNext.textContent = currentStep === TOTAL_STEPS ? "Plan erstellen" : "Weiter";
+  }
+
+  // ── Transfer onboarding values into the plan form ──
+  function applyToForm() {
+    const f = document.getElementById("plan-form");
+    if (!f) return;
+
+    const modeSelect = document.getElementById("plan-mode-select");
+    if (modeSelect) modeSelect.value = "pro";
+
+    const disc = f.elements?.discipline;
+    if (disc) { disc.value = obDiscipline?.value || "running"; disc.dispatchEvent(new Event("change", { bubbles: true })); }
+
+    const setF = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+    const setN = (name, val) => { const el = f.elements?.[name]; if (el && val) el.value = val; };
+
+    setF("goal-distance-select", obGoalDist?.value);
+    setF("goal-time-input", obGoalTime?.value);
+    setN("raceDate", obRaceDate?.value);
+    setF("quick-goal-distance-select", obGoalDist?.value);
+    setF("quick-goal-time-input", obGoalTime?.value);
+    setF("quick-race-date-input", obRaceDate?.value);
+
+    setF("sex-field", obSex?.value);
+    if (obBirthYear?.value) setF("plan-birth-year", obBirthYear.value);
+    setN("weightKg", obWeight?.value);
+    setN("heightCm", obHeight?.value);
+
+    setF("level-field", obLevel?.value);
+    setF("experience-field", obExperience?.value);
+    setF("weekly-hours-field", obWeeklyHours?.value);
+
+    setF("run-thr-pace-field", document.getElementById("ob-run-thr-pace")?.value);
+    setF("run-thr-hr-field", document.getElementById("ob-run-thr-hr")?.value);
+    setF("bike-ftp-field", document.getElementById("ob-bike-ftp")?.value);
+    setF("bike-thr-hr-field", document.getElementById("ob-bike-thr-hr")?.value);
+    setF("swim-css-field", document.getElementById("ob-swim-css")?.value);
+    const maxHrOb = document.getElementById("ob-max-hr");
+    if (maxHrOb?.value) setN("maxHr", maxHrOb.value);
+
+    setF("pb1-distance-select", obPb1Dist?.value);
+    setN("pb1Time", obPb1Time?.value);
+    setF("pb2-distance-select", obPb2Dist?.value);
+    setN("pb2Time", obPb2Time?.value);
+
+    setF("long-run-day-select", obLongRunDay?.value);
+    setF("bike-outdoor-day-select", obBikeOutdoorDay?.value);
+    setF("ltad-mode-select", obLtadMode?.value);
+
+    if (typeof syncPlanModeUI === "function") syncPlanModeUI();
+    if (typeof syncDisciplineSpecificFields === "function") syncDisciplineSpecificFields(obDiscipline?.value);
+  }
+
+  // ── Open / Close ──
+  function open() {
+    const mainDisc = document.querySelector('#plan-form select[name="discipline"]');
+    if (mainDisc?.value && obDiscipline) obDiscipline.value = mainDisc.value;
+    syncDisciplineUI();
+    currentStep = 1;
+    showStep(1);
+    backdrop.hidden = false;
+    document.body.style.overflow = "hidden";
+  }
+
+  function close() {
+    backdrop.hidden = true;
+    document.body.style.overflow = "";
+    const modeSelect = document.getElementById("plan-mode-select");
+    if (modeSelect && modeSelect.value === "pro") {
+      modeSelect.value = "quick";
+      if (typeof syncPlanModeUI === "function") syncPlanModeUI();
+    }
+  }
+
+  btnNext?.addEventListener("click", () => {
+    if (currentStep < TOTAL_STEPS) {
+      showStep(currentStep + 1);
+    } else {
+      applyToForm();
+      backdrop.hidden = true;
+      document.body.style.overflow = "";
+    }
+  });
+
+  btnBack?.addEventListener("click", () => { if (currentStep > 1) showStep(currentStep - 1); });
+  closeBtn?.addEventListener("click", close);
+  backdrop?.addEventListener("click", (e) => { if (e.target === backdrop) close(); });
+  obDiscipline?.addEventListener("change", syncDisciplineUI);
+
+  window.openOnboarding = open;
+  window.closeOnboarding = close;
 })();
