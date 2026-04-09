@@ -1278,7 +1278,7 @@ body.is-authenticated .account-dot {
 
 .checkbox-row span {
   font-size: 12px;
-  color: #dde2ea;
+  color: var(--text-secondary, #6B7280);
 }
 
 .cycle-toggle-row {
@@ -1422,8 +1422,18 @@ input:not([type="checkbox"])::placeholder {
 input:not([type="checkbox"]):focus,
 select:focus {
   border-color: rgba(212, 133, 15, 0.3);
-  background: rgba(0, 0, 0, 0.015);
+  background: var(--bg-secondary, #F8F8FA);
   box-shadow: 0 0 0 3px rgba(212, 133, 15, 0.06), 0 0 16px rgba(212, 133, 15, 0.04);
+}
+
+/* Intake form on dark hero — white bg on all states */
+.intake-form input:not([type="checkbox"]):focus,
+.intake-form select:focus,
+.intake-form textarea:focus {
+  background: #FFFFFF;
+  border-color: rgba(212, 133, 15, 0.4);
+  box-shadow: 0 0 0 3px rgba(212, 133, 15, 0.12), 0 4px 16px rgba(0, 0, 0, 0.15);
+  color: #1A1A1A;
 }
 
 select {
@@ -1659,7 +1669,7 @@ select {
   border-radius: 10px;
   border: 1px solid rgba(0, 0, 0, 0.06);
   background: rgba(0, 0, 0, 0.015);
-  color: #f2f6fd;
+  color: var(--text, #1A1A1A);
   padding: 0 10px;
 }
 
@@ -1827,7 +1837,7 @@ select {
   padding: 7px 10px;
   border: 1px solid rgba(0, 0, 0, 0.06);
   background: rgba(0, 0, 0, 0.015);
-  color: #d7dce4;
+  color: var(--text-secondary, #6B7280);
   font-size: 12px;
 }
 
@@ -1928,8 +1938,8 @@ select {
 .tag {
   border-radius: 999px;
   border: 1px solid rgba(170, 245, 124, 0.18);
-  background: rgba(170, 245, 124, 0.05);
-  color: #d5ffb6;
+  background: rgba(76, 175, 80, 0.08);
+  color: #2E7D32;
   padding: 5px 10px;
   font-size: 10px;
   font-weight: 600;
@@ -1980,7 +1990,7 @@ select {
 
 .connection-state {
   margin-top: 10px;
-  color: #cbd2dc;
+  color: var(--text-secondary, #6B7280);
   font-size: 12px;
 }
 
@@ -2194,7 +2204,7 @@ body.profile-view-activities #profile-card-feed {
 
 .connector-athlete-copy strong {
   font-size: 13px;
-  color: #f4f7fb;
+  color: var(--text, #1A1A1A);
 }
 
 .connector-athlete-copy small {
@@ -2331,7 +2341,7 @@ body.profile-view-settings .profile-settings-card.is-active {
   margin: 0;
   font-size: 12px;
   letter-spacing: -0.015em;
-  color: #f1f4f9;
+  color: var(--text, #1A1A1A);
 }
 
 .result-inline-actions {
@@ -4027,7 +4037,7 @@ body.profile-view-settings .profile-settings-card.is-active {
 
 .analysis {
   margin-top: 10px;
-  color: #d8dde5;
+  color: var(--text-secondary, #6B7280);
   line-height: 1.5;
   font-size: 13px;
   white-space: pre-line;
@@ -4045,7 +4055,7 @@ body.profile-view-settings .profile-settings-card.is-active {
   border-radius: 12px;
   border: 1px solid rgba(0, 0, 0, 0.08);
   background: linear-gradient(145deg, rgba(0, 0, 0, 0.025), rgba(0, 0, 0, 0.015));
-  color: #e9eef8;
+  color: var(--text, #1A1A1A);
   font-size: 13px;
   line-height: 1.45;
   letter-spacing: 0.01em;
@@ -4061,7 +4071,7 @@ body.profile-view-settings .profile-settings-card.is-active {
 
 .plan-mission-title {
   font-size: 11px;
-  color: #f4f7ff;
+  color: var(--text, #1A1A1A);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -4070,7 +4080,7 @@ body.profile-view-settings .profile-settings-card.is-active {
   border: 1px solid rgba(0, 0, 0, 0.12);
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.015);
-  color: #dbe2ee;
+  color: var(--text-secondary, #6B7280);
   font-size: 10px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -4089,7 +4099,7 @@ body.profile-view-settings .profile-settings-card.is-active {
 
 .plan-mission-long {
   margin-top: 6px;
-  color: #c4ccda;
+  color: var(--text-secondary, #6B7280);
   max-height: 0;
   overflow: hidden;
   opacity: 0;
@@ -4150,7 +4160,7 @@ body.profile-view-settings .profile-settings-card.is-active {
 
 .threshold-track-row strong {
   display: block;
-  color: #edf2fd;
+  color: var(--text, #1A1A1A);
   font-size: 12px;
   letter-spacing: 0.02em;
 }
@@ -4408,7 +4418,7 @@ body.profile-view-settings .profile-settings-card.is-active {
   border-radius: 999px;
   border: 1px solid rgba(0, 0, 0, 0.06);
   background: rgba(0, 0, 0, 0.015);
-  color: #d8dde6;
+  color: var(--text-secondary, #6B7280);
   padding: 7px 10px;
   font-size: 12px;
 }
@@ -4486,7 +4496,7 @@ body.profile-view-settings .profile-settings-card.is-active {
 
 .day-name {
   font-size: 12px;
-  color: #e4e8ef;
+  color: var(--text, #1A1A1A);
   font-weight: 600;
 }
 
@@ -4510,21 +4520,21 @@ body.profile-view-settings .profile-settings-card.is-active {
   letter-spacing: 0.08em;
   border: 1px solid rgba(0, 0, 0, 0.06);
   background: rgba(0, 0, 0, 0.015);
-  color: #d7dde7;
+  color: var(--text-secondary, #6B7280);
 }
 
-.day-type.threshold { border-color: rgba(212, 133, 15, 0.22); color: #ffe5c0; background: rgba(212, 133, 15, 0.11); }
-.day-type.quality { border-color: rgba(170, 245, 124, 0.22); color: #ddffc7; background: rgba(170, 245, 124, 0.1); }
-.day-type.longrun { border-color: rgba(255, 214, 120, 0.22); color: #ffe5aa; background: rgba(255, 214, 120, 0.11); }
+.day-type.threshold { border-color: rgba(212, 133, 15, 0.25); color: #9A6200; background: rgba(212, 133, 15, 0.1); }
+.day-type.quality { border-color: rgba(76, 175, 80, 0.25); color: #2E7D32; background: rgba(76, 175, 80, 0.08); }
+.day-type.longrun { border-color: rgba(212, 170, 40, 0.25); color: #8D6E00; background: rgba(212, 170, 40, 0.1); }
 .day-type.race-pill {
-  border-color: rgba(255, 220, 133, 0.52);
-  color: #ffe9bb;
-  background: rgba(255, 220, 133, 0.2);
+  border-color: rgba(212, 133, 15, 0.4);
+  color: #7A4D00;
+  background: rgba(212, 133, 15, 0.12);
 }
 .day-type.race-pill.race-a {
-  border-color: rgba(255, 226, 148, 0.68);
-  color: #fff1ce;
-  background: rgba(255, 226, 148, 0.24);
+  border-color: rgba(212, 133, 15, 0.55);
+  color: #5C3A00;
+  background: rgba(212, 133, 15, 0.15);
 }
 
 .day-main {
@@ -4555,7 +4565,7 @@ body.profile-view-settings .profile-settings-card.is-active {
 .day-zwift-btn {
   border: 1px solid rgba(0, 0, 0, 0.06);
   background: rgba(0, 0, 0, 0.015);
-  color: #e9edf4;
+  color: var(--text-secondary, #6B7280);
   border-radius: 999px;
   padding: 4px 7px;
   font-size: 10px;
@@ -4580,7 +4590,7 @@ body.profile-view-settings .profile-settings-card.is-active {
 .day-garmin-btn {
   border: 1px solid rgba(0, 0, 0, 0.06);
   background: rgba(0, 0, 0, 0.015);
-  color: #e9edf4;
+  color: var(--text-secondary, #6B7280);
   border-radius: 999px;
   padding: 4px 7px;
   font-size: 10px;
@@ -5170,7 +5180,7 @@ body.profile-view-settings .profile-settings-card.is-active {
 .session-modal-block strong {
   display: block;
   margin-top: 6px;
-  color: #edf1f7;
+  color: var(--text, #1A1A1A);
   font-size: 12px;
   font-weight: 500;
   line-height: 1.38;
@@ -5226,14 +5236,14 @@ body.profile-view-settings .profile-settings-card.is-active {
 }
 
 .macro-icon {
-  color: #e8edf5;
+  color: var(--text-secondary, #6B7280);
   font-size: 11px;
   opacity: 0.9;
 }
 
 .macro-chip strong {
   font-size: 11px;
-  color: #edf2f8;
+  color: var(--text, #1A1A1A);
   font-weight: 600;
 }
 
@@ -6091,7 +6101,7 @@ input[type="range"]::-moz-range-thumb {
   position: relative;
   font-size: 12px;
   line-height: 1.6;
-  color: #c8d0dc;
+  color: var(--text-secondary, #6B7280);
   padding-left: 4px;
 }
 
@@ -8478,7 +8488,7 @@ details[open] .fa-bd-summary { color: rgba(0, 0, 0, 0.5); margin-bottom: 10px; }
   display: block;
   font-size: 14px;
   font-weight: 700;
-  color: #f3f4f6;
+  color: var(--text, #1A1A1A);
   margin-bottom: 4px;
   letter-spacing: -0.01em;
 }
@@ -11253,7 +11263,7 @@ details[open] .fa-bd-summary { color: rgba(0, 0, 0, 0.5); margin-bottom: 10px; }
 .sota-modal-card {
   background: #F8F8FA; border: 1px solid rgba(0, 0, 0, 0.08); border-radius: 12px;
   width: 100%; padding: 22px 20px; max-height: 92vh; overflow-y: auto;
-  color: #e5e7eb; font-family: system-ui, -apple-system, sans-serif;
+  color: var(--text, #1A1A1A); font-family: system-ui, -apple-system, sans-serif;
 }
 .sota-modal-header {
   display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;
@@ -11334,7 +11344,7 @@ details[open] .fa-bd-summary { color: rgba(0, 0, 0, 0.5); margin-bottom: 10px; }
 /* Strava error banner */
 .strava-error-banner {
   background: #F8F8FA; border-radius: 12px; padding: 14px 16px;
-  margin: 12px 0; color: #e5e7eb; font-family: system-ui;
+  margin: 12px 0; color: var(--text, #1A1A1A); font-family: system-ui;
 }
 .strava-error-title {
   font-weight: 700; margin-bottom: 6px;
