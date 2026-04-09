@@ -310,12 +310,19 @@ const sbDb = {
     return data || [];
   },
 
-  /** Get full friendships (outgoing + incoming, any status) */
+  /** Get full friendships (outgoing + incoming, any status) with profile info */
   async getAllFriendships(userId) {
     const { data, error } = await sb.from("friendships")
-      .select("id, user_id, friend_id, status, created_at")
+      .select("id, user_id, friend_id, status, created_at, requester:user_id(id, email, display_name, profile_image), target:friend_id(id, email, display_name, profile_image)")
       .or(`user_id.eq.${userId},friend_id.eq.${userId}`);
-    if (error) { console.warn("[sbDb.getAllFriendships]", error); return []; }
+    if (error) {
+      console.warn("[sbDb.getAllFriendships] join failed, fallback:", error?.message);
+      const fb = await sb.from("friendships")
+        .select("id, user_id, friend_id, status, created_at")
+        .or(`user_id.eq.${userId},friend_id.eq.${userId}`);
+      if (fb.error) { console.warn("[sbDb.getAllFriendships]", fb.error); return []; }
+      return fb.data || [];
+    }
     return data || [];
   },
 

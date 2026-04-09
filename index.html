@@ -3,13 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#050506" />
+    <meta name="theme-color" content="#FFFFFF" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="description" content="AImAthlete – Dein intelligenter Trainingsplan. Laufen, Radfahren, Triathlon, HYROX, Shape." />
+    <meta name="description" content="peak.athlete – Dein intelligenter Trainingsplan. Laufen, Radfahren, Triathlon, HYROX, Shape." />
     <link rel="manifest" href="./manifest.json" />
-    <title>AImAthlete | Training Platform</title>
+    <title>peak.athlete</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://images.pexels.com" crossorigin />
@@ -25,14 +25,14 @@
     <div class="ambient ambient-glow glow-b" aria-hidden="true"></div>
     <nav class="account-bar" id="account-bar" aria-live="polite">
       <div class="account-bar-left">
-        <a class="nav-brand" id="brand-anchor" href="#" aria-label="AImAthlete Home">
-          <div class="brand-mark" aria-hidden="true"><span>A</span></div>
-          <strong class="brand-wordmark">AImAthlete</strong>
+        <a class="nav-brand" id="brand-anchor" href="#" aria-label="peak.athlete Home">
+          <div class="brand-mark" aria-hidden="true"><span>p</span></div>
+          <strong class="brand-wordmark">peak.athlete</strong>
         </a>
         <div class="nav-divider"></div>
         <button type="button" class="account-btn" id="account-profile-btn" data-i18n="nav_profile">Profil</button>
         <button type="button" class="account-btn is-active" id="account-home-btn" data-i18n="nav_training">Training</button>
-        <button type="button" class="nav-cta nav-cta-race" id="account-peakplan-btn" title="peakplan."><span data-i18n="nav_peakplan">peakplan.</span></button>
+        <button type="button" class="nav-cta nav-cta-race" id="account-peakplan-btn" title="peak.plan"><span data-i18n="nav_peakplan">peak.plan</span></button>
       </div>
       <div class="account-bar-right">
         <button type="button" class="account-btn" id="account-login-btn" data-i18n="nav_login">Login</button>
@@ -572,6 +572,102 @@
           <!-- Photo section removed -->
         </section>
 
+        <!-- Daily Decision Screen (Heute Tab) -->
+        <section class="heute-screen" id="heute-screen" hidden>
+          <!-- v2: Greeting + Decision Badge -->
+          <div class="heute-greeting" id="heute-greeting">
+            <span class="heute-greeting-text" id="heute-greeting-text">Guten Morgen.</span>
+          </div>
+          <div class="heute-decision-badge" id="heute-decision-badge">Train Easy</div>
+          <div class="heute-decision-reasons" id="heute-decision-reasons">
+            <!-- v2: Populated by Decision Engine with max 3 reason items -->
+          </div>
+          <div class="heute-readiness" id="heute-readiness">
+            <div class="heute-readiness-ring" id="heute-readiness-ring">
+              <svg class="heute-ring-svg" viewBox="0 0 120 120">
+                <circle class="heute-ring-track" cx="60" cy="60" r="52" />
+                <circle class="heute-ring-progress" cx="60" cy="60" r="52" id="heute-ring-progress" />
+              </svg>
+              <span class="heute-ring-score" id="heute-ring-score">--</span>
+            </div>
+            <div class="heute-readiness-info">
+              <span class="heute-readiness-label" id="heute-readiness-label">Readiness</span>
+              <span class="heute-readiness-interp" id="heute-readiness-interp">Lade Daten...</span>
+              <span class="heute-phase-tag" id="heute-phase-tag"></span>
+            </div>
+          </div>
+
+          <div class="heute-session-card" id="heute-session-card">
+            <div class="heute-session-header">
+              <span class="heute-session-sport-dot" id="heute-session-dot"></span>
+              <span class="heute-session-type" id="heute-session-type">Heutige Session</span>
+              <span class="heute-session-duration" id="heute-session-duration"></span>
+            </div>
+            <h3 class="heute-session-title" id="heute-session-title">Kein Plan aktiv</h3>
+            <div class="heute-session-structure" id="heute-session-structure"></div>
+            <div class="heute-session-why" id="heute-session-why"></div>
+            <div class="heute-session-actions" id="heute-session-actions">
+              <button type="button" class="heute-btn-start" id="heute-btn-start">Starten</button>
+              <button type="button" class="heute-btn-adjust" id="heute-btn-adjust">Anpassen</button>
+              <button type="button" class="heute-btn-skip" id="heute-btn-skip">Überspringen</button>
+            </div>
+          </div>
+
+          <div class="heute-tomorrow" id="heute-tomorrow" hidden>
+            <span class="heute-tomorrow-label">Morgen</span>
+            <span class="heute-tomorrow-text" id="heute-tomorrow-text"></span>
+          </div>
+
+          <div class="heute-context" id="heute-context">
+            <div class="heute-context-row" id="heute-ctx-load">
+              <span class="heute-ctx-label">Wochenload</span>
+              <div class="heute-ctx-bar"><div class="heute-ctx-bar-fill" id="heute-ctx-load-fill"></div></div>
+              <span class="heute-ctx-value" id="heute-ctx-load-value">--</span>
+            </div>
+            <div class="heute-context-row" id="heute-ctx-sleep">
+              <span class="heute-ctx-label">Schlaf</span>
+              <span class="heute-ctx-value" id="heute-ctx-sleep-value">--</span>
+            </div>
+            <div class="heute-context-row" id="heute-ctx-hrv">
+              <span class="heute-ctx-label">HRV</span>
+              <span class="heute-ctx-value" id="heute-ctx-hrv-value">--</span>
+            </div>
+            <div class="heute-context-row" id="heute-ctx-recovery">
+              <span class="heute-ctx-label">Recovery</span>
+              <span class="heute-ctx-value" id="heute-ctx-recovery-value">--</span>
+            </div>
+          </div>
+
+          <div class="heute-quicklog" id="heute-quicklog" hidden>
+            <h4 class="heute-quicklog-title">Quick Log</h4>
+            <div class="heute-quicklog-srpe">
+              <span class="heute-quicklog-label">Belastung (sRPE)</span>
+              <div class="heute-quicklog-scale" id="heute-quicklog-scale">
+                <button type="button" class="heute-srpe-btn" data-srpe="1">1</button>
+                <button type="button" class="heute-srpe-btn" data-srpe="2">2</button>
+                <button type="button" class="heute-srpe-btn" data-srpe="3">3</button>
+                <button type="button" class="heute-srpe-btn" data-srpe="4">4</button>
+                <button type="button" class="heute-srpe-btn" data-srpe="5">5</button>
+                <button type="button" class="heute-srpe-btn" data-srpe="6">6</button>
+                <button type="button" class="heute-srpe-btn" data-srpe="7">7</button>
+                <button type="button" class="heute-srpe-btn" data-srpe="8">8</button>
+                <button type="button" class="heute-srpe-btn" data-srpe="9">9</button>
+                <button type="button" class="heute-srpe-btn" data-srpe="10">10</button>
+              </div>
+            </div>
+            <div class="heute-quicklog-feel">
+              <span class="heute-quicklog-label">Wie fühlst du dich?</span>
+              <div class="heute-quicklog-feel-btns" id="heute-quicklog-feel-btns">
+                <button type="button" class="heute-feel-btn" data-feel="great">Stark</button>
+                <button type="button" class="heute-feel-btn" data-feel="ok">OK</button>
+                <button type="button" class="heute-feel-btn" data-feel="tired">Müde</button>
+                <button type="button" class="heute-feel-btn" data-feel="sore">Kaputt</button>
+              </div>
+            </div>
+            <button type="button" class="heute-quicklog-save" id="heute-quicklog-save">Speichern</button>
+          </div>
+        </section>
+
         <section class="surface section-home-feed stage-reveal" id="home-feed-section" hidden>
           <div class="surface-head">
             <div>
@@ -587,8 +683,8 @@
             <div class="empty-state">
               <div class="empty-state-icon">
                 <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-                  <circle cx="24" cy="24" r="20" stroke="rgba(255,255,255,0.1)" stroke-width="2"/>
-                  <path d="M16 28l4-8 4 6 4-4 4 8" stroke="rgba(255,255,255,0.2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <circle cx="24" cy="24" r="20" stroke="rgba(0,0,0,0.08)" stroke-width="2"/>
+                  <path d="M16 28l4-8 4 6 4-4 4 8" stroke="rgba(0,0,0,0.12)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
               </div>
               <p class="empty-state-title">Noch keine Aktivitäten</p>
@@ -626,6 +722,71 @@
             <button type="button" class="stats-sub-tab" data-stats-sub="health">Health</button>
             <button type="button" class="stats-sub-tab" data-stats-sub="load">Belastung</button>
           </div>
+          <!-- ═══ PERFORMANCE STATE DASHBOARD (Phase 2) ═══ -->
+          <div class="perf-state-dashboard profile-card-statistics" id="perf-state-dashboard">
+            <div class="perf-state-arcs">
+              <div class="perf-arc" id="perf-arc-fitness">
+                <svg class="perf-arc-svg" viewBox="0 0 100 100">
+                  <circle class="perf-arc-track" cx="50" cy="50" r="42" />
+                  <circle class="perf-arc-progress" cx="50" cy="50" r="42" id="perf-arc-fitness-ring" />
+                </svg>
+                <div class="perf-arc-inner">
+                  <span class="perf-arc-value" id="perf-arc-fitness-val">--</span>
+                  <span class="perf-arc-label">Fitness</span>
+                </div>
+              </div>
+              <div class="perf-arc" id="perf-arc-fatigue">
+                <svg class="perf-arc-svg" viewBox="0 0 100 100">
+                  <circle class="perf-arc-track" cx="50" cy="50" r="42" />
+                  <circle class="perf-arc-progress" cx="50" cy="50" r="42" id="perf-arc-fatigue-ring" />
+                </svg>
+                <div class="perf-arc-inner">
+                  <span class="perf-arc-value" id="perf-arc-fatigue-val">--</span>
+                  <span class="perf-arc-label">Fatigue</span>
+                </div>
+              </div>
+              <div class="perf-arc" id="perf-arc-form">
+                <svg class="perf-arc-svg" viewBox="0 0 100 100">
+                  <circle class="perf-arc-track" cx="50" cy="50" r="42" />
+                  <circle class="perf-arc-progress" cx="50" cy="50" r="42" id="perf-arc-form-ring" />
+                </svg>
+                <div class="perf-arc-inner">
+                  <span class="perf-arc-value" id="perf-arc-form-val">--</span>
+                  <span class="perf-arc-label">Form</span>
+                </div>
+              </div>
+            </div>
+            <div class="perf-state-interp" id="perf-state-interp">Lade Daten...</div>
+            <div class="perf-state-race" id="perf-state-race" hidden>
+              <span class="perf-state-race-name" id="perf-state-race-name"></span>
+              <span class="perf-state-race-countdown" id="perf-state-race-countdown"></span>
+            </div>
+            <div class="perf-state-thresholds" id="perf-state-thresholds">
+              <div class="perf-thr-row"><span class="perf-thr-label">Pace</span><span class="perf-thr-value" id="perf-thr-pace">--</span></div>
+              <div class="perf-thr-row"><span class="perf-thr-label">HR@LT</span><span class="perf-thr-value" id="perf-thr-hr">--</span></div>
+              <div class="perf-thr-row"><span class="perf-thr-label">VO2max</span><span class="perf-thr-value" id="perf-thr-vo2">--</span></div>
+            </div>
+          </div>
+          <!-- ═══ PERFORMANCE GRAPH (Phase 4) ═══ -->
+          <div class="result-card account-card perf-graph-card profile-card-statistics" id="perf-graph-card">
+            <div class="perf-graph-header">
+              <span class="perf-graph-title">Performance Trajectory</span>
+              <div class="perf-graph-range">
+                <button type="button" class="perf-graph-range-btn" data-range="3m">3M</button>
+                <button type="button" class="perf-graph-range-btn is-active" data-range="6m">6M</button>
+                <button type="button" class="perf-graph-range-btn" data-range="12m">12M</button>
+              </div>
+            </div>
+            <div class="perf-graph-canvas" id="perf-graph-canvas">
+              <svg class="perf-graph-svg" id="perf-graph-svg" preserveAspectRatio="none"></svg>
+            </div>
+            <div class="perf-graph-legend">
+              <span class="perf-graph-legend-item"><span class="perf-graph-legend-dot" style="background:#3b82f6;"></span>Fitness (CTL)</span>
+              <span class="perf-graph-legend-item"><span class="perf-graph-legend-dot" style="background:rgba(26,26,26,0.2);"></span>Volumen</span>
+              <span class="perf-graph-legend-item"><span class="perf-graph-legend-dot" style="background:#22c55e;"></span>Form (TSB)</span>
+            </div>
+          </div>
+
           <div class="account-grid">
             <!-- ═══ MEDAL BOARD / TROPHY CASE ═══ -->
             <section class="result-card account-card profile-main-card profile-card-overview medal-board-card" id="profile-card-medals">
@@ -866,6 +1027,18 @@
                 </div>
               </div>
               <div class="predictions-adaptive-status" id="predictions-adaptive-status" hidden></div>
+            </section>
+
+            <!-- ═══ ATHLETE IDENTITY (Phase 4) ═══ -->
+            <section class="result-card account-card profile-main-card profile-card-overview athlete-id-card" id="athlete-id-card">
+              <div class="result-title-row">
+                <h4>Athlete Identity</h4>
+              </div>
+              <div class="athlete-id-tagline" id="athlete-id-tagline"></div>
+              <div class="athlete-id-stats" id="athlete-id-stats"></div>
+              <div class="athlete-id-badges" id="athlete-id-badges"></div>
+              <h5 class="dashboard-section-header" style="margin-top:12px;font-size:11px;">Race Timeline</h5>
+              <div class="athlete-id-race-timeline" id="athlete-id-timeline"></div>
             </section>
 
             <section class="result-card account-card profile-main-card profile-card-settings" id="profile-card-identity">
@@ -1390,16 +1563,16 @@
                 <span class="tag subtle">Beta</span>
               </div>
               <p class="card-copy settings-panel-copy">Persönliche Informationen und Sportpräferenzen.</p>
-              <div class="settings-avatar-block" style="display:flex;gap:16px;align-items:center;margin-bottom:16px;padding:12px;background:rgba(255,255,255,0.02);border-radius:12px;">
+              <div class="settings-avatar-block" style="display:flex;gap:16px;align-items:center;margin-bottom:16px;padding:12px;background:var(--bg-secondary, #F8F8FA);border-radius:12px;">
                 <label for="settings-avatar-input" class="profile-avatar-upload" style="cursor:pointer;">
                   <span id="settings-avatar-preview" class="profile-avatar-preview" style="width:72px;height:72px;font-size:28px;">A</span>
                 </label>
                 <div style="flex:1;min-width:0;">
                   <strong style="display:block;margin-bottom:4px;">Profilbild</strong>
-                  <small style="display:block;color:#94a3b8;margin-bottom:8px;">Klick auf den Avatar oder wähle eine Datei. Wird automatisch auf max. 1600px skaliert.</small>
+                  <small style="display:block;color:var(--text-muted, #9CA3AF);margin-bottom:8px;">Klick auf den Avatar oder wähle eine Datei. Wird automatisch auf max. 1600px skaliert.</small>
                   <div style="display:flex;gap:8px;align-items:center;">
-                    <label for="settings-avatar-input" class="ghost" style="cursor:pointer;padding:6px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);font-size:13px;">Bild auswählen</label>
-                    <button type="button" id="settings-avatar-remove" class="ghost" style="padding:6px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);font-size:13px;display:none;">Entfernen</button>
+                    <label for="settings-avatar-input" class="ghost" style="cursor:pointer;padding:6px 12px;border-radius:8px;border:1px solid var(--border, rgba(0,0,0,0.08));font-size:13px;">Bild auswählen</label>
+                    <button type="button" id="settings-avatar-remove" class="ghost" style="padding:6px 12px;border-radius:8px;border:1px solid var(--border, rgba(0,0,0,0.08));font-size:13px;display:none;">Entfernen</button>
                     <span id="settings-avatar-status" class="connection-state" aria-live="polite" style="font-size:12px;"></span>
                   </div>
                 </div>
@@ -1542,7 +1715,7 @@
                 </div>
 
                 <div class="connector-row">
-                  <div class="connector-brand"><strong class="connector-brand-name" style="color:#fff;letter-spacing:1px">WHOOP</strong></div>
+                  <div class="connector-brand"><strong class="connector-brand-name" style="color:#1A1A1A;letter-spacing:1px">WHOOP</strong></div>
                   <div class="connector-info">
                     <strong>WHOOP</strong>
                     <span class="connector-status-text">Du bist noch nicht mit WHOOP verbunden.</span>
@@ -1972,8 +2145,8 @@
                 <div class="empty-state">
                   <div class="empty-state-icon">
                     <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-                      <circle cx="24" cy="24" r="20" stroke="rgba(255,255,255,0.1)" stroke-width="2"/>
-                      <path d="M18 30l3-6 3 4.5 3-3 3 6" stroke="rgba(255,255,255,0.2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      <circle cx="24" cy="24" r="20" stroke="rgba(0,0,0,0.08)" stroke-width="2"/>
+                      <path d="M18 30l3-6 3 4.5 3-3 3 6" stroke="rgba(0,0,0,0.12)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                   </div>
                   <p class="empty-state-title" data-i18n="empty_profile_feed">Noch keine Aktivitaeten gepostet</p>
@@ -1987,8 +2160,8 @@
                 <div class="empty-state">
                   <div class="empty-state-icon">
                     <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-                      <circle cx="24" cy="24" r="20" stroke="rgba(255,255,255,0.1)" stroke-width="2"/>
-                      <path d="M16 28l4-8 4 6 4-4 4 8" stroke="rgba(255,255,255,0.2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      <circle cx="24" cy="24" r="20" stroke="rgba(0,0,0,0.08)" stroke-width="2"/>
+                      <path d="M16 28l4-8 4 6 4-4 4 8" stroke="rgba(0,0,0,0.12)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                   </div>
                   <p class="empty-state-title">Noch keine Aktivitaeten</p>
@@ -1999,13 +2172,34 @@
 
             <!-- ── Training Calendar ── -->
             <section class="result-card account-card profile-main-card profile-card-calendar" id="profile-calendar-section" style="grid-column:1/-1;">
-              <div class="cal-header">
-                <button type="button" id="cal-prev" class="ghost icon-only" aria-label="Vorheriger Monat">&lsaquo;</button>
-                <span id="cal-month-label" class="section-label cal-month-label"></span>
-                <button type="button" id="cal-next" class="ghost icon-only" aria-label="Naechster Monat">&rsaquo;</button>
+              <!-- View toggle: Woche / Monat -->
+              <div class="cal-view-toggle" id="cal-view-toggle">
+                <button type="button" class="cal-view-btn is-active" data-cal-view="week">Woche</button>
+                <button type="button" class="cal-view-btn" data-cal-view="month">Monat</button>
               </div>
-              <div id="cal-grid" class="cal-grid"></div>
-              <div id="cal-day-detail" class="cal-day-detail" hidden></div>
+              <!-- Week Map (Enduco-style horizontal bars) -->
+              <div id="cal-week-map" class="cal-week-map">
+                <div class="cal-header cal-week-header">
+                  <button type="button" id="cal-week-prev" class="ghost icon-only" aria-label="Vorherige Woche">&lsaquo;</button>
+                  <span id="cal-week-label" class="section-label cal-month-label"></span>
+                  <button type="button" id="cal-week-next" class="ghost icon-only" aria-label="Nächste Woche">&rsaquo;</button>
+                </div>
+                <div id="cal-week-phase" class="cal-week-phase"></div>
+                <div id="cal-week-bars" class="cal-week-bars"></div>
+                <div id="cal-week-summary" class="cal-week-summary"></div>
+                <div id="cal-week-detail" class="cal-day-detail" hidden></div>
+              </div>
+              <!-- Month View (existing) -->
+              <div id="cal-month-map" class="cal-month-map">
+                <div class="cal-header">
+                  <button type="button" id="cal-prev" class="ghost icon-only" aria-label="Vorheriger Monat">&lsaquo;</button>
+                  <span id="cal-month-label" class="section-label cal-month-label"></span>
+                  <button type="button" id="cal-next" class="ghost icon-only" aria-label="Naechster Monat">&rsaquo;</button>
+                </div>
+                <div id="cal-week-purpose" class="cal-week-purpose" hidden></div>
+                <div id="cal-grid" class="cal-grid"></div>
+                <div id="cal-day-detail" class="cal-day-detail" hidden></div>
+              </div>
             </section>
           </div>
           </div>
@@ -2013,7 +2207,31 @@
           <div class="account-pane" id="account-pane-crew">
           <div class="account-grid crew-layout">
 
-            <!-- Community Feed (primary - takes most space) -->
+            <!-- ═══ SOCIAL INTELLIGENCE — Filtered Connection Feed (Phase 5) ═══ -->
+            <section class="result-card account-card account-social-card crew-feed-main" id="social-feed-card">
+              <div class="result-title-row">
+                <h4>Connection Feed</h4>
+                <span class="tag subtle" id="social-feed-count">0</span>
+              </div>
+              <div class="social-feed-filter" id="social-feed-filter">
+                <button type="button" class="social-feed-filter-btn is-active" data-filter="all">Alle</button>
+                <button type="button" class="social-feed-filter-btn" data-filter="key">Key Sessions</button>
+                <button type="button" class="social-feed-filter-btn" data-filter="milestones">Meilensteine</button>
+                <button type="button" class="social-feed-filter-btn" data-filter="races">Rennen</button>
+              </div>
+              <div id="social-feed-list" class="activity-feed-list"></div>
+            </section>
+
+            <!-- ═══ CREW CHALLENGES (Phase 5) ═══ -->
+            <section class="result-card account-card" id="crew-challenges-card">
+              <div class="result-title-row">
+                <h4>Crew Challenges</h4>
+                <button type="button" class="ghost small" id="crew-challenge-create-btn">+ Neu</button>
+              </div>
+              <div id="crew-challenges-list"></div>
+            </section>
+
+            <!-- Community Feed (existing) -->
             <section class="result-card account-card account-social-card crew-feed-main" id="crew-feed-card">
               <div class="result-title-row">
                 <h4 data-i18n="crew_feed">Feed</h4>
@@ -2023,10 +2241,10 @@
                 <div class="empty-state">
                   <div class="empty-state-icon">
                     <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-                      <circle cx="24" cy="24" r="20" stroke="rgba(255,255,255,0.1)" stroke-width="2"/>
-                      <circle cx="20" cy="20" r="4" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
-                      <circle cx="28" cy="20" r="4" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
-                      <path d="M14 34a8 8 0 0 1 8-8h4a8 8 0 0 1 8 8" stroke="rgba(255,255,255,0.15)" stroke-width="2" stroke-linecap="round"/>
+                      <circle cx="24" cy="24" r="20" stroke="rgba(0,0,0,0.08)" stroke-width="2"/>
+                      <circle cx="20" cy="20" r="4" stroke="rgba(0,0,0,0.12)" stroke-width="2"/>
+                      <circle cx="28" cy="20" r="4" stroke="rgba(0,0,0,0.10)" stroke-width="2"/>
+                      <path d="M14 34a8 8 0 0 1 8-8h4a8 8 0 0 1 8 8" stroke="rgba(0,0,0,0.10)" stroke-width="2" stroke-linecap="round"/>
                     </svg>
                   </div>
                   <p class="empty-state-title" data-i18n="empty_crew_feed">Noch keine Community-Aktivitaeten</p>
@@ -2042,6 +2260,7 @@
                   <h4 data-i18n="crew_friends_connect">Freunde</h4>
                   <span class="tag subtle">MVP</span>
                 </div>
+                <div id="pending-requests" class="pending-requests" hidden></div>
                 <div id="friends-list" class="friends-list friends-compact">
                   <div class="empty-copy" data-i18n="empty_connections">Noch keine Verbindungen.</div>
                 </div>
@@ -2167,7 +2386,7 @@
       <footer class="site-footer">
         <div class="footer-top">
           <div class="footer-brand">
-            <strong>AImAthlete</strong>
+            <strong>peak.athlete</strong>
             <span>The premium training platform.</span>
           </div>
           <div class="footer-links">
@@ -2191,7 +2410,7 @@
               <span class="lang-flag">🇯🇵</span> JP
             </button>
           </nav>
-          <span class="footer-copy">© 2026 AImAthlete. Alle Rechte vorbehalten.</span>
+          <span class="footer-copy">© 2026 peak.athlete. Alle Rechte vorbehalten.</span>
         </div>
       </footer>
     </main>
@@ -2380,7 +2599,7 @@
       <article class="account-modal-card glossary-modal-card" role="dialog" aria-modal="true" aria-labelledby="glossary-modal-title">
         <button type="button" class="session-modal-close" data-close-glossary-modal aria-label="Close">×</button>
         <div class="session-modal-head">
-          <div class="session-modal-meta">AImAthlete Guide</div>
+          <div class="session-modal-meta">peak.athlete Guide</div>
           <h4 id="glossary-modal-title">Trainingsbibliothek</h4>
           <p>Kurze Erklärungen zu Begriffen aus Lauf-, Triathlon-, HYROX- und Strength-Training.</p>
         </div>
@@ -2505,7 +2724,7 @@
       <article class="account-modal-card glossary-modal-card legal-modal-card" role="dialog" aria-modal="true" aria-labelledby="legal-modal-title">
         <button type="button" class="session-modal-close" data-close-legal-modal aria-label="Close">×</button>
         <div class="session-modal-head">
-          <div class="session-modal-meta">AImAthlete Legal & Compliance</div>
+          <div class="session-modal-meta">peak.athlete Legal & Compliance</div>
           <h4 id="legal-modal-title">Public Beta Legal Paket (Draft)</h4>
           <p id="legal-modal-subtitle">Vorlage zur internen Vorbereitung. Vor Launch juristisch prüfen lassen (DE/EU, Gesundheits-/Trainingsbezug).</p>
         </div>
@@ -2537,7 +2756,7 @@
           </svg>
           <div class="login-success-icon">✓</div>
         </div>
-        <strong class="login-success-brand">AImAthlete</strong>
+        <strong class="login-success-brand">peak.athlete</strong>
         <span class="login-success-msg" data-i18n="login_welcome">Willkommen zurück</span>
       </div>
     </div>
@@ -2838,7 +3057,7 @@
           <strong class="cookie-consent-title">Cookies & Privatsphäre</strong>
           <p class="cookie-consent-copy">
             Wir nutzen technisch notwendige Cookies für dein Login und deine Einstellungen.
-            Optional helfen uns anonyme Analyse-Cookies, AImAthlete zu verbessern. Deine Wahl kannst du jederzeit widerrufen.
+            Optional helfen uns anonyme Analyse-Cookies, peak.athlete zu verbessern. Deine Wahl kannst du jederzeit widerrufen.
             <button type="button" class="text-link-btn" data-legal-open="cookies">Details</button>
           </p>
         </div>
@@ -2848,6 +3067,44 @@
         </div>
       </div>
     </div>
+
+    <!-- Bottom Tab Bar (mobile navigation) -->
+    <nav class="tab-bar" id="tab-bar" aria-label="Hauptnavigation">
+      <button type="button" class="tab-bar-item is-active" data-tab="heute" aria-label="Heute">
+        <svg class="tab-bar-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+        <span class="tab-bar-label">Heute</span>
+      </button>
+      <button type="button" class="tab-bar-item" data-tab="kalender" aria-label="Kalender">
+        <svg class="tab-bar-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+        <span class="tab-bar-label">Kalender</span>
+      </button>
+      <button type="button" class="tab-bar-item tab-bar-fab" data-tab="peakplan" aria-label="peak.plan">
+        <span class="tab-bar-fab-ring">
+          <svg class="tab-bar-icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+        </span>
+        <span class="tab-bar-label">peak.plan</span>
+      </button>
+      <button type="button" class="tab-bar-item" data-tab="analyse" aria-label="Analyse">
+        <svg class="tab-bar-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+        </svg>
+        <span class="tab-bar-label">Analyse</span>
+      </button>
+      <button type="button" class="tab-bar-item" data-tab="profil" aria-label="Profil">
+        <span class="tab-bar-avatar" id="tab-bar-avatar">
+          <svg class="tab-bar-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+          </svg>
+        </span>
+        <span class="tab-bar-label">Profil</span>
+      </button>
+    </nav>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>

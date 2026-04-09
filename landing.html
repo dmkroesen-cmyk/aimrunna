@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="description" content="peak.athlete — Dein intelligenter Trainingsplan. Die Decision Engine fuer Laufen, Radfahren, Triathlon, HYROX und Shape." />
+  <title>peak.athlete — Plan your next race.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #FFFFFF;
+      --bg-dark: #0B0F1A;
+      --bg-card: #F8F8FA;
+      --text: #1A1A1A;
+      --text-secondary: #6B7280;
+      --text-muted: #9CA3AF;
+      --accent: #D4850F;
+      --accent-light: #FEF3E2;
+      --border: #E5E7EB;
+      --radius: 12px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      height: 64px;
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--text);
+    }
+    .nav-mark {
+      width: 32px;
+      height: 32px;
+      background: var(--text);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 800;
+      font-size: 18px;
+    }
+    .nav-wordmark {
+      font-weight: 700;
+      font-size: 16px;
+      letter-spacing: -0.02em;
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .nav-link {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+    .nav-link:hover { color: var(--text); background: var(--bg-card); }
+    .nav-cta {
+      padding: 8px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      color: white;
+      background: var(--text);
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+    .nav-cta:hover { background: #333; }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      background: var(--bg-dark);
+    }
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 4px;
+      opacity: 0.4;
+    }
+    .hero-bg-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        180deg,
+        rgba(11,15,26,0.3) 0%,
+        rgba(11,15,26,0.6) 40%,
+        rgba(11,15,26,0.85) 100%
+      );
+    }
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      max-width: 720px;
+      padding: 120px 24px 80px;
+    }
+    .hero-eyebrow {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 20px;
+    }
+    .hero-title {
+      font-size: clamp(40px, 7vw, 72px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      color: white;
+      margin-bottom: 20px;
+    }
+    .hero-sub {
+      font-size: 18px;
+      font-weight: 400;
+      line-height: 1.6;
+      color: rgba(255,255,255,0.6);
+      max-width: 520px;
+      margin: 0 auto 40px;
+    }
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      background: white;
+      text-decoration: none;
+      transition: all 0.15s;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-primary:hover { background: #f0f0f0; transform: translateY(-1px); }
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.8);
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.15);
+      text-decoration: none;
+      transition: all 0.15s;
+      cursor: pointer;
+    }
+    .btn-secondary:hover { background: rgba(255,255,255,0.15); }
+
+    /* ── FEATURES ── */
+    .features {
+      padding: 120px 24px;
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+    .features-eyebrow {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .features-title {
+      font-size: clamp(28px, 4vw, 40px);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      text-align: center;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+    .features-sub {
+      font-size: 16px;
+      color: var(--text-secondary);
+      text-align: center;
+      max-width: 560px;
+      margin: 0 auto 64px;
+      line-height: 1.6;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .feature-card {
+      padding: 32px 24px;
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      transition: all 0.2s;
+    }
+    .feature-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+    .feature-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      margin-bottom: 16px;
+    }
+    .feature-card h3 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+    .feature-card p {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* ── PLAN SECTION (dark) ── */
+    .plan-section {
+      background: var(--bg-dark);
+      padding: 100px 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .plan-section-bg {
+      position: absolute;
+      inset: 0;
+      opacity: 0.15;
+    }
+    .plan-section-bg img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .plan-section-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(11,15,26,0.7) 0%, rgba(11,15,26,0.9) 100%);
+    }
+    .plan-content {
+      position: relative;
+      z-index: 2;
+      max-width: 800px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .plan-eyebrow {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 16px;
+    }
+    .plan-title {
+      font-size: clamp(32px, 5vw, 56px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: white;
+      margin-bottom: 16px;
+    }
+    .plan-sub {
+      font-size: 16px;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 40px;
+      line-height: 1.6;
+    }
+    .plan-modes {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      margin-top: 0;
+    }
+    .plan-mode-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 24px 36px;
+      background: white;
+      border-radius: 12px;
+      text-decoration: none;
+      color: var(--bg-dark);
+      min-width: 220px;
+      flex: 1;
+      max-width: 280px;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .plan-mode-btn:hover {
+      background: #f0f0f0;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    }
+    .plan-mode-btn svg {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      color: var(--text-muted);
+      opacity: 0.4;
+      transition: opacity 0.15s, transform 0.15s;
+    }
+    .plan-mode-btn:hover svg {
+      opacity: 0.8;
+      transform: translateX(2px);
+    }
+    .plan-mode-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+    .plan-mode-name {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+    .plan-mode-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+
+    /* ── ANALYTICS PREVIEW ── */
+    .analytics {
+      padding: 120px 24px;
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+    .analytics-eyebrow {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .analytics-title {
+      font-size: clamp(28px, 4vw, 40px);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .analytics-sub {
+      font-size: 16px;
+      color: var(--text-secondary);
+      text-align: center;
+      max-width: 520px;
+      margin: 0 auto 64px;
+      line-height: 1.6;
+    }
+    .analytics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .analytics-card {
+      background: var(--bg-dark);
+      border-radius: var(--radius);
+      padding: 24px;
+      color: white;
+      overflow: hidden;
+    }
+    .analytics-card-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+      margin-bottom: 12px;
+    }
+    .analytics-card-value {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+    .analytics-card-meta {
+      font-size: 12px;
+      color: rgba(255,255,255,0.4);
+    }
+    .analytics-card-wide {
+      grid-column: 1 / -1;
+    }
+    .analytics-chart-placeholder {
+      height: 120px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 8px;
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: rgba(255,255,255,0.2);
+    }
+
+    /* ── SPORTS ── */
+    .sports {
+      padding: 80px 24px;
+      background: var(--bg-card);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .sports-inner {
+      max-width: 800px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .sports-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+      margin-bottom: 32px;
+    }
+    .sports-list {
+      display: flex;
+      gap: 32px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .sport-pill {
+      padding: 10px 24px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      background: white;
+      border: 1px solid var(--border);
+    }
+
+    /* ── CTA FINAL ── */
+    .cta-section {
+      padding: 120px 24px;
+      text-align: center;
+    }
+    .cta-title {
+      font-size: clamp(28px, 4vw, 40px);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+    }
+    .cta-sub {
+      font-size: 16px;
+      color: var(--text-secondary);
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+    .app-coming-soon {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 24px;
+      padding: 12px 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+    .app-coming-soon svg {
+      color: var(--accent);
+    }
+
+    /* ── FOOTER ── */
+    .footer {
+      padding: 48px 24px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+    .footer-brand {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+    .footer-links {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .footer-links a {
+      font-size: 13px;
+      color: var(--text-muted);
+      text-decoration: none;
+    }
+    .footer-links a:hover { color: var(--text); }
+    .footer-copy {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .nav { padding: 0 16px; }
+      .nav-links { gap: 4px; }
+      .nav-link { display: none; }
+      .features-grid { grid-template-columns: 1fr; }
+      .analytics-grid { grid-template-columns: 1fr; }
+      .plan-modes { flex-direction: column; align-items: stretch; padding: 0 20px; }
+      .plan-mode-btn { max-width: 100%; min-width: auto; }
+      .hero-content { padding: 100px 20px 60px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <a href="#" class="nav-brand">
+      <div class="nav-mark">p</div>
+      <span class="nav-wordmark">peak.athlete</span>
+    </a>
+    <div class="nav-links">
+      <a href="#features" class="nav-link">Features</a>
+      <a href="#plan" class="nav-link">peak.plan</a>
+      <a href="#analytics" class="nav-link">Analytics</a>
+      <a href="./index.html" class="nav-cta">App starten</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-bg">
+      <img class="hero-bg-img" src="./pics/IMG_5985.jpeg" alt="" loading="eager" />
+      <img class="hero-bg-img" src="./pics/93124896-5C3F-41E0-9034-3463509696F4.jpeg" alt="" loading="eager" />
+      <img class="hero-bg-img" src="./pics/IMG_7505.jpeg" alt="" loading="eager" />
+    </div>
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <p class="hero-eyebrow">Trusted Performance OS</p>
+      <h1 class="hero-title">What should I do today?</h1>
+      <p class="hero-sub">peak.athlete beantwortet die wichtigste Frage im Training. Nicht mit Daten. Mit einer Entscheidung.</p>
+      <div class="hero-actions">
+        <a href="./index.html" class="btn-primary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          App starten
+        </a>
+        <a href="#plan" class="btn-secondary">Plan erstellen</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features" id="features">
+    <p class="features-eyebrow">Kein Tracking-Tool. Ein Decision System.</p>
+    <h2 class="features-title">Verstehe nicht nur was passiert.<br>Verstehe was zu tun ist.</h2>
+    <p class="features-sub">peak.athlete kombiniert deine Trainingsdaten mit sportwissenschaftlichen Modellen zu einer klaren, täglichen Empfehlung.</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon" style="background: #FEF3E2;">
+          <span>&#9775;</span>
+        </div>
+        <h3>Decision Engine</h3>
+        <p>Train Hard, Train Easy oder Rest — eine Entscheidung, jeden Morgen. Basierend auf CTL/ATL, HRV, Schlaf und deinem Plan.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background: #ECFDF5;">
+          <span>&#9881;</span>
+        </div>
+        <h3>Adaptive Periodisierung</h3>
+        <p>Intelligente Trainingsplaene fuer Laufen, Rad, Triathlon, HYROX und Shape. Von Quick bis Pro — dein Plan passt sich an.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background: #EFF6FF;">
+          <span>&#9733;</span>
+        </div>
+        <h3>Explainability Layer</h3>
+        <p>Kein Black-Box-Coaching. Jede Empfehlung wird erklaert — verständlich, transparent, nachvollziehbar.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background: #FEF3E2;">
+          <span>&#9851;</span>
+        </div>
+        <h3>Chronic Load Tracking</h3>
+        <p>CTL, ATL, TSB, ACWR — die Modelle von Banister und Foster, automatisch berechnet. Verletzungspraevention durch Daten.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background: #ECFDF5;">
+          <span>&#9878;</span>
+        </div>
+        <h3>Race Day Prognosen</h3>
+        <p>Aktuelle Zeiten vs. Race-Day-Projektion. Basierend auf deinem VDOT, Trainingsplan und Formkurve.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background: #EFF6FF;">
+          <span>&#9776;</span>
+        </div>
+        <h3>Strava, Garmin, WHOOP</h3>
+        <p>Verbinde deine Quellen. Aktivitaeten, HRV, Schlaf und Herzfrequenz fliessen automatisch in die Analyse.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SPORTS -->
+  <section class="sports">
+    <div class="sports-inner">
+      <p class="sports-title">Entwickelt fuer Ausdauersportler</p>
+      <div class="sports-list">
+        <span class="sport-pill">Laufen</span>
+        <span class="sport-pill">Radfahren</span>
+        <span class="sport-pill">Triathlon</span>
+        <span class="sport-pill">HYROX</span>
+        <span class="sport-pill">Shape</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- PLAN SECTION -->
+  <section class="plan-section" id="plan">
+    <div class="plan-section-bg">
+      <img src="./pics/IMG_7505.jpeg" alt="" />
+    </div>
+    <div class="plan-section-overlay"></div>
+    <div class="plan-content">
+      <p class="plan-eyebrow">peak.plan</p>
+      <h2 class="plan-title">Plan your next race.</h2>
+      <p class="plan-sub">Erstelle in Sekunden einen periodisierten Trainingsplan. Waehle zwischen Quick Mode fuer den schnellen Start oder Pro Mode fuer volle Kontrolle.</p>
+      <div class="plan-modes">
+        <a href="./index.html?mode=quick#peakplan" class="plan-mode-btn">
+          <div class="plan-mode-label">Modus</div>
+          <div class="plan-mode-name">quick.</div>
+          <div class="plan-mode-desc">Distanz, Zeit, Datum — fertig.</div>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <a href="./index.html?mode=pro#peakplan" class="plan-mode-btn">
+          <div class="plan-mode-label">Modus</div>
+          <div class="plan-mode-name">peak.</div>
+          <div class="plan-mode-desc">Schwellen, Periodisierung, Race Calendar.</div>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ANALYTICS PREVIEW -->
+  <section class="analytics" id="analytics">
+    <p class="analytics-eyebrow">Sportwissenschaft, nicht Spielerei</p>
+    <h2 class="analytics-title">Daten die Entscheidungen treffen.</h2>
+    <p class="analytics-sub">Sieben Kern-Analysen, entwickelt mit den Modellen von Banister, Coggan und Foster.</p>
+    <div class="analytics-grid">
+      <div class="analytics-card analytics-card-wide">
+        <div class="analytics-card-label">Form &amp; Fitness (CTL / ATL / TSB)</div>
+        <div style="display:flex;gap:32px;">
+          <div><div class="analytics-card-value" style="color:#4CAF82;">50</div><div class="analytics-card-meta">CTL (Fitness)</div></div>
+          <div><div class="analytics-card-value" style="color:#F5A623;">56</div><div class="analytics-card-meta">ATL (Ermuedung)</div></div>
+          <div><div class="analytics-card-value" style="color:#5AC8FA;">-6</div><div class="analytics-card-meta">TSB (Form)</div></div>
+          <div><div class="analytics-card-value" style="color:#F5A623;">neutral</div><div class="analytics-card-meta">Status</div></div>
+        </div>
+        <div class="analytics-chart-placeholder">CTL / ATL / TSB Verlaufsgraph</div>
+      </div>
+      <div class="analytics-card">
+        <div class="analytics-card-label">Trainingsbelastung (ACWR)</div>
+        <div class="analytics-card-value">1.29</div>
+        <div class="analytics-card-meta" style="color:#4CAF82;">Sweet Spot &#10003;</div>
+        <div class="analytics-chart-placeholder">Akut vs. Chronisch</div>
+      </div>
+      <div class="analytics-card">
+        <div class="analytics-card-label">Prognosen</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
+          <div><div style="font-size:10px;color:rgba(255,255,255,0.3);">5K</div><div style="font-size:20px;font-weight:800;">19:28</div></div>
+          <div><div style="font-size:10px;color:rgba(255,255,255,0.3);">10K</div><div style="font-size:20px;font-weight:800;">41:51</div></div>
+          <div><div style="font-size:10px;color:rgba(255,255,255,0.3);">HM</div><div style="font-size:20px;font-weight:800;">1:40:12</div></div>
+          <div><div style="font-size:10px;color:rgba(255,255,255,0.3);">Marathon</div><div style="font-size:20px;font-weight:800;">3:51:08</div></div>
+        </div>
+      </div>
+      <div class="analytics-card">
+        <div class="analytics-card-label">Konsistenz</div>
+        <div class="analytics-card-value">92%</div>
+        <div class="analytics-card-meta">6.2 Einheiten/Woche &middot; 15 Tage Serie</div>
+        <div class="analytics-chart-placeholder">Heatmap Grid</div>
+      </div>
+      <div class="analytics-card">
+        <div class="analytics-card-label">Hard/Easy Rhythmus</div>
+        <div class="analytics-card-value">82%</div>
+        <div class="analytics-card-meta">Compliance &middot; 3 Violations in 12 Wochen</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <h2 class="cta-title">Bereit fuer smarteres Training?</h2>
+    <p class="cta-sub">Starte jetzt — kostenlos. Verbinde Strava oder Garmin und erhalte deine erste Empfehlung in unter 2 Minuten.</p>
+    <a href="./index.html" class="btn-primary" style="font-size:16px;padding:16px 32px;">
+      peak.athlete starten
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </a>
+    <div class="app-coming-soon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="2" width="14" height="20" rx="3"/><line x1="12" y1="18" x2="12" y2="18.01"/></svg>
+      Native App — Coming Soon
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-brand">peak.athlete</div>
+    <div class="footer-links">
+      <a href="./index.html">App</a>
+      <a href="#plan">peak.plan</a>
+      <a href="#features">Features</a>
+      <a href="#analytics">Analytics</a>
+    </div>
+    <p class="footer-copy">&copy; 2026 peak.athlete. Trusted Performance OS for Endurance Athletes.</p>
+  </footer>
+
+</body>
+</html>

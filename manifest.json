@@ -1,11 +1,11 @@
 {
-  "name": "AImAthlete",
-  "short_name": "AImAthlete",
-  "description": "Intelligenter Trainingsplan – Laufen, Radfahren, Triathlon, HYROX, Shape",
+  "name": "peak.athlete",
+  "short_name": "peak.athlete",
+  "description": "Dein intelligenter Trainingsplan – Laufen, Radfahren, Triathlon, HYROX, Shape",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#050506",
-  "theme_color": "#050506",
+  "background_color": "#0B0F1A",
+  "theme_color": "#0B0F1A",
   "orientation": "portrait-primary",
   "icons": [
     {
