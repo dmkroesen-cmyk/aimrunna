@@ -17836,11 +17836,17 @@ function initScrollFx() {
   }
   if (reduceMotion) return;
 
+  // Smooth interpolation state — prevents jitter from discrete scroll events
+  let currentProgress = 0;
+  let targetProgress = 0;
+  const LERP_FACTOR = 0.12; // lower = smoother but laggier, 0.12 is buttery
+
   const applyProgress = (progress) => {
     parallaxLayers.forEach((layer) => {
       const depth = Number(layer.dataset.parallax || 0);
-      const shift = progress * depth * 260;
-      layer.style.setProperty("--parallax-shift", shift.toFixed(2));
+      // Round to whole pixels to prevent sub-pixel wobble
+      const shift = Math.round(progress * depth * 260);
+      layer.style.transform = `translate3d(0, ${shift}px, 0)`;
     });
 
     if (landingLayerEl) {
@@ -17849,9 +17855,8 @@ function initScrollFx() {
       const shift = Math.round(push * 140);
       const opacity = clamp(1 - Math.max(0, (progress - 0.35) / 0.35), 0, 1);
       const scale = 1 - push * 0.02;
-      landingLayerEl.style.setProperty("--landing-shift", String(shift));
-      landingLayerEl.style.setProperty("--landing-opacity", opacity.toFixed(3));
-      landingLayerEl.style.setProperty("--landing-scale", scale.toFixed(4));
+      landingLayerEl.style.transform = `translate3d(0, ${shift}px, 0) scale(${scale.toFixed(4)})`;
+      landingLayerEl.style.opacity = opacity.toFixed(3);
     }
 
     if (brandAnchorEl) {
@@ -17875,22 +17880,36 @@ function initScrollFx() {
   measureStage();
   window.addEventListener("resize", measureStage);
 
+  let animating = false;
+  const tick = () => {
+    const diff = targetProgress - currentProgress;
+    // Stop animating when close enough (< 0.05px effective movement)
+    if (Math.abs(diff) < 0.0002) {
+      currentProgress = targetProgress;
+      applyProgress(currentProgress);
+      animating = false;
+      return;
+    }
+    currentProgress += diff * LERP_FACTOR;
+    applyProgress(currentProgress);
+    scrollFxRaf = window.requestAnimationFrame(tick);
+  };
+
   const update = () => {
-    scrollFxRaf = 0;
     const scrollTop = window.scrollY;
     const total = Math.max(1, cachedStageHeight - cachedViewport);
-    const progress = clamp((scrollTop - cachedStageTop) / total, 0, 1);
-    applyProgress(progress);
+    targetProgress = clamp((scrollTop - cachedStageTop) / total, 0, 1);
+    if (!animating) {
+      animating = true;
+      scrollFxRaf = window.requestAnimationFrame(tick);
+    }
   };
 
-  const queueUpdate = () => {
-    if (scrollFxRaf) return;
-    scrollFxRaf = window.requestAnimationFrame(update);
-  };
-
-  window.addEventListener("scroll", queueUpdate, { passive: true });
-  window.addEventListener("resize", queueUpdate);
-  queueUpdate();
+  window.addEventListener("scroll", update, { passive: true });
+  window.addEventListener("resize", () => { measureStage(); update(); });
+  // Initialize immediately
+  currentProgress = targetProgress;
+  update();
 }
 
 function initMobileHeaderScrollFx() {

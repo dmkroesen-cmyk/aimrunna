@@ -1001,15 +1001,20 @@ body.is-authenticated .account-dot {
   overflow: clip;
   display: grid;
   place-items: center;
+  transform: translateZ(0);
+  contain: layout paint;
 }
 
 .hero-layer {
   position: absolute;
   inset: 0;
-  transform: translate3d(0, calc(var(--parallax-shift, 0px) * 1px), 0);
-  will-change: transform, opacity;
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
   backface-visibility: hidden;
-  contain: paint;
+  -webkit-backface-visibility: hidden;
+  contain: layout paint;
+  /* Force own compositor layer for jank-free parallax */
+  isolation: isolate;
 }
 
 .photo-layer {
@@ -1023,13 +1028,17 @@ body.is-authenticated .account-dot {
   grid-template-columns: 0.75fr 1.15fr 0.8fr;
   gap: 0;
   opacity: 0.5;
-  transform: rotate(-1.6deg);
+  transform: rotate(-1.6deg) translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .photo-strip.alt {
   width: min(1480px, 100%);
-  transform: rotate(1.4deg) translateY(34px);
+  transform: rotate(1.4deg) translateY(34px) translateZ(0);
   opacity: 0.34;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .photo-card {
@@ -1042,6 +1051,8 @@ body.is-authenticated .account-dot {
   box-shadow: none;
   overflow: hidden;
   filter: grayscale(1) brightness(0.94);
+  transform: translateZ(0);
+  contain: paint;
 }
 
 .photo-card::before {
@@ -1084,10 +1095,12 @@ body.is-authenticated .account-dot {
 }
 
 .landing-layer {
-  transform: translate3d(0, calc(var(--landing-shift, 0px) * 1px), 0) scale(var(--landing-scale, 1));
-  opacity: var(--landing-opacity, 1);
-  transition: opacity 180ms ease;
+  transform: translate3d(0, 0, 0);
+  opacity: 1;
   z-index: 4;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .nav-brand {
