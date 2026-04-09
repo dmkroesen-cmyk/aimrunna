@@ -24363,6 +24363,11 @@ document.addEventListener("click", (e) => {
     try { if (navigator.vibrate) navigator.vibrate(ms || 10); } catch (_) {}
   }
 
+  /** Stronger confirmation haptic — double-tap pattern for decisive actions */
+  function hapticConfirm() {
+    try { if (navigator.vibrate) navigator.vibrate([15, 40, 25]); } catch (_) {}
+  }
+
   // ── Distance options per discipline ──
   function distOpts(disc) {
     if (typeof window.raceEventDistanceOptions === "function") {
@@ -25051,7 +25056,7 @@ document.addEventListener("click", (e) => {
   // ══════════════════════════════════════════════════════════
   //  EVENT HANDLERS
   // ══════════════════════════════════════════════════════════
-  btnNext?.addEventListener("click", () => { haptic(12); goNext(); });
+  btnNext?.addEventListener("click", () => { haptic(15); goNext(); });
   btnBack?.addEventListener("click", () => { haptic(8); goBack(); });
   closeBtn?.addEventListener("click", close);
 
@@ -25076,7 +25081,7 @@ document.addEventListener("click", (e) => {
 
   // Activation button → seamless transition to account phase (same screen)
   document.getElementById("ob-activate-btn")?.addEventListener("click", () => {
-    haptic(25);
+    hapticConfirm();
     transitionToAccount();
   });
 
@@ -25140,6 +25145,7 @@ document.addEventListener("click", (e) => {
 
   // ── Login handler ──
   loginBtn?.addEventListener("click", async () => {
+    haptic(10);
     const email = document.getElementById("ob-email")?.value?.trim().toLowerCase();
     const pw = document.getElementById("ob-password")?.value;
     const statusEl = document.getElementById("ob-account-status");
@@ -25161,6 +25167,7 @@ document.addEventListener("click", (e) => {
     try {
       if (window.sbAuth?.signIn) {
         await window.sbAuth.signIn(email, pw);
+        hapticConfirm();
         if (statusEl) { statusEl.textContent = "Eingeloggt ✓"; statusEl.className = "ob-account-status is-success"; }
         if (typeof renderAccountUi === "function") renderAccountUi();
         if (typeof syncConnectorButtons === "function") syncConnectorButtons();
@@ -25178,8 +25185,9 @@ document.addEventListener("click", (e) => {
 
   // Account creation → finalize with account
   document.getElementById("ob-account-btn")?.addEventListener("click", async () => {
+    haptic(10);
     const ok = await handleAccountCreate();
-    if (ok) setTimeout(finalize, 400);
+    if (ok) { hapticConfirm(); setTimeout(finalize, 400); }
   });
 
   // Expose globals
