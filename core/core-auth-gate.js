@@ -18,7 +18,19 @@
   var ATTR = "data-ui";
   var VAL = "core";
 
+  // If ?planner=1 is present in the URL, force legacy Plan Generator
+  // view regardless of auth state. "Plan erstellen" from landing.html
+  // always routes here, so signed-in users also land on the planner.
+  function forceLegacy() {
+    if (window.__FORCE_LEGACY__ === true) return true;
+    try {
+      var qp = new URLSearchParams(window.location.search);
+      return qp.get("planner") === "1";
+    } catch (_) { return false; }
+  }
+
   function hasSession() {
+    if (forceLegacy()) return false;
     try {
       if (typeof window.getCurrentAccount === "function") {
         var a = window.getCurrentAccount();
@@ -100,6 +112,7 @@
         clearInterval(iv);
         try {
           window.sbAuth.onAuthStateChange(function (event, session) {
+            if (forceLegacy()) return;
             if (event === "SIGNED_IN" && session && session.user) {
               enableCore();
             } else if (event === "SIGNED_OUT") {

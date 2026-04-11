@@ -252,8 +252,17 @@
     <script>
       /* Early auth check: if a Supabase session token exists in
          localStorage, inject core.css synchronously and pre-set
-         body[data-ui="core"] to avoid any FOUC. */
+         body[data-ui="core"] to avoid any FOUC.
+         EXCEPTION: ?planner=1 forces the legacy Plan Generator view
+         even if a session is active, so "Plan erstellen" from the
+         Landing page never lands inside the Core Shell. */
       (function () {
+        var qp;
+        try { qp = new URLSearchParams(window.location.search); } catch (_) { qp = null; }
+        var plannerMode = qp && qp.get("planner") === "1";
+        if (plannerMode) {
+          window.__FORCE_LEGACY__ = true;
+        }
         try {
           var hasSession = false;
           for (var i = 0; i < localStorage.length; i++) {
@@ -263,7 +272,7 @@
               if (v && v.length > 20) { hasSession = true; break; }
             }
           }
-          if (hasSession) {
+          if (hasSession && !plannerMode) {
             var l = document.createElement("link");
             l.rel = "stylesheet";
             l.href = "./core/core.css";
@@ -275,9 +284,8 @@
 
         /* Launcher-only mode (Pfad A: Landing → App starten) */
         try {
-          var qp = new URLSearchParams(window.location.search);
-          var launcher = qp.get("launcher");
-          if (launcher && !hasSession) {
+          var launcher = qp && qp.get("launcher");
+          if (launcher && !plannerMode) {
             document.documentElement.setAttribute("data-launcher-only", launcher);
           }
         } catch (_) {}
@@ -860,8 +868,58 @@
         function show(m) { if (m) { m.hidden = false; m.classList.add("is-open"); } }
         function hide(m) { if (m) { m.hidden = true; m.classList.remove("is-open"); } }
 
-        function openLauncher()  { show(byId("app-launcher-modal")); }
-        function closeLauncher() { hide(byId("app-launcher-modal")); }
+        // Use the existing Onboarding final/account phase as the Launcher.
+        // This is the true paywall screen built inside app.js.
+        function openLauncher() {
+          var shell = byId("ob-shell");
+          if (!shell) { show(byId("app-launcher-modal")); return; }
+
+          // Unhide shell
+          shell.hidden = false;
+          shell.classList.remove("is-closing");
+          document.body.style.overflow = "hidden";
+
+          // Hide all screens, show ONLY the final screen in account phase
+          var screens = shell.querySelectorAll(".ob-screen");
+          screens.forEach(function (s) {
+            if (s.getAttribute("data-screen") === "final") {
+              s.hidden = false;
+              s.classList.add("is-phase-account");
+            } else {
+              s.hidden = true;
+            }
+          });
+
+          // Hide onboarding chrome that doesn't make sense here
+          var progress = shell.querySelector(".ob-progress-track");
+          if (progress) progress.style.display = "none";
+          var stepEl = byId("ob-step");
+          if (stepEl) stepEl.textContent = "";
+          var navEl = byId("ob-nav");
+          if (navEl) navEl.hidden = true;
+          var btnBack = byId("ob-nav-back");
+          if (btnBack) btnBack.hidden = true;
+
+          // Close button wiring — restore Plan Generator view on dismiss
+          var closeBtn = byId("ob-close");
+          if (closeBtn && !closeBtn.dataset.launcherWired) {
+            closeBtn.dataset.launcherWired = "1";
+            closeBtn.addEventListener("click", closeLauncher);
+          }
+        }
+        function closeLauncher() {
+          var shell = byId("ob-shell");
+          if (shell) {
+            shell.classList.add("is-closing");
+            setTimeout(function () {
+              shell.hidden = true;
+              shell.classList.remove("is-closing");
+              document.body.style.overflow = "";
+            }, 260);
+          }
+          // Also hide the legacy custom modal if it was ever shown
+          hide(byId("app-launcher-modal"));
+        }
 
         // Forward to existing legacy buttons (preserves app.js flow)
         function forwardClick(legacyId) {
