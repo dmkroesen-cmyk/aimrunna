@@ -7876,22 +7876,11 @@ function initDynamicGoalOptions() {
     if (suggested && quickGoalTimeInput) quickGoalTimeInput.value = suggested;
   });
   planModeSelect?.addEventListener("change", () => {
+    // NOTE: Onboarding MUST NOT open on mode change. It only opens
+    // when the user actually triggers plan generation by pressing
+    // the race./run./shape. submit button (handled in index.html’s
+    // peakModeSubmitInterceptor).
     console.log("[PlanMode] change →", planModeSelect.value);
-    if (planModeSelect.value === "peak") {
-      // Reset dropdown back to quick immediately
-      planModeSelect.value = "quick";
-      syncPlanModeUI();
-      // Open onboarding (deferred to next tick to avoid blocking UI sync)
-      console.log("[PlanMode] triggering openOnboarding, available:", typeof window.openOnboarding);
-      setTimeout(() => {
-        if (typeof window.openOnboarding === "function") {
-          window.openOnboarding();
-        } else {
-          console.error("[PlanMode] openOnboarding NOT available");
-        }
-      }, 0);
-      return;
-    }
     syncPlanModeUI();
   });
 
