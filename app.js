@@ -9997,39 +9997,35 @@ function defaultGoalTimeFor(discipline, goalDistance) {
    nutrition guidance, and polarized distribution tracking.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-// VDOT reference table: [vdot, 5kSec, 10kSec, halfSec, marathonSec, easyMinPace, easyMaxPace, marathonPace, thresholdPace, intervalPace, repPace]
-// Paces in seconds per km
+// VDOT reference table (Jack Daniels, Running Formula 3rd ed.)
+// [vdot, 5kSec, 10kSec, halfSec, marathonSec, easyMinPace, easyMaxPace, marathonPace, thresholdPace, intervalPace, repPace]
+// All values in seconds (race times total, paces per km).
+// easyMinPace = slower bound, easyMaxPace = faster bound (smaller number).
 const VDOT_TABLE = [
-  [20, 2220, 4620, 10440, 22200, 590, 540, 508, 468, 428, 396],
-  [22, 2040, 4230, 9540, 20100, 555, 510, 475, 438, 400, 370],
-  [24, 1890, 3924, 8820, 18540, 525, 482, 448, 414, 377, 349],
-  [26, 1770, 3672, 8244, 17340, 500, 460, 426, 394, 358, 332],
-  [28, 1680, 3492, 7836, 16500, 484, 444, 412, 380, 345, 319],
-  [30, 1620, 3360, 7500, 15720, 471, 432, 400, 368, 333, 308],
-  [32, 1512, 3138, 7020, 14760, 442, 406, 375, 346, 313, 290],
-  [34, 1416, 2940, 6576, 13860, 416, 382, 353, 326, 296, 274],
-  [36, 1332, 2766, 6180, 13020, 393, 361, 333, 308, 280, 259],
-  [38, 1254, 2604, 5820, 12240, 372, 342, 316, 292, 266, 246],
-  [40, 1182, 2460, 5490, 11520, 353, 325, 300, 277, 253, 234],
-  [42, 1116, 2322, 5190, 10860, 336, 309, 286, 264, 241, 223],
-  [44, 1056, 2196, 4920, 10260, 320, 294, 273, 252, 230, 213],
-  [46, 1002, 2082, 4668, 9720, 306, 281, 261, 241, 220, 204],
-  [48, 948, 1974, 4440, 9240, 292, 269, 250, 231, 211, 196],
-  [50, 900, 1872, 4230, 8760, 280, 258, 240, 222, 203, 188],
-  [52, 858, 1782, 4032, 8340, 269, 248, 231, 213, 195, 181],
-  [54, 816, 1698, 3852, 7980, 258, 238, 222, 205, 188, 174],
-  [56, 780, 1620, 3684, 7620, 248, 229, 214, 198, 181, 168],
-  [58, 744, 1548, 3528, 7320, 239, 221, 206, 191, 175, 162],
-  [60, 714, 1482, 3384, 7020, 231, 213, 199, 185, 169, 157],
-  [62, 684, 1422, 3252, 6780, 223, 206, 193, 179, 164, 152],
-  [64, 654, 1362, 3126, 6540, 215, 199, 187, 173, 159, 147],
-  [66, 630, 1308, 3012, 6336, 208, 193, 181, 168, 154, 143],
-  [68, 606, 1260, 2904, 6120, 202, 187, 176, 163, 150, 139],
-  [70, 582, 1212, 2808, 5940, 196, 182, 171, 159, 146, 135],
-  [72, 564, 1170, 2712, 5760, 190, 177, 166, 154, 142, 132],
-  [75, 534, 1110, 2580, 5460, 182, 169, 159, 148, 136, 126],
-  [80, 492, 1020, 2400, 5100, 169, 158, 148, 138, 127, 118],
-  [85, 456, 948,  2232, 4800, 158, 148, 139, 130, 120, 111],
+  [30, 1840, 3826, 8464, 17357, 461, 432, 411, 384, 347, 327],
+  [32, 1745, 3626, 8020, 16500, 446, 418, 393, 367, 331, 312],
+  [34, 1659, 3446, 7636, 15700, 432, 404, 377, 352, 317, 298],
+  [36, 1582, 3284, 7279, 15019, 418, 391, 361, 337, 302, 285],
+  [38, 1512, 3137, 6955, 14375, 405, 378, 346, 322, 288, 272],
+  [40, 1448, 3003, 6659, 13785, 392, 366, 331, 309, 275, 260],
+  [42, 1389, 2881, 6387, 13243, 380, 354, 318, 297, 264, 249],
+  [44, 1335, 2769, 6137, 12743, 368, 343, 306, 286, 254, 240],
+  [46, 1285, 2665, 5907, 12279, 357, 332, 295, 276, 244, 231],
+  [48, 1239, 2570, 5693, 11849, 347, 322, 285, 266, 235, 223],
+  [50, 1197, 2481, 5495, 11449, 337, 313, 275, 258, 227, 215],
+  [52, 1157, 2399, 5311, 11076, 328, 304, 266, 250, 220, 208],
+  [54, 1120, 2322, 5140, 10727, 320, 296, 258, 242, 213, 202],
+  [56, 1085, 2251, 4980, 10400, 312, 288, 250, 235, 207, 196],
+  [58, 1053, 2184, 4830, 10094, 304, 281, 243, 228, 201, 190],
+  [60, 1023, 2122, 4689,  9805, 297, 274, 236, 221, 195, 184],
+  [62,  994, 2063, 4557,  9534, 290, 268, 230, 215, 189, 179],
+  [64,  967, 2008, 4433,  9278, 284, 262, 224, 210, 184, 174],
+  [66,  942, 1955, 4316,  9036, 278, 256, 218, 205, 180, 170],
+  [68,  918, 1906, 4205,  8807, 272, 251, 212, 200, 176, 166],
+  [70,  895, 1859, 4101,  8590, 266, 246, 207, 195, 172, 162],
+  [75,  843, 1751, 3870,  8100, 254, 235, 195, 183, 161, 152],
+  [80,  798, 1657, 3668,  7674, 243, 225, 184, 173, 152, 143],
+  [85,  758, 1574, 3491,  7301, 233, 216, 175, 164, 144, 136],
 ];
 
 function vdotFromRaceTime(distanceKm, timeSec) {
@@ -10059,54 +10055,191 @@ function vdotFromRaceTime(distanceKm, timeSec) {
   return 40; // safe fallback
 }
 
+/**
+ * Derive the runner's race-pace VDOT.
+ *
+ * PRIORITY (highest → lowest):
+ *   1. Goal time + goal distance (the user committed to this pace — it IS
+ *      the plan's target). No aspirational discount: training zones must
+ *      match the goal.
+ *   2. PB (personal best) for running distances.
+ *   3. Provided run threshold pace.
+ *   4. Level-based fallback.
+ *
+ * Goal time applies to any running-based target (running, hyrox, triathlon)
+ * where a running goal distance is parseable.
+ */
 function vdotFromProfile(profile) {
-  // Try to derive VDOT from PBs, goal time, or threshold pace
+  const disc = String(profile?.discipline || "").toLowerCase();
+
+  // 1) Goal time — PRIMARY when running-based target
+  const runningBased = disc === "running" || disc === "hyrox";
+  if (profile?.goalTime && profile?.goalDistance && runningBased) {
+    const km = distanceKmFromGoal(profile.goalDistance);
+    const sec = parseGoalTimeToSeconds(profile.goalTime);
+    if (km && sec) {
+      const v = vdotFromRaceTime(km, sec);
+      if (v) return v;
+    }
+  }
+
+  // Triathlon: run-leg goal time (if provided separately) or derived from overall
+  if (disc === "triathlon" && profile?.goalTime) {
+    const runLegKm = triRunLegKm(profile.goalDistance);
+    const runLegSec = triRunLegSec(profile);
+    if (runLegKm && runLegSec) {
+      const v = vdotFromRaceTime(runLegKm, runLegSec);
+      if (v) return v;
+    }
+  }
+
+  // 2) PBs — blend of any running distance PBs
   const pbs = [
     { dist: profile?.pb1Distance, time: profile?.pb1Time },
     { dist: profile?.pb2Distance, time: profile?.pb2Time },
   ].filter(pb => pb.dist && pb.time);
-
-  const vdots = [];
+  const pbVdots = [];
   for (const pb of pbs) {
     const km = distanceKmFromGoal(pb.dist);
     const sec = parseGoalTimeToSeconds(pb.time);
     if (km && sec) {
       const v = vdotFromRaceTime(km, sec);
-      if (v) vdots.push(v);
+      if (v) pbVdots.push(v);
     }
   }
+  if (pbVdots.length) return pbVdots.reduce((a, b) => a + b, 0) / pbVdots.length;
 
-  // Try goal time
-  if (profile?.goalTime && profile?.goalDistance && (profile?.discipline === "running")) {
-    const km = distanceKmFromGoal(profile.goalDistance);
-    const sec = parseGoalTimeToSeconds(profile.goalTime);
-    if (km && sec) {
-      const v = vdotFromRaceTime(km, sec);
-      if (v) vdots.push(v * 0.97); // goal is aspirational, slightly discount
-    }
-  }
-
-  // Try threshold pace
+  // 3) Threshold pace
   const thrPaceSec = profile?.runThresholdPace
     ? (typeof profile.runThresholdPace === "number" ? profile.runThresholdPace : parsePacePerKmToSeconds(String(profile.runThresholdPace)))
     : null;
   if (thrPaceSec) {
-    // Threshold pace ≈ VDOT threshold column
     for (let i = 0; i < VDOT_TABLE.length - 1; i++) {
       const lo = VDOT_TABLE[i];
       const hi = VDOT_TABLE[i + 1];
       if (thrPaceSec <= lo[8] && thrPaceSec >= hi[8]) {
         const frac = (lo[8] - thrPaceSec) / Math.max(1, lo[8] - hi[8]);
-        vdots.push(lo[0] + frac * (hi[0] - lo[0]));
-        break;
+        return lo[0] + frac * (hi[0] - lo[0]);
       }
     }
   }
 
-  if (vdots.length) return vdots.reduce((a, b) => a + b, 0) / vdots.length;
+  // 4) Fallback by level
+  return { starter: 33, intermediate: 42, advanced: 55, elite: 60 }[profile?.fitnessLevel] || 38;
+}
 
-  // Fallback by level
-  return { starter: 33, intermediate: 42, advanced: 55 }[profile?.fitnessLevel] || 38;
+/**
+ * Goal race pace (sec/km) — derived purely from goalTime + goalDistance.
+ * Returns null if not computable. Used for race day cards & race-pace runs.
+ */
+function goalRacePaceSec(profile) {
+  if (!profile?.goalTime || !profile?.goalDistance) return null;
+  const km = distanceKmFromGoal(profile.goalDistance);
+  const sec = parseGoalTimeToSeconds(profile.goalTime);
+  if (!km || !sec) return null;
+  // For running-like: direct pace
+  const disc = String(profile?.discipline || "").toLowerCase();
+  if (disc === "running") return sec / km;
+  if (disc === "hyrox") return hyroxRunLapPaceSec(profile);
+  if (disc === "triathlon") {
+    const runKm = triRunLegKm(profile.goalDistance);
+    const runSec = triRunLegSec(profile);
+    return (runKm && runSec) ? runSec / runKm : null;
+  }
+  return sec / km;
+}
+
+// ── Triathlon leg time splits ─────────────────────────────────────────────
+// Rough industry ratios for even-fitness age-group athletes. Slightly adjusted
+// for format: Sprint weighted to bike, IM weighted to bike+run.
+const TRI_LEG_SPLITS = {
+  sprint:       { swim: 0.18, bike: 0.50, run: 0.32 },
+  olympic:      { swim: 0.17, bike: 0.48, run: 0.35 },
+  halfironman:  { swim: 0.12, bike: 0.50, run: 0.38 },
+  "70.3":       { swim: 0.12, bike: 0.50, run: 0.38 },
+  ironman:      { swim: 0.10, bike: 0.48, run: 0.42 },
+  fullironman:  { swim: 0.10, bike: 0.48, run: 0.42 },
+  "140.6":      { swim: 0.10, bike: 0.48, run: 0.42 },
+};
+
+function triLegSplit(goalDistance) {
+  return TRI_LEG_SPLITS[String(goalDistance || "").toLowerCase()] || TRI_LEG_SPLITS.olympic;
+}
+function triRunLegKm(goalDistance) {
+  const g = String(goalDistance || "").toLowerCase();
+  return { sprint: 5, olympic: 10, halfironman: 21.0975, "70.3": 21.0975, ironman: 42.195, fullironman: 42.195, "140.6": 42.195 }[g] || null;
+}
+function triBikeLegKm(goalDistance) {
+  const g = String(goalDistance || "").toLowerCase();
+  return { sprint: 20, olympic: 40, halfironman: 90, "70.3": 90, ironman: 180, fullironman: 180, "140.6": 180 }[g] || null;
+}
+function triSwimLegKm(goalDistance) {
+  const g = String(goalDistance || "").toLowerCase();
+  return { sprint: 0.75, olympic: 1.5, halfironman: 1.9, "70.3": 1.9, ironman: 3.8, fullironman: 3.8, "140.6": 3.8 }[g] || null;
+}
+function triRunLegSec(profile) {
+  const totalSec = parseGoalTimeToSeconds(profile?.goalTime);
+  if (!totalSec) return null;
+  const split = triLegSplit(profile?.goalDistance);
+  return Math.round(totalSec * split.run);
+}
+function triBikeLegSec(profile) {
+  const totalSec = parseGoalTimeToSeconds(profile?.goalTime);
+  if (!totalSec) return null;
+  const split = triLegSplit(profile?.goalDistance);
+  return Math.round(totalSec * split.bike);
+}
+function triSwimLegSec(profile) {
+  const totalSec = parseGoalTimeToSeconds(profile?.goalTime);
+  if (!totalSec) return null;
+  const split = triLegSplit(profile?.goalDistance);
+  return Math.round(totalSec * split.swim);
+}
+
+// ── Hyrox split ───────────────────────────────────────────────────────────
+// Hyrox = 8 × 1km run + 8 stations. Elite ~50/50 split, age-group ~55/45.
+// Single/Pro: full course. Doubles/Relay: shared, athlete runs ~half.
+function hyroxRunLapPaceSec(profile) {
+  const totalSec = parseGoalTimeToSeconds(profile?.goalTime);
+  if (!totalSec) return null;
+  const format = String(profile?.hyroxFormat || "single").toLowerCase();
+  // Rough typical station budget per lap pair for each format (seconds).
+  // Elite total station time ~40min (240s/lap). Beginners ~50-60min.
+  const stationTotal = totalSec * 0.48; // default 48% stations / 52% run
+  const runTotal = totalSec - stationTotal;
+  // For doubles/relay, athlete only runs 4 of the 8 km but splits time;
+  // still use per-km pace (the pacing target is per-km).
+  const runKmForSplit = (format === "doubles" || format === "relay") ? 4 : 8;
+  return runTotal / runKmForSplit;
+}
+
+// ── Cycling: derive implied FTP anchor from goal time + distance ──────────
+/**
+ * Rough FTP estimate from cycling race goal.
+ * Uses flat-course power model: P ≈ 0.2 · v³ (W, v in m/s) for typical
+ * aero tuck on a road bike. Then scales to 75-85% FTP depending on race
+ * length (shorter TT → higher % FTP).
+ */
+function cyclingFtpFromGoal(profile) {
+  if (!profile?.goalTime || !profile?.goalDistance) return null;
+  const km = distanceKmFromGoal(profile.goalDistance);
+  const sec = parseGoalTimeToSeconds(profile.goalTime);
+  if (!km || !sec) return null;
+  const vMs = (km * 1000) / sec; // m/s
+  const bodyMass = Number(profile?.weightKg) || 72;
+  const bikeMass = 8;
+  const totalMass = bodyMass + bikeMass;
+  // Flat course power: rolling + aero + drivetrain losses
+  const Crr = 0.005, rho = 1.225, CdA = 0.32, g = 9.81, eta = 0.97;
+  const powerAtWheel = totalMass * g * Crr * vMs + 0.5 * rho * CdA * Math.pow(vMs, 3);
+  const powerAtCrank = powerAtWheel / eta;
+  // Race effort as % FTP by distance: TT ≈ 95%, 40km ≈ 92%, Granfondo ≈ 78%
+  const ftpPct =
+    km <= 25 ? 0.95 :
+    km <= 50 ? 0.92 :
+    km <= 100 ? 0.85 :
+    0.78;
+  return Math.round(powerAtCrank / ftpPct);
 }
 
 /*
@@ -11183,6 +11316,25 @@ function computeTrainingZones(profile) {
   const vdot = vdotFromProfile(profile);
   const paces = trainingPacesFromVdot(vdot);
 
+  // Race pace override — if goal time is set, this IS the race pace.
+  // All race-pace-specific sessions must match this exactly.
+  const racePaceSec = goalRacePaceSec(profile);
+  if (racePaceSec) {
+    paces.racePace = Math.round(racePaceSec);
+  } else {
+    // Fall back to the distance-appropriate VDOT zone
+    const dist = String(profile?.goalDistance || "").toLowerCase();
+    if (dist === "5k" || dist === "10k" || dist === "15k") {
+      paces.racePace = paces.intervalPace; // shorter → closer to I
+    } else if (dist === "half" || dist === "hm" || dist === "halfmarathon" || dist === "21k") {
+      paces.racePace = paces.thresholdPace;
+    } else if (dist === "marathon" || dist === "m" || dist === "42k") {
+      paces.racePace = paces.marathonPace;
+    } else {
+      paces.racePace = paces.marathonPace;
+    }
+  }
+
   // HR zones
   const runThrHr = Number(profile?.runThresholdHr) || null;
   const bikeThrHr = Number(profile?.bikeThresholdHr) || null;
@@ -11190,13 +11342,22 @@ function computeTrainingZones(profile) {
   const runHrZones = runThrHr ? hrZonesFromThreshold(runThrHr) : (age ? hrZonesFromAge(age) : null);
   const bikeHrZones = bikeThrHr ? hrZonesFromThreshold(bikeThrHr) : runHrZones;
 
-  // Power zones
-  const ftp = Number(profile?.bikeFtp) || null;
+  // Power zones — prefer explicit FTP, else derive from cycling goal time
+  let ftp = Number(profile?.bikeFtp) || null;
+  if (!ftp) {
+    const disc = String(profile?.discipline || "").toLowerCase();
+    if (disc === "cycling" || disc === "triathlon") {
+      ftp = cyclingFtpFromGoal(disc === "triathlon"
+        ? { ...profile, goalTime: formatSecondsToHms(triBikeLegSec(profile)), goalDistance: "tt40" /* placeholder – use derived speed */ }
+        : profile);
+    }
+  }
   const bikePowerZones = ftp ? powerZonesFromFtp(ftp) : null;
 
   return {
     vdot,
     paces,
+    racePaceSec,           // null if no goal time; else sec/km (running) or n/a
     runHrZones,
     bikeHrZones,
     bikePowerZones,
@@ -11207,7 +11368,16 @@ function computeTrainingZones(profile) {
     thresholdRange: () => `${formatPacePerKm(paces.thresholdPace)}${runHrZones ? ` / ${runHrZones.zone4.min}-${runHrZones.zone4.max} bpm` : ""}`,
     intervalRange: () => `${formatPacePerKm(paces.intervalPace)}${runHrZones ? ` / >${runHrZones.zone5.min} bpm` : ""}`,
     marathonRange: () => formatPacePerKm(paces.marathonPace),
+    racePaceRange: () => paces.racePace ? formatPacePerKm(paces.racePace) : "—",
   };
+}
+
+function formatSecondsToHms(sec) {
+  if (!Number.isFinite(sec) || sec <= 0) return "";
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = Math.round(sec % 60);
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
 // Nutrition guidance by session type & duration
@@ -12105,6 +12275,7 @@ function extractProfile(data) {
     raceEvents: parseRaceEventsJson(raceEventsRaw),
     constraintHints: parseConstraintHints(String(data.get("constraints") || "").trim()),
     connectedSources: [...connectedSources],
+    planMode: String(data.get("planMode") || planModeSelect?.value || "quick"),
   };
 }
 
@@ -12515,7 +12686,7 @@ function goalAmbitionScore(profile) {
   const discipline = String(profile?.discipline || "");
 
   if (discipline === "running" && goalSeconds) {
-    const targetPaceMinKm = goalSeconds / (distanceKmFromGoal(profile.goalDistance) * 60);
+    const targetPaceMinKm = goalSeconds / ((distanceKmFromGoal(profile.goalDistance) || 10) * 60);
     const pacePressure = clamp((5.9 - targetPaceMinKm) / 1.8, 0, 1);
     const timePressure = clamp((16 - weeksToRace) / 12, 0, 1);
     return clamp(pacePressure * 0.65 + timePressure * 0.35 + (weeklyHours < 4 ? 0.08 : 0), 0, 1);
@@ -12577,12 +12748,29 @@ function goalAmbitionScore(profile) {
 }
 
 function distanceKmFromGoal(goal) {
-  return {
-    "5k": 5,
-    "10k": 10,
-    half: 21.1,
-    marathon: 42.2,
-  }[String(goal || "").toLowerCase()] || 10;
+  const g = String(goal || "").toLowerCase().trim();
+  const map = {
+    "5k": 5, "5km": 5,
+    "10k": 10, "10km": 10,
+    "15k": 15, "15km": 15,
+    "half": 21.0975, "halfmarathon": 21.0975, "hm": 21.0975, "21k": 21.0975,
+    "marathon": 42.195, "m": 42.195, "42k": 42.195,
+    "ultra50": 50, "50k": 50,
+    "ultra100": 100, "100k": 100,
+    "backyard": 50, // estimate: ~12 hours of laps
+    // Triathlon distances (total race length, used for volume estimation)
+    "sprint": 25.75,       // 0.75s + 20b + 5r
+    "olympic": 51.5,       // 1.5s + 40b + 10r
+    "halfironman": 113,    // 1.9s + 90b + 21.1r
+    "70.3": 113, "ironman70.3": 113,
+    "ironman": 226,        // 3.8s + 180b + 42.2r
+    "fullironman": 226, "140.6": 226,
+    // Cycling
+    "granfondo": 160, "gran_fondo": 160, "tt40": 40, "tt20": 20,
+    // Hyrox
+    "hyrox_single": 8, "hyrox_doubles": 8, "hyrox_pro": 8, "hyrox_relay": 8,
+  };
+  return map[g] || null;
 }
 
 function detailsContainKm(details) {
@@ -14180,15 +14368,22 @@ function createWeekSessions({
 
   if (raceWeek) {
     const raceDayIndex = dayIndexFromDate(raceDate);
+    const _isPeakRD = String(profile?.planMode || "quick") === "peak";
+    const _nutritionLine = _isPeakRD
+      ? ` Vorbereitung: ${raceNut.before}. Fueling: ${raceNut.during}. Recovery danach: ${raceNut.after}.`
+      : "";
     days[raceDayIndex] = {
       type: "quality",
       title: "Race Day",
-      details: `${labelDistance(profile.goalDistance)} – Ziel: ${profile.goalTime}. Race-Pace: ${marathonPace}. Vorbereitung: ${raceNut.before}. Fueling: ${raceNut.during}. Recovery danach: ${raceNut.after}. Pacing-Strategie: erste Hälfte kontrolliert, zweite Hälfte Commitment.`,
+      details: `${labelDistance(profile.goalDistance)} – Ziel: ${profile.goalTime}. Race-Pace: ${z.racePaceRange()}/km.${_nutritionLine} Pacing-Strategie: erste Hälfte kontrolliert, zweite Hälfte Commitment.`,
       duration: "Event",
       scheduledRace: true,
       racePriority: "A",
       raceDistance: profile.goalDistance,
       raceDiscipline: profile.discipline,
+      racePaceSec: z.paces.racePace || null,
+      goalTime: profile.goalTime,
+      planMode: String(profile?.planMode || "quick"),
     };
   } else if (isTaper && weekIndex % 2 === 0) {
     days[3] = {
@@ -15090,12 +15285,23 @@ function createHyroxWeekSessions({ profile, weekIndex, weekKm, isDeload, isTaper
     days[raceDayIndex] = {
       type: "quality",
       title: "Race Day",
-      details: `${labelDistance(profile.goalDistance)} – Ziel: ${profile.goalTime}. Run-Splits: 1 km @ ${fp(z.paces.thresholdPace + 5)}-${fp(z.paces.thresholdPace)} (gleichmäßig!). Pacing: Erste 4 Stationen konservativ, dann Commitment. Vorbereitung: ${sessionNutritionPrescription("race", 90, "running", profile).before}. Fueling: ${sessionNutritionPrescription("race", 90, "running", profile).during}`,
+      details: (() => {
+        const lapPaceSec = hyroxRunLapPaceSec(profile);
+        const lapPaceStr = lapPaceSec ? formatPacePerKm(lapPaceSec) : formatPacePerKm(z.paces.thresholdPace + 5);
+        const isPeakRD = String(profile?.planMode || "quick") === "peak";
+        const nutLine = isPeakRD
+          ? ` Vorbereitung: ${sessionNutritionPrescription("race", 90, "running", profile).before}. Fueling: ${sessionNutritionPrescription("race", 90, "running", profile).during}.`
+          : "";
+        return `${labelDistance(profile.goalDistance)} – Ziel: ${profile.goalTime}. Run-Lap-Pace: ${lapPaceStr}/km (Ziel-Split pro km, 8 Laps). Stations-Budget: ~${Math.round(((parseGoalTimeToSeconds(profile.goalTime) || 4800) * 0.48) / 60)} min total. Pacing: Erste 4 Stationen konservativ, dann Commitment.${nutLine}`;
+      })(),
       duration: "Event",
       scheduledRace: true,
       racePriority: "A",
       raceDistance: profile.goalDistance,
       raceDiscipline: profile.discipline,
+      racePaceSec: hyroxRunLapPaceSec(profile),
+      goalTime: profile.goalTime,
+      planMode: String(profile?.planMode || "quick"),
     };
   }
 
@@ -15253,12 +15459,35 @@ function createTriathlonWeekSessions({ profile, weekIndex = 0, weekKm, isDeload,
     days[raceDayIndex] = {
       type: "quality",
       title: "Race Day",
-      details: `${labelDistance(profile.goalDistance)} – Ziel: ${profile.goalTime}.${ftp ? ` Bike: ${pw(0.70, 0.80)}.` : ""} Run: ${fp(z.paces.marathonPace)}-${fp(z.paces.thresholdPace + 10)}. Vorbereitung: ${sessionNutritionPrescription("race", 300, "cycling", profile).before}. Fueling: ${sessionNutritionPrescription("race", 300, "cycling", profile).during}. Pacing: Schwimmen kontrolliert, Rad konservativ-steady, Laufen committen.`,
+      details: (() => {
+        const swimSec = triSwimLegSec(profile);
+        const bikeSec = triBikeLegSec(profile);
+        const runSec  = triRunLegSec(profile);
+        const swimKm  = triSwimLegKm(profile.goalDistance);
+        const bikeKm  = triBikeLegKm(profile.goalDistance);
+        const runKm   = triRunLegKm(profile.goalDistance);
+        const swimPace = (swimSec && swimKm) ? `${Math.floor((swimSec/swimKm/10))}:${String(Math.round((swimSec/swimKm/10)%1*60)).padStart(2,'0')}/100m` : null;
+        const bikeKmh  = (bikeSec && bikeKm) ? (bikeKm / (bikeSec/3600)).toFixed(1) + " km/h" : null;
+        const runPace  = (runSec && runKm) ? formatPacePerKm(runSec / runKm) + "/km" : null;
+        const parts = [];
+        if (swimPace) parts.push(`Swim ${swimPace}`);
+        if (bikeKmh)  parts.push(`Bike ${bikeKmh}${ftp ? ` (${pw(0.70, 0.80)})` : ""}`);
+        if (runPace)  parts.push(`Run ${runPace}`);
+        const splits = parts.length ? `Target-Splits: ${parts.join(" · ")}. ` : "";
+        const isPeakRD = String(profile?.planMode || "quick") === "peak";
+        const nutLine = isPeakRD
+          ? ` Vorbereitung: ${sessionNutritionPrescription("race", 300, "cycling", profile).before}. Fueling: ${sessionNutritionPrescription("race", 300, "cycling", profile).during}.`
+          : "";
+        return `${labelDistance(profile.goalDistance)} – Ziel: ${profile.goalTime}. ${splits}Pacing: Schwimmen kontrolliert, Rad konservativ-steady, Laufen committen.${nutLine}`;
+      })(),
       duration: "Event",
       scheduledRace: true,
       racePriority: "A",
       raceDistance: profile.goalDistance,
       raceDiscipline: profile.discipline,
+      racePaceSec: (() => { const rk = triRunLegKm(profile.goalDistance), rs = triRunLegSec(profile); return (rk && rs) ? rs/rk : null; })(),
+      goalTime: profile.goalTime,
+      planMode: String(profile?.planMode || "quick"),
     };
   }
 
@@ -15398,12 +15627,26 @@ function createCyclingWeekSessions({ profile, weekIndex = 0, weekKm, isDeload, i
     days[raceDayIndex] = {
       type: "quality",
       title: "Race Day",
-      details: `${labelDistance(profile.goalDistance)} – Ziel: ${profile.goalTime}.${ftp ? ` Race Power: ${pw(0.72, 0.82)} (TT) oder ${pw(0.68, 0.76)} (Granfondo).` : ""} Vorbereitung: ${sessionNutritionPrescription("race", 180, "cycling", profile).before}. Fueling: ${sessionNutritionPrescription("race", 180, "cycling", profile).during}. Pacing: Erste Hälfte konservativ, zweite Hälfte Commitment.`,
+      details: (() => {
+        const km = distanceKmFromGoal(profile.goalDistance);
+        const sec = parseGoalTimeToSeconds(profile.goalTime);
+        const avgKmh = (km && sec) ? (km / (sec/3600)).toFixed(1) : null;
+        const targetW = cyclingFtpFromGoal(profile);
+        const implied = targetW ? ` Ziel-Leistung: ~${Math.round(targetW * ((km && km <= 25) ? 0.95 : (km <= 50 ? 0.92 : (km <= 100 ? 0.85 : 0.78))))}W.` : "";
+        const powerLine = ftp ? ` Race Power: ${pw(0.72, 0.82)} (TT) oder ${pw(0.68, 0.76)} (Granfondo).` : implied;
+        const isPeakRD = String(profile?.planMode || "quick") === "peak";
+        const nutLine = isPeakRD
+          ? ` Vorbereitung: ${sessionNutritionPrescription("race", 180, "cycling", profile).before}. Fueling: ${sessionNutritionPrescription("race", 180, "cycling", profile).during}.`
+          : "";
+        return `${labelDistance(profile.goalDistance)} – Ziel: ${profile.goalTime}${avgKmh ? ` (Ø ${avgKmh} km/h)` : ""}.${powerLine} Pacing: Erste Hälfte konservativ, zweite Hälfte Commitment.${nutLine}`;
+      })(),
       duration: "Event",
       scheduledRace: true,
       racePriority: "A",
       raceDistance: profile.goalDistance,
       raceDiscipline: profile.discipline,
+      goalTime: profile.goalTime,
+      planMode: String(profile?.planMode || "quick"),
     };
   }
 
