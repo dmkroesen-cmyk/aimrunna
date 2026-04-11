@@ -538,7 +538,7 @@
       color: var(--accent);
     }
 
-    /* ── FOOTER ── */
+    /* ── FOOTER · identical across landing + plan generator ── */
     .footer {
       padding: 48px 24px;
       border-top: 1px solid var(--border);
@@ -556,17 +556,91 @@
       justify-content: center;
       flex-wrap: wrap;
       margin-bottom: 16px;
+      align-items: center;
     }
-    .footer-links a {
+    .footer-links a,
+    .footer-links button.footer-link-btn {
       font-size: 13px;
       color: var(--text-muted);
       text-decoration: none;
+      background: none;
+      border: 0;
+      padding: 0;
+      cursor: pointer;
+      font-family: inherit;
     }
-    .footer-links a:hover { color: var(--text); }
+    .footer-links a:hover,
+    .footer-links button.footer-link-btn:hover { color: var(--text); }
     .footer-copy {
       font-size: 12px;
       color: var(--text-muted);
     }
+
+    /* Language popup (centered modal) */
+    .lang-popup[hidden] { display: none !important; }
+    .lang-popup {
+      position: fixed; inset: 0; z-index: 9600;
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .lang-popup-backdrop {
+      position: absolute; inset: 0;
+      background: rgba(8, 10, 14, 0.55);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .lang-popup-card {
+      position: relative;
+      width: min(360px, 100%);
+      background: #FFFFFF;
+      border-radius: 18px;
+      padding: 28px 24px 20px;
+      box-shadow: 0 30px 60px rgba(8, 10, 14, 0.28);
+    }
+    .lang-popup-title {
+      font-size: 18px; font-weight: 700;
+      margin: 0 0 4px; letter-spacing: -0.01em;
+      color: var(--text);
+    }
+    .lang-popup-sub {
+      font-size: 13px; color: var(--text-muted);
+      margin: 0 0 20px;
+    }
+    .lang-popup-list {
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .lang-popup-btn {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      background: #FFFFFF;
+      border-radius: 12px;
+      font-family: inherit;
+      font-size: 14px; font-weight: 500;
+      color: var(--text);
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      text-align: left;
+    }
+    .lang-popup-btn:hover {
+      background: #FAFAFA;
+      border-color: #0A0A0A;
+    }
+    .lang-popup-btn.is-active {
+      background: #0A0A0A;
+      color: #FFFFFF;
+      border-color: #0A0A0A;
+    }
+    .lang-popup-flag { font-size: 18px; }
+    .lang-popup-close {
+      position: absolute; top: 14px; right: 14px;
+      width: 32px; height: 32px;
+      border: 0; border-radius: 10px;
+      background: rgba(0, 0, 0, 0.04);
+      font-size: 18px; line-height: 1; cursor: pointer;
+      color: var(--text-muted);
+    }
+    .lang-popup-close:hover { background: rgba(0, 0, 0, 0.08); color: var(--text); }
 
     /* ── RESPONSIVE ── */
     @media (max-width: 768px) {
@@ -1180,7 +1254,7 @@
     </div>
   </section>
 
-  <!-- FOOTER -->
+  <!-- FOOTER · identical across landing + plan generator -->
   <footer class="footer">
     <div class="footer-brand">peak.athlete</div>
     <div class="footer-links">
@@ -1188,9 +1262,72 @@
       <a href="./legal/datenschutz.html">Datenschutz</a>
       <a href="./legal/agb.html">AGB</a>
       <a href="./legal/widerruf.html">Widerrufsbelehrung</a>
+      <button type="button" class="footer-link-btn" data-open-lang>Sprache</button>
     </div>
     <p class="footer-copy">&copy; 2026 peak.athlete. Trusted Performance OS for Endurance Athletes.</p>
   </footer>
+
+  <!-- Language Popup (shared across pages) -->
+  <div class="lang-popup" id="lang-popup" hidden role="dialog" aria-modal="true" aria-labelledby="lang-popup-title">
+    <div class="lang-popup-backdrop" data-close-lang></div>
+    <div class="lang-popup-card">
+      <button type="button" class="lang-popup-close" data-close-lang aria-label="Schließen">×</button>
+      <h3 class="lang-popup-title" id="lang-popup-title">Sprache wählen</h3>
+      <p class="lang-popup-sub">Wähle deine bevorzugte Sprache für peak.athlete.</p>
+      <div class="lang-popup-list">
+        <button type="button" class="lang-popup-btn" data-lang="de">
+          <span class="lang-popup-flag">🇩🇪</span>
+          <span>Deutsch</span>
+        </button>
+        <button type="button" class="lang-popup-btn" data-lang="en">
+          <span class="lang-popup-flag">🇬🇧</span>
+          <span>English</span>
+        </button>
+        <button type="button" class="lang-popup-btn" data-lang="ja">
+          <span class="lang-popup-flag">🇯🇵</span>
+          <span>日本語</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Language popup wiring — persists selection in localStorage under
+    // "peak.lang" so the core i18n system picks it up on next load.
+    (function () {
+      var popup = document.getElementById("lang-popup");
+      if (!popup) return;
+      function open() { popup.hidden = false; markActive(); }
+      function close() { popup.hidden = true; }
+      function markActive() {
+        var current = "de";
+        try { current = localStorage.getItem("peak.lang") || "de"; } catch (_) {}
+        popup.querySelectorAll(".lang-popup-btn").forEach(function (b) {
+          b.classList.toggle("is-active", b.getAttribute("data-lang") === current);
+        });
+      }
+      document.addEventListener("click", function (e) {
+        var t = e.target;
+        if (!t || !t.closest) return;
+        if (t.closest("[data-open-lang]")) { e.preventDefault(); open(); return; }
+        if (t.closest("[data-close-lang]")) { e.preventDefault(); close(); return; }
+        var pick = t.closest(".lang-popup-btn");
+        if (pick) {
+          var lang = pick.getAttribute("data-lang");
+          try { localStorage.setItem("peak.lang", lang); } catch (_) {}
+          if (window.CoreI18n && typeof window.CoreI18n.setLang === "function") {
+            window.CoreI18n.setLang(lang);
+          }
+          close();
+          // Reload so static content re-renders in the new language
+          try { window.location.reload(); } catch (_) {}
+        }
+      }, true);
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && !popup.hidden) close();
+      });
+    })();
+  </script>
 
 </body>
 </html>
