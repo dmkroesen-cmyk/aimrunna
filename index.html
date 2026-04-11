@@ -58,6 +58,14 @@
         background: #FFFFFF;
       }
 
+      /* Embedded launcher (loaded inside an iframe overlay from
+         landing.html). No site nav, no padding, transparent body. */
+      body.launcher-embed #site-nav { display: none !important; }
+      body.launcher-embed #legacy-compat { padding-top: 0 !important; }
+      body.launcher-embed {
+        background: #FFFFFF !important;
+      }
+
       /* ============================================================
          CRITICAL: Core Modal System lives at top-level body and
          relies on core.css for display:none + positioning. When
@@ -393,6 +401,15 @@
           var launcher = qp && qp.get("launcher");
           if (launcher && !plannerMode) {
             document.documentElement.setAttribute("data-launcher-only", launcher);
+          }
+        } catch (_) {}
+
+        /* Embedded mode: loaded inside an iframe overlay from landing.html.
+           We strip the site-nav + padding via body.launcher-embed and
+           later post a message back to the parent after SIGNED_IN. */
+        try {
+          if (qp && qp.get("embed") === "1" && window.parent !== window) {
+            window.__LAUNCHER_EMBED__ = true;
           }
         } catch (_) {}
       })();
@@ -1008,6 +1025,17 @@
          Also toggles body.is-signed-in based on Supabase auth.
          ============================================================ -->
     <script>
+      // Embedded-mode body class (set as early as possible so layout
+      // is correct before the launcher renders).
+      (function () {
+        if (window.__LAUNCHER_EMBED__) {
+          function addClass() { document.body && document.body.classList.add("launcher-embed"); }
+          if (document.body) addClass();
+          else document.addEventListener("DOMContentLoaded", addClass);
+        }
+      })();
+    </script>
+    <script>
       (function () {
         "use strict";
         function byId(id) { return document.getElementById(id); }
@@ -1282,8 +1310,14 @@
             if (window.sbAuth && typeof window.sbAuth.onAuthStateChange === "function") {
               clearInterval(iv);
               try {
-                window.sbAuth.onAuthStateChange(function () {
+                window.sbAuth.onAuthStateChange(function (event, session) {
                   syncSignedInClass();
+                  // Embedded launcher in iframe → tell parent to close
+                  // overlay and navigate into the Core Shell.
+                  if (window.__LAUNCHER_EMBED__ && event === "SIGNED_IN" &&
+                      session && session.user && window.parent && window.parent !== window) {
+                    try { window.parent.postMessage("peak:launcher:signed-in", "*"); } catch (_) {}
+                  }
                 });
               } catch (_) {}
             } else if (tries > 40) { clearInterval(iv); }

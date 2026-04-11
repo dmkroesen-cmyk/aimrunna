@@ -598,27 +598,128 @@
   </nav>
 
   <!-- ============================================================
-       App starten wiring
+       App starten → Launcher Overlay
        There is ONLY ONE launcher in the product: #ob-phase-account
-       inside index.html. Every "App starten" button on the marketing
-       site deep-links to index.html?launcher=1 which opens that
-       single, canonical launcher. No inline launcher modal here.
+       inside index.html. On landing.html we render it inside an
+       iframe overlay (desktop: centered dialog, mobile: fullscreen)
+       so the user never leaves the marketing page.
        ============================================================ -->
+  <style>
+    .launcher-overlay[hidden] { display: none !important; }
+    .launcher-overlay {
+      position: fixed; inset: 0; z-index: 9500;
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+      animation: launcher-fade-in .18s ease-out;
+    }
+    .launcher-overlay-backdrop {
+      position: absolute; inset: 0;
+      background: rgba(8,10,14,.62);
+      backdrop-filter: blur(14px) saturate(140%);
+      -webkit-backdrop-filter: blur(14px) saturate(140%);
+    }
+    .launcher-overlay-card {
+      position: relative;
+      width: min(520px, 100%);
+      height: min(820px, 92vh);
+      background: #FFFFFF;
+      border-radius: 22px;
+      box-shadow: 0 40px 80px rgba(8,10,14,.38), 0 4px 14px rgba(8,10,14,.18);
+      overflow: hidden;
+    }
+    .launcher-overlay-close {
+      position: absolute; top: 14px; right: 14px;
+      width: 34px; height: 34px;
+      border: 0; background: rgba(255,255,255,.92);
+      font-size: 22px; line-height: 1; cursor: pointer;
+      color: #0A0A0A;
+      border-radius: 10px;
+      z-index: 2;
+      box-shadow: 0 2px 6px rgba(8,10,14,.12);
+    }
+    .launcher-overlay-close:hover { background: #FFFFFF; }
+    .launcher-overlay-frame {
+      width: 100%; height: 100%;
+      border: 0;
+      display: block;
+      background: #FFFFFF;
+    }
+    @keyframes launcher-fade-in {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    @media (max-width: 640px) {
+      .launcher-overlay { padding: 0; }
+      .launcher-overlay-card {
+        width: 100%; height: 100%;
+        border-radius: 0;
+        max-width: none;
+      }
+      .launcher-overlay-close {
+        top: 10px; right: 10px;
+      }
+    }
+    body.launcher-overlay-open { overflow: hidden; }
+  </style>
+
+  <div id="launcher-overlay" class="launcher-overlay" hidden role="dialog" aria-modal="true" aria-label="App starten">
+    <div class="launcher-overlay-backdrop" data-launcher-overlay-close></div>
+    <div class="launcher-overlay-card">
+      <button type="button" class="launcher-overlay-close" data-launcher-overlay-close aria-label="Schließen">×</button>
+      <iframe
+        id="launcher-overlay-frame"
+        class="launcher-overlay-frame"
+        title="peak.athlete — App starten"
+        src="about:blank"
+        allow="publickey-credentials-get; publickey-credentials-create"></iframe>
+    </div>
+  </div>
+
   <script>
     (function () {
+      var overlay = document.getElementById("launcher-overlay");
+      var frame   = document.getElementById("launcher-overlay-frame");
+
+      function openLauncherOverlay() {
+        if (!overlay || !frame) {
+          window.location.href = "./index.html?launcher=1";
+          return;
+        }
+        // (Re)load the canonical launcher every time it opens
+        frame.src = "./index.html?launcher=1&embed=1";
+        overlay.hidden = false;
+        document.body.classList.add("launcher-overlay-open");
+      }
+      function closeLauncherOverlay() {
+        if (!overlay) return;
+        overlay.hidden = true;
+        document.body.classList.remove("launcher-overlay-open");
+        // Unload iframe so we don't keep a hidden session running
+        try { frame.src = "about:blank"; } catch (_) {}
+      }
+
       document.addEventListener("click", function (e) {
         var t = e.target;
         if (!t || !t.closest) return;
-        // App starten (Header + Hero + Hero-CTA) → canonical launcher
+
+        // App starten (Header + Hero + Hero-CTA) → launcher overlay
         if (
           t.closest("#app-launcher-open-btn") ||
           t.closest("#hero-app-starten-btn") ||
           t.closest("#hero-app-starten-btn-cta")
         ) {
           e.preventDefault();
-          window.location.href = "./index.html?launcher=1";
+          openLauncherOverlay();
           return;
         }
+
+        // Close launcher overlay
+        if (t.closest("[data-launcher-overlay-close]")) {
+          e.preventDefault();
+          closeLauncherOverlay();
+          return;
+        }
+
         // Plan erstellen → scroll to existing #plan section (cards centered)
         if (t.closest("#hero-plan-erstellen-btn")) {
           e.preventDefault();
@@ -630,6 +731,23 @@
           return;
         }
       }, true);
+
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") closeLauncherOverlay();
+      });
+
+      // Allow the iframe to ask the parent to close itself (e.g. after
+      // successful login we want to close the overlay and reload).
+      window.addEventListener("message", function (e) {
+        if (!e || !e.data) return;
+        if (e.data === "peak:launcher:close") {
+          closeLauncherOverlay();
+        } else if (e.data === "peak:launcher:signed-in") {
+          closeLauncherOverlay();
+          // Navigate to the Core Shell after a successful sign-in
+          window.location.href = "./index.html";
+        }
+      });
     })();
   </script>
 
@@ -734,13 +852,13 @@
       <h2 class="plan-title">Plan your next race.</h2>
       <p class="plan-sub">Erstelle in Sekunden einen periodisierten Trainingsplan. Wähle zwischen Quick Mode für den schnellen Start oder Pro Mode für volle Kontrolle.</p>
       <div class="plan-modes">
-        <a href="./index.html?planner=1&amp;mode=quick" class="plan-mode-btn">
+        <a href="./index.html?planner=1" class="plan-mode-btn">
           <div class="plan-mode-label">Kostenlos testen</div>
           <div class="plan-mode-name">quick.</div>
           <div class="plan-mode-desc">Sofort einen Plan generieren. Ohne Account.</div>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </a>
-        <a href="./index.html?planner=1&amp;mode=peak" class="plan-mode-btn">
+        <a href="./index.html?planner=1" class="plan-mode-btn">
           <div class="plan-mode-label">Full Experience</div>
           <div class="plan-mode-name">peak.</div>
           <div class="plan-mode-desc">Geführtes Onboarding + vollständiger Plan.</div>
