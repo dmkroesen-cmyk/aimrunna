@@ -23,3 +23,6 @@ Thumbs.db
 dist/
 build/
 .vercel
+
+# Local backup archive (not deployed, not tracked)
+.backup/

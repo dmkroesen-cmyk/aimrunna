@@ -1,3 +1,7 @@
 *.sql
 .gitignore
 .vercel
+.backup
+*.bak
+*.legacy
+*.agent_rewrite
