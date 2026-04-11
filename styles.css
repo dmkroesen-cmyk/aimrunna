@@ -13200,55 +13200,73 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: 16px;
   background: rgba(8, 10, 14, 0.55);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   animation: ob-backdrop-in 280ms ease;
   overflow: hidden;
+  /* Card sizing vars */
+  --ob-card-width: min(560px, calc(100vw - 32px));
+  --ob-card-max-h: min(90vh, 820px);
+  --ob-chrome-h: 58px;
+  --ob-nav-h: 88px;
 }
 
+/* Unified card: chrome + screens + nav stack with shared borders/shadow */
 .ob-shell > .ob-chrome,
 .ob-shell > .ob-screens,
 .ob-shell > .ob-nav {
   background: #FFFFFF;
+  width: 100%;
+  max-width: var(--ob-card-width);
+  box-sizing: border-box;
 }
 
-.ob-shell {
-  --ob-card-width: 560px;
-  --ob-card-max-h: min(90vh, 820px);
-}
-
-/* Give the direct children a shared visual card */
-.ob-shell > .ob-chrome {
-  border-top-left-radius: 20px;
-  border-top-right-radius: 20px;
-  box-shadow: 0 24px 72px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(0, 0, 0, 0.04);
-}
-.ob-shell > .ob-nav {
-  border-bottom-left-radius: 20px;
-  border-bottom-right-radius: 20px;
-}
-
-/* Since chrome/screens/nav are direct children of .ob-shell, we use a
-   pseudo-card via a synthetic flex column with a max-width. */
 .ob-shell {
   flex-direction: column;
   align-items: center;
+  justify-content: center;
 }
-.ob-shell > .ob-chrome,
-.ob-shell > .ob-screens,
-.ob-shell > .ob-nav {
-  width: 100%;
-  max-width: var(--ob-card-width);
+
+/* Chrome: top of card (progress + close X) */
+.ob-shell > .ob-chrome {
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  box-shadow:
+    0 -1px 0 0 rgba(0, 0, 0, 0.04) inset,
+    24px 0 0 0 transparent;
+  flex-shrink: 0;
+  min-height: var(--ob-chrome-h);
+  position: relative;
+  /* Shared left/right border — simulate by using box-shadow vertical rails */
+  border-left: 1px solid rgba(0, 0, 0, 0.04);
+  border-right: 1px solid rgba(0, 0, 0, 0.04);
 }
+
+/* Scrollable content area — only section that scrolls */
 .ob-shell > .ob-screens {
-  flex: 0 1 auto;
-  max-height: var(--ob-card-max-h);
-  overflow: hidden;
-  box-shadow: 0 24px 72px rgba(0, 0, 0, 0.0); /* handled by chrome */
+  flex: 1 1 auto;
+  max-height: calc(var(--ob-card-max-h) - var(--ob-chrome-h) - var(--ob-nav-h));
+  min-height: 280px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+  border-left: 1px solid rgba(0, 0, 0, 0.04);
+  border-right: 1px solid rgba(0, 0, 0, 0.04);
 }
+
+/* Nav: bottom of card (back / next buttons) */
 .ob-shell > .ob-nav {
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+  flex-shrink: 0;
+  min-height: var(--ob-nav-h);
+  border-left: 1px solid rgba(0, 0, 0, 0.04);
+  border-right: 1px solid rgba(0, 0, 0, 0.04);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  /* unified drop shadow below entire card */
   box-shadow: 0 24px 72px rgba(0, 0, 0, 0.28);
 }
 
@@ -13263,7 +13281,7 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
 .ob-shell > .ob-chrome,
 .ob-shell > .ob-screens,
 .ob-shell > .ob-nav {
-  animation: ob-card-in 400ms cubic-bezier(0.16, 1, 0.3, 1);
+  animation: ob-card-in 400ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @keyframes ob-backdrop-in {
@@ -13275,8 +13293,8 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
   to   { opacity: 0; }
 }
 @keyframes ob-card-in {
-  from { opacity: 0; transform: translateY(24px) scale(0.985); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 @keyframes ob-card-out {
   from { opacity: 1; transform: translateY(0) scale(1); }
@@ -13290,18 +13308,25 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
     background: #FFFFFF;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
+    align-items: stretch;
+    justify-content: flex-start;
     --ob-card-width: 100%;
     --ob-card-max-h: 100vh;
   }
   .ob-shell > .ob-chrome,
+  .ob-shell > .ob-screens,
   .ob-shell > .ob-nav {
     border-radius: 0;
+    border-left: 0;
+    border-right: 0;
     box-shadow: none;
+    max-width: 100%;
   }
   .ob-shell > .ob-screens {
-    flex: 1 1 auto;
+    flex: 1 1 0;
+    min-height: 0;
     max-height: none;
-    height: 100%;
+    height: auto;
   }
 }
 
@@ -13357,37 +13382,41 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
 .ob-close:hover { background: rgba(0, 0, 0, 0.05); color: var(--text, #1A1A1A); }
 
 /* ── Screens container ── */
+/* Note: sizing/scroll handled by .ob-shell > .ob-screens above. */
 .ob-screens {
-  flex: 1;
-  overflow: hidden;
   position: relative;
-  min-height: 520px;
 }
 @media (max-width: 720px) {
   .ob-screens { min-height: 0; }
 }
 
+/* Each screen is a flow-layout block inside the scrollable container.
+   Only ONE screen is visible at a time (others use [hidden]). */
 .ob-screen {
-  position: absolute;
-  inset: 0;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: 32px 24px;
-  overflow-y: auto;
+  padding: 28px 28px 24px;
   -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .ob-screen[hidden] { display: none !important; }
 
 .ob-screen-inner {
   width: 100%;
-  max-width: 360px;
+  max-width: 460px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
+  gap: 16px;
+  padding-bottom: 8px;
 }
+.ob-screen-inner > .ob-headline { margin-bottom: 4px; }
+.ob-screen-inner > .ob-sub { margin: 0 0 8px; }
 
 @keyframes ob-screen-in {
   from { opacity: 0; transform: translateX(32px); }
@@ -13410,12 +13439,12 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
 
 /* ── Typography — the question IS the interface ── */
 .ob-headline {
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 800;
   letter-spacing: -0.04em;
   color: var(--text, #1A1A1A);
-  margin: 0 0 48px;
-  line-height: 1.1;
+  margin: 0 0 4px;
+  line-height: 1.15;
   outline: none;
 }
 
@@ -13433,10 +13462,13 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
 .ob-sub {
   font-size: 13px;
   color: var(--text-muted, #9CA3AF);
-  margin: -36px 0 40px;
+  margin: 0 0 12px;
   line-height: 1.5;
   font-weight: 400;
   letter-spacing: -0.01em;
+}
+.ob-sub-inline {
+  margin: 8px 0 6px;
 }
 
 .ob-sub:empty {
@@ -14497,6 +14529,349 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
 /* Desktop: fullscreen like mobile — same system state, not a floating card */
 @media (min-width: 768px) {
   .ob-screen-inner {
-    max-width: 380px;
+    max-width: 440px;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   Follow-up #4 — New onboarding screens (rest-days, ftp,
+   indoor share, hyrox, shape, female sub-flow)
+   ═══════════════════════════════════════════════════════════ */
+
+.ob-choices-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+.ob-choices-compact .ob-choice {
+  padding: 14px 12px;
+  font-size: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  background: #FFFFFF;
+}
+.ob-choices-compact .ob-choice.is-active {
+  background: var(--text, #1A1A1A);
+  color: #FFFFFF;
+  border-color: var(--text, #1A1A1A);
+}
+.ob-choices-inline {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+.ob-choices-inline .ob-choice {
+  flex: 1 1 auto;
+  min-width: 110px;
+  padding: 12px 14px;
+  font-size: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  background: #FFFFFF;
+}
+.ob-choices-inline .ob-choice.is-active {
+  background: var(--text, #1A1A1A);
+  color: #FFFFFF;
+  border-color: var(--text, #1A1A1A);
+}
+
+.ob-choice.is-disabled,
+.ob-choice[disabled] {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+  filter: grayscale(0.4);
+}
+
+/* FTP input */
+.ob-ftp-input-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 280px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ob-ftp-input-wrap .ob-input {
+  text-align: center;
+  font-size: 22px;
+  font-weight: 700;
+  padding-right: 48px;
+}
+.ob-input-unit {
+  position: absolute;
+  right: 16px;
+  color: var(--text-muted, #9CA3AF);
+  font-weight: 600;
+  pointer-events: none;
+}
+
+/* Slider for indoor share */
+.ob-slider-wrap {
+  width: 100%;
+  max-width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 0;
+}
+.ob-slider {
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 2px;
+  outline: none;
+}
+.ob-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--text, #1A1A1A);
+  cursor: pointer;
+  border: 3px solid #FFFFFF;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+.ob-slider::-moz-range-thumb {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--text, #1A1A1A);
+  cursor: pointer;
+  border: 3px solid #FFFFFF;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+.ob-slider-value {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text, #1A1A1A);
+}
+.ob-indoor-platform-row {
+  width: 100%;
+  margin-top: 12px;
+}
+
+/* Inline row (reveal sections) */
+.ob-inline-row {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 0 0;
+}
+.ob-inline-row[hidden] { display: none; }
+
+/* Info panel (expand/collapse) */
+.ob-info-panel {
+  width: 100%;
+  background: #F7F7F8;
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 13px;
+  color: #4B5563;
+  line-height: 1.5;
+  text-align: left;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+.ob-info-panel[hidden] { display: none; }
+
+/* Warning card */
+.ob-warning-card {
+  width: 100%;
+  background: #FFF7ED;
+  border: 1px solid #FED7AA;
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 13px;
+  color: #9A3412;
+  line-height: 1.5;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ob-warning-card[hidden] { display: none; }
+.ob-warning-card strong { font-weight: 700; color: #7C2D12; }
+
+/* Hint text */
+.ob-hint {
+  font-size: 12px;
+  color: #6B7280;
+  line-height: 1.45;
+  margin: 4px 0 0;
+  text-align: center;
+}
+
+/* Triathlon stacked groups */
+.ob-tri-group {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.ob-tri-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted, #9CA3AF);
+  margin: 0 0 4px;
+  text-align: left;
+  padding-left: 4px;
+}
+
+/* Postpartum combined fields */
+.ob-pp-field {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+.ob-pp-field:last-child { border-bottom: 0; }
+.ob-pp-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted, #9CA3AF);
+  text-align: left;
+  padding-left: 4px;
+}
+.ob-pp-field .ob-wheel-sm {
+  align-self: center;
+}
+
+/* Peak dashboard: data-source banner */
+.heute-datasource-banner {
+  background: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  padding: 16px 18px 14px;
+  margin: 0 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  font-family: inherit;
+  position: relative;
+}
+.heute-datasource-banner .ds-banner-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #9CA3AF;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background 120ms, color 120ms;
+}
+.heute-datasource-banner .ds-banner-close:hover {
+  background: rgba(0,0,0,0.05);
+  color: #1A1A1A;
+}
+.heute-datasource-banner .ds-banner-providers {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 8px;
+}
+.heute-datasource-banner .ds-provider-btn {
+  background: #F9FAFB;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  padding: 12px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+  cursor: pointer;
+  transition: transform 120ms, background 120ms, border-color 120ms;
+  font-family: inherit;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.heute-datasource-banner .ds-provider-btn:hover {
+  background: #F3F4F6;
+  border-color: rgba(0,0,0,0.14);
+  transform: translateY(-1px);
+}
+.heute-datasource-banner .ds-provider-btn:active { transform: scale(0.97); }
+.heute-datasource-banner .ds-provider-manual {
+  background: #FFFFFF;
+  color: #6B7280;
+}
+.heute-datasource-banner .ds-banner-content {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.heute-datasource-banner .ds-banner-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: #F3F4F6;
+  display: grid;
+  place-items: center;
+  color: #374151;
+  flex-shrink: 0;
+}
+.heute-datasource-banner .ds-banner-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: #374151;
+}
+.heute-datasource-banner .ds-banner-text strong {
+  font-weight: 700;
+  color: #111827;
+}
+.heute-datasource-banner .ds-banner-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+.ds-banner-btn-primary {
+  background: #1A1A1A;
+  color: #FFFFFF;
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 120ms, background 120ms;
+  font-family: inherit;
+}
+.ds-banner-btn-primary:hover { background: #000; transform: translateY(-1px); }
+.ds-banner-btn-primary:active { transform: scale(0.97); }
+.ds-banner-btn-secondary {
+  background: transparent;
+  color: #6B7280;
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 120ms;
+  font-family: inherit;
+}
+.ds-banner-btn-secondary:hover { color: #1A1A1A; }

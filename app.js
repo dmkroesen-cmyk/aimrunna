@@ -12042,8 +12042,33 @@ function extractProfile(data) {
     .map((row) => `${disciplineLabel(row.discipline)} ${labelDistance(row.distance)} ${row.time}`)
     .join(", ");
   const raceEventsRaw = String(data.get("raceEventsJson") || "[]").trim();
-  const weeklyHoursRequested = Number(data.get("weeklyHours"));
+  let weeklyHoursRequested = Number(data.get("weeklyHours"));
+  if (!weeklyHoursRequested || weeklyHoursRequested <= 0) {
+    // Fallback from level when onboarding no longer collects explicit hours
+    const lvl = String(data.get("fitnessLevel") || "").toLowerCase();
+    const whMap = { starter: 5, intermediate: 8, advanced: 11, elite: 14 };
+    const whDefault = Number(data.get("weeklyHoursDefault")) || whMap[lvl] || 8;
+    weeklyHoursRequested = whDefault;
+  }
+
+  // Rest days (Follow-up #4) — parse JSON array
+  let restDaysArr = [];
+  try {
+    const raw = String(data.get("restDays") || "").trim();
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        restDaysArr = parsed
+          .map((d) => String(d || "").toLowerCase())
+          .filter((d) => ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"].includes(d));
+      }
+    }
+  } catch (_) { restDaysArr = []; }
+  const availableTrainingDays = Math.max(1, 7 - restDaysArr.length);
+
   return {
+    restDays: restDaysArr,
+    availableTrainingDays,
     discipline: data.get("discipline"),
     fitnessLevel: data.get("fitnessLevel"),
     experience: data.get("experience"),
@@ -12917,6 +12942,7 @@ function buildPlan(profile) {
       phase,
     });
     applyLevelMicrocyclePattern(dayTemplates, profile);
+    enforceRestDays(dayTemplates, profile);
     const templateCheck = runSessionTemplateCheck(dayTemplates, profile);
     const normalizedTemplates = templateCheck.days;
     templateFixCount += Number(templateCheck.fixes) || 0;
@@ -19267,6 +19293,90 @@ function dayIndexFromDate(date) {
   return jsDay === 0 ? 6 : jsDay - 1;
 }
 
+// Follow-up #4 — Enforce profile.restDays by turning those day slots into rest
+// sessions and migrating any quality/long session to the nearest available day.
+// Caps total non-rest sessions per week at profile.availableTrainingDays.
+function enforceRestDays(days, profile) {
+  if (!Array.isArray(days) || days.length !== 7) return;
+  const restDaysArr = Array.isArray(profile?.restDays) ? profile.restDays : [];
+  if (!restDaysArr.length && !profile?.availableTrainingDays) return;
+
+  const DAY_INDEX = { monday: 0, tuesday: 1, wednesday: 2, thursday: 3, friday: 4, saturday: 5, sunday: 6 };
+  const blocked = new Set(
+    restDaysArr.map((d) => DAY_INDEX[String(d || "").toLowerCase()]).filter((n) => typeof n === "number")
+  );
+  if (!blocked.size) {
+    // Still cap total sessions if requested
+    const maxDays = Number(profile?.availableTrainingDays) || 7;
+    _capTrainingDays(days, maxDays);
+    return;
+  }
+
+  const REST_TEMPLATE = () => ({
+    type: "rest",
+    title: "Ruhetag",
+    details: "Ruhetag (Benutzer-Präferenz). Optional: 20–30 min lockeres Gehen, Mobility, Foam Rolling.",
+    duration: "Ruhetag",
+  });
+
+  const PRIORITY = { longrun: 5, quality: 4, threshold: 4, endurance: 3, recovery: 2, rest: 0 };
+  const prio = (s) => PRIORITY[s?.type] ?? 1;
+
+  // Collect sessions to migrate out of blocked days
+  for (let i = 0; i < 7; i++) {
+    if (!blocked.has(i)) continue;
+    const existing = days[i];
+    if (!existing || existing.type === "rest") {
+      days[i] = REST_TEMPLATE();
+      continue;
+    }
+    // Find best neighbour slot: not blocked, prefer a current rest/recovery slot
+    const candidates = [];
+    for (let j = 0; j < 7; j++) {
+      if (blocked.has(j) || j === i) continue;
+      const occupant = days[j];
+      // Prefer replacing rest or recovery with our higher-priority session
+      const slotPrio = prio(occupant);
+      if (slotPrio < prio(existing)) {
+        candidates.push({ j, slotPrio, dist: Math.min(Math.abs(j - i), 7 - Math.abs(j - i)) });
+      }
+    }
+    candidates.sort((a, b) => a.slotPrio - b.slotPrio || a.dist - b.dist);
+    if (candidates.length) {
+      const target = candidates[0].j;
+      days[target] = existing;
+    }
+    // If no candidate (no lower-prio slots), drop the session — rest day wins
+    days[i] = REST_TEMPLATE();
+  }
+
+  // Cap total non-rest sessions to availableTrainingDays
+  const maxDays = Number(profile?.availableTrainingDays) || (7 - blocked.size);
+  _capTrainingDays(days, maxDays);
+}
+
+function _capTrainingDays(days, maxDays) {
+  if (!Array.isArray(days)) return;
+  let nonRest = [];
+  for (let i = 0; i < days.length; i++) {
+    if (days[i] && days[i].type !== "rest") nonRest.push(i);
+  }
+  if (nonRest.length <= maxDays) return;
+  // Remove lowest-priority sessions first
+  const PRI = { longrun: 5, quality: 4, threshold: 4, endurance: 3, recovery: 2, rest: 0 };
+  nonRest.sort((a, b) => (PRI[days[a].type] ?? 1) - (PRI[days[b].type] ?? 1));
+  const toDrop = nonRest.length - maxDays;
+  for (let k = 0; k < toDrop; k++) {
+    const idx = nonRest[k];
+    days[idx] = {
+      type: "rest",
+      title: "Ruhetag",
+      details: "Ruhetag (Volumen an verfügbare Tage angepasst).",
+      duration: "Ruhetag",
+    };
+  }
+}
+
 function sameWeek(weekStart, date) {
   const d = startOfDay(date);
   return d >= weekStart && d <= addDays(weekStart, 6);
@@ -25242,6 +25352,125 @@ document.addEventListener("click", (e) => {
     return parts.slice(0, 3).join(" ");
   }
 
+  // Follow-up #4 Task 5 — Data-source connection banner
+  const DS_BANNER_ID = "heute-datasource-banner";
+  const DS_DISMISS_COOLDOWN_DAYS = 7;
+  function renderDataSourceBanner(screen, account) {
+    if (!screen || !account) return;
+    const existing = document.getElementById(DS_BANNER_ID);
+
+    const integ = account.integrations || {};
+    const anyConnected = !!(integ.strava?.connected || integ.garmin?.connected
+      || integ.whoop?.connected || integ.appleHealth?.connected);
+    if (anyConnected) {
+      if (existing) existing.remove();
+      return;
+    }
+
+    account.settings = account.settings || {};
+    // Persistent dismissal — once dismissed, never re-show in subsequent sessions
+    if (account.settings.dataSourceBannerDismissed === true) {
+      if (existing) existing.remove();
+      return;
+    }
+
+    if (existing) return; // already in DOM
+
+    const banner = document.createElement("div");
+    banner.id = DS_BANNER_ID;
+    banner.className = "heute-datasource-banner";
+    banner.innerHTML = `
+      <button type="button" class="ds-banner-close" id="ds-banner-close" aria-label="Banner schließen">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+      <div class="ds-banner-content">
+        <div class="ds-banner-icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="M12 18v4"/><path d="m4.93 4.93 2.83 2.83"/><path d="m16.24 16.24 2.83 2.83"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="m4.93 19.07 2.83-2.83"/><path d="m16.24 7.76 2.83-2.83"/></svg>
+        </div>
+        <div class="ds-banner-text">
+          <strong>Verbinde eine Datenquelle</strong>
+          <span>Präzisere Zonen, Kalibrierung und automatische Session-Erfassung — wähle deinen Anbieter.</span>
+        </div>
+      </div>
+      <div class="ds-banner-providers">
+        <button type="button" class="ds-provider-btn" data-provider="strava">
+          <span class="ds-provider-name">Strava</span>
+        </button>
+        <button type="button" class="ds-provider-btn" data-provider="garmin">
+          <span class="ds-provider-name">Garmin</span>
+        </button>
+        <button type="button" class="ds-provider-btn" data-provider="whoop">
+          <span class="ds-provider-name">WHOOP</span>
+        </button>
+        <button type="button" class="ds-provider-btn" data-provider="appleHealth">
+          <span class="ds-provider-name">Apple Health</span>
+        </button>
+        <button type="button" class="ds-provider-btn ds-provider-manual" data-provider="manual">
+          <span class="ds-provider-name">Manuell</span>
+        </button>
+      </div>
+    `;
+    // Insert as first child of heute-screen (pinned top)
+    screen.insertBefore(banner, screen.firstChild);
+
+    // Dismiss (persistent)
+    banner.querySelector("#ds-banner-close")?.addEventListener("click", () => {
+      account.settings = account.settings || {};
+      account.settings.dataSourceBannerDismissed = true;
+      account.settings.dataSourceBannerDismissedAt = Date.now();
+      if (typeof persistStore === "function") persistStore();
+      banner.remove();
+    });
+
+    // Provider buttons — navigate to settings/integrations and try to trigger
+    // the specific connect handler if one exists.
+    banner.querySelectorAll(".ds-provider-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const provider = btn.dataset.provider;
+        // Navigate to integrations surface
+        if (typeof setActiveProfileView === "function") {
+          try { setActiveProfileView("settings"); } catch (_) {}
+        }
+        if (typeof setActiveProfileSettingsView === "function") {
+          try { setActiveProfileSettingsView("connections"); } catch (_) {}
+        } else if (typeof window._setActiveTab === "function") {
+          try { window._setActiveTab("settings"); } catch (_) {}
+        }
+        // Delegate to existing integration connect buttons if present
+        setTimeout(() => {
+          const map = {
+            strava: ["#connect-strava-btn", "[data-connect=\"strava\"]", "#strava-connect"],
+            garmin: ["#connect-garmin-btn", "[data-connect=\"garmin\"]", "#garmin-connect"],
+            whoop: ["#connect-whoop-btn", "[data-connect=\"whoop\"]", "#whoop-connect"],
+            appleHealth: ["#connect-apple-health-btn", "[data-connect=\"apple-health\"]"],
+            manual: ["#manual-activity-btn", "[data-connect=\"manual\"]"],
+          };
+          const selectors = map[provider] || [];
+          let target = null;
+          for (const sel of selectors) {
+            target = document.querySelector(sel);
+            if (target) break;
+          }
+          if (target) {
+            try { target.click(); } catch (_) {}
+            if (typeof target.scrollIntoView === "function") {
+              target.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+          } else {
+            // Fallback: scroll to integrations section
+            const section = document.getElementById("account-integrations")
+              || document.querySelector("[data-section=\"integrations\"]")
+              || document.getElementById("settings-integrations");
+            if (section && typeof section.scrollIntoView === "function") {
+              section.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+          }
+        }, 150);
+      });
+    });
+  }
+  function DS_BANNER_COOLDOWN() { return DS_DISMISS_COOLDOWN_DAYS; }
+
   function readinessColor(score) {
     if (score === null || score === undefined) return "rgba(26,26,26,0.15)";
     if (score >= 70) return "#16A34A";
@@ -25267,6 +25496,9 @@ document.addEventListener("click", (e) => {
     if (!account) { screen.hidden = true; return; }
 
     screen.hidden = false;
+
+    // Data-source connection banner (Follow-up #4 Task 5)
+    try { renderDataSourceBanner(screen, account); } catch (_) {}
 
     const readiness = typeof calculateTrainingReadiness === "function" ? calculateTrainingReadiness(account) : { score: null, label: "--", decision: "easy", components: {}, reasons: [] };
     const strain = typeof calculateCurrentStrain === "function" ? calculateCurrentStrain(account) : { score: null };
@@ -25894,12 +26126,10 @@ document.addEventListener("click", (e) => {
 
   if (!shell || !screens) return;
 
-  // ── Screen order (dynamic — some screens conditional on discipline) ──
-  const SCREEN_ORDER_BASE = [
-    "discipline", "distance", "goaltime", "raceday",
-    "level", "body", "hours", "schedule", "pb", "disclaimer", "final"
-  ];
-  let _screenOrder = [...SCREEN_ORDER_BASE];
+  // ── Screen order (dynamic — discipline-keyed; plan-form fields removed) ──
+  // Core fields (Disziplin, Distanz, Zielzeit, Datum, Modus) are collected by
+  // the Plan Generator form itself — onboarding picks up from there.
+  let _screenOrder = [];
   function getScreenOrder() { return _screenOrder; }
 
   // ── Monetization config (subscription-ready, currently inactive) ──
@@ -25914,42 +26144,117 @@ document.addEventListener("click", (e) => {
 
   // ── Collected data ──
   const data = {
+    // Discipline/distance/time/date come pre-filled from plan form
     discipline: "running",
     distance: "",
     goalHours: 0, goalMinutes: 0, goalSeconds: 0,
     raceDate: "",
+    // Onboarding-specific fields
     level: "intermediate",
     sex: "",
     birthYear: 1990,
     weight: 72,
     height: 178,
-    weeklyHours: 8,
+    // Schedule / availability
+    restDays: [],          // array of lowercase day keys
     longDay: "sunday",
+    // Running / general
     pbDistance: "",
     pbTime: "",
+    // Cycling / triathlon
+    bikeFtp: null,
+    bikeIndoorShare: 0,
+    zwiftPlatform: false,
+    bikeOutdoorDay: "flexible",
+    // Hyrox
+    hyroxPrevious: false,
+    hyroxPrevTime: "",
+    runEnduranceSelf: "intermediate",
+    strengthSelf: "intermediate",
+    gymAccess: "full",
+    sledExperience: "occasional",
+    // Shape
+    shapeGoalCategory: "fat_loss",
+    targetWeightKg: null,
+    modalities: [],
+    equipment: "gym",
+    // Female sub-flow
+    cycleBasedTraining: false,
+    cycleLengthDays: 28,
+    lastPeriodDate: "",
+    hormonalContraception: null,
+    pregnancyStatus: "none",
+    gestationWeek: null,
+    pregnancyComplications: false,
+    postpartumWeeks: null,
+    deliveryType: "vaginal",
+    pelvicRehab: "none",
+    breastfeeding: false,
+    // Legacy (kept for form compat)
     shapeFocus: "fat_loss",
     raceName: "",
     raceCity: "",
     selectedTier: "beta",
   };
 
-  // ── Screen order (dynamic — some screens conditional on discipline) ──
+  // ── Screen order (dynamic per discipline + conditional female sub-flow) ──
   function rebuildScreenOrder() {
-    const disc = data.discipline;
-    const isShape = disc === "shape";
+    const disc = data.discipline || "running";
     const order = [];
-    order.push("discipline");
-    if (!isShape) order.push("distance", "goaltime", "raceday");
-    order.push("level", "body", "hours");
-    if (!isShape) order.push("schedule", "pb");
-    if (isShape) order.push("shapefocus");
-    order.push("disclaimer");
-    order.push("final");
+
+    // Common head
+    order.push("level", "body");
+
+    // Female sub-flow (conditional on sex)
+    if (data.sex === "female") {
+      order.push("female-cycle");
+      if (data.cycleBasedTraining) {
+        order.push("female-cyclelen", "female-period", "female-contraception");
+      }
+      order.push("female-pregnancy");
+      if (data.pregnancyStatus === "pregnant") {
+        order.push("female-ssw", "female-complications");
+      } else if (data.pregnancyStatus === "postpartum") {
+        order.push("female-postpartum");
+      }
+    }
+
+    // Rest-days always next
+    order.push("restdays");
+
+    // Discipline-specific middle screens
+    if (disc === "running") {
+      order.push("longday", "pbrun");
+    } else if (disc === "cycling") {
+      order.push("ftp", "indoorshare", "outdoorday");
+    } else if (disc === "triathlon") {
+      order.push("indoorshare", "ftp", "tridays");
+    } else if (disc === "hyrox") {
+      order.push("hyroxexp", "runself", "strengthself", "gymaccess", "sledexp");
+    } else if (disc === "shape") {
+      order.push("shapegoal");
+      if (data.shapeGoalCategory === "fat_loss") order.push("targetweight");
+      order.push("modalities", "equipment");
+    }
+
+    // Common tail
+    order.push("disclaimer", "final");
     _screenOrder = order;
+
+    // Keep currentIdx bounded (important for conditional re-builds mid-flow)
+    if (typeof currentIdx === "number") {
+      currentIdx = Math.max(0, Math.min(currentIdx, _screenOrder.length - 1));
+    }
   }
+  let currentIdx = 0;
   rebuildScreenOrder();
 
-  let currentIdx = 0;
+  // Reparent shell to <body> if it lives inside #legacy-compat (which gets
+  // display:none under the Core Shell UI). position:fixed alone isn't enough
+  // because display:none on an ancestor suppresses all descendants.
+  if (shell.parentElement && shell.parentElement.id === "legacy-compat") {
+    document.body.appendChild(shell);
+  }
 
   // ── Haptic helper (vibrate API on Android, checkbox-switch trick on iOS 18+) ──
   const _isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
@@ -26325,6 +26630,15 @@ document.addEventListener("click", (e) => {
     if (newName === "body") initBodyWheels();
     if (newName === "hours") initHoursWheel();
     if (newName === "pb") populatePbDistances();
+    if (newName === "pbrun") populatePbDistances();
+    if (newName === "restdays") prepareRestDaysScreen();
+    if (newName === "longday") prepareLongDayScreen();
+    if (newName === "outdoorday") prepareOutdoorDayScreen();
+    if (newName === "tridays") prepareTriDaysScreen();
+    if (newName === "targetweight") initTargetWeightWheel();
+    if (newName === "female-cyclelen") initCycleLenWheel();
+    if (newName === "female-ssw") initSswWheel();
+    if (newName === "female-postpartum") initPostpartumScreen();
     if (newName === "disclaimer") prepareDisclaimerScreen();
     if (newName === "final") prepareFinalScreen();
     _syncNavButtonGating(newName);
@@ -26457,7 +26771,10 @@ document.addEventListener("click", (e) => {
   // ══════════════════════════════════════════════════════════
   //  WHEEL INIT FUNCTIONS (lazy — only when screen shown)
   // ══════════════════════════════════════════════════════════
-  let wheelsInitialized = { time: false, body: false, hours: false };
+  let wheelsInitialized = {
+    time: false, body: false, hours: false,
+    targetWeight: false, cycleLen: false, ssw: false, postpartumWeeks: false,
+  };
 
   // ── Distance-aware default goal times (slightly ambitious, realistic) ──
   function getDefaultGoalTime() {
@@ -26818,14 +27135,38 @@ document.addEventListener("click", (e) => {
   //  OPEN / CLOSE
   // ══════════════════════════════════════════════════════════
   function open() {
-    // Pre-populate discipline from plan form if set
+    // Pre-populate discipline from plan form (required — engine needs it)
     const mainDisc = document.querySelector('#plan-form select[name="discipline"]');
     if (mainDisc?.value) data.discipline = mainDisc.value;
+
+    // Also pick up distance / goal time / race date already entered on plan form
+    const planDistEl = document.getElementById("goal-distance-select")
+      || document.querySelector('#plan-form [name="goalDistance"]');
+    if (planDistEl?.value) data.distance = planDistEl.value;
+    const planTimeEl = document.getElementById("goal-time-input")
+      || document.querySelector('#plan-form [name="goalTime"]');
+    if (planTimeEl?.value) {
+      const parts = String(planTimeEl.value).split(":").map(n => parseInt(n, 10));
+      if (parts.length === 3) {
+        data.goalHours = parts[0] || 0;
+        data.goalMinutes = parts[1] || 0;
+        data.goalSeconds = parts[2] || 0;
+      } else if (parts.length === 2) {
+        data.goalHours = 0;
+        data.goalMinutes = parts[0] || 0;
+        data.goalSeconds = parts[1] || 0;
+      }
+    }
+    const planRaceEl = document.querySelector('#plan-form [name="raceDate"]');
+    if (planRaceEl?.value) data.raceDate = planRaceEl.value;
 
     // Reset to first screen — clean up previous wheel instances
     currentIdx = 0;
     destroyAllWheels();
-    wheelsInitialized = { time: false, body: false, hours: false };
+    wheelsInitialized = {
+      time: false, body: false, hours: false,
+      targetWeight: false, cycleLen: false, ssw: false, postpartumWeeks: false,
+    };
 
     // Reset final screen phase
     const finalScreen = screens?.querySelector('[data-screen="final"]');
@@ -27118,6 +27459,454 @@ document.addEventListener("click", (e) => {
     const ok = await handleAccountCreate();
     if (ok) { hapticConfirm(); setTimeout(finalize, 400); }
   });
+
+  // ══════════════════════════════════════════════════════════
+  //  NEW SCREENS (Follow-up #4 — discipline-specific onboarding)
+  // ══════════════════════════════════════════════════════════
+  const DAY_KEYS = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"];
+  const DAY_LABEL_SHORT = { monday:"Mo", tuesday:"Di", wednesday:"Mi", thursday:"Do", friday:"Fr", saturday:"Sa", sunday:"So" };
+
+  // ── Rest days (multi-select) ──
+  function prepareRestDaysScreen() {
+    const cont = document.getElementById("ob-restdays-cards");
+    if (!cont) return;
+    cont.querySelectorAll(".ob-choice").forEach(c => {
+      c.classList.toggle("is-active", data.restDays.includes(c.dataset.value));
+    });
+  }
+  document.getElementById("ob-restdays-cards")?.addEventListener("click", e => {
+    const c = e.target.closest(".ob-choice");
+    if (!c) return;
+    const v = c.dataset.value;
+    if (!DAY_KEYS.includes(v)) return;
+    const idx = data.restDays.indexOf(v);
+    if (idx >= 0) data.restDays.splice(idx, 1);
+    else data.restDays.push(v);
+    c.classList.toggle("is-active");
+    haptic(10);
+  });
+
+  // ── Long-day (running) / respects rest days ──
+  function _renderDayCards(containerId, activeVal, onSelect, options = []) {
+    const cont = document.getElementById(containerId);
+    if (!cont) return;
+    cont.innerHTML = options.map(opt => {
+      const disabled = opt.value && DAY_KEYS.includes(opt.value) && data.restDays.includes(opt.value);
+      const active = opt.value === activeVal && !disabled;
+      return `<button type="button" class="ob-choice${active ? " is-active" : ""}${disabled ? " is-disabled" : ""}" data-value="${opt.value}"${disabled ? " disabled aria-disabled=\"true\"" : ""}>${opt.label}</button>`;
+    }).join("");
+    if (!cont._obBound) {
+      cont._obBound = true;
+      cont.addEventListener("click", e => {
+        const choice = e.target.closest(".ob-choice");
+        if (!choice || choice.classList.contains("is-disabled")) return;
+        cont.querySelectorAll(".ob-choice").forEach(c => c.classList.remove("is-active"));
+        choice.classList.add("is-active");
+        haptic(12);
+        if (typeof cont._obHandler === "function") cont._obHandler(choice.dataset.value);
+      });
+    }
+    cont._obHandler = onSelect;
+  }
+
+  const LONG_DAY_OPTS = [
+    { value: "saturday", label: "Samstag" },
+    { value: "sunday", label: "Sonntag" },
+    { value: "flexible", label: "Flexibel" },
+  ];
+  const OUTDOOR_DAY_OPTS = [
+    { value: "saturday", label: "Samstag" },
+    { value: "sunday", label: "Sonntag" },
+    { value: "wednesday", label: "Mittwoch" },
+    { value: "friday", label: "Freitag" },
+    { value: "flexible", label: "Flexibel" },
+    { value: "none", label: "Nie (Trainer only)" },
+  ];
+
+  function prepareLongDayScreen() {
+    // If preferred day is in restDays, auto-switch to flexible
+    if (data.longDay !== "flexible" && data.restDays.includes(data.longDay)) {
+      data.longDay = "flexible";
+    }
+    _renderDayCards("ob-longday-cards", data.longDay, v => { data.longDay = v; }, LONG_DAY_OPTS);
+  }
+  function prepareOutdoorDayScreen() {
+    if (data.bikeOutdoorDay !== "flexible" && data.bikeOutdoorDay !== "none"
+        && data.restDays.includes(data.bikeOutdoorDay)) {
+      data.bikeOutdoorDay = "flexible";
+    }
+    _renderDayCards("ob-outdoorday-cards", data.bikeOutdoorDay, v => { data.bikeOutdoorDay = v; }, OUTDOOR_DAY_OPTS);
+  }
+  function prepareTriDaysScreen() {
+    if (data.longDay !== "flexible" && data.restDays.includes(data.longDay)) data.longDay = "flexible";
+    if (data.bikeOutdoorDay !== "flexible" && data.bikeOutdoorDay !== "none"
+        && data.restDays.includes(data.bikeOutdoorDay)) {
+      data.bikeOutdoorDay = "flexible";
+    }
+    _renderDayCards("ob-tridays-long-cards", data.longDay, v => { data.longDay = v; }, LONG_DAY_OPTS);
+    _renderDayCards("ob-tridays-ride-cards", data.bikeOutdoorDay, v => { data.bikeOutdoorDay = v; }, OUTDOOR_DAY_OPTS);
+  }
+
+  // ── PB run screen (running discipline only) ──
+  const pbRunDist = document.getElementById("ob-pb-distance-run");
+  const pbRunTime = document.getElementById("ob-pb-time-run");
+  pbRunDist?.addEventListener("change", () => {
+    data.pbDistance = pbRunDist.value || "";
+    haptic(8);
+  });
+  pbRunTime?.addEventListener("input", () => {
+    data.pbTime = pbRunTime.value || "";
+  });
+  document.getElementById("ob-skip-pbrun")?.addEventListener("click", () => {
+    data.pbDistance = ""; data.pbTime = "";
+    if (pbRunDist) pbRunDist.value = "";
+    if (pbRunTime) pbRunTime.value = "";
+    haptic(8); goNext();
+  });
+
+  // ── FTP (cycling + triathlon) ──
+  const ftpInput = document.getElementById("ob-ftp-input");
+  const ftpSkipBtn = document.getElementById("ob-ftp-skip");
+  if (ftpInput) {
+    ftpInput.addEventListener("input", () => {
+      const v = parseInt(ftpInput.value, 10);
+      data.bikeFtp = (isFinite(v) && v >= 50 && v <= 700) ? v : null;
+      haptic(6);
+    });
+  }
+  ftpSkipBtn?.addEventListener("click", () => {
+    data.bikeFtp = null;
+    if (ftpInput) ftpInput.value = "";
+    haptic(8); goNext();
+  });
+
+  // ── Indoor share slider ──
+  const indoorSlider = document.getElementById("ob-indoor-slider");
+  const indoorVal = document.getElementById("ob-indoor-val");
+  const indoorPlatRow = document.getElementById("ob-indoor-platform-row");
+  if (indoorSlider) {
+    indoorSlider.addEventListener("input", () => {
+      const v = parseInt(indoorSlider.value, 10) || 0;
+      data.bikeIndoorShare = v;
+      if (indoorVal) indoorVal.textContent = v + " %";
+      if (indoorPlatRow) indoorPlatRow.hidden = v <= 0;
+      haptic(4);
+    });
+  }
+  document.getElementById("ob-indoor-platform-cards")?.addEventListener("click", e => {
+    const c = e.target.closest(".ob-choice");
+    if (!c) return;
+    document.querySelectorAll("#ob-indoor-platform-cards .ob-choice").forEach(x => x.classList.remove("is-active"));
+    c.classList.add("is-active");
+    data.zwiftPlatform = c.dataset.value === "yes";
+    haptic(10);
+  });
+
+  // ── Hyrox screens ──
+  const hyroxPrevCards = document.getElementById("ob-hyroxexp-cards");
+  const hyroxPrevTimeRow = document.getElementById("ob-hyroxexp-time-row");
+  const hyroxPrevTimeInput = document.getElementById("ob-hyroxexp-time");
+  hyroxPrevCards?.addEventListener("click", e => {
+    const c = e.target.closest(".ob-choice");
+    if (!c) return;
+    hyroxPrevCards.querySelectorAll(".ob-choice").forEach(x => x.classList.remove("is-active"));
+    c.classList.add("is-active");
+    data.hyroxPrevious = c.dataset.value === "yes";
+    if (hyroxPrevTimeRow) hyroxPrevTimeRow.hidden = !data.hyroxPrevious;
+    haptic(10);
+  });
+  hyroxPrevTimeInput?.addEventListener("input", () => {
+    data.hyroxPrevTime = hyroxPrevTimeInput.value || "";
+  });
+  initCards("ob-runself-cards", v => { data.runEnduranceSelf = v; });
+  initCards("ob-strengthself-cards", v => { data.strengthSelf = v; });
+  initCards("ob-gymaccess-cards", v => { data.gymAccess = v; });
+  initCards("ob-sledexp-cards", v => { data.sledExperience = v; });
+
+  // ── Shape screens ──
+  initCards("ob-shapegoal-cards", v => {
+    data.shapeGoalCategory = v;
+    // Conditional targetweight screen: rebuild order live
+    rebuildScreenOrder();
+  });
+  initCards("ob-equipment-cards", v => { data.equipment = v; });
+  document.getElementById("ob-modalities-cards")?.addEventListener("click", e => {
+    const c = e.target.closest(".ob-choice");
+    if (!c) return;
+    const v = c.dataset.value;
+    const idx = data.modalities.indexOf(v);
+    if (idx >= 0) data.modalities.splice(idx, 1);
+    else data.modalities.push(v);
+    c.classList.toggle("is-active");
+    haptic(10);
+  });
+
+  function initTargetWeightWheel() {
+    if (wheelsInitialized.targetWeight) return;
+    wheelsInitialized.targetWeight = true;
+    const curW = Number(data.weight) || 72;
+    const minW = Math.max(40, curW - 15);
+    const maxW = Math.max(minW + 1, curW - 2);
+    const values = [];
+    for (let w = minW; w <= maxW; w++) values.push(String(w));
+    const def = String(Math.round((minW + maxW) / 2));
+    initWheel("ob-wheel-targetweight", values, def, v => {
+      const n = parseInt(v, 10);
+      data.targetWeightKg = isFinite(n) ? n : null;
+    });
+    data.targetWeightKg = parseInt(def, 10);
+  }
+
+  // ── Female sub-flow ──
+  const femCycleCards = document.getElementById("ob-female-cycle-cards");
+  const femCycleInfo = document.getElementById("ob-female-cycle-info");
+  femCycleCards?.addEventListener("click", e => {
+    const c = e.target.closest(".ob-choice");
+    if (!c) return;
+    const v = c.dataset.value;
+    if (v === "info") {
+      if (femCycleInfo) femCycleInfo.hidden = !femCycleInfo.hidden;
+      haptic(8);
+      return;
+    }
+    femCycleCards.querySelectorAll(".ob-choice").forEach(x => x.classList.remove("is-active"));
+    c.classList.add("is-active");
+    data.cycleBasedTraining = v === "yes";
+    rebuildScreenOrder();
+    haptic(12);
+  });
+
+  function initCycleLenWheel() {
+    if (wheelsInitialized.cycleLen) return;
+    wheelsInitialized.cycleLen = true;
+    const vals = [];
+    for (let d = 21; d <= 40; d++) vals.push(String(d));
+    initWheel("ob-wheel-cyclelen", vals, "28", v => {
+      data.cycleLengthDays = parseInt(v, 10) || 28;
+    });
+  }
+
+  const femPeriodInput = document.getElementById("ob-female-period-date");
+  if (femPeriodInput) {
+    const today = new Date().toISOString().split("T")[0];
+    femPeriodInput.max = today;
+    femPeriodInput.addEventListener("change", () => {
+      data.lastPeriodDate = femPeriodInput.value || "";
+      haptic(10);
+    });
+  }
+
+  const femContracCards = document.getElementById("ob-female-contraception-cards");
+  const femContracRow = document.getElementById("ob-female-contraception-detail");
+  const femContracSelect = document.getElementById("ob-female-contraception-type");
+  femContracCards?.addEventListener("click", e => {
+    const c = e.target.closest(".ob-choice");
+    if (!c) return;
+    femContracCards.querySelectorAll(".ob-choice").forEach(x => x.classList.remove("is-active"));
+    c.classList.add("is-active");
+    const yes = c.dataset.value === "yes";
+    if (femContracRow) femContracRow.hidden = !yes;
+    if (!yes) {
+      data.hormonalContraception = null;
+    } else if (femContracSelect) {
+      data.hormonalContraception = femContracSelect.value || "pill";
+    }
+    haptic(10);
+  });
+  femContracSelect?.addEventListener("change", () => {
+    data.hormonalContraception = femContracSelect.value || null;
+  });
+
+  const femPregCards = document.getElementById("ob-female-pregnancy-cards");
+  femPregCards?.addEventListener("click", e => {
+    const c = e.target.closest(".ob-choice");
+    if (!c) return;
+    femPregCards.querySelectorAll(".ob-choice").forEach(x => x.classList.remove("is-active"));
+    c.classList.add("is-active");
+    data.pregnancyStatus = c.dataset.value || "none";
+    rebuildScreenOrder();
+    haptic(12);
+  });
+
+  function initSswWheel() {
+    if (wheelsInitialized.ssw) return;
+    wheelsInitialized.ssw = true;
+    const vals = [];
+    for (let w = 1; w <= 42; w++) vals.push(String(w));
+    initWheel("ob-wheel-ssw", vals, "12", v => {
+      data.gestationWeek = parseInt(v, 10) || null;
+    });
+  }
+
+  const femCompCards = document.getElementById("ob-female-complications-cards");
+  const femCompWarn = document.getElementById("ob-female-complications-warn");
+  femCompCards?.addEventListener("click", e => {
+    const c = e.target.closest(".ob-choice");
+    if (!c) return;
+    femCompCards.querySelectorAll(".ob-choice").forEach(x => x.classList.remove("is-active"));
+    c.classList.add("is-active");
+    data.pregnancyComplications = c.dataset.value === "yes";
+    if (femCompWarn) femCompWarn.hidden = !data.pregnancyComplications;
+    haptic(10);
+  });
+
+  function initPostpartumScreen() {
+    if (!wheelsInitialized.postpartumWeeks) {
+      wheelsInitialized.postpartumWeeks = true;
+      const vals = [];
+      for (let w = 1; w <= 52; w++) vals.push(String(w));
+      initWheel("ob-wheel-postpartum-weeks", vals, "8", v => {
+        data.postpartumWeeks = parseInt(v, 10) || null;
+      });
+      data.postpartumWeeks = 8;
+    }
+  }
+  const ppDeliveryCards = document.getElementById("ob-postpartum-delivery-cards");
+  const ppDeliveryInfo = document.getElementById("ob-postpartum-delivery-info");
+  ppDeliveryCards?.addEventListener("click", e => {
+    const c = e.target.closest(".ob-choice");
+    if (!c) return;
+    ppDeliveryCards.querySelectorAll(".ob-choice").forEach(x => x.classList.remove("is-active"));
+    c.classList.add("is-active");
+    data.deliveryType = c.dataset.value || "vaginal";
+    if (ppDeliveryInfo) ppDeliveryInfo.hidden = data.deliveryType !== "csection";
+    haptic(10);
+  });
+  initCards("ob-postpartum-rehab-cards", v => { data.pelvicRehab = v; });
+  const ppBfCards = document.getElementById("ob-postpartum-bf-cards");
+  const ppBfInfo = document.getElementById("ob-postpartum-bf-info");
+  ppBfCards?.addEventListener("click", e => {
+    const c = e.target.closest(".ob-choice");
+    if (!c) return;
+    ppBfCards.querySelectorAll(".ob-choice").forEach(x => x.classList.remove("is-active"));
+    c.classList.add("is-active");
+    data.breastfeeding = c.dataset.value === "yes";
+    if (ppBfInfo) ppBfInfo.hidden = !data.breastfeeding;
+    haptic(10);
+  });
+
+  // ── Sex toggle: re-wire to rebuild order on change ──
+  // (hook the sub-flow when user selects "female")
+  const _obSexToggle = document.getElementById("ob-sex-toggle");
+  _obSexToggle?.addEventListener("click", () => {
+    // Defer to next tick — initToggle handler runs first and sets data.sex
+    setTimeout(() => { rebuildScreenOrder(); }, 0);
+  });
+
+  // ── Default weeklyHours from level (no longer collected in onboarding) ──
+  function weeklyHoursFromLevel(level) {
+    if (level === "starter") return 5;
+    if (level === "intermediate") return 8;
+    if (level === "advanced") return 11;
+    if (level === "elite") return 14;
+    return 8;
+  }
+
+  // ── Patch applyToForm to send all new fields ──
+  const _origApplyToForm = applyToForm;
+  applyToForm = function applyToFormPatched() {
+    // Default weeklyHours if not set
+    if (!data.weeklyHours || data.weeklyHours <= 0) {
+      data.weeklyHours = weeklyHoursFromLevel(data.level);
+    }
+    _origApplyToForm();
+    const f = document.getElementById("plan-form");
+    if (!f) return;
+    const setF = (id, val) => {
+      if (val === null || val === undefined || val === "") return;
+      const el = document.getElementById(id);
+      if (el) { el.value = val; el.dispatchEvent(new Event("change", { bubbles: true })); }
+    };
+    const setN = (name, val) => {
+      if (val === null || val === undefined || val === "") return;
+      const el = f.elements?.[name];
+      if (el) el.value = val;
+    };
+
+    // Rest days → hidden field "restDays" (JSON array)
+    let restInp = f.elements?.restDays;
+    if (!restInp) {
+      restInp = document.createElement("input");
+      restInp.type = "hidden";
+      restInp.name = "restDays";
+      f.appendChild(restInp);
+    }
+    restInp.value = JSON.stringify(data.restDays || []);
+
+    // Long-day / outdoor day
+    if (data.longDay) setF("long-run-day-select", data.longDay === "flexible" ? "" : data.longDay);
+    if (data.bikeOutdoorDay) setF("bike-outdoor-day-select",
+      (data.bikeOutdoorDay === "flexible" || data.bikeOutdoorDay === "none") ? "" : data.bikeOutdoorDay);
+
+    // Cycling/Tri
+    if (data.bikeFtp) setN("bikeFtp", data.bikeFtp);
+    setN("gymShare", data.bikeIndoorShare);
+
+    // Shape
+    if (data.shapeGoalCategory) {
+      const shapeMap = { fat_loss: "fat_loss", hypertrophy: "toning", general_fitness: "fitness", mobility: "fitness", stress_relief: "fitness" };
+      setF("shape-target-focus-select", shapeMap[data.shapeGoalCategory] || "fitness");
+    }
+    if (data.targetWeightKg) setN("targetWeightKg", data.targetWeightKg);
+
+    // Female sub-flow → form fields
+    if (data.cycleBasedTraining) {
+      let cbt = f.elements?.cycleBasedTraining;
+      if (!cbt) {
+        cbt = document.createElement("input");
+        cbt.type = "hidden"; cbt.name = "cycleBasedTraining"; f.appendChild(cbt);
+      }
+      cbt.value = "on";
+      if (data.cycleLengthDays) setN("cycleLengthDays", data.cycleLengthDays);
+      if (data.lastPeriodDate) {
+        // Compute cycle day = days since lastPeriodDate mod cycleLengthDays
+        try {
+          const last = new Date(data.lastPeriodDate);
+          const today = new Date();
+          const diffDays = Math.floor((today - last) / (24 * 60 * 60 * 1000));
+          const len = Number(data.cycleLengthDays) || 28;
+          const cd = ((diffDays % len) + len) % len + 1;
+          setN("cycleDay", cd);
+        } catch (_) {}
+      }
+    }
+
+    // Hidden fields for new flags (engine can consume)
+    const writeHidden = (name, val) => {
+      if (val === null || val === undefined || val === "") return;
+      let el = f.elements?.[name];
+      if (!el) {
+        el = document.createElement("input");
+        el.type = "hidden"; el.name = name; f.appendChild(el);
+      }
+      el.value = typeof val === "boolean" ? (val ? "1" : "") : String(val);
+    };
+    writeHidden("hormonalContraception", data.hormonalContraception);
+    writeHidden("pregnancyStatus", data.pregnancyStatus);
+    writeHidden("gestationWeek", data.gestationWeek);
+    writeHidden("pregnancyComplications", data.pregnancyComplications);
+    writeHidden("postpartumWeeks", data.postpartumWeeks);
+    writeHidden("deliveryType", data.deliveryType);
+    writeHidden("pelvicRehab", data.pelvicRehab);
+    writeHidden("breastfeeding", data.breastfeeding);
+    writeHidden("hyroxPrevious", data.hyroxPrevious);
+    writeHidden("hyroxPrevTime", data.hyroxPrevTime);
+    writeHidden("runEnduranceSelf", data.runEnduranceSelf);
+    writeHidden("strengthSelf", data.strengthSelf);
+    writeHidden("gymAccess", data.gymAccess);
+    writeHidden("sledExperience", data.sledExperience);
+    writeHidden("shapeGoalCategory", data.shapeGoalCategory);
+    writeHidden("modalities", (data.modalities || []).join(","));
+    writeHidden("equipment", data.equipment);
+    writeHidden("zwiftPlatform", data.zwiftPlatform);
+    writeHidden("weeklyHoursDefault", data.weeklyHours);
+
+    // Ensure weeklyHours numeric field populated (level-derived default)
+    const whEl = document.getElementById("weekly-hours-field");
+    if (whEl && (!whEl.value || Number(whEl.value) <= 0)) {
+      whEl.value = String(data.weeklyHours);
+    }
+  };
 
   // Expose globals
   window.openOnboarding = open;

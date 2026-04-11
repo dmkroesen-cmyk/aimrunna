@@ -17,7 +17,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <!-- Icon CDN removed — typography-first design, no icon dependencies -->
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./styles.css?v=followup4-onboarding-v5" />
     <!-- Always-loaded mini-gate: hide Core Shell when not logged in,
          hide Legacy + its tab-bar when Core Shell is active.
          This rule must be loaded regardless of core.css state. -->
@@ -4687,6 +4687,389 @@
           </div>
         </div>
 
+        <!-- ═══════════════════════════════════════════════════
+             FOLLOW-UP #4 — Discipline-specific screens
+             ═══════════════════════════════════════════════════ -->
+
+        <!-- Rest Days (all disciplines) -->
+        <div class="ob-screen" data-screen="restdays" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline" tabindex="-1">Deine Ruhetage.</h2>
+            <p class="ob-sub">An welchen Tagen kannst du nicht trainieren? Leer lassen = 7 Tage verfügbar.</p>
+            <div class="ob-choices ob-choices-grid ob-choices-compact" id="ob-restdays-cards">
+              <button type="button" class="ob-choice" data-value="monday">Montag</button>
+              <button type="button" class="ob-choice" data-value="tuesday">Dienstag</button>
+              <button type="button" class="ob-choice" data-value="wednesday">Mittwoch</button>
+              <button type="button" class="ob-choice" data-value="thursday">Donnerstag</button>
+              <button type="button" class="ob-choice" data-value="friday">Freitag</button>
+              <button type="button" class="ob-choice" data-value="saturday">Samstag</button>
+              <button type="button" class="ob-choice" data-value="sunday">Sonntag</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Long Day (running) -->
+        <div class="ob-screen" data-screen="longday" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline" tabindex="-1">Dein langer Tag.</h2>
+            <p class="ob-sub">Welcher Tag passt für die lange Einheit?</p>
+            <div class="ob-choices" id="ob-longday-cards"></div>
+          </div>
+        </div>
+
+        <!-- PB Run (running) -->
+        <div class="ob-screen" data-screen="pbrun" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline" tabindex="-1">Aktuelle Bestzeit.</h2>
+            <p class="ob-sub">Hilft bei der Zonenberechnung — optional.</p>
+            <div class="ob-pb-form">
+              <select class="ob-select" id="ob-pb-distance-run">
+                <option value="">Distanz wählen</option>
+                <option value="5k">5 km</option>
+                <option value="10k">10 km</option>
+                <option value="half">Halbmarathon</option>
+                <option value="marathon">Marathon</option>
+              </select>
+              <input type="text" class="ob-input" id="ob-pb-time-run" placeholder="MM:SS oder HH:MM:SS" inputmode="numeric" />
+            </div>
+            <button type="button" class="ob-skip-link" id="ob-skip-pbrun">Keine Bestzeit</button>
+          </div>
+        </div>
+
+        <!-- FTP (cycling + triathlon) -->
+        <div class="ob-screen" data-screen="ftp" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline" tabindex="-1">Kennst du deine FTP?</h2>
+            <p class="ob-sub">Functional Threshold Power in Watt — optional.</p>
+            <div class="ob-ftp-input-wrap">
+              <input type="number" class="ob-input" id="ob-ftp-input" min="90" max="550" step="1" placeholder="z.B. 240" inputmode="numeric" />
+              <span class="ob-input-unit">W</span>
+            </div>
+            <button type="button" class="ob-skip-link" id="ob-ftp-skip">Unbekannt</button>
+          </div>
+        </div>
+
+        <!-- Indoor share (cycling + triathlon) -->
+        <div class="ob-screen" data-screen="indoorshare" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline" tabindex="-1">Indoor-Anteil beim Radfahren.</h2>
+            <p class="ob-sub">Wie viel fährst du auf der Rolle / Zwift?</p>
+            <div class="ob-slider-wrap">
+              <input type="range" class="ob-slider" id="ob-indoor-slider" min="0" max="100" step="10" value="0" />
+              <div class="ob-slider-value" id="ob-indoor-val">0 %</div>
+            </div>
+            <div class="ob-indoor-platform-row" id="ob-indoor-platform-row" hidden>
+              <p class="ob-sub ob-sub-inline">Nutzt du Zwift oder eine andere Plattform?</p>
+              <div class="ob-choices ob-choices-inline" id="ob-indoor-platform-cards">
+                <button type="button" class="ob-choice" data-value="yes">Ja</button>
+                <button type="button" class="ob-choice" data-value="no">Nein</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Outdoor ride day (cycling) -->
+        <div class="ob-screen" data-screen="outdoorday" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline" tabindex="-1">Bevorzugter Outdoor-Ride-Tag.</h2>
+            <p class="ob-sub">An welchem Tag fährst du draußen?</p>
+            <div class="ob-choices" id="ob-outdoorday-cards"></div>
+          </div>
+        </div>
+
+        <!-- Tri-days (triathlon) -->
+        <div class="ob-screen" data-screen="tridays" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline" tabindex="-1">Deine Schlüssel-Tage.</h2>
+            <p class="ob-sub">Wann liegen lange Läufe und Rad-Einheiten?</p>
+            <div class="ob-tri-group">
+              <p class="ob-tri-label">Langer Lauf / Key-Session</p>
+              <div class="ob-choices" id="ob-tridays-long-cards"></div>
+            </div>
+            <div class="ob-tri-group">
+              <p class="ob-tri-label">Outdoor-Ride</p>
+              <div class="ob-choices" id="ob-tridays-ride-cards"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hyrox Experience -->
+        <div class="ob-screen" data-screen="hyroxexp" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline" tabindex="-1">Schon mal HYROX gemacht?</h2>
+            <div class="ob-choices" id="ob-hyroxexp-cards">
+              <button type="button" class="ob-choice" data-value="yes">Ja</button>
+              <button type="button" class="ob-choice is-active" data-value="no">Nein, erstes Event</button>
+            </div>
+            <div class="ob-inline-row" id="ob-hyroxexp-time-row" hidden>
+              <p class="ob-sub ob-sub-inline">Deine bisherige Bestzeit</p>
+              <input type="text" class="ob-input" id="ob-hyroxexp-time" placeholder="HH:MM:SS" inputmode="numeric" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Run Endurance Self -->
+        <div class="ob-screen" data-screen="runself" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline" tabindex="-1">Deine Laufausdauer.</h2>
+            <p class="ob-sub">Wie gut kommst du aktuell mit dem Laufen klar?</p>
+            <div class="ob-choices" id="ob-runself-cards">
+              <button type="button" class="ob-choice" data-value="beginner">Einsteiger</button>
+              <button type="button" class="ob-choice is-active" data-value="intermediate">Mittel</button>
+              <button type="button" class="ob-choice" data-value="strong">Stark</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Strength Self -->
+        <div class="ob-screen" data-screen="strengthself" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline" tabindex="-1">Deine Kraft.</h2>
+            <p class="ob-sub">Wie schätzt du deine Kraft ein?</p>
+            <div class="ob-choices" id="ob-strengthself-cards">
+              <button type="button" class="ob-choice" data-value="beginner">Einsteiger</button>
+              <button type="button" class="ob-choice is-active" data-value="intermediate">Mittel</button>
+              <button type="button" class="ob-choice" data-value="strong">Stark</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gym Access -->
+        <div class="ob-screen" data-screen="gymaccess" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline" tabindex="-1">Dein Gym-Zugang.</h2>
+            <div class="ob-choices" id="ob-gymaccess-cards">
+              <button type="button" class="ob-choice ob-choice--has-desc is-active" data-value="full">
+                <span class="ob-choice-label">Voll ausgestattet</span>
+                <span class="ob-choice-desc">Sled, Rower, SkiErg, Wall Balls, Sandbag</span>
+              </button>
+              <button type="button" class="ob-choice ob-choice--has-desc" data-value="basic">
+                <span class="ob-choice-label">Basics</span>
+                <span class="ob-choice-desc">Langhantel, Kettlebell, Rack</span>
+              </button>
+              <button type="button" class="ob-choice ob-choice--has-desc" data-value="home">
+                <span class="ob-choice-label">Home-Gym</span>
+                <span class="ob-choice-desc">Reduziertes Equipment</span>
+              </button>
+              <button type="button" class="ob-choice ob-choice--has-desc" data-value="none">
+                <span class="ob-choice-label">Kein Equipment</span>
+                <span class="ob-choice-desc">Körpergewicht + Laufen</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sled Experience -->
+        <div class="ob-screen" data-screen="sledexp" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline" tabindex="-1">Sled-Erfahrung.</h2>
+            <div class="ob-choices" id="ob-sledexp-cards">
+              <button type="button" class="ob-choice" data-value="regular">Regelmäßig</button>
+              <button type="button" class="ob-choice is-active" data-value="occasional">Gelegentlich</button>
+              <button type="button" class="ob-choice" data-value="never">Nie</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Shape Goal -->
+        <div class="ob-screen" data-screen="shapegoal" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline" tabindex="-1">Dein Hauptziel.</h2>
+            <div class="ob-choices" id="ob-shapegoal-cards">
+              <button type="button" class="ob-choice is-active" data-value="fat_loss">Abnehmen</button>
+              <button type="button" class="ob-choice" data-value="hypertrophy">Muskelaufbau</button>
+              <button type="button" class="ob-choice" data-value="general_fitness">Allgemeine Fitness</button>
+              <button type="button" class="ob-choice" data-value="mobility">Beweglichkeit</button>
+              <button type="button" class="ob-choice" data-value="stress_relief">Stressabbau</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Target Weight (conditional on fat_loss) -->
+        <div class="ob-screen" data-screen="targetweight" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline" tabindex="-1">Dein Zielgewicht.</h2>
+            <p class="ob-sub">Wie viel willst du abnehmen?</p>
+            <div class="ob-wheel-group ob-wheel-single">
+              <div class="ob-wheel-col">
+                <div class="ob-wheel ob-wheel-lg" id="ob-wheel-targetweight" data-field="targetweight">
+                  <div class="ob-wheel-track"></div>
+                </div>
+                <span class="ob-wheel-label">kg</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modalities (multi) -->
+        <div class="ob-screen" data-screen="modalities" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline" tabindex="-1">Bevorzugte Trainingsarten.</h2>
+            <p class="ob-sub">Mehrfachauswahl möglich.</p>
+            <div class="ob-choices ob-choices-grid" id="ob-modalities-cards">
+              <button type="button" class="ob-choice" data-value="running">Laufen</button>
+              <button type="button" class="ob-choice" data-value="cycling">Rad</button>
+              <button type="button" class="ob-choice" data-value="swimming">Schwimmen</button>
+              <button type="button" class="ob-choice" data-value="strength">Krafttraining</button>
+              <button type="button" class="ob-choice" data-value="yoga">Yoga</button>
+              <button type="button" class="ob-choice" data-value="hiit">HIIT</button>
+              <button type="button" class="ob-choice" data-value="hiking">Wandern</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Equipment -->
+        <div class="ob-screen" data-screen="equipment" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline" tabindex="-1">Dein Equipment.</h2>
+            <div class="ob-choices" id="ob-equipment-cards">
+              <button type="button" class="ob-choice is-active" data-value="gym">Gym-Mitgliedschaft</button>
+              <button type="button" class="ob-choice" data-value="home">Home-Gym</button>
+              <button type="button" class="ob-choice" data-value="bodyweight">Nur Körpergewicht</button>
+              <button type="button" class="ob-choice" data-value="outdoor">Outdoor only</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════
+             Female sub-flow
+             ═══════════════════════════════════════════════════ -->
+
+        <div class="ob-screen" data-screen="female-cycle" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline" tabindex="-1">Zyklusbasiertes Training?</h2>
+            <p class="ob-sub">Wir können deinen Plan an deinen Zyklus anpassen.</p>
+            <div class="ob-choices" id="ob-female-cycle-cards">
+              <button type="button" class="ob-choice" data-value="yes">Ja</button>
+              <button type="button" class="ob-choice" data-value="no">Nein</button>
+              <button type="button" class="ob-choice" data-value="info">Mehr erfahren</button>
+            </div>
+            <div class="ob-info-panel" id="ob-female-cycle-info" hidden>
+              <p>Der weibliche Zyklus beeinflusst Leistungsfähigkeit, Regeneration und Trainingsanpassung. In der Follikelphase (Tag 1–14) ist Hochintensität meist besser verträglich, in der Lutealphase (Tag 15–28) steht Grundlage und Regeneration im Vordergrund. Hormonelle Schwankungen können Kraft, Ausdauer und Thermoregulation beeinflussen.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="ob-screen" data-screen="female-cyclelen" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline" tabindex="-1">Ø Zykluslänge.</h2>
+            <p class="ob-sub">Wie viele Tage liegen im Schnitt zwischen deinen Perioden?</p>
+            <div class="ob-wheel-group ob-wheel-single">
+              <div class="ob-wheel-col">
+                <div class="ob-wheel ob-wheel-lg" id="ob-wheel-cyclelen" data-field="cyclelen">
+                  <div class="ob-wheel-track"></div>
+                </div>
+                <span class="ob-wheel-label">Tage</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ob-screen" data-screen="female-period" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline" tabindex="-1">Datum der letzten Periode.</h2>
+            <p class="ob-sub">Erster Tag deiner letzten Menstruation.</p>
+            <input type="date" class="ob-date-input" id="ob-female-period-date" />
+          </div>
+        </div>
+
+        <div class="ob-screen" data-screen="female-contraception" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline" tabindex="-1">Hormonelle Verhütung?</h2>
+            <div class="ob-choices" id="ob-female-contraception-cards">
+              <button type="button" class="ob-choice is-active" data-value="no">Nein</button>
+              <button type="button" class="ob-choice" data-value="yes">Ja</button>
+            </div>
+            <div class="ob-inline-row" id="ob-female-contraception-detail" hidden>
+              <select class="ob-select" id="ob-female-contraception-type">
+                <option value="pill">Pille</option>
+                <option value="iud">Spirale</option>
+                <option value="ring">Ring</option>
+                <option value="patch">Pflaster</option>
+                <option value="other">Andere</option>
+              </select>
+              <p class="ob-hint">Bei hormoneller Verhütung entfällt die zyklische Anpassung, da der natürliche Zyklus unterdrückt wird.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="ob-screen" data-screen="female-pregnancy" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline" tabindex="-1">Schwangerschaft oder Rückbildung?</h2>
+            <div class="ob-choices" id="ob-female-pregnancy-cards">
+              <button type="button" class="ob-choice is-active" data-value="none">Nein</button>
+              <button type="button" class="ob-choice" data-value="pregnant">Schwanger</button>
+              <button type="button" class="ob-choice" data-value="postpartum">Post Partum</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="ob-screen" data-screen="female-ssw" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline" tabindex="-1">Schwangerschaftswoche.</h2>
+            <div class="ob-wheel-group ob-wheel-single">
+              <div class="ob-wheel-col">
+                <div class="ob-wheel ob-wheel-lg" id="ob-wheel-ssw" data-field="ssw">
+                  <div class="ob-wheel-track"></div>
+                </div>
+                <span class="ob-wheel-label">SSW</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ob-screen" data-screen="female-complications" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline" tabindex="-1">Komplikationen bekannt?</h2>
+            <p class="ob-sub">Risikoschwangerschaft, Plazenta-Probleme, etc.</p>
+            <div class="ob-choices" id="ob-female-complications-cards">
+              <button type="button" class="ob-choice is-active" data-value="no">Nein</button>
+              <button type="button" class="ob-choice" data-value="yes">Ja</button>
+            </div>
+            <div class="ob-warning-card" id="ob-female-complications-warn" hidden>
+              <strong>Bitte vor Trainingsstart mit deinem Arzt oder deiner Ärztin abstimmen.</strong>
+              <span>Dein Plan wird besonders konservativ gestaltet — reduziertes Volumen, keine Intensitätseinheiten.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="ob-screen" data-screen="female-postpartum" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline" tabindex="-1">Post Partum.</h2>
+            <p class="ob-sub">Wir planen besonders sorgfältig.</p>
+            <div class="ob-pp-field">
+              <span class="ob-pp-label">Wochen nach Geburt</span>
+              <div class="ob-wheel ob-wheel-sm" id="ob-wheel-postpartum-weeks" data-field="ppweeks">
+                <div class="ob-wheel-track"></div>
+              </div>
+            </div>
+            <div class="ob-pp-field">
+              <span class="ob-pp-label">Geburtsart</span>
+              <div class="ob-choices ob-choices-inline" id="ob-postpartum-delivery-cards">
+                <button type="button" class="ob-choice is-active" data-value="vaginal">Vaginal</button>
+                <button type="button" class="ob-choice" data-value="csection">Kaiserschnitt</button>
+              </div>
+              <p class="ob-hint" id="ob-postpartum-delivery-info" hidden>Rückbildungsphase startet Woche 8–10.</p>
+            </div>
+            <div class="ob-pp-field">
+              <span class="ob-pp-label">Rückbildungskurs</span>
+              <div class="ob-choices ob-choices-inline" id="ob-postpartum-rehab-cards">
+                <button type="button" class="ob-choice" data-value="done">Abgeschlossen</button>
+                <button type="button" class="ob-choice is-active" data-value="ongoing">Läuft</button>
+                <button type="button" class="ob-choice" data-value="none">Nein</button>
+              </div>
+            </div>
+            <div class="ob-pp-field">
+              <span class="ob-pp-label">Stillend?</span>
+              <div class="ob-choices ob-choices-inline" id="ob-postpartum-bf-cards">
+                <button type="button" class="ob-choice" data-value="yes">Ja</button>
+                <button type="button" class="ob-choice is-active" data-value="no">Nein</button>
+              </div>
+              <p class="ob-hint" id="ob-postpartum-bf-info" hidden>Erhöhter Kalorienbedarf — Training nach dem Stillen planen.</p>
+            </div>
+          </div>
+        </div>
+
         <!-- S10b — Health Disclaimer (Follow-up #3 Punkt 3a) -->
         <div class="ob-screen ob-screen-disclaimer" data-screen="disclaimer" hidden>
           <div class="ob-screen-inner ob-disclaimer-inner">
@@ -4807,7 +5190,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="./supabase-client.js"></script>
     <script src="./legal-i18n.js"></script>
-    <script src="./app.js?v=followup3-v1"></script>
+    <script src="./app.js?v=followup4-onboarding-v5"></script>
     <script src="./stresstest.js"></script>
   </body>
 </html>
