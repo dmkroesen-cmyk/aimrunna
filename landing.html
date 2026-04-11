@@ -85,7 +85,19 @@
       align-items: center;
       gap: 8px;
     }
-    .nav-link { display: none !important; }
+    .nav-link {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #6B7280;
+      text-decoration: none;
+      transition: color 0.15s ease, background 0.15s ease;
+    }
+    .nav-link:hover { color: #0A0A0A; background: rgba(10,10,10,.04); }
+    @media (max-width: 768px) {
+      .nav-link { display: none; }
+    }
     .nav-cta {
       appearance: none;
       border: 0;
@@ -578,6 +590,9 @@
       <span class="nav-wordmark">peak.athlete</span>
     </a>
     <div class="nav-links">
+      <a href="#features" class="nav-link">Features</a>
+      <a href="#plan" class="nav-link">peak.plan</a>
+      <a href="#analytics" class="nav-link">Analytics</a>
       <button type="button" class="nav-cta" id="app-launcher-open-btn">App starten</button>
     </div>
   </nav>
