@@ -24,12 +24,226 @@
     <style>
       body:not([data-ui="core"]) #core-app-root { display: none !important; }
       body[data-ui="core"] #legacy-compat { display: none !important; }
+
+      /* ============================================================
+         Launcher-Only Mode (Pfad A: Landing → App starten)
+         When ?launcher=1|google|register|login is in the URL, we
+         skip the Plan Generator entirely and show ONLY the App
+         Launcher / Paywall modal. Auth happens here, then Core
+         Shell takes over.
+         ============================================================ */
+      body.launcher-only #legacy-compat .site-shell,
+      body.launcher-only #legacy-compat #account-bar,
+      body.launcher-only #legacy-compat .ambient,
+      body.launcher-only #legacy-compat .athletes-drawer-backdrop,
+      body.launcher-only #legacy-compat .site-footer {
+        display: none !important;
+      }
+      body.launcher-only #legacy-compat {
+        min-height: 100vh;
+        background: #FFFFFF;
+      }
+
+      /* ============================================================
+         CRITICAL: Core Modal System lives at top-level body and
+         relies on core.css for display:none + positioning. When
+         core.css is NOT loaded (out-of-app view), these modals
+         would render as plain stacked text and destroy the page.
+         Hide them unconditionally outside the Core Shell.
+         ============================================================ */
+      body:not([data-ui="core"]) .modal,
+      body:not([data-ui="core"]) #core-modal-language,
+      body:not([data-ui="core"]) #core-modal-imprint,
+      body:not([data-ui="core"]) #core-modal-privacy,
+      body:not([data-ui="core"]) #core-modal-terms {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+      }
       /* Legacy in-app tab-bar is permanently replaced by Core Shell */
       #legacy-compat #tab-bar,
       #legacy-compat .tab-bar:not(#core-tab-bar) {
         display: none !important;
         visibility: hidden !important;
         pointer-events: none !important;
+      }
+
+      /* ============================================================
+         Header background: solid white, not transparent.
+         Avoids grey-looking bar when dark hero content floats behind.
+         Rule: grey text ONLY on white; otherwise black-on-white or
+         white-on-dark for maximum contrast.
+         ============================================================ */
+      #account-bar,
+      .account-bar {
+        background: #FFFFFF !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        border-bottom: 1px solid rgba(10, 10, 10, 0.08) !important;
+      }
+      #account-bar .brand-wordmark,
+      #account-bar .nav-brand { color: #0A0A0A !important; }
+
+      /* ============================================================
+         Simplified Out-of-App Top Bar
+         Landing + Plan Generator share ONE minimal bar:
+         Logo + Brand (left) · "App starten" (right)
+         All legacy buttons are hidden but kept in DOM for app.js.
+         ============================================================ */
+      #account-bar[data-simplified="true"] [data-legacy-only] {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+        position: absolute !important;
+        width: 0 !important;
+        height: 0 !important;
+        overflow: hidden !important;
+      }
+      #account-bar[data-simplified="true"] .notif-dropdown,
+      #account-bar[data-simplified="true"] #notif-bell-btn,
+      #account-bar[data-simplified="true"] #athletes-header-btn,
+      #account-bar[data-simplified="true"] #account-pill,
+      #account-bar[data-simplified="true"] #account-logout-btn {
+        display: none !important;
+      }
+      /* When user is logged in, show "Zur App" instead of "App starten"
+         and reveal the logout. Toggled via body.is-signed-in. */
+      body.is-signed-in #app-launcher-open-btn { display: none !important; }
+      body.is-signed-in #account-bar[data-simplified="true"] #account-logout-btn {
+        display: inline-flex !important;
+      }
+
+      .site-top-cta {
+        appearance: none;
+        border: 0;
+        cursor: pointer;
+        padding: 9px 18px;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+        color: #FFFFFF;
+        border-radius: 8px;
+        background: #0A0A0A;
+        transition: background .18s ease, transform .18s ease;
+        white-space: nowrap;
+      }
+      .site-top-cta:hover { background: #1F1F1F; }
+      .site-top-cta:active { transform: scale(.98); }
+
+      /* Normalize header height so Landing and Plan Generator match */
+      #account-bar, .account-bar { height: 64px !important; }
+      @media (max-width: 768px) {
+        #account-bar, .account-bar { height: 56px !important; }
+      }
+
+      /* ============================================================
+         App Launcher Modal
+         ============================================================ */
+      .app-launcher-modal[hidden] { display: none !important; }
+      .app-launcher-modal {
+        position: fixed; inset: 0; z-index: 9100;
+        display: flex; align-items: center; justify-content: center;
+        padding: 20px;
+      }
+      .app-launcher-modal .account-modal-backdrop {
+        position: absolute; inset: 0;
+        background: rgba(8, 10, 14, .62);
+        backdrop-filter: blur(14px) saturate(140%);
+        -webkit-backdrop-filter: blur(14px) saturate(140%);
+      }
+      .app-launcher-card {
+        position: relative;
+        width: min(420px, 100%);
+        background: #fff;
+        border-radius: 22px;
+        padding: 32px 28px 24px;
+        box-shadow: 0 40px 80px rgba(8,10,14,.28), 0 4px 14px rgba(8,10,14,.14);
+        text-align: center;
+      }
+      .app-launcher-head { margin-bottom: 20px; }
+      .app-launcher-head .brand-mark {
+        margin: 0 auto 12px;
+      }
+      .app-launcher-head h4 {
+        font-size: 22px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin: 0 0 6px;
+        color: #0a0a0a;
+      }
+      .app-launcher-sub {
+        font-size: 13px;
+        color: rgba(10,10,10,.56);
+        margin: 0;
+      }
+      .app-launcher-download {
+        display: flex; align-items: center; gap: 12px;
+        padding: 14px 16px;
+        margin: 0 0 22px;
+        background: linear-gradient(180deg, rgba(10,10,10,.03) 0%, rgba(10,10,10,.01) 100%);
+        border: 1px solid rgba(10,10,10,.08);
+        border-radius: 14px;
+        text-align: left;
+      }
+      .app-launcher-download-icon {
+        width: 40px; height: 40px;
+        display: grid; place-items: center;
+        border-radius: 10px;
+        background: rgba(212,133,15,.08);
+        color: #B8720D;
+      }
+      .app-launcher-download-text { flex: 1; display: flex; flex-direction: column; }
+      .app-launcher-download-text strong {
+        font-size: 14px; font-weight: 700; color: #0a0a0a;
+      }
+      .app-launcher-download-text span {
+        font-size: 11px; color: rgba(10,10,10,.52);
+      }
+      .app-launcher-badge {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 4px 8px;
+        border-radius: 999px;
+        background: rgba(212,133,15,.12);
+        color: #B8720D;
+      }
+      .app-launcher-actions {
+        display: flex; flex-direction: column; gap: 10px;
+      }
+      .app-launcher-actions .cta,
+      .app-launcher-actions .ghost { width: 100%; justify-content: center; }
+      .app-launcher-actions .auth-divider {
+        display: flex; align-items: center; gap: 10px;
+        font-size: 11px; color: rgba(10,10,10,.4);
+        text-transform: uppercase; letter-spacing: 0.1em;
+        margin: 2px 0;
+      }
+      .app-launcher-actions .auth-divider::before,
+      .app-launcher-actions .auth-divider::after {
+        content: ""; flex: 1; height: 1px;
+        background: rgba(10,10,10,.1);
+      }
+      .app-launcher-legal {
+        font-size: 11px;
+        color: rgba(10,10,10,.48);
+        margin: 18px 0 0;
+        line-height: 1.5;
+      }
+      .app-launcher-legal .text-link-btn {
+        background: none; border: 0; padding: 0;
+        color: #B8720D; font-weight: 600; cursor: pointer;
+        text-decoration: underline;
+      }
+
+      /* ============================================================
+         Plan Generator Calendar visibility
+         Hide calendar until a Quick plan has been generated.
+         Legacy app.js sets body.has-output when generation completes.
+         ============================================================ */
+      body:not(.has-output):not([data-ui="core"]) #legacy-compat .section-calendar {
+        display: none !important;
       }
     </style>
     <!-- Core Shell CSS is loaded ONLY after successful login by
@@ -56,6 +270,15 @@
             l.id = "core-stylesheet";
             document.head.appendChild(l);
             document.documentElement.setAttribute("data-pre-core", "1");
+          }
+        } catch (_) {}
+
+        /* Launcher-only mode (Pfad A: Landing → App starten) */
+        try {
+          var qp = new URLSearchParams(window.location.search);
+          var launcher = qp.get("launcher");
+          if (launcher && !hasSession) {
+            document.documentElement.setAttribute("data-launcher-only", launcher);
           }
         } catch (_) {}
       })();
@@ -626,6 +849,185 @@
     </script>
 
     <!-- ============================================================
+         App Launcher wiring — forwards CTAs to existing legacy
+         login/register/google buttons so app.js stays untouched.
+         Also toggles body.is-signed-in based on Supabase auth.
+         ============================================================ -->
+    <script>
+      (function () {
+        "use strict";
+        function byId(id) { return document.getElementById(id); }
+        function show(m) { if (m) { m.hidden = false; m.classList.add("is-open"); } }
+        function hide(m) { if (m) { m.hidden = true; m.classList.remove("is-open"); } }
+
+        function openLauncher()  { show(byId("app-launcher-modal")); }
+        function closeLauncher() { hide(byId("app-launcher-modal")); }
+
+        // Forward to existing legacy buttons (preserves app.js flow)
+        function forwardClick(legacyId) {
+          var btn = byId(legacyId);
+          if (btn && typeof btn.click === "function") btn.click();
+        }
+
+        document.addEventListener("click", function (e) {
+          var t = e.target;
+          if (!t) return;
+          if (t.closest && t.closest("#app-launcher-open-btn")) {
+            e.preventDefault();
+            openLauncher();
+            return;
+          }
+          if (t.closest && t.closest("[data-close-app-launcher]")) {
+            e.preventDefault();
+            closeLauncher();
+            return;
+          }
+          if (t.closest && t.closest("#app-launcher-register-btn")) {
+            closeLauncher();
+            setTimeout(function () { forwardClick("account-register-btn"); }, 60);
+            return;
+          }
+          if (t.closest && t.closest("#app-launcher-login-btn")) {
+            closeLauncher();
+            setTimeout(function () { forwardClick("account-login-btn"); }, 60);
+            return;
+          }
+          if (t.closest && t.closest("#app-launcher-google-btn")) {
+            closeLauncher();
+            // Open account modal first, then click Google button inside it
+            setTimeout(function () {
+              forwardClick("account-login-btn");
+              setTimeout(function () { forwardClick("google-login-btn"); }, 120);
+            }, 60);
+            return;
+          }
+        }, true);
+
+        // ESC to close
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape") closeLauncher();
+        });
+
+        // Sync is-signed-in class for top-bar state
+        function syncSignedInClass() {
+          var hasSession = false;
+          try {
+            if (typeof window.getCurrentAccount === "function") {
+              var a = window.getCurrentAccount();
+              if (a && (a.id || a.email || a.profile)) hasSession = true;
+            }
+          } catch (_) {}
+          if (!hasSession) {
+            try {
+              for (var i = 0; i < localStorage.length; i++) {
+                var k = localStorage.key(i);
+                if (k && /sb-.*-auth-token/.test(k)) {
+                  var v = localStorage.getItem(k);
+                  if (v && v.length > 20) { hasSession = true; break; }
+                }
+              }
+            } catch (_) {}
+          }
+          document.body.classList.toggle("is-signed-in", hasSession);
+        }
+        syncSignedInClass();
+        setInterval(syncSignedInClass, 2000);
+
+        // ============================================================
+        // Quick-Plan Conversion Nudge
+        // When a free Quick plan is generated (body.has-output), open
+        // the Launcher/Paywall once — dismissible, so user can still
+        // use their free plan. Increases conversion without blocking.
+        // ============================================================
+        (function quickPlanConversionNudge() {
+          var shown = false;
+          function maybeShow() {
+            if (shown) return;
+            if (document.body.classList.contains("is-signed-in")) return;
+            if (document.body.classList.contains("launcher-only")) return;
+            if (!document.body.classList.contains("has-output")) return;
+            shown = true;
+            // Let the plan render first, then gently open the launcher
+            setTimeout(openLauncher, 1800);
+          }
+          var mo = new MutationObserver(maybeShow);
+          mo.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+          // Also check on load in case has-output is set synchronously
+          maybeShow();
+        })();
+
+        // ============================================================
+        // Launcher-only mode: hides Plan Generator, opens Launcher.
+        // Triggered by landing.html navigating to ?launcher=1|google|
+        // register|login. Pfad A (App starten) bypasses Plan Gen.
+        // ============================================================
+        (function handleLauncherOnly() {
+          try {
+            var qp = new URLSearchParams(window.location.search);
+            var mode = qp.get("launcher");
+            if (!mode) return;
+            // Already signed in? Skip launcher, let Core Shell take over.
+            var signed = document.body.classList.contains("is-signed-in");
+            if (signed) return;
+
+            document.body.classList.add("launcher-only");
+            // Open the launcher modal as soon as DOM is ready
+            function bootLauncher() {
+              openLauncher();
+              // Auto-forward to specific CTA if requested
+              if (mode === "google") {
+                setTimeout(function () {
+                  closeLauncher();
+                  setTimeout(function () {
+                    forwardClick("account-login-btn");
+                    setTimeout(function () { forwardClick("google-login-btn"); }, 200);
+                  }, 80);
+                }, 200);
+              } else if (mode === "register") {
+                setTimeout(function () {
+                  closeLauncher();
+                  setTimeout(function () { forwardClick("account-register-btn"); }, 80);
+                }, 200);
+              } else if (mode === "login") {
+                setTimeout(function () {
+                  closeLauncher();
+                  setTimeout(function () { forwardClick("account-login-btn"); }, 80);
+                }, 200);
+              }
+              // Clean the URL so a refresh doesn't re-trigger
+              try {
+                var url = new URL(window.location.href);
+                url.searchParams.delete("launcher");
+                window.history.replaceState({}, "", url.toString());
+              } catch (_) {}
+            }
+            if (document.readyState === "loading") {
+              document.addEventListener("DOMContentLoaded", bootLauncher);
+            } else {
+              bootLauncher();
+            }
+          } catch (_) {}
+        })();
+
+        // Wire Supabase auth events once available
+        (function wireAuth() {
+          var tries = 0;
+          var iv = setInterval(function () {
+            tries++;
+            if (window.sbAuth && typeof window.sbAuth.onAuthStateChange === "function") {
+              clearInterval(iv);
+              try {
+                window.sbAuth.onAuthStateChange(function () {
+                  syncSignedInClass();
+                });
+              } catch (_) {}
+            } else if (tries > 40) { clearInterval(iv); }
+          }, 150);
+        })();
+      })();
+    </script>
+
+    <!-- ============================================================
          LEGACY UI BELOW — wrapped in #legacy-compat so app.js still
          operates on all original DOM-IDs. Hidden via shell.css.
          DO NOT delete elements here; app.js depends on them.
@@ -635,20 +1037,21 @@
     <div class="ambient ambient-noise" aria-hidden="true"></div>
     <div class="ambient ambient-glow glow-a" aria-hidden="true"></div>
     <div class="ambient ambient-glow glow-b" aria-hidden="true"></div>
-    <nav class="account-bar" id="account-bar" aria-live="polite">
+    <nav class="account-bar site-top-bar" id="account-bar" aria-live="polite" data-simplified="true">
       <div class="account-bar-left">
         <a class="nav-brand" id="brand-anchor" href="./landing.html" aria-label="peak.athlete Home">
           <div class="brand-mark" aria-hidden="true"><span>p</span></div>
           <strong class="brand-wordmark">peak.athlete</strong>
         </a>
-        <div class="nav-divider"></div>
-        <button type="button" class="account-btn" id="account-profile-btn" data-i18n="nav_profile">Profil</button>
-        <button type="button" class="account-btn is-active" id="account-home-btn" data-i18n="nav_training">Training</button>
-        <button type="button" class="nav-cta nav-cta-race" id="account-peakplan-btn" title="peak.plan"><span data-i18n="nav_peakplan">peak.plan</span></button>
+        <div class="nav-divider" data-legacy-only></div>
+        <button type="button" class="account-btn" id="account-profile-btn" data-i18n="nav_profile" data-legacy-only>Profil</button>
+        <button type="button" class="account-btn is-active" id="account-home-btn" data-i18n="nav_training" data-legacy-only>Training</button>
+        <button type="button" class="nav-cta nav-cta-race" id="account-peakplan-btn" title="peak.plan" data-legacy-only><span data-i18n="nav_peakplan">peak.plan</span></button>
       </div>
       <div class="account-bar-right">
-        <button type="button" class="account-btn" id="account-login-btn" data-i18n="nav_login">Login</button>
-        <button type="button" class="account-btn" id="account-register-btn" data-i18n="nav_create">Create</button>
+        <button type="button" class="site-top-cta" id="app-launcher-open-btn" data-i18n="nav_start_app">App starten</button>
+        <button type="button" class="account-btn" id="account-login-btn" data-i18n="nav_login" data-legacy-only>Login</button>
+        <button type="button" class="account-btn" id="account-register-btn" data-i18n="nav_create" data-legacy-only>Create</button>
         <button type="button" class="notif-bell-btn" id="notif-bell-btn" hidden title="Benachrichtigungen" aria-label="Benachrichtigungen">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
           <span class="notif-bell-badge" id="notif-bell-badge" hidden>0</span>
@@ -2996,10 +3399,8 @@
           <div class="footer-links">
             <button type="button" class="footer-link" data-legal-open="imprint">Impressum</button>
             <button type="button" class="footer-link" data-legal-open="privacy">Datenschutz</button>
-            <button type="button" class="footer-link" data-legal-open="terms">Nutzungsbedingungen</button>
             <button type="button" class="footer-link" data-legal-open="agb">AGB</button>
-            <button type="button" class="footer-link" data-legal-open="disclaimer">Health Disclaimer</button>
-            <button type="button" class="footer-link" data-legal-open="cookies">Cookies</button>
+            <button type="button" class="footer-link" data-legal-open="terms">Widerrufsbelehrung</button>
           </div>
         </div>
         <div class="footer-bottom">
@@ -3096,6 +3497,49 @@
             </div>
           </div>
         </div>
+      </article>
+    </div>
+
+    <!-- ============================================================
+         App Launcher Modal · "App starten"
+         One entry point for Download / Login / Register / Google
+         ============================================================ -->
+    <div id="app-launcher-modal" class="account-modal app-launcher-modal" hidden>
+      <div class="account-modal-backdrop" data-close-app-launcher></div>
+      <article class="account-modal-card app-launcher-card" role="dialog" aria-modal="true" aria-labelledby="app-launcher-title">
+        <button type="button" class="session-modal-close" data-close-app-launcher aria-label="Close">×</button>
+        <div class="app-launcher-head">
+          <div class="brand-mark" aria-hidden="true"><span>p</span></div>
+          <h4 id="app-launcher-title">peak.athlete starten</h4>
+          <p class="app-launcher-sub">Deine Trainingsplattform – direkt im Browser oder bald als native App.</p>
+        </div>
+
+        <div class="app-launcher-download">
+          <div class="app-launcher-download-icon" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><rect x="4" y="17" width="16" height="4" rx="1"/></svg>
+          </div>
+          <div class="app-launcher-download-text">
+            <strong>Native App</strong>
+            <span>Coming Soon · iOS & Android</span>
+          </div>
+          <span class="app-launcher-badge">Soon</span>
+        </div>
+
+        <div class="app-launcher-actions">
+          <button type="button" class="cta cta-google" id="app-launcher-google-btn">
+            <svg width="18" height="18" viewBox="0 0 48 48" style="vertical-align:middle;margin-right:8px"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59a14.5 14.5 0 0 1 0-9.18l-7.98-6.19a24.01 24.01 0 0 0 0 21.56l7.98-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+            Mit Google fortfahren
+          </button>
+          <div class="auth-divider"><span>oder</span></div>
+          <button type="button" class="cta cta-race" id="app-launcher-register-btn">Account erstellen</button>
+          <button type="button" class="ghost" id="app-launcher-login-btn">Ich habe bereits ein Konto</button>
+        </div>
+
+        <p class="app-launcher-legal">
+          Mit dem Fortfahren akzeptierst du unsere
+          <button type="button" class="text-link-btn" data-legal-open="terms">Nutzungsbedingungen</button>
+          und <button type="button" class="text-link-btn" data-legal-open="privacy">Datenschutzerklärung</button>.
+        </p>
       </article>
     </div>
 
