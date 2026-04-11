@@ -12263,7 +12263,10 @@ function buildPlan(profile) {
   const referenceEndDate = explicitMainLast && explicitMainLast > raceDateInput ? explicitMainLast : raceDateInput;
   const planningEndDate = addDays(today, Math.max(Math.ceil((referenceEndDate - today) / 86400000), ltadHorizonDays));
   const daysToRace = Math.max(14, Math.ceil((planningEndDate - today) / 86400000));
-  const weekCap = ltadMode === "two_year" ? 78 : ltadMode === "one_year" ? 52 : 24;
+  // Plan muss IMMER bis zum eingegebenen Zieldatum laufen, nicht künstlich
+  // nach 24 Wochen abgeschnitten werden. Der weekCap schützt nur vor
+  // absurden Extremen (z. B. > 78 Wochen ohne LTAD-Mode).
+  const weekCap = ltadMode === "two_year" ? 104 : ltadMode === "one_year" ? 78 : 78;
   const weeks = clamp(Math.ceil(daysToRace / 7), 6, weekCap);
   profile.planningWeeks = weeks;
   const progressionModel = buildProgressionModel(profile);
