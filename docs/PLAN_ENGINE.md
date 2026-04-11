@@ -170,7 +170,95 @@ Checks:
 11. Beginner has <= 5 first-week sessions, elite has >= 5.
 12. HYROX has strength; shape stays under running cap; tri has 3 legs.
 
+## Complexity tiers (V3.6)
+
+`getPlanComplexity(profile)` maps the detected level bucket to a 1-4 tier
+that gates whole session TYPES (not just parameters):
+
+| Tier | Level | Key | Session kinds allowed | Max sessions/week |
+| --- | --- | --- | --- | --- |
+| 1 | beginner | `easy_build` | easy, long, recovery, rest | 4 |
+| 2 | intermediate | `fartlek_intro` | + fartlek, progression (1/week) | 5 |
+| 3 | ambitious | `structured` | + tempo, threshold, short intervals | 6 |
+| 4 | performance / elite | `full_spectrum` | + VO2 intervals, strides, race-pace, double-threshold, ultra-specific kinds | 7 |
+
+Tier 1 & 2 override the structured day template at the end of each
+discipline builder (running, hyrox, triathlon, cycling, shape). Tier 3
+keeps the default structured layout. Tier 4 additionally unlocks
+ultra-specific sessions when the goal distance is an ultra.
+
+`applyLevelMicrocyclePattern()` is bypassed for tiers 1 and 2 so that the
+softer template is not re-hardened.
+
+## Ultra formats (V3.6)
+
+Ultra 50 km, Ultra 100 km, and Backyard Ultra are now first-class running
+goals. Volume bands (km/week):
+
+| Distance | beginner | intermediate | ambitious | elite |
+| --- | --- | --- | --- | --- |
+| Ultra 50 km | 50-75 | 70-100 | 90-130 | 120-170 |
+| Ultra 100 km | 70-100 | 95-135 | 130-180 | 170-240 |
+| Backyard | 70-100 | 95-135 | 130-180 | 170-240 |
+
+Level brackets (finish time):
+
+- **Ultra 50 km**: `>=7h` beg, `>=6h` int, `>=5h` amb, `<5h` elite
+- **Ultra 100 km**: `>=16h` beg, `>=13h` int, `>=11h` amb, `<11h` elite
+- **Backyard (reverse)**: `<12h` beg, `<18h` int, `<24h` amb, `>=30h` elite
+
+Default goal times (`defaultGoalTimeFor`): ultra50 = 5:30:00, ultra100 =
+12:00:00, backyard = 24:00:00.
+
+### New session kinds (tier 3/4 only)
+
+- `back_to_back_long` — long run Sat + shorter long run Sun
+- `fueling_long` — long run with full race-nutrition protocol
+- `night_run` — night/dawn specificity for 100k / backyard
+- `hourly_loop` — backyard simulation (6.706 km / hour, rest = leftover)
+- `time_on_feet` — duration-based rather than km-based long
+
+### Ultra rules
+
+- Long run cap lifted to 50% of weekly km for ultra goals
+  (vs 33% running default).
+- Ultra 100 weekly cap: 220 km (validator warning).
+- Backyard peak phase must contain at least one `hourly_loop` session
+  (validator warning).
+- Running long-run share expanded to 0.42 (0.32 in taper) when goal is
+  ultra.
+
 ## Changelog
+
+### 2026-04-11 — V3.6 audit & ultras
+
+- **BANDS_V3 extended** in `buildPlan`'s `_planEngineV3Authoritative`
+  IIFE to cover all disciplines (cycling, triathlon, hyrox, shape) —
+  eliminating the dual-path problem where non-running disciplines fell
+  back to `estimateBaseKm` while running used the authoritative table.
+- **Cycling level detection fixed**: `crit`, `granfondo`, `century` now
+  have distance-specific brackets (previously only `tt40`).
+- **HYROX level detection fixed**: distance-specific brackets for open
+  vs pro/doublespro vs doubles vs relay (previously all shared the same
+  thresholds).
+- **Complexity tiers** added via `getPlanComplexity(profile)` and wired
+  into all 5 discipline builders. Tier 1/2 produce friendlier templates
+  with minimal jargon; tier 3 keeps existing structured logic; tier 4
+  unlocks ultra-specific sessions.
+- **Ultra distances** added: ultra50, ultra100, backyard — UI dropdown,
+  default goal times, volume bands in both `BANDS` (estimateBaseKm) and
+  `BANDS_V3` (buildPlan) and `PLAN_VOLUME_BANDS_KM`, plus level brackets
+  in both `_deriveLevel` and `planEngineLevelFromTarget`.
+- **Ultra session types**: `back_to_back_long`, `fueling_long`,
+  `night_run`, `hourly_loop` injected by the running builder for
+  ambitious+ tiers.
+- **Validator updates**: ultra goals use a 50% long-run cap, ultra100
+  enforces a 220 km weekly ceiling, backyard must have an hourly_loop
+  in peak phase.
+- **Mission brief** updated to use ultra-specific key-session language.
+- `applyLevelMicrocyclePattern()` now skips tier 1 & 2 so the softer
+  templates are not re-hardened.
+- Cache-bust: `index.html` → `?v=planengine-v3f-audit2`.
 
 ### 2026-04-11 — V2 band-based engine
 

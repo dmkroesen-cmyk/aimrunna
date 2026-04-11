@@ -1081,6 +1081,9 @@ const GOAL_OPTIONS_BY_DISCIPLINE = {
     { value: "10k", label: "10 km" },
     { value: "half", label: "Halbmarathon" },
     { value: "marathon", label: "Marathon" },
+    { value: "ultra50", label: "Ultra 50 km" },
+    { value: "ultra100", label: "Ultra 100 km" },
+    { value: "backyard", label: "Backyard Ultra" },
   ],
   triathlon: [
     { value: "sprint", label: "Sprint Triathlon" },
@@ -9664,6 +9667,9 @@ function defaultGoalTimeFor(discipline, goalDistance) {
       "10k": "00:44:00",       // 4:24 /km
       half: "01:38:00",        // 4:39 /km
       marathon: "03:25:00",    // 4:52 /km — unter Boston Qualifier
+      ultra50: "05:30:00",     // 50 km in 5:30 — solider AGer
+      ultra100: "12:00:00",    // 100 km in 12h — ambitionierter AGer
+      backyard: "24:00:00",    // 24 Yards (~160 km) — ambitioniert, 1 Yard/h
     },
     triathlon: {
       sprint: "01:15:00",      // solide Age-Group-Zeit
@@ -12297,18 +12303,49 @@ function buildPlan(profile) {
   // This eliminates any legacy code path from influencing the result.
   let weeklyKmBase = estimateBaseKm(profile);
   (function _planEngineV3Authoritative() {
+    // ═══ BANDS_V3 — authoritative weekly km table for ALL disciplines ═══
+    // Values mirror the main BANDS table inside estimateBaseKm() so that
+    // both code paths return the same result. Ultra distances added here.
     const BANDS_V3 = {
       running: {
         "5k":       { beginner: [15, 20], intermediate: [22, 32], ambitious: [32, 45],  elite: [55, 90] },
         "10k":      { beginner: [18, 28], intermediate: [28, 40], ambitious: [38, 52],  elite: [65, 110] },
         "half":     { beginner: [25, 35], intermediate: [35, 50], ambitious: [50, 72],  elite: [85, 135] },
         "marathon": { beginner: [35, 48], intermediate: [48, 65], ambitious: [65, 90],  elite: [105, 180] },
+        "ultra50":  { beginner: [50, 75], intermediate: [70, 100], ambitious: [90, 130], elite: [120, 170] },
+        "ultra100": { beginner: [70, 100],intermediate: [95, 135], ambitious: [130, 180],elite: [170, 240] },
+        "backyard": { beginner: [70, 100],intermediate: [95, 135], ambitious: [130, 180],elite: [170, 240] },
+      },
+      cycling: {
+        "crit":      { beginner: [70, 120],  intermediate: [130, 200], ambitious: [200, 290], elite: [320, 480] },
+        "tt40":      { beginner: [90, 140],  intermediate: [150, 220], ambitious: [220, 310], elite: [340, 500] },
+        "granfondo": { beginner: [110, 170], intermediate: [180, 260], ambitious: [260, 380], elite: [400, 580] },
+        "century":   { beginner: [130, 190], intermediate: [200, 300], ambitious: [300, 430], elite: [430, 620] },
+      },
+      triathlon: {
+        "sprint":  { beginner: [22, 35],  intermediate: [38, 60],  ambitious: [60, 88],   elite: [90, 130] },
+        "olympic": { beginner: [32, 50],  intermediate: [52, 78],  ambitious: [78, 110],  elite: [115, 160] },
+        "703":     { beginner: [50, 75],  intermediate: [75, 110], ambitious: [110, 158], elite: [160, 225] },
+        "ironman": { beginner: [75, 112], intermediate: [112, 168],ambitious: [168, 245], elite: [245, 360] },
+      },
+      hyrox: {
+        "open":       { beginner: [14, 20], intermediate: [20, 30], ambitious: [28, 40], elite: [38, 52] },
+        "pro":        { beginner: [16, 24], intermediate: [24, 35], ambitious: [32, 45], elite: [42, 56] },
+        "doubles":    { beginner: [10, 16], intermediate: [16, 26], ambitious: [24, 35], elite: [34, 47] },
+        "doublespro": { beginner: [12, 18], intermediate: [18, 28], ambitious: [26, 38], elite: [36, 48] },
+        "relay":      { beginner: [8, 14],  intermediate: [14, 22], ambitious: [20, 30], elite: [28, 40] },
+      },
+      shape: {
+        "fatloss": { beginner: [10, 16], intermediate: [14, 22], ambitious: [18, 26], elite: [22, 30] },
+        "recomp":  { beginner: [8, 14],  intermediate: [11, 18], ambitious: [16, 24], elite: [20, 28] },
+        "build":   { beginner: [6, 12],  intermediate: [9, 16],  ambitious: [13, 20], elite: [17, 24] },
+        "fitness": { beginner: [9, 15],  intermediate: [13, 20], ambitious: [17, 25], elite: [21, 30] },
       },
     };
     const disc = String(profile?.discipline || "");
     const dist = String(profile?.goalDistance || "");
     const discTable = BANDS_V3[disc];
-    if (!discTable || !discTable[dist]) return; // non-running disciplines keep original
+    if (!discTable || !discTable[dist]) return; // unknown combo -> keep estimateBaseKm result
     // Parse goal time
     let secs = 0;
     const raw = String(profile?.goalTime || "").trim();
@@ -12322,23 +12359,67 @@ function buildPlan(profile) {
     }
     const min = secs / 60;
     const h = secs / 3600;
-    // Realistisch kalibrierte Level-Schwellen. "Elite" heißt echte
-    // semi-pro/elite-amateur Zeiten — Sub-3 Marathon ist AMBITIONIERT,
-    // nicht elite. Echte Marathon-Elite läuft Sub-2:30.
+    // Realistisch kalibrierte Level-Schwellen. "Elite" = echte semi-pro/
+    // elite-amateur Zeiten — Sub-3 Marathon ist AMBITIONIERT, nicht elite.
     let level = "intermediate";
     if (secs > 0) {
-      if (dist === "5k") {
-        // 5k: beg >25, int 22-25, amb 18-22, elite <18
-        level = min >= 25 ? "beginner" : min >= 22 ? "intermediate" : min >= 18 ? "ambitious" : "elite";
-      } else if (dist === "10k") {
-        // 10k: beg >55, int 45-55, amb 38-45, elite <38
-        level = min >= 55 ? "beginner" : min >= 45 ? "intermediate" : min >= 38 ? "ambitious" : "elite";
-      } else if (dist === "half") {
-        // HM: beg >2:10, int 1:45-2:10, amb 1:25-1:45, elite <1:25
-        level = h >= 2.167 ? "beginner" : h >= 1.75 ? "intermediate" : h >= 1.417 ? "ambitious" : "elite";
-      } else if (dist === "marathon") {
-        // Marathon: beg >4:30, int 3:45-4:30, amb 2:50-3:45, elite <2:50
-        level = h >= 4.5 ? "beginner" : h >= 3.75 ? "intermediate" : h >= 2.833 ? "ambitious" : "elite";
+      if (disc === "running") {
+        if (dist === "5k") {
+          level = min >= 25 ? "beginner" : min >= 22 ? "intermediate" : min >= 18 ? "ambitious" : "elite";
+        } else if (dist === "10k") {
+          level = min >= 55 ? "beginner" : min >= 45 ? "intermediate" : min >= 38 ? "ambitious" : "elite";
+        } else if (dist === "half") {
+          level = h >= 2.167 ? "beginner" : h >= 1.75 ? "intermediate" : h >= 1.417 ? "ambitious" : "elite";
+        } else if (dist === "marathon") {
+          level = h >= 4.5 ? "beginner" : h >= 3.75 ? "intermediate" : h >= 2.833 ? "ambitious" : "elite";
+        } else if (dist === "ultra50") {
+          // 50k: beg >=7h, int >=6h, amb >=5h, elite <5h
+          level = h >= 7 ? "beginner" : h >= 6 ? "intermediate" : h >= 5 ? "ambitious" : "elite";
+        } else if (dist === "ultra100") {
+          // 100k: beg >=16h, int >=13h, amb >=11h, elite <11h
+          level = h >= 16 ? "beginner" : h >= 13 ? "intermediate" : h >= 11 ? "ambitious" : "elite";
+        } else if (dist === "backyard") {
+          // Backyard: REVERSED — higher hours = better. target of 24h = ambitious.
+          level = h < 12 ? "beginner" : h < 18 ? "intermediate" : h < 24 ? "ambitious" : "elite";
+        }
+      } else if (disc === "cycling") {
+        if (dist === "tt40") {
+          const kmh = 40 / h;
+          level = kmh < 32 ? "beginner" : kmh < 37 ? "intermediate" : kmh < 41 ? "ambitious" : "elite";
+        } else if (dist === "crit") {
+          // 60 min crit: <55 elite, 55-63 amb, 63-72 int, >72 beg
+          level = min >= 72 ? "beginner" : min >= 63 ? "intermediate" : min >= 55 ? "ambitious" : "elite";
+        } else if (dist === "granfondo") {
+          level = h >= 6 ? "beginner" : h >= 5 ? "intermediate" : h >= 4.25 ? "ambitious" : "elite";
+        } else if (dist === "century") {
+          level = h >= 6.5 ? "beginner" : h >= 5.5 ? "intermediate" : h >= 4.75 ? "ambitious" : "elite";
+        }
+      } else if (disc === "triathlon") {
+        if (dist === "sprint") {
+          level = h >= 1.6 ? "beginner" : h >= 1.35 ? "intermediate" : h >= 1.15 ? "ambitious" : "elite";
+        } else if (dist === "olympic") {
+          level = h >= 3.25 ? "beginner" : h >= 2.75 ? "intermediate" : h >= 2.4 ? "ambitious" : "elite";
+        } else if (dist === "703") {
+          level = h >= 6.5 ? "beginner" : h >= 5.5 ? "intermediate" : h >= 4.75 ? "ambitious" : "elite";
+        } else if (dist === "ironman") {
+          level = h >= 14 ? "beginner" : h >= 12 ? "intermediate" : h >= 10.5 ? "ambitious" : "elite";
+        }
+      } else if (disc === "hyrox") {
+        // HYROX: distance-specific brackets. Pro is faster than Open at same level.
+        if (dist === "pro" || dist === "doublespro") {
+          level = h >= 1.35 ? "beginner" : h >= 1.17 ? "intermediate" : h >= 1.03 ? "ambitious" : "elite";
+        } else if (dist === "open") {
+          level = h >= 1.5 ? "beginner" : h >= 1.25 ? "intermediate" : h >= 1.1 ? "ambitious" : "elite";
+        } else if (dist === "doubles") {
+          level = h >= 1.2 ? "beginner" : h >= 1.05 ? "intermediate" : h >= 0.95 ? "ambitious" : "elite";
+        } else if (dist === "relay") {
+          level = h >= 1.05 ? "beginner" : h >= 0.93 ? "intermediate" : h >= 0.85 ? "ambitious" : "elite";
+        }
+      }
+      // shape: no time brackets — fall back to form level
+      if (disc === "shape") {
+        const formLevel = String(profile?.fitnessLevel || "intermediate");
+        level = formLevel === "starter" ? "beginner" : formLevel === "advanced" ? "ambitious" : "intermediate";
       }
     }
     const band = discTable[dist][level] || discTable[dist].intermediate;
@@ -12621,9 +12702,14 @@ function validatePlan(plan, profile) {
       });
     });
     if (totalKm > 0) {
-      const longCap = profile?.discipline === "cycling" ? 0.42 : 0.33;
+      const isUltraGoal = profile?.discipline === "running" && (profile?.goalDistance === "ultra50" || profile?.goalDistance === "ultra100" || profile?.goalDistance === "backyard");
+      const longCap = profile?.discipline === "cycling" ? 0.42 : (isUltraGoal ? 0.50 : 0.33);
       if (longKm / totalKm > longCap) {
         warnings.push(`week ${i + 1}: long run ${Math.round(100 * longKm / totalKm)}% > cap ${Math.round(longCap * 100)}%`);
+      }
+      // Ultra 100 weekly cap: 220 km
+      if (profile?.goalDistance === "ultra100" && totalKm > 220) {
+        warnings.push(`week ${i + 1}: ultra100 run volume ${Math.round(totalKm)} km above 220 km cap`);
       }
       if (intervalKm / totalKm > 0.12) {
         warnings.push(`week ${i + 1}: intervals ${Math.round(100 * intervalKm / totalKm)}% > 10%`);
@@ -12658,6 +12744,20 @@ function validatePlan(plan, profile) {
   const taperWeeks = plan.weeks.filter((w) => w.phase === "taper").length;
   if (plan.weeks.length >= 10 && taperWeeks === 0) {
     warnings.push("no taper phase detected");
+  }
+
+  // 7b. Backyard ultra: at least one hourly_loop session in peak phase
+  if (profile?.goalDistance === "backyard") {
+    const peakWeeks = plan.weeks.filter((w) => w.phase === "peak");
+    if (peakWeeks.length > 0) {
+      const hasHourlyLoop = peakWeeks.some((w) => (w.days || []).some((d) => {
+        const sessions = Array.isArray(d.sessions) ? d.sessions : (d.session ? [d.session] : [d]);
+        return sessions.some((s) => String(s?.kind || "").includes("hourly_loop") || /backyard loop|hourly loop/i.test(String(s?.title || "")));
+      }));
+      if (!hasHourlyLoop) {
+        warnings.push("backyard plan missing hourly_loop session in peak phase");
+      }
+    }
   }
 
   // 11. Session count vs level
@@ -13388,7 +13488,11 @@ function createWeekSessions({
 
   const z = profile.trainingZones || computeTrainingZones(profile);
   const fp = (sec) => formatPacePerKm(sec);
-  const longRunKm = Math.max(12, Math.round(weekKm * (isTaper ? 0.22 : 0.3)));
+  const _longRunShareDefault = isTaper ? 0.22 : 0.30;
+  const _longRunShareForGoal = (profile.goalDistance === "ultra50" || profile.goalDistance === "ultra100" || profile.goalDistance === "backyard")
+    ? (isTaper ? 0.32 : 0.42)
+    : _longRunShareDefault;
+  const longRunKm = Math.max(12, Math.round(weekKm * _longRunShareForGoal));
   const easyKm = Math.max(6, Math.round(weekKm * 0.14));
   const recoveryKm = Math.max(5, Math.round(weekKm * 0.1));
   const qualityKm = Math.max(8, Math.round(weekKm * 0.17));
@@ -13399,11 +13503,15 @@ function createWeekSessions({
   const raceWeek = sameWeek(currentWeekStart, raceDate);
   const isIntro = weekIndex < (profile.capacity?.introWeeks || 0);
   const beginner = profile.fitnessLevel === "starter" || profile.experience === "lt1" || profile.capacity?.tier === "low";
-  const runGoalCaps = { "5k": 12, "10k": 16, half: 22, marathon: 30 };
+  const runGoalCaps = { "5k": 12, "10k": 16, half: 22, marathon: 30, ultra50: 42, ultra100: 50, backyard: 50 };
+  const isUltra = profile.goalDistance === "ultra50" || profile.goalDistance === "ultra100" || profile.goalDistance === "backyard";
   const longRunCap = beginner
     ? (runGoalCaps[profile.goalDistance] || 16)
-    : (runGoalCaps[profile.goalDistance] ? runGoalCaps[profile.goalDistance] + 4 : 22);
+    : (runGoalCaps[profile.goalDistance] ? runGoalCaps[profile.goalDistance] + (isUltra ? 8 : 4) : 22);
   const introLongRunCap = beginner ? Math.max(8, longRunCap - 4) : longRunCap;
+  // Ultra long-run share override: up to 45% of weekly volume (vs 33% default)
+  const ultraLongShareOverride = isUltra ? (isTaper ? 0.32 : 0.42) : null;
+  const complexity = getPlanComplexity(profile);
   const longRunLoadBias = clamp((runFocus.longShare - 0.3) * 0.8, -0.08, 0.12);
   const longRunKmAdj = clamp(Math.round(longRunKm * (1 + longRunLoadBias)), beginner ? 8 : 10, isIntro ? introLongRunCap : longRunCap);
   const recoveryKmAdj = clamp(recoveryKm, beginner ? 3 : 4, beginner ? 8 : 10);
@@ -13673,6 +13781,109 @@ function createWeekSessions({
     };
   }
 
+  // ═══ COMPLEXITY GATING (V3.6) ═════════════════════════════════════════
+  // Tier 1 & 2 override hard quality/threshold sessions to friendlier
+  // easy/fartlek variants. Tier 3 keeps the current structured logic.
+  // Tier 4 unlocks ultra-specific session types if the goal is ultra.
+  try {
+    if (!raceWeek) {
+      const tier = complexity.tier;
+      if (tier === 1) {
+        // Beginner: only easy, long, recovery, rest — no intervals, no threshold
+        const easyBase = {
+          type: "recovery",
+          title: "Lockerer Dauerlauf",
+          details: `${Math.max(4, Math.round(easyKmAdj * 0.9))} km im Wohlfühltempo @ ${easyPace}. Nasenatmung möglich, plaudern können. Ziel: aerobe Basis und Verträglichkeit.`,
+          duration: `${30 + Math.round(easyKmAdj * 5)} min`,
+        };
+        // Mon rest, Tue easy, Wed rest, Thu easy, Fri rest, Sat long, Sun rest/easy
+        days[0] = { ...(days[0] || {}), type: "rest", title: "Ruhetag", details: "Komplett-Ruhe oder 20-30 min Spaziergang + Mobility.", duration: "Ruhetag" };
+        days[1] = { ...easyBase, title: "Lockerer Dauerlauf" };
+        if (!days[2]?.scheduledRace) days[2] = { type: "rest", title: "Ruhetag", details: "Ruhe + leichte Mobility. Schlaf priorisieren.", duration: "Ruhetag" };
+        days[3] = { ...easyBase, title: "Lockerer Dauerlauf" };
+        if (!days[4]?.scheduledRace) days[4] = { type: "rest", title: "Ruhetag", details: "Kompletter Ruhetag. Schlaf 7-9h.", duration: "Ruhetag" };
+        days[5] = {
+          type: "longrun",
+          title: "Langer Lauf im Wohlfühltempo",
+          details: `${Math.max(6, Math.round(longRunKmAdj * 0.8))} km gleichmäßig @ ${easyPace}. Gesprächstempo, keine Uhr-Kontrolle. Fueling/Hydration üben.`,
+          duration: `${Math.max(40, Math.round(longRunKmAdj * 6))}-${Math.round(longRunKmAdj * 8)} min`,
+        };
+        days[6] = { type: "rest", title: "Ruhetag", details: "Ruhe + Mobility + Schlaf.", duration: "Ruhetag" };
+      } else if (tier === 2) {
+        // Intermediate: easy, long, recovery + 1 fartlek/progression per week max
+        const fartlekBase = {
+          type: "quality",
+          title: "Fahrtspiel (Fartlek)",
+          details: `${Math.max(6, Math.round(qualityKm * 0.85))} km als Fahrtspiel: 2 km einlaufen @ ${easyPace}, dann 15-20 min spielerisch mit "zügig/locker"-Wechseln nach Gefühl (ca. 1-2' zügig, 2-3' locker), 2 km auslaufen. Ohne Uhr, nach Anstrengungsgefühl.`,
+          duration: "55-65 min",
+        };
+        const easyBase = {
+          type: "recovery",
+          title: "Easy Run",
+          details: `${easyKmAdj} km locker @ ${easyPace}. 80/20-Regel: easy ist wirklich easy.`,
+          duration: `${30 + Math.round(easyKmAdj * 5)} min`,
+        };
+        if (!days[0]?.scheduledRace) days[0] = { type: "rest", title: "Ruhetag", details: "Komplett-Ruhe + Mobility + Schlaf.", duration: "Ruhetag" };
+        if (!days[1]?.scheduledRace) days[1] = easyBase;
+        if (!days[2]?.scheduledRace) days[2] = fartlekBase;
+        if (!days[3]?.scheduledRace) days[3] = easyBase;
+        if (!days[4]?.scheduledRace) days[4] = { type: "rest", title: "Ruhetag", details: "Ruhe + Mobility. Schlaf 7-9h.", duration: "Ruhetag" };
+        // day 5 keeps the long run (already set)
+        if (!days[6]?.scheduledRace) days[6] = { ...easyBase, title: "Easy Recovery" };
+      }
+      // tier 3 and tier 4: keep the existing structured day layout
+      // ---- Ultra-specific enhancements for tier 3/4 ----
+      if (tier >= 3 && isUltra && !isIntro && !isDeload && !isTaper) {
+        const week = weekIndex;
+        if (profile.goalDistance === "ultra50" || profile.goalDistance === "ultra100" || profile.goalDistance === "backyard") {
+          // Back-to-back long runs on Sat + Sun for tier 3/4
+          const secondLongKm = Math.round(longRunKmAdj * (tier === 4 ? 0.7 : 0.55));
+          if (!days[6]?.scheduledRace) {
+            days[6] = {
+              type: "longrun",
+              kind: "back_to_back_long",
+              title: "Back-to-Back Long Run",
+              details: `${secondLongKm} km @ ${easyPace} mit müden Beinen vom Vortag. Ziel: Durability für Ultra-Distanzen. Fueling konsequent üben (${longNut.during}). Gehpausen okay, wenn nötig.`,
+              duration: `${Math.round(secondLongKm * 6)}-${Math.round(secondLongKm * 8)} min`,
+            };
+          }
+        }
+        // 100k + Backyard: fueling long + night run in peak phase
+        if (profile.goalDistance === "ultra100" || profile.goalDistance === "backyard") {
+          days[5] = {
+            type: "longrun",
+            kind: "fueling_long",
+            title: "Fueling Long Run",
+            details: `${longRunKmAdj} km @ ${easyPace}. Race-Nutrition-Protokoll in voller Länge üben: 60-90g Kohlenhydrate/h, 500-750 ml Flüssigkeit/h, Elektrolyte, feste+flüssige Mischung. Jede Stunde Check: Magen, Hydration, Fueling, Mental. Ziel: Magentraining + Nutrition-Gewöhnung.`,
+            duration: `${Math.round(longRunKmAdj * 6)}-${Math.round(longRunKmAdj * 8)} min`,
+          };
+          if (tier === 4 && phase === "peak" && week % 3 === 1 && !days[3]?.scheduledRace) {
+            days[3] = {
+              type: "quality",
+              kind: "night_run",
+              title: "Night Run Specificity",
+              details: `${Math.max(10, Math.round(easyKmAdj * 1.4))} km @ ${easyPace} in der Nacht / Dämmerung. Stirnlampe, reduzierte Sicht, biologischer Rhythmus trainieren. Wichtig für 100k+ (oft Nachtanteile im Rennen).`,
+              duration: "70-100 min",
+            };
+          }
+        }
+        // Backyard: hourly loop simulation in peak for tier 3/4
+        if (profile.goalDistance === "backyard" && phase === "peak" && (tier === 3 || tier === 4)) {
+          const yards = tier === 4 ? 6 : 4; // hours = yards
+          days[5] = {
+            type: "longrun",
+            kind: "hourly_loop",
+            title: "Backyard Loop Simulation",
+            details: `${yards}x6.706 km (1 Yard) — jede Runde in <57 min abschließen (damit Rest >3 min bleibt). Pausen: 60-120s trinken/fueln, dann Start der nächsten Runde zur vollen Stunde. Ziel: mentale Automation, Pacing-Disziplin, Magen-Training.`,
+            duration: `${yards} h Fenster`,
+          };
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("[plan-engine-complexity] running tier gating failed:", err);
+  }
+
   placePreferredLongSessionDay(days, profile.longRunDay, "running");
 
   return days;
@@ -13680,6 +13891,12 @@ function createWeekSessions({
 
 function applyLevelMicrocyclePattern(days, profile) {
   if (!Array.isArray(days) || !days.length) return;
+  // Respect complexity gating: tier 1 and tier 2 already enforce their own
+  // layouts in the discipline builders; don't reintroduce hard days here.
+  try {
+    const complexity = getPlanComplexity(profile);
+    if (complexity && (complexity.tier === 1 || complexity.tier === 2)) return;
+  } catch (_) { /* ignore */ }
   const level = String(profile?.fitnessLevel || "starter");
   const hardTypes = new Set(["quality", "threshold", "longrun"]);
   const easingTemplate = (base) => ({
@@ -14256,6 +14473,35 @@ function createShapeWeekSessions({ profile, weekIndex, weekKm, isDeload, isTaper
     };
   }
 
+  // ═══ SHAPE COMPLEXITY GATING (V3.6) ═══════════════════════════════════
+  try {
+    const shComplexity = getPlanComplexity(profile);
+    if (shComplexity.tier === 1 && !raceWeek) {
+      // Tier 1: 2 strength + 2 easy cardio, rest rest
+      const strengthBase = {
+        type: "quality",
+        title: "Strength Foundation",
+        details: "2-3 Sätze: Squat, Push-up, Row, Hip Hinge, Core. 8-12 Wdh. Technik vor Last.",
+        duration: "35-50 min",
+      };
+      const easyCardio = {
+        type: "recovery",
+        title: "Easy Cardio",
+        details: `25-40 min Walk/Bike/Jog @ Zone 1-2${hrHint("zone2")}. Gesprächstempo. Gelenkschonend.`,
+        duration: "25-40 min",
+      };
+      days[0] = { type: "rest", title: "Ruhetag", details: "Ruhe + Mobility.", duration: "Ruhetag" };
+      if (!days[1]?.scheduledRace) days[1] = strengthBase;
+      if (!days[2]?.scheduledRace) days[2] = easyCardio;
+      if (!days[3]?.scheduledRace) days[3] = { type: "rest", title: "Ruhetag", details: "Ruhe + Spaziergang.", duration: "Ruhetag" };
+      if (!days[4]?.scheduledRace) days[4] = { ...strengthBase, title: "Strength Foundation 2" };
+      if (!days[5]?.scheduledRace) days[5] = easyCardio;
+      if (!days[6]?.scheduledRace) days[6] = { type: "rest", title: "Ruhetag", details: "Ruhe + Mobility + 8000 Schritte.", duration: "Ruhetag" };
+    }
+  } catch (err) {
+    console.warn("[plan-engine-complexity] shape tier gating failed:", err);
+  }
+
   if (raceWeek) {
     const idx = dayIndexFromDate(raceDate);
     days[idx] = {
@@ -14379,6 +14625,46 @@ function createHyroxWeekSessions({ profile, weekIndex, weekKm, isDeload, isTaper
       details: `${Math.round(clamp(runKm * 0.18, 5, 13))} km locker @ ${easyPace}${hrHint("zone2")} • danach 20-25 min EMOM (${noHighImpact ? "lunges/carries/step-ups/core" : "lunges/burpees/carries/jumps"}) • 40s on / 20s off. HR-Ziel EMOM: Zone 3-4${hrHint("zone4")}. Physiologie: Kraft-Ausdauer-Kopplung, metabolische Flexibilität.`,
       duration: "65-85 min",
     };
+  }
+
+  // ═══ HYROX COMPLEXITY GATING (V3.6) ═══════════════════════════════════
+  try {
+    const hxComplexity = getPlanComplexity(profile);
+    if (hxComplexity.tier === 1 && !raceWeek) {
+      // Tier 1: 2 easy runs + 2 strength days, rest rest. No compromised runs.
+      const easyBase = {
+        type: "recovery",
+        title: "Lockerer Dauerlauf",
+        details: `${Math.max(4, Math.round(easyKm * 0.9))} km @ ${easyPace}. Gesprächstempo. Ziel: Laufbasis.`,
+        duration: "35-50 min",
+      };
+      const strengthBase = {
+        type: "quality",
+        title: "HYROX Strength Intro",
+        details: "3 Sätze: 10 Step-ups/Seite, 10 Lunges/Seite, 100 m Carry, 10 Thruster. Technik vor Last. Core 2x30s Plank.",
+        duration: "35-50 min",
+      };
+      if (!days[0]?.scheduledRace) days[0] = { type: "rest", title: "Ruhetag", details: "Ruhe + Mobility.", duration: "Ruhetag" };
+      if (!days[1]?.scheduledRace) days[1] = easyBase;
+      if (!days[2]?.scheduledRace) days[2] = strengthBase;
+      if (!days[3]?.scheduledRace) days[3] = { type: "rest", title: "Ruhetag", details: "Ruhe + Mobility.", duration: "Ruhetag" };
+      if (!days[4]?.scheduledRace) days[4] = easyBase;
+      if (!days[5]?.scheduledRace) days[5] = { ...strengthBase, title: "HYROX Station Basics" };
+      if (!days[6]?.scheduledRace) days[6] = { type: "rest", title: "Ruhetag", details: "Ruhe + Mobility. Schlaf 7-9h.", duration: "Ruhetag" };
+    } else if (hxComplexity.tier === 2 && !raceWeek) {
+      // Tier 2: easier compromised sessions, no VO2max intervals
+      const qIdx = days.findIndex((d) => /vo2|vo2max/i.test(String(d?.title || "")));
+      if (qIdx >= 0 && !days[qIdx].scheduledRace) {
+        days[qIdx] = {
+          type: "quality",
+          title: "Fartlek + Station Touch",
+          details: `${Math.max(6, Math.round(runKm * 0.22))} km: 1.5 km WU + 20 min Fahrtspiel (1-2' zügig / 2' locker) + 2 Sätze leichte Stationen (Lunges, Carry, Thruster) + CD. Ohne Intervall-Struktur.`,
+          duration: "50-65 min",
+        };
+      }
+    }
+  } catch (err) {
+    console.warn("[plan-engine-complexity] hyrox tier gating failed:", err);
   }
 
   if (raceWeek) {
@@ -14509,6 +14795,41 @@ function createTriathlonWeekSessions({ profile, weekIndex = 0, weekKm, isDeload,
   }
   placePreferredLongSessionDay(days, profile.longRunDay, "triathlon");
 
+  // ═══ TRIATHLON COMPLEXITY GATING (V3.6) ═══════════════════════════════
+  try {
+    const triComplexity = getPlanComplexity(profile);
+    if (triComplexity.tier === 1 && !raceWeek) {
+      // Tier 1: 1 swim + 1 bike + 1 easy run + 1 brick
+      const swim = days.findIndex((d) => /swim/i.test(String(d?.title || "")));
+      const bike = days.findIndex((d) => /bike|ride/i.test(String(d?.title || "")));
+      // Replace threshold intervals with easy endurance
+      const thrIdx = days.findIndex((d) => d?.type === "threshold");
+      if (thrIdx >= 0 && !days[thrIdx].scheduledRace) {
+        days[thrIdx] = {
+          type: "recovery",
+          title: "Easy Bike Endurance",
+          details: `45-60 min ${trainerOnly ? "Trainer" : "Bike"} @ ${pw(0.55, 0.68)}${hrBike("zone2")}. Kadenz 80-90 RPM. Zum Eingewöhnen ans Rad, kein Druck.`,
+          duration: "45-60 min",
+        };
+      }
+      // Downgrade any hard run quality to easy
+      days.forEach((d, i) => {
+        if (!d || d.scheduledRace) return;
+        const title = String(d.title || "").toLowerCase();
+        if ((d.type === "quality" || d.type === "threshold") && /run|threshold|vo2/i.test(title) && !/swim|bike|ride/i.test(title)) {
+          days[i] = {
+            type: "recovery",
+            title: "Easy Run",
+            details: `${Math.max(3, Math.round(tri.runEasyKm * 0.8))} km locker @ ${easyPace}${hrRun("zone1")}. Nasenatmung, Gesprächstempo.`,
+            duration: "30-45 min",
+          };
+        }
+      });
+    }
+  } catch (err) {
+    console.warn("[plan-engine-complexity] triathlon tier gating failed:", err);
+  }
+
   if (raceWeek) {
     const raceDayIndex = dayIndexFromDate(raceDate);
     days[raceDayIndex] = {
@@ -14613,6 +14934,45 @@ function createCyclingWeekSessions({ profile, weekIndex = 0, weekKm, isDeload, i
 
   if (!trainerOnly && bikeOutdoorDay !== "none") {
     placeLongRideOnPreferredDay(days, bikeOutdoorDay);
+  }
+
+  // ═══ CYCLING COMPLEXITY GATING (V3.6) ═════════════════════════════════
+  try {
+    const cyComplexity = getPlanComplexity(profile);
+    if (cyComplexity.tier === 1 && !raceWeek) {
+      // Tier 1: 3 endurance rides + 1 recovery spin + 3 rests
+      const easyRide = {
+        type: "recovery",
+        title: "Endurance Ride",
+        details: `60-90 min @ ${pw(0.55, 0.68)}${hrHint("zone2")}. Kadenz 80-90 RPM. Gleichmäßig, kein Druck.`,
+        duration: "60-90 min",
+      };
+      days[0] = { type: "rest", title: "Ruhetag", details: "Ruhe + Mobility.", duration: "Ruhetag" };
+      if (!days[1]?.scheduledRace) days[1] = easyRide;
+      if (!days[2]?.scheduledRace) days[2] = { type: "rest", title: "Ruhetag", details: "Ruhe + Mobility.", duration: "Ruhetag" };
+      if (!days[3]?.scheduledRace) days[3] = easyRide;
+      if (!days[4]?.scheduledRace) days[4] = { type: "rest", title: "Ruhetag", details: "Ruhe + Mobility.", duration: "Ruhetag" };
+      // days[5] stays long ride
+      if (!days[6]?.scheduledRace) days[6] = {
+        type: "recovery",
+        title: "Recovery Spin",
+        details: `30-45 min locker @ ${pw(0.45, 0.55)}${hrHint("zone1")}. Hohe Kadenz.`,
+        duration: "30-45 min",
+      };
+    } else if (cyComplexity.tier === 2 && !raceWeek) {
+      // Tier 2: replace VO2max with an easy tempo
+      const vo2Idx = days.findIndex((d) => /vo2/i.test(String(d?.title || "")));
+      if (vo2Idx >= 0 && !days[vo2Idx].scheduledRace) {
+        days[vo2Idx] = {
+          type: "quality",
+          title: "Sweet Spot Touch",
+          details: `10 min Einrollen + 3x8' @ ${pw(0.82, 0.88)}${hrHint("zone3")} (3' locker) + 10 min Ausrollen. Kontrolliert, kein max. Effort.`,
+          duration: "60-75 min",
+        };
+      }
+    }
+  } catch (err) {
+    console.warn("[plan-engine-complexity] cycling tier gating failed:", err);
   }
 
   if (raceWeek) {
@@ -14908,7 +15268,13 @@ function buildPlanMissionBrief(profile, plan) {
           ? txt("Key Sessions: Run-Threshold, Stations-Density, kompromittierte Intervalle, Race-Simulation.", "Key sessions: run threshold, station density, compromised intervals, race simulation.", "キー練習: ラン閾値、ステーション密度、コンプロマイズド、レースシミュ。")
           : profile?.discipline === "shape"
             ? txt("Key Sessions: progressive Kraftblöcke, Cardio-Intervalle, Long Cardio, geplante Recovery.", "Key sessions: progressive strength blocks, cardio intervals, long cardio, planned recovery.", "キー練習: 漸進的筋力、カーディオインターバル、ロング有酸素、計画的回復。")
-            : txt("Key Sessions: Schwellenläufe, VO2-Reize, Long Run und ein klarer Deload-Rhythmus.", "Key sessions: threshold runs, VO2 touches, long run, and clear deload rhythm.", "キー練習: 閾値走、VO2刺激、ロングラン、明確なデロード。");
+            : (profile?.discipline === "running" && (profile?.goalDistance === "ultra50" || profile?.goalDistance === "ultra100" || profile?.goalDistance === "backyard"))
+              ? txt(
+                  `Key Sessions: Back-to-Back Long Runs${profile?.goalDistance === "backyard" ? ", Hourly-Loop-Simulation" : ""}${profile?.goalDistance === "ultra100" || profile?.goalDistance === "backyard" ? ", Magentraining (Fueling Long), Nachttraining" : ", Fueling Long"}, progressive Long Runs und kontrollierter Deload.`,
+                  `Key sessions: back-to-back long runs${profile?.goalDistance === "backyard" ? ", hourly loop simulation" : ""}${profile?.goalDistance === "ultra100" || profile?.goalDistance === "backyard" ? ", gut training (fueling long), night runs" : ", fueling long"}, progressive long runs, controlled deload.`,
+                  `キー練習: バックトゥバック・ロングラン${profile?.goalDistance === "backyard" ? "、毎時ループ" : ""}${profile?.goalDistance === "ultra100" || profile?.goalDistance === "backyard" ? "、補給トレーニング、ナイトラン" : "、補給ロング"}、プログレッシブ・ロング、計画的デロード。`
+                )
+              : txt("Key Sessions: Schwellenläufe, VO2-Reize, Long Run und ein klarer Deload-Rhythmus.", "Key sessions: threshold runs, VO2 touches, long run, and clear deload rhythm.", "キー練習: 閾値走、VO2刺激、ロングラン、明確なデロード。");
   const mechanismHint = txt(
     "Schwelle/VO2 heben den Motor, Long Sessions bauen metabolische Robustheit und Ermüdungsresistenz, Deload/Taper legen die Leistung frei.",
     "Threshold/VO2 raise the engine, long sessions build metabolic durability and fatigue resistance, deload/taper unlock performance.",
@@ -17623,6 +17989,9 @@ const PLAN_VOLUME_BANDS_KM = {
     "half":     { beginner: [25, 35], intermediate: [35, 55], ambitious: [55, 80],  elite: [100, 150] },
     "marathon": { beginner: [35, 50], intermediate: [50, 70], ambitious: [70, 100], elite: [120, 200] },
     "ultra":    { beginner: [40, 60], intermediate: [60, 90], ambitious: [80, 120], elite: [130, 220] },
+    "ultra50":  { beginner: [50, 75], intermediate: [70, 100],ambitious: [90, 130], elite: [120, 170] },
+    "ultra100": { beginner: [70, 100],intermediate: [95, 135],ambitious: [130, 180],elite: [170, 240] },
+    "backyard": { beginner: [70, 100],intermediate: [95, 135],ambitious: [130, 180],elite: [170, 240] },
   },
   // Cycling: km/week
   cycling: {
@@ -17692,6 +18061,28 @@ function planEngineLevelFromTarget(discipline, goalDistance, goalSeconds) {
       if (h >= 2.75) return "performance";          // sub-3 is performance, not elite
       return "elite";
     }
+    if (goalDistance === "ultra50") {
+      if (h >= 7) return "beginner";
+      if (h >= 6) return "intermediate";
+      if (h >= 5) return "ambitious";
+      if (h >= 4.25) return "performance";
+      return "elite";
+    }
+    if (goalDistance === "ultra100") {
+      if (h >= 16) return "beginner";
+      if (h >= 13) return "intermediate";
+      if (h >= 11) return "ambitious";
+      if (h >= 9.5) return "performance";
+      return "elite";
+    }
+    if (goalDistance === "backyard") {
+      // Reversed: more hours = better
+      if (h < 12) return "beginner";
+      if (h < 18) return "intermediate";
+      if (h < 24) return "ambitious";
+      if (h < 30) return "performance";
+      return "elite";
+    }
     return "intermediate";
   }
 
@@ -17719,7 +18110,14 @@ function planEngineLevelFromTarget(discipline, goalDistance, goalSeconds) {
       if (h > 4.25) return "performance";
       return "elite";
     }
-    // crit — short race, use duration as proxy
+    if (goalDistance === "crit") {
+      // 60-min crit
+      if (min >= 72) return "beginner";
+      if (min >= 63) return "intermediate";
+      if (min >= 55) return "ambitious";
+      if (min >= 50) return "performance";
+      return "elite";
+    }
     return "intermediate";
   }
 
@@ -17756,10 +18154,33 @@ function planEngineLevelFromTarget(discipline, goalDistance, goalSeconds) {
   }
 
   if (discipline === "hyrox") {
-    if (h >= 1.5) return "beginner";       // >= 90 min
-    if (h >= 1.25) return "intermediate";  // >= 75 min
-    if (h >= 1.1) return "ambitious";      // >= 66 min
-    if (h >= 0.95) return "performance";   // >= 57 min
+    // Distance-specific brackets
+    if (goalDistance === "pro" || goalDistance === "doublespro") {
+      if (h >= 1.35) return "beginner";
+      if (h >= 1.17) return "intermediate";
+      if (h >= 1.03) return "ambitious";
+      if (h >= 0.92) return "performance";
+      return "elite";
+    }
+    if (goalDistance === "doubles") {
+      if (h >= 1.2) return "beginner";
+      if (h >= 1.05) return "intermediate";
+      if (h >= 0.95) return "ambitious";
+      if (h >= 0.87) return "performance";
+      return "elite";
+    }
+    if (goalDistance === "relay") {
+      if (h >= 1.05) return "beginner";
+      if (h >= 0.93) return "intermediate";
+      if (h >= 0.85) return "ambitious";
+      if (h >= 0.77) return "performance";
+      return "elite";
+    }
+    // default: "open"
+    if (h >= 1.5) return "beginner";
+    if (h >= 1.25) return "intermediate";
+    if (h >= 1.1) return "ambitious";
+    if (h >= 0.95) return "performance";
     return "elite";
   }
 
@@ -17810,6 +18231,58 @@ function planEngineVolumeBand(discipline, goalDistance, level) {
   if (!row) return [25, 40];
   const bucket = planEngineBandBucket(level);
   return row[bucket] || row.intermediate || [25, 40];
+}
+
+// ═════════════════════════════════════════════════════════════════════════
+// PLAN ENGINE V3.6 — Complexity gating
+// Map the athlete level to a complexity tier. Tiers drive session TYPE
+// gating (not just parameters): which session kinds are allowed in a week,
+// how many sessions, and how much jargon lands in the descriptions.
+// ═════════════════════════════════════════════════════════════════════════
+function getPlanComplexity(profile) {
+  const level = profile?._planEngineLevel
+    || (typeof planEngineEffectiveLevel === "function" ? planEngineEffectiveLevel(profile) : null)
+    || "intermediate";
+  // Map 5-bucket level -> 4-tier complexity
+  if (level === "beginner") {
+    return {
+      tier: 1,
+      key: "easy_build",
+      maxSessions: 4,
+      allowedKinds: new Set(["easy", "long", "recovery", "rest"]),
+      jargon: "minimal",
+      description: "Tier 1 (easy_build) — Laufen aufbauen, keine harten Intervalle.",
+    };
+  }
+  if (level === "intermediate") {
+    return {
+      tier: 2,
+      key: "fartlek_intro",
+      maxSessions: 5,
+      allowedKinds: new Set(["easy", "long", "recovery", "fartlek", "progression", "rest"]),
+      jargon: "moderate",
+      description: "Tier 2 (fartlek_intro) — Fahrtspiel und progressive Endläufe, keine strikten Schwellenblöcke.",
+    };
+  }
+  if (level === "ambitious") {
+    return {
+      tier: 3,
+      key: "structured",
+      maxSessions: 6,
+      allowedKinds: new Set(["easy", "long", "recovery", "fartlek", "progression", "tempo", "threshold", "intervals_short", "rest"]),
+      jargon: "scientific",
+      description: "Tier 3 (structured) — 80/20, Schwelle und kurze Intervalle.",
+    };
+  }
+  // elite / performance -> tier 4
+  return {
+    tier: 4,
+    key: "full_spectrum",
+    maxSessions: 7,
+    allowedKinds: new Set(["easy", "long", "recovery", "fartlek", "progression", "tempo", "threshold", "intervals_short", "intervals_vo2", "strides", "race_pace", "double_threshold", "back_to_back_long", "time_on_feet", "fueling_long", "night_run", "hourly_loop", "rest"]),
+    jargon: "full",
+    description: "Tier 4 (full_spectrum) — Race-spezifische Periodisierung, alle Session-Typen erlaubt.",
+  };
 }
 
 // Starting weekly km — Quick mode uses lower third of band, Peak mode
@@ -17881,6 +18354,9 @@ function estimateBaseKm(profile) {
       "half":     { beginner: [25, 35], intermediate: [35, 50], ambitious: [50, 72],  elite: [85, 135] },
       "marathon": { beginner: [35, 48], intermediate: [48, 65], ambitious: [65, 90],  elite: [105, 180] },
       "ultra":    { beginner: [40, 58], intermediate: [58, 85], ambitious: [80, 115], elite: [120, 200] },
+      "ultra50":  { beginner: [50, 75], intermediate: [70, 100],ambitious: [90, 130], elite: [120, 170] },
+      "ultra100": { beginner: [70, 100],intermediate: [95, 135],ambitious: [130, 180],elite: [170, 240] },
+      "backyard": { beginner: [70, 100],intermediate: [95, 135],ambitious: [130, 180],elite: [170, 240] },
     },
     cycling: {
       "crit":      { beginner: [70, 120],  intermediate: [130, 200], ambitious: [200, 290], elite: [320, 480] },
@@ -17954,6 +18430,25 @@ function estimateBaseKm(profile) {
         if (h >= 2.833) return "ambitious";
         return "elite";
       }
+      if (dist === "ultra50") {
+        if (h >= 7) return "beginner";
+        if (h >= 6) return "intermediate";
+        if (h >= 5) return "ambitious";
+        return "elite";
+      }
+      if (dist === "ultra100") {
+        if (h >= 16) return "beginner";
+        if (h >= 13) return "intermediate";
+        if (h >= 11) return "ambitious";
+        return "elite";
+      }
+      if (dist === "backyard") {
+        // Backyard ultra: higher duration = better (reverse bracket)
+        if (h < 12) return "beginner";
+        if (h < 18) return "intermediate";
+        if (h < 24) return "ambitious";
+        return "elite";
+      }
     }
     if (disc === "triathlon") {
       if (dist === "sprint") {
@@ -17982,6 +18477,26 @@ function estimateBaseKm(profile) {
       }
     }
     if (disc === "hyrox") {
+      // Distance-specific HYROX brackets. Pro/doublespro are faster at same level.
+      if (dist === "pro" || dist === "doublespro") {
+        if (h >= 1.35) return "beginner";
+        if (h >= 1.17) return "intermediate";
+        if (h >= 1.03) return "ambitious";
+        return "elite";
+      }
+      if (dist === "doubles") {
+        if (h >= 1.2) return "beginner";
+        if (h >= 1.05) return "intermediate";
+        if (h >= 0.95) return "ambitious";
+        return "elite";
+      }
+      if (dist === "relay") {
+        if (h >= 1.05) return "beginner";
+        if (h >= 0.93) return "intermediate";
+        if (h >= 0.85) return "ambitious";
+        return "elite";
+      }
+      // default: "open"
       if (h >= 1.5) return "beginner";
       if (h >= 1.25) return "intermediate";
       if (h >= 1.1) return "ambitious";
@@ -17993,6 +18508,25 @@ function estimateBaseKm(profile) {
         if (kmh < 32) return "beginner";
         if (kmh < 37) return "intermediate";
         if (kmh < 41) return "ambitious";
+        return "elite";
+      }
+      if (dist === "crit") {
+        // 60-min crit: ambitious ~60 min, elite <55, intermediate 63-72, beginner >72
+        if (min >= 72) return "beginner";
+        if (min >= 63) return "intermediate";
+        if (min >= 55) return "ambitious";
+        return "elite";
+      }
+      if (dist === "granfondo") {
+        if (h >= 6) return "beginner";
+        if (h >= 5) return "intermediate";
+        if (h >= 4.25) return "ambitious";
+        return "elite";
+      }
+      if (dist === "century") {
+        if (h >= 6.5) return "beginner";
+        if (h >= 5.5) return "intermediate";
+        if (h >= 4.75) return "ambitious";
         return "elite";
       }
     }
@@ -18195,6 +18729,9 @@ function labelDistance(value) {
     "10k": "10 km",
     half: "Halbmarathon",
     marathon: "Marathon",
+    ultra50: "Ultra 50 km",
+    ultra100: "Ultra 100 km",
+    backyard: "Backyard Ultra",
     sprint: "Sprint Triathlon",
     olympic: "Olympic Triathlon",
     "703": "70.3",
