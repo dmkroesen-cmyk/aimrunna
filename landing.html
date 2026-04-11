@@ -219,68 +219,6 @@
     }
     .btn-secondary:hover { background: rgba(255,255,255,0.15); }
 
-    /* ── Hero Mode Choice (Plan erstellen → quick vs peak) ── */
-    .hero-mode-choice {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      max-width: 560px;
-      margin: 40px auto 0;
-      opacity: 0;
-      transform: translateY(12px);
-      transition: opacity 0.4s ease, transform 0.4s ease;
-    }
-    .hero-mode-choice[hidden] { display: none; }
-    .hero-mode-choice.is-visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    .hero-mode-card {
-      display: block;
-      padding: 24px 22px;
-      border-radius: 16px;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.14);
-      color: #FFFFFF;
-      text-decoration: none;
-      text-align: left;
-      transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-    }
-    .hero-mode-card:hover {
-      background: rgba(255,255,255,0.1);
-      border-color: rgba(255,255,255,0.28);
-      transform: translateY(-2px);
-    }
-    .hero-mode-card-eyebrow {
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 10px;
-    }
-    .hero-mode-card-title {
-      font-size: 32px;
-      font-weight: 800;
-      letter-spacing: -0.03em;
-      color: #FFFFFF;
-      margin-bottom: 8px;
-    }
-    .hero-mode-card-sub {
-      font-size: 13px;
-      line-height: 1.5;
-      color: rgba(255,255,255,0.7);
-    }
-    .hero-mode-card-peak .hero-mode-card-eyebrow { color: #F5A623; }
-    @media (max-width: 560px) {
-      .hero-mode-choice {
-        grid-template-columns: 1fr;
-        gap: 12px;
-      }
-    }
-
     /* ── FEATURES ── */
     .features {
       padding: 120px 24px;
@@ -838,16 +776,14 @@
           return;
         }
         if (t.closest && t.closest("[data-close-app-launcher]")) { e.preventDefault(); close(); return; }
-        // Plan erstellen → reveal quick/peak choice + scroll to it
+        // Plan erstellen → scroll to existing #plan section (cards centered)
         if (t.closest && t.closest("#hero-plan-erstellen-btn")) {
           e.preventDefault();
-          var choice = document.getElementById("hero-mode-choice");
-          if (choice) {
-            choice.hidden = false;
-            requestAnimationFrame(function () {
-              choice.classList.add("is-visible");
-              choice.scrollIntoView({ behavior: "smooth", block: "center" });
-            });
+          var target = document.getElementById("plan");
+          if (target) {
+            // Prefer the cards row so they end up centered in viewport
+            var modes = target.querySelector(".plan-modes") || target;
+            modes.scrollIntoView({ behavior: "smooth", block: "center" });
           }
           return;
         }
@@ -879,19 +815,6 @@
           Plan erstellen
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:6px"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
-      </div>
-      <!-- Quick vs Peak choice (revealed when Plan erstellen is clicked) -->
-      <div class="hero-mode-choice" id="hero-mode-choice" hidden>
-        <a href="./index.html?planner=1&amp;mode=quick" class="hero-mode-card">
-          <div class="hero-mode-card-eyebrow">Kostenlos testen</div>
-          <div class="hero-mode-card-title">quick.</div>
-          <div class="hero-mode-card-sub">Sofort einen Plan generieren.<br/>Ohne Account.</div>
-        </a>
-        <a href="./index.html?planner=1&amp;mode=peak" class="hero-mode-card hero-mode-card-peak">
-          <div class="hero-mode-card-eyebrow">Full Experience</div>
-          <div class="hero-mode-card-title">peak.</div>
-          <div class="hero-mode-card-sub">Geführtes Onboarding<br/>+ vollständiger Plan.</div>
-        </a>
       </div>
     </div>
   </section>
@@ -972,16 +895,16 @@
       <h2 class="plan-title">Plan your next race.</h2>
       <p class="plan-sub">Erstelle in Sekunden einen periodisierten Trainingsplan. Wähle zwischen Quick Mode für den schnellen Start oder Pro Mode für volle Kontrolle.</p>
       <div class="plan-modes">
-        <a href="./index.html?mode=quick#peakplan" class="plan-mode-btn">
-          <div class="plan-mode-label">Modus</div>
+        <a href="./index.html?planner=1&amp;mode=quick" class="plan-mode-btn">
+          <div class="plan-mode-label">Kostenlos testen</div>
           <div class="plan-mode-name">quick.</div>
-          <div class="plan-mode-desc">Distanz, Zeit, Datum — fertig.</div>
+          <div class="plan-mode-desc">Sofort einen Plan generieren. Ohne Account.</div>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </a>
-        <a href="./index.html?mode=pro#peakplan" class="plan-mode-btn">
-          <div class="plan-mode-label">Modus</div>
+        <a href="./index.html?planner=1&amp;mode=peak" class="plan-mode-btn">
+          <div class="plan-mode-label">Full Experience</div>
           <div class="plan-mode-name">peak.</div>
-          <div class="plan-mode-desc">Schwellen, Periodisierung, Race Calendar.</div>
+          <div class="plan-mode-desc">Geführtes Onboarding + vollständiger Plan.</div>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </a>
       </div>

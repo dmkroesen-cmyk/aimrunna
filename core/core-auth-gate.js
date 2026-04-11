@@ -112,10 +112,24 @@
         clearInterval(iv);
         try {
           window.sbAuth.onAuthStateChange(function (event, session) {
-            if (forceLegacy()) return;
+            // Fresh SIGNED_IN event: user just authenticated through the
+            // launcher. Even if the page was opened with ?planner=1 (forced
+            // legacy), we must now transition into the Core Shell — the
+            // launcher is the ONLY door into the app.
             if (event === "SIGNED_IN" && session && session.user) {
+              try { window.__FORCE_LEGACY__ = false; } catch (_) {}
+              try {
+                var url = new URL(window.location.href);
+                if (url.searchParams.has("planner")) {
+                  url.searchParams.delete("planner");
+                  window.history.replaceState({}, "", url.toString());
+                }
+              } catch (_) {}
               enableCore();
-            } else if (event === "SIGNED_OUT") {
+              return;
+            }
+            if (forceLegacy()) return;
+            if (event === "SIGNED_OUT") {
               disableCore();
               // legacy landing needs to be shown again
               try { window.scrollTo(0, 0); } catch (_) {}
