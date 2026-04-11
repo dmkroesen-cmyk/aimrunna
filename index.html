@@ -1140,6 +1140,10 @@
         // ============================================================
         // Preset plan mode from URL (?mode=quick|peak)
         // Set by landing.html "Plan erstellen → quick/peak" choice.
+        // IMPORTANT: We only preselect the <select> value. Onboarding
+        // must NOT open on mode selection — it only opens when the
+        // user actually triggers plan generation by pressing the
+        // race. / run. / shape. submit button.
         // ============================================================
         (function presetPlanModeFromURL() {
           try {
@@ -1152,17 +1156,6 @@
               if (!sel) { setTimeout(apply, 100); return; }
               sel.value = mode;
               try { sel.dispatchEvent(new Event("change", { bubbles: true })); } catch (_) {}
-              // For peak mode: auto-open the Onboarding flow
-              if (mode === "peak") {
-                var tries = 0;
-                var iv = setInterval(function () {
-                  tries++;
-                  if (typeof window.openOnboarding === "function") {
-                    clearInterval(iv);
-                    setTimeout(window.openOnboarding, 250);
-                  } else if (tries > 50) { clearInterval(iv); }
-                }, 100);
-              }
             }
             if (document.readyState === "loading") {
               document.addEventListener("DOMContentLoaded", apply);
@@ -1170,6 +1163,39 @@
               apply();
             }
           } catch (_) {}
+        })();
+
+        // ============================================================
+        // Peak-mode submit interceptor
+        // When the user selects the peak mode and presses the submit
+        // button (race. / run. / shape. …), we open the Onboarding
+        // flow instead of generating a plan directly. Quick mode is
+        // untouched and falls through to the legacy submit.
+        // ============================================================
+        (function peakModeSubmitInterceptor() {
+          function onSubmitClick(e) {
+            var btn = e.target && e.target.closest && e.target.closest("#planner-submit-btn");
+            if (!btn) return;
+            var sel = byId("plan-mode-select");
+            if (!sel) return;
+            if (sel.value !== "peak") return; // quick → normal legacy flow
+            // Intercept: stop the legacy submit and open Onboarding.
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            var tries = 0;
+            var iv = setInterval(function () {
+              tries++;
+              if (typeof window.openOnboarding === "function") {
+                clearInterval(iv);
+                try { window.openOnboarding(); } catch (_) {}
+              } else if (tries > 50) {
+                clearInterval(iv);
+              }
+            }, 60);
+          }
+          // Capture phase so we run before app.js form handlers.
+          document.addEventListener("click", onSubmitClick, true);
         })();
 
         // ============================================================
