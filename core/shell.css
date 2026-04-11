@@ -258,6 +258,20 @@ body[data-ui="core"] #legacy-compat {
   display: none !important;
 }
 
+/* ============================================================
+   Kill legacy in-app navigation FOREVER.
+   Outside the app (Landing / Plan-Creator / Onboarding) there
+   must be NO bottom navigation bar at all. Inside the app, the
+   Core Shell tab-bar is the only navigation.
+   ============================================================ */
+#legacy-compat #tab-bar,
+#legacy-compat .tab-bar:not(#core-tab-bar),
+#legacy-compat nav[aria-label="Hauptnavigation"] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
 /* Onboarder + Modals escape hatch — when triggered via .is-open
    or [open], force them visible at top-level z-index regardless
    of the parent display:none (they become their own flow). */
