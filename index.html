@@ -90,7 +90,20 @@
          Logo + Brand (left) · "App starten" (right)
          All legacy buttons are hidden but kept in DOM for app.js.
          ============================================================ */
-      #account-bar[data-simplified="true"] [data-legacy-only] {
+      /* Hide every legacy-only element whenever the Core Shell is NOT
+         active — regardless of whether data-simplified is still set. */
+      body:not([data-ui="core"]) #account-bar [data-legacy-only],
+      body:not([data-ui="core"]) #account-bar #account-login-btn,
+      body:not([data-ui="core"]) #account-bar #account-register-btn,
+      body:not([data-ui="core"]) #account-bar #account-profile-btn,
+      body:not([data-ui="core"]) #account-bar #account-home-btn,
+      body:not([data-ui="core"]) #account-bar #account-peakplan-btn,
+      body:not([data-ui="core"]) #account-bar #account-pill,
+      body:not([data-ui="core"]) #account-bar #account-logout-btn,
+      body:not([data-ui="core"]) #account-bar #notif-bell-btn,
+      body:not([data-ui="core"]) #account-bar #athletes-header-btn,
+      body:not([data-ui="core"]) #account-bar .notif-dropdown,
+      body:not([data-ui="core"]) #account-bar .nav-divider {
         display: none !important;
         visibility: hidden !important;
         pointer-events: none !important;
@@ -98,13 +111,6 @@
         width: 0 !important;
         height: 0 !important;
         overflow: hidden !important;
-      }
-      #account-bar[data-simplified="true"] .notif-dropdown,
-      #account-bar[data-simplified="true"] #notif-bell-btn,
-      #account-bar[data-simplified="true"] #athletes-header-btn,
-      #account-bar[data-simplified="true"] #account-pill,
-      #account-bar[data-simplified="true"] #account-logout-btn {
-        display: none !important;
       }
       /* When user is logged in, show "Zur App" instead of "App starten"
          and reveal the logout. Toggled via body.is-signed-in. */
