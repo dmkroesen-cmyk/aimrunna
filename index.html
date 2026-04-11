@@ -17,7 +17,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <!-- Icon CDN removed — typography-first design, no icon dependencies -->
-    <link rel="stylesheet" href="./styles.css?v=followup4-onboarding-v5" />
+    <link rel="stylesheet" href="./styles.css?v=modal-audit-v1" />
     <!-- Always-loaded mini-gate: hide Core Shell when not logged in,
          hide Legacy + its tab-bar when Core Shell is active.
          This rule must be loaded regardless of core.css state. -->
@@ -5123,23 +5123,43 @@
               <!-- Pricing Tiers — scroll-snap selection -->
               <div class="ob-tiers-track" id="ob-tiers">
                 <div class="ob-tier-snap is-active" data-tier="beta" role="button" tabindex="0">
-                  <div class="ob-tier-badge">Beta</div>
-                  <div class="ob-tier-amount">0&thinsp;€</div>
-                  <div class="ob-tier-label">Kostenlos</div>
-                  <div class="ob-tier-desc">Voller Zugang während der Beta-Phase.</div>
+                  <div class="ob-tier-top">
+                    <div class="ob-tier-badge">Beta</div>
+                    <div class="ob-tier-amount">0&thinsp;€</div>
+                    <div class="ob-tier-cycle">&nbsp;</div>
+                  </div>
+                  <div class="ob-tier-mid">
+                    <div class="ob-tier-label">Kostenlos</div>
+                  </div>
+                  <div class="ob-tier-foot">
+                    <div class="ob-tier-desc">Voller Zugang</div>
+                  </div>
                 </div>
                 <div class="ob-tier-snap is-locked" data-tier="monthly" role="button" tabindex="-1">
-                  <div class="ob-tier-amount">12,50&thinsp;€</div>
-                  <div class="ob-tier-cycle">/ Monat</div>
-                  <div class="ob-tier-label">Monatlich</div>
-                  <div class="ob-tier-soon">Bald verfügbar</div>
+                  <div class="ob-tier-top">
+                    <div class="ob-tier-badge" aria-hidden="true">&nbsp;</div>
+                    <div class="ob-tier-amount">12,50&thinsp;€</div>
+                    <div class="ob-tier-cycle">/ Monat</div>
+                  </div>
+                  <div class="ob-tier-mid">
+                    <div class="ob-tier-label">Monatlich</div>
+                  </div>
+                  <div class="ob-tier-foot">
+                    <div class="ob-tier-soon">Bald verfügbar</div>
+                  </div>
                 </div>
                 <div class="ob-tier-snap is-locked" data-tier="yearly" role="button" tabindex="-1">
-                  <div class="ob-tier-amount">125&thinsp;€</div>
-                  <div class="ob-tier-cycle">/ Jahr</div>
-                  <div class="ob-tier-label">Jährlich</div>
-                  <div class="ob-tier-save">2 Monate gratis</div>
-                  <div class="ob-tier-soon">Bald verfügbar</div>
+                  <div class="ob-tier-top">
+                    <div class="ob-tier-badge" aria-hidden="true">&nbsp;</div>
+                    <div class="ob-tier-amount">125&thinsp;€</div>
+                    <div class="ob-tier-cycle">/ Jahr</div>
+                  </div>
+                  <div class="ob-tier-mid">
+                    <div class="ob-tier-label">Jährlich</div>
+                  </div>
+                  <div class="ob-tier-foot">
+                    <div class="ob-tier-soon">Bald verfügbar</div>
+                  </div>
                 </div>
               </div>
 
@@ -5190,7 +5210,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="./supabase-client.js"></script>
     <script src="./legal-i18n.js"></script>
-    <script src="./app.js?v=followup4-onboarding-v5"></script>
+    <script src="./app.js?v=modal-audit-v1"></script>
     <script src="./stresstest.js"></script>
   </body>
 </html>

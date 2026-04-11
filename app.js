@@ -1924,6 +1924,154 @@ document.addEventListener("DOMContentLoaded", () => {
   setTimeout(syncSettingsAvatarPreview, 100);
 });
 
+/* ═══════════════════════════════════════════════════════════════
+ * UNIVERSAL MODAL BEHAVIOR (Modal-Audit)
+ * - Global ESC closes topmost visible modal
+ * - Global backdrop-click closes the backdrop modal
+ * - Body-scroll-lock when any modal is open (MutationObserver on
+ *   `hidden` attribute of registered modal roots)
+ * ═══════════════════════════════════════════════════════════════ */
+(function initUniversalModalBehavior() {
+  // Known modal root selectors (add new ones here as they're created)
+  const MODAL_SELECTORS = [
+    "#session-overlay",
+    "#app-launcher-modal",
+    "#account-modal",
+    "#activity-compose-modal",
+    "#activity-detail-modal",
+    "#glossary-modal",
+    "#race-calendar-modal",
+    "#threshold-modal",
+    "#goal-realism-modal",
+    "#legal-questionnaire-modal",
+    "#kpi-modal-backdrop",
+    "#medal-modal-backdrop",
+    "#target-modal-backdrop",
+    "#athletes-drawer-backdrop",
+    "#lang-popup",
+    "#ob-shell",
+  ];
+
+  function isVisible(el) {
+    if (!el || el.hidden) return false;
+    const style = window.getComputedStyle(el);
+    if (style.display === "none" || style.visibility === "hidden") return false;
+    return true;
+  }
+
+  function anyModalOpen() {
+    return MODAL_SELECTORS.some((sel) => {
+      const el = document.querySelector(sel);
+      return el && isVisible(el);
+    });
+  }
+
+  function updateBodyScrollLock() {
+    if (anyModalOpen()) {
+      document.body.classList.add("modal-open");
+    } else {
+      document.body.classList.remove("modal-open");
+    }
+  }
+
+  function topmostOpenModal() {
+    let best = null;
+    let bestZ = -Infinity;
+    MODAL_SELECTORS.forEach((sel) => {
+      const el = document.querySelector(sel);
+      if (!el || !isVisible(el)) return;
+      const z = parseInt(window.getComputedStyle(el).zIndex, 10) || 0;
+      if (z >= bestZ) {
+        bestZ = z;
+        best = el;
+      }
+    });
+    return best;
+  }
+
+  function findCloseTrigger(modal) {
+    // Try common close buttons by attribute / class
+    const sel = [
+      "[data-close-overlay]",
+      "[data-close-app-launcher]",
+      "[data-close-account-modal]",
+      "[data-close-activity-compose]",
+      "[data-close-activity-detail]",
+      "[data-close-glossary-modal]",
+      "[data-close-race-calendar]",
+      "[data-close-threshold-modal]",
+      "[data-close-goal-realism]",
+      "[data-close-legal-questionnaire]",
+      ".kpi-modal-close",
+      ".medal-modal-close",
+      ".target-modal-close",
+      ".session-modal-close",
+      ".lang-popup-close",
+      "#ob-close",
+      "#athletes-drawer-close",
+      "#kpi-modal-close",
+    ].join(",");
+    return modal.querySelector(sel);
+  }
+
+  // Global ESC handler
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    const modal = topmostOpenModal();
+    if (!modal) return;
+    const trigger = findCloseTrigger(modal);
+    if (trigger) {
+      e.preventDefault();
+      trigger.click();
+    } else {
+      // Fallback: hide directly
+      modal.hidden = true;
+      updateBodyScrollLock();
+    }
+  });
+
+  // Global backdrop click handler — clicks directly on the modal
+  // root element itself (not on any card/child) should dismiss.
+  document.addEventListener("click", (e) => {
+    const modal = e.target;
+    if (!modal || !modal.id) return;
+    if (!MODAL_SELECTORS.includes("#" + modal.id)) return;
+    if (!isVisible(modal)) return;
+    // Don't close ob-shell via backdrop click (onboarding should not
+    // be dismissed accidentally mid-flow — must use explicit X)
+    if (modal.id === "ob-shell") return;
+    const trigger = findCloseTrigger(modal);
+    if (trigger) trigger.click();
+    else {
+      modal.hidden = true;
+      updateBodyScrollLock();
+    }
+  });
+
+  // Body-scroll-lock observer: watch `hidden` attribute changes on all
+  // registered modal roots and toggle body.modal-open accordingly.
+  function registerObservers() {
+    MODAL_SELECTORS.forEach((sel) => {
+      const el = document.querySelector(sel);
+      if (!el || el.__modalObserved) return;
+      el.__modalObserved = true;
+      const mo = new MutationObserver(() => updateBodyScrollLock());
+      mo.observe(el, { attributes: true, attributeFilter: ["hidden", "style", "class"] });
+    });
+    updateBodyScrollLock();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", registerObservers);
+  } else {
+    registerObservers();
+  }
+  // Re-scan after late-loaded modals (onboarding is reparented to body)
+  setTimeout(registerObservers, 500);
+  setTimeout(registerObservers, 2000);
+})();
+
+
 activityPostFormEl?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const account = getCurrentAccount();

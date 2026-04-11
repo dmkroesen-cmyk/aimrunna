@@ -14060,11 +14060,13 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
 }
 
 /* ── Pricing Tiers ── */
-/* ── Tier selection (3-column grid, no scroll) ── */
+/* ── Tier selection (3-column grid, equal height) ── */
 .ob-tiers-track {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 6px;
+  grid-auto-rows: 1fr;
+  align-items: stretch;
+  gap: 8px;
   width: 100%;
   padding: 4px 0 8px;
   margin-bottom: 12px;
@@ -14074,8 +14076,11 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: 12px 6px 10px;
+  justify-content: flex-start;
+  gap: 3px;
+  padding: 12px 6px 12px;
+  min-height: 132px;
+  height: 100%;
   border: 1.5px solid rgba(0, 0, 0, 0.06);
   border-radius: 12px;
   background: #FFFFFF;
@@ -14083,6 +14088,7 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
   cursor: pointer;
   text-align: center;
   position: relative;
+  box-sizing: border-box;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
   transition: border-color 200ms ease,
               box-shadow 200ms ease,
@@ -14093,6 +14099,31 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
 .ob-tier-snap.is-active {
   border-color: var(--text, #1A1A1A);
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.10), 0 0 0 1.5px rgba(26, 26, 26, 0.08);
+}
+
+/* 3-row structure for equal-height alignment (top / mid / foot) */
+.ob-tier-top,
+.ob-tier-mid,
+.ob-tier-foot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  gap: 2px;
+}
+.ob-tier-top {
+  flex: 0 0 auto;
+  min-height: 46px;
+}
+.ob-tier-mid {
+  flex: 1 1 auto;
+  min-height: 20px;
+  padding: 4px 0;
+}
+.ob-tier-foot {
+  flex: 0 0 auto;
+  min-height: 18px;
 }
 
 .ob-tier-snap.is-locked {
@@ -14875,3 +14906,106 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
   font-family: inherit;
 }
 .ds-banner-btn-secondary:hover { color: #1A1A1A; }
+
+/* ═══════════════════════════════════════════════════════════════
+   UNIVERSAL MODAL SYSTEM (Modal-Audit)
+   Jede Modal-Shell bekommt flex-center Verhalten ohne bestehende
+   Layouts zu brechen. Card wird vertikal+horizontal zentriert,
+   max-height + scroll, einheitliches Padding.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Global scroll lock when any modal is open */
+body.modal-open {
+  overflow: hidden !important;
+}
+
+/* Universal flex-center override for known modal backdrops.
+   Uses !important to overrule legacy `position: absolute` cards. */
+.account-modal,
+#session-overlay,
+#kpi-modal-backdrop,
+#medal-modal-backdrop,
+#target-modal-backdrop,
+#athletes-drawer-backdrop.is-center-modal,
+#lang-popup {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 24px !important;
+  overflow-y: auto !important;
+}
+.account-modal[hidden],
+#session-overlay[hidden],
+#kpi-modal-backdrop[hidden],
+#medal-modal-backdrop[hidden],
+#target-modal-backdrop[hidden],
+#lang-popup[hidden] {
+  display: none !important;
+}
+
+/* Override `position: absolute; top/left: 50%` cards so they behave
+   like normal flex children — vertical + horizontal center comes
+   from the parent. Applies to the account modal family (launcher,
+   account, activity compose, glossary, race calendar, threshold,
+   goal realism, legal questionnaire, activity detail). */
+.account-modal .account-modal-card,
+.account-modal .session-modal-card,
+#session-overlay .session-modal-card,
+#kpi-modal-backdrop .kpi-modal,
+#medal-modal-backdrop .medal-modal,
+#target-modal-backdrop .target-modal {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  transform: none !important;
+  margin: auto !important;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Ensure backdrops cover full viewport and sit behind the card */
+.account-modal .account-modal-backdrop,
+#session-overlay .session-overlay-backdrop {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: -1;
+}
+
+/* Mobile: make centered modals behave like fullscreen sheets */
+@media (max-width: 720px) {
+  .account-modal,
+  #session-overlay,
+  #kpi-modal-backdrop,
+  #medal-modal-backdrop,
+  #target-modal-backdrop {
+    padding: 0 !important;
+    align-items: stretch !important;
+  }
+  .account-modal .account-modal-card,
+  #session-overlay .session-modal-card,
+  #kpi-modal-backdrop .kpi-modal,
+  #medal-modal-backdrop .medal-modal,
+  #target-modal-backdrop .target-modal {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 100vh !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+  }
+}
+
+/* Smooth modal fade-in for all backdrops */
+@keyframes app-modal-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.account-modal:not([hidden]),
+#session-overlay:not([hidden]),
+#kpi-modal-backdrop:not([hidden]),
+#medal-modal-backdrop:not([hidden]),
+#target-modal-backdrop:not([hidden]),
+#lang-popup:not([hidden]) {
+  animation: app-modal-fade-in 200ms ease both;
+}
+
