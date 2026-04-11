@@ -26,6 +26,20 @@
       body[data-ui="core"] #legacy-compat { display: none !important; }
 
       /* ============================================================
+         Legacy Profile Page · disconnected
+         The old public profile / trophy case / PR vault / totals UI
+         is no longer reachable. Core Shell "Profil" is the single
+         source of truth. Any code path that used to show this page
+         is neutralised at the CSS layer.
+         ============================================================ */
+      #public-profile-section,
+      #legacy-compat #public-profile-section {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+      }
+
+      /* ============================================================
          Launcher-Only Mode (Pfad A: Landing → App starten)
          When ?launcher=1|google|register|login is in the URL, we
          skip the Plan Generator entirely and show ONLY the App
