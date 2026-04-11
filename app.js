@@ -8013,23 +8013,30 @@ function applyQuickModeToPrimaryGoalFields() {
       form.elements.raceDate.value = d.toISOString().split("T")[0];
     }
   }
-  if (Array.isArray(draftRaceEvents) && draftRaceEvents.length) {
+  // ═══ Quick-Mode: EXACTLY ONE race event aus den Quick-Feldern.
+  // Alte Draft-Events aus vorherigen Sessions (z. B. Ironman) müssen
+  // vollständig entfernt werden — sonst tauchen sie als „Nebenziele"
+  // (Ironman am 06.06 in einem Marathon-Plan) wieder auf.
+  {
     const options = raceEventDistanceOptions(primaryDiscipline);
     const distance = options.some((opt) => opt.value === goalDistanceSelect?.value)
       ? String(goalDistanceSelect?.value)
       : (options[0]?.value || String(goalDistanceSelect?.value || ""));
     const date = quickRaceDateInput?.value ? new Date(`${quickRaceDateInput.value}T09:00:00`) : new Date();
-    const primary = getPrimaryRaceEvent(draftRaceEvents) || draftRaceEvents[0];
-    const primaryIndex = Math.max(0, draftRaceEvents.findIndex((item) => item.id === primary.id));
-    draftRaceEvents[primaryIndex] = normalizeRaceEvent({
-      ...draftRaceEvents[primaryIndex],
+    const existingPrimary = Array.isArray(draftRaceEvents) && draftRaceEvents.length
+      ? (getPrimaryRaceEvent(draftRaceEvents) || draftRaceEvents[0])
+      : null;
+    const freshPrimary = normalizeRaceEvent({
+      ...(existingPrimary || {}),
       itemKind: "event",
       discipline: primaryDiscipline,
       distance,
       goalTime: String(quickGoalTimeInput?.value || goalTimeInputEl?.value || "").trim() || null,
       date,
       priority: "A",
-    }) || draftRaceEvents[primaryIndex];
+    });
+    // Komplett ersetzen — nur das eine frische Event behalten
+    draftRaceEvents = freshPrimary ? [freshPrimary] : [];
     persistInlineRaceEvents();
   }
 }
@@ -11924,8 +11931,11 @@ function weekLoadFactor({ weekIndex, weeks, isDeload, isTaper, progressionModel 
   const inBlock = weekIndex % 4;
   const blockBase = progressionModel.baseStart + blockIndex * progressionModel.blockGrowth;
   if (isDeload) return clamp(blockBase * (1 - progressionModel.deloadDrop), 0.62, 1.12);
-  const wave = inBlock === 0 ? -0.4 : inBlock === 1 ? 0.05 : inBlock === 2 ? 0.8 : 0.35;
-  return clamp(blockBase * (1 + wave * progressionModel.waveAmplitude), 0.74, 1.75);
+  // Glättere 4-Wochen-Welle: 3:1 Mesozyklus mit sanfteren Übergängen.
+  // Vorher: -0.4 / 0.05 / 0.8 / 0.35 (Sprung Woche1→2: +75pp → +45%)
+  // Jetzt:  -0.25 / 0.0 / 0.35 / 0.15 (Sprung max +35pp → ~+14%)
+  const wave = inBlock === 0 ? -0.25 : inBlock === 1 ? 0.0 : inBlock === 2 ? 0.35 : 0.15;
+  return clamp(blockBase * (1 + wave * progressionModel.waveAmplitude), 0.74, 1.60);
 }
 
 function buildAdaptivePhaseLayout({ weeks, discipline, goalDistance, profile }) {
@@ -12312,12 +12322,24 @@ function buildPlan(profile) {
     }
     const min = secs / 60;
     const h = secs / 3600;
+    // Realistisch kalibrierte Level-Schwellen. "Elite" heißt echte
+    // semi-pro/elite-amateur Zeiten — Sub-3 Marathon ist AMBITIONIERT,
+    // nicht elite. Echte Marathon-Elite läuft Sub-2:30.
     let level = "intermediate";
     if (secs > 0) {
-      if (dist === "5k") level = min >= 30 ? "beginner" : min >= 25 ? "intermediate" : min >= 22 ? "ambitious" : "elite";
-      else if (dist === "10k") level = min >= 60 ? "beginner" : min >= 50 ? "intermediate" : min >= 44 ? "ambitious" : "elite";
-      else if (dist === "half") level = h >= 2.25 ? "beginner" : h >= 1.917 ? "intermediate" : h >= 1.667 ? "ambitious" : "elite";
-      else if (dist === "marathon") level = h >= 4.5 ? "beginner" : h >= 4.0 ? "intermediate" : h >= 3.5 ? "ambitious" : "elite";
+      if (dist === "5k") {
+        // 5k: beg >25, int 22-25, amb 18-22, elite <18
+        level = min >= 25 ? "beginner" : min >= 22 ? "intermediate" : min >= 18 ? "ambitious" : "elite";
+      } else if (dist === "10k") {
+        // 10k: beg >55, int 45-55, amb 38-45, elite <38
+        level = min >= 55 ? "beginner" : min >= 45 ? "intermediate" : min >= 38 ? "ambitious" : "elite";
+      } else if (dist === "half") {
+        // HM: beg >2:10, int 1:45-2:10, amb 1:25-1:45, elite <1:25
+        level = h >= 2.167 ? "beginner" : h >= 1.75 ? "intermediate" : h >= 1.417 ? "ambitious" : "elite";
+      } else if (dist === "marathon") {
+        // Marathon: beg >4:30, int 3:45-4:30, amb 2:50-3:45, elite <2:50
+        level = h >= 4.5 ? "beginner" : h >= 3.75 ? "intermediate" : h >= 2.833 ? "ambitious" : "elite";
+      }
     }
     const band = discTable[dist][level] || discTable[dist].intermediate;
     const observed = Number(profile?._observedWeeklyKm) || 0;
@@ -12388,7 +12410,13 @@ function buildPlan(profile) {
     const introScale = weekIndex < introWeeks ? (weekIndex === 0 ? 0.72 : 0.86) : 1;
     const lowCapScale = !isTaper && profile.capacity?.tier === "low" ? 0.9 : 1;
     const loadFactor = baseLoadFactor * introScale * lowCapScale;
-    const weekKm = Math.round(weeklyKmBase * loadFactor);
+    let weekKm = Math.round(weeklyKmBase * loadFactor);
+    // ═══ Hard 10%-Regel: keine Woche darf >12% höher sein als die
+    // vorherige (außer Rebound nach Deload/Taper, und nicht in der
+    // allerersten aktiven Woche). Schützt vor Progression-Sprüngen.
+    if (!isTaper && !isDeload && prevWeekLoad > 0 && weekKm > prevWeekLoad * 1.10) {
+      weekKm = Math.round(prevWeekLoad * 1.10);
+    }
     const qualityLabel = profile.fitnessLevel === "starter" ? "Controlled Threshold" : "Threshold Session";
     const weekFocus = phase === "onboarding"
       ? "Onboarding / Technik & Belastungsverträglichkeit"
@@ -17846,15 +17874,6 @@ function estimateBaseKm(profile) {
   // Evidence-based weekly km bands keyed by (discipline, distance, level).
   // Level derived from goal time. Conservative start (band floor) in Quick mode.
   // ═══════════════════════════════════════════════════════════════════════
-  console.error("PEAKPLAN-V3 estimateBaseKm CALLED", {
-    discipline: profile?.discipline,
-    goalDistance: profile?.goalDistance,
-    goalTime: profile?.goalTime,
-    weeklyHours: profile?.weeklyHours,
-    fitnessLevel: profile?.fitnessLevel,
-    _planMode: profile?._planMode,
-    _observedWeeklyKm: profile?._observedWeeklyKm,
-  });
   const BANDS = {
     running: {
       "5k":       { beginner: [15, 20], intermediate: [22, 32], ambitious: [32, 45],  elite: [55, 90] },
@@ -17912,27 +17931,27 @@ function estimateBaseKm(profile) {
     const h = secs / 3600;
     if (disc === "running") {
       if (dist === "5k") {
-        if (min >= 30) return "beginner";
-        if (min >= 25) return "intermediate";
-        if (min >= 22) return "ambitious";
+        if (min >= 25) return "beginner";
+        if (min >= 22) return "intermediate";
+        if (min >= 18) return "ambitious";
         return "elite";
       }
       if (dist === "10k") {
-        if (min >= 60) return "beginner";
-        if (min >= 50) return "intermediate";
-        if (min >= 44) return "ambitious";
+        if (min >= 55) return "beginner";
+        if (min >= 45) return "intermediate";
+        if (min >= 38) return "ambitious";
         return "elite";
       }
       if (dist === "half") {
-        if (h >= 2.25) return "beginner";
-        if (h >= 1.917) return "intermediate";
-        if (h >= 1.667) return "ambitious";
+        if (h >= 2.167) return "beginner";
+        if (h >= 1.75) return "intermediate";
+        if (h >= 1.417) return "ambitious";
         return "elite";
       }
       if (dist === "marathon") {
         if (h >= 4.5) return "beginner";
-        if (h >= 4.0) return "intermediate";
-        if (h >= 3.5) return "ambitious";
+        if (h >= 3.75) return "intermediate";
+        if (h >= 2.833) return "ambitious";
         return "elite";
       }
     }
