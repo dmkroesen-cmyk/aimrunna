@@ -17,7 +17,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <!-- Icon CDN removed — typography-first design, no icon dependencies -->
-    <link rel="stylesheet" href="./styles.css?v=modal-audit-v1" />
+    <link rel="stylesheet" href="./styles.css?v=session-rework-v1" />
     <!-- Always-loaded mini-gate: hide Core Shell when not logged in,
          hide Legacy + its tab-bar when Core Shell is active.
          This rule must be loaded regardless of core.css state. -->
@@ -3765,44 +3765,61 @@
           <span aria-hidden="true">⚕️</span>
           <span>Schwangerschafts-angepasster Plan. Bitte besprich dein Training mit deinem Arzt / deiner Ärztin.</span>
         </div>
-        <div class="session-modal-head">
+        <!-- ═══ NEW 3-SECTION STRUCTURE (Modal-Rework) ═══ -->
+
+        <!-- Header: Type badge + Date, Title, Total -->
+        <div class="session-modal-head session-modal-head--v2">
           <div class="session-modal-meta" id="session-modal-meta"></div>
           <h4 id="session-modal-title"></h4>
           <p id="session-modal-sub"></p>
         </div>
-        <div class="session-modal-grid">
-          <div class="session-modal-block">
-            <span id="session-label-purpose">Zweck</span>
-            <strong id="session-modal-purpose"></strong>
+
+        <!-- SECTION 1 — THE WORKOUT (prominent, primary) -->
+        <section class="session-section session-section--workout" id="session-section-workout">
+          <div class="session-workout-lines" id="session-workout-lines"></div>
+          <div class="session-intensity-bars" id="session-intensity-bars" aria-hidden="true"></div>
+        </section>
+
+        <!-- SECTION 2 — PHYSIOLOGY (one-liner, compact) -->
+        <section class="session-section session-section--physio" id="session-section-physio">
+          <div class="session-physio-line">
+            <span class="session-physio-icon" aria-hidden="true">🔬</span>
+            <p id="session-physio-oneliner"></p>
           </div>
-          <div class="session-modal-block">
-            <span id="session-label-adaptation">Trainingseffekt</span>
-            <strong id="session-modal-adaptation"></strong>
-          </div>
-          <div class="session-modal-block">
-            <span id="session-label-physiology">Physio-Fokus</span>
-            <strong id="session-modal-physiology"></strong>
-          </div>
-          <div class="session-modal-block">
-            <span id="session-label-why">Warum jetzt</span>
-            <strong id="session-modal-why"></strong>
-          </div>
-          <div class="session-modal-block" id="session-execution-block" hidden>
-            <span id="session-label-execution">Steuerung</span>
-            <strong id="session-modal-execution"></strong>
-          </div>
-          <div class="session-modal-block" id="session-workout-block" hidden>
-            <span id="session-label-workout">Workout Plan</span>
-            <strong id="session-modal-workout"></strong>
-          </div>
-          <div class="session-modal-block" id="session-cycle-block" hidden>
-            <span id="session-label-cycle">Cycle Note</span>
-            <strong id="session-modal-cycle"></strong>
-          </div>
-          <div class="session-modal-block" id="session-nutrition-focus-block">
-            <span id="session-label-nutrition-focus">Ernährungsfokus</span>
-            <strong id="session-modal-nutrition-focus"></strong>
-          </div>
+        </section>
+
+        <!-- SECTION 3 — CONTEXT (collapsible, secondary) -->
+        <section class="session-section session-section--context" id="session-section-context">
+          <details class="session-context-details">
+            <summary class="session-context-toggle"><span>Mehr</span><span class="session-context-arrow" aria-hidden="true">→</span></summary>
+            <div class="session-context-body">
+              <div class="session-context-row" id="session-context-phase-row">
+                <span class="session-context-label">Phase</span>
+                <strong id="session-context-phase"></strong>
+              </div>
+              <div class="session-context-row" id="session-context-why-row">
+                <span class="session-context-label">Warum jetzt</span>
+                <strong id="session-modal-why"></strong>
+              </div>
+              <div class="session-context-row" id="session-context-nutrition-row">
+                <span class="session-context-label">Ernährung</span>
+                <strong id="session-modal-nutrition-focus"></strong>
+              </div>
+              <div class="session-context-row" id="session-cycle-block" hidden>
+                <span class="session-context-label">Zyklus</span>
+                <strong id="session-modal-cycle"></strong>
+              </div>
+            </div>
+          </details>
+        </section>
+
+        <!-- Legacy hidden mirrors — kept for backward-compat with existing fill logic -->
+        <div style="display:none" aria-hidden="true">
+          <strong id="session-modal-purpose"></strong>
+          <strong id="session-modal-adaptation"></strong>
+          <strong id="session-modal-physiology"></strong>
+          <strong id="session-modal-execution"></strong>
+          <strong id="session-modal-workout"></strong>
         </div>
         <div class="session-modal-nutrition">
           <div class="session-modal-kcal">
@@ -5210,7 +5227,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="./supabase-client.js"></script>
     <script src="./legal-i18n.js"></script>
-    <script src="./app.js?v=modal-audit-v1"></script>
+    <script src="./app.js?v=session-rework-v1"></script>
     <script src="./stresstest.js"></script>
   </body>
 </html>

@@ -14908,6 +14908,200 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
 .ds-banner-btn-secondary:hover { color: #1A1A1A; }
 
 /* ═══════════════════════════════════════════════════════════════
+   SESSION MODAL V2 — 3-Section Rework (Workout / Physio / Context)
+   ═══════════════════════════════════════════════════════════════ */
+
+.session-modal-head--v2 {
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  margin-bottom: 16px;
+}
+.session-modal-head--v2 .session-modal-meta {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #6B7280;
+  margin-bottom: 6px;
+}
+.session-modal-head--v2 h4 {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #1A1A1A;
+  margin: 0 0 4px 0;
+  line-height: 1.2;
+}
+.session-modal-head--v2 p {
+  font-size: 13px;
+  color: #6B7280;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* ── Section 1: Workout (prominent) ── */
+.session-section--workout {
+  background: #FAFAFA;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+}
+.session-workout-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+.session-workout-line {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1A1A1A;
+  line-height: 1.35;
+}
+.session-workout-line.is-section {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #9CA3AF;
+  margin-top: 4px;
+  grid-template-columns: auto 1fr;
+}
+.session-workout-line.is-section:first-child {
+  margin-top: 0;
+}
+.session-workout-line .wkt-dist {
+  color: #1A1A1A;
+  font-weight: 700;
+  min-width: 60px;
+}
+.session-workout-line .wkt-label {
+  color: #374151;
+  font-weight: 500;
+}
+.session-workout-line .wkt-pace {
+  color: #1A1A1A;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.session-workout-line.is-wu .wkt-dist,
+.session-workout-line.is-wu .wkt-pace { color: #16A34A; }
+.session-workout-line.is-main .wkt-dist,
+.session-workout-line.is-main .wkt-pace { color: #D4850F; }
+.session-workout-line.is-cd .wkt-dist,
+.session-workout-line.is-cd .wkt-pace { color: #6B7280; }
+
+/* Intensity bars (mini visual) */
+.session-intensity-bars {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  height: 6px;
+  margin-top: 14px;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.session-intensity-bars[hidden] { display: none; }
+.session-intensity-bars .ibar {
+  flex: 1 1 auto;
+  min-width: 4px;
+  background: #E5E7EB;
+}
+.session-intensity-bars .ibar.is-easy      { background: #22C55E; }
+.session-intensity-bars .ibar.is-moderate  { background: #FACC15; }
+.session-intensity-bars .ibar.is-threshold { background: #F97316; }
+.session-intensity-bars .ibar.is-vo2       { background: #EF4444; }
+.session-intensity-bars .ibar.is-rest      { background: #E5E7EB; }
+
+/* ── Section 2: Physiology one-liner ── */
+.session-section--physio {
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  background: rgba(212, 133, 15, 0.06);
+  border-left: 3px solid #D4850F;
+  border-radius: 0 10px 10px 0;
+}
+.session-physio-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.session-physio-icon {
+  font-size: 16px;
+  line-height: 1.4;
+  flex-shrink: 0;
+}
+.session-physio-line p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #1A1A1A;
+  font-weight: 500;
+}
+
+/* ── Section 3: Context collapsible ── */
+.session-section--context {
+  margin-top: 4px;
+}
+.session-context-details {
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  padding-top: 12px;
+}
+.session-context-toggle {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 700;
+  color: #6B7280;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 4px 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.session-context-toggle::-webkit-details-marker { display: none; }
+.session-context-arrow {
+  display: inline-block;
+  transition: transform 200ms ease;
+}
+.session-context-details[open] .session-context-arrow {
+  transform: rotate(90deg);
+}
+.session-context-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 12px;
+}
+.session-context-row {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.session-context-row[hidden] { display: none; }
+.session-context-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9CA3AF;
+}
+.session-context-row strong {
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  line-height: 1.45;
+}
+
+/* ═══════════════════════════════════════════════════════════════
    UNIVERSAL MODAL SYSTEM (Modal-Audit)
    Jede Modal-Shell bekommt flex-center Verhalten ohne bestehende
    Layouts zu brechen. Card wird vertikal+horizontal zentriert,

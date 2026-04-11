@@ -12157,6 +12157,186 @@ function syncExpandedDayCards() {
   });
 }
 
+/* ═══════════════════════════════════════════════════════════════
+ * SESSION MODAL V2 — Physiology one-liner mapping (Modal-Rework)
+ * Returns a short, punchy 2-3 sentence line explaining the physio
+ * adaptation driving this session. Used in Section 2 of the modal.
+ * ═══════════════════════════════════════════════════════════════ */
+function buildSessionPhysioOneLiner(session, profile) {
+  const title = String(session?.title || "").toLowerCase();
+  const type = String(session?.type || "").toLowerCase();
+  const discipline = String(profile?.discipline || "").toLowerCase();
+
+  // Rest day
+  if (type === "rest") {
+    return "Parasympathische Erholung, Glykogen-Rebuild und Gewebe-Reparatur. HRV steigt wieder — die Anpassung passiert genau jetzt.";
+  }
+
+  // Running patterns
+  if (/threshold|tempo|schwellwert|sweetspot/.test(title) || type === "threshold") {
+    return "Laktatschwelle (vLT2) anheben. Dein Körper lernt, mehr Laktat zu verarbeiten ohne langsamer zu werden. Gleichzeitig: Ökonomisierung bei Renntempo.";
+  }
+  if (/vo2|interval|intervalle/.test(title) && !/tempo/.test(title)) {
+    return "VO2max steigern — die maximale Sauerstoffaufnahme. Mehr O₂ pro Atemzug = mehr Leistung. Gleichzeitig: Cardiac Output verbessern.";
+  }
+  if (/long run|long ride|langlauf|lange|endurance long/.test(title) || type === "longrun") {
+    return "Fettstoffwechsel trainieren, Glykogenspeicher erweitern, Durability aufbauen. Der Körper lernt, mit weniger Kohlenhydraten länger durchzuhalten.";
+  }
+  if (/race pace|marathon pace|goal pace|ziel-?pace/.test(title)) {
+    return "Pacing-Kompetenz und metabolische Effizienz bei Wettkampftempo. Der Körper lernt, exakt diese Pace als \"normal\" zu empfinden.";
+  }
+  if (/strides|stride|neuromus/.test(title)) {
+    return "Neuromuskuläre Koordination. Schnelle Beinarbeit bei niedriger Belastung. Laufökonomie verbessern ohne Ermüdung.";
+  }
+  if (/fartlek/.test(title)) {
+    return "Intensitätswechsel schulen Laktat-Clearance und Rekrutierungsmuster. Spielerische Belastung mit hohem Trainingsreiz pro Stunde.";
+  }
+  if (/hill|berg|hügel/.test(title)) {
+    return "Maximalkraft und anaerobe Kapazität. Steile Intervalle rekrutieren schnelle Fasern und verbessern Stiffness — Ökonomie pur.";
+  }
+  if (/race day|event|wettkampf/.test(title) || session?.scheduledRace) {
+    return "Heute wird das Training geerntet. Pacing-Plan abrufen, mental committen, Fueling exakt nach Plan.";
+  }
+  if (/easy|aerobic|recovery|regenerativ/.test(title) || type === "recovery") {
+    return "Mitochondrien-Dichte erhöhen, Kapillarisierung verbessern. Dein aerober Motor wird größer — ohne dich zu belasten. 80% des Fortschritts passiert hier.";
+  }
+
+  // Cycling
+  if (discipline === "cycling") {
+    if (/ftp|threshold/.test(title)) {
+      return "FTP-Entwicklung: Schwellenleistung anheben durch wiederholte Belastung an der Laktatschwelle. Mitochondrialer Ausbau + neuromuskuläre Effizienz.";
+    }
+    if (/sweet spot/.test(title)) {
+      return "Schwellennahe Belastung bei moderater Ermüdung. Maximaler Trainingsreiz pro Erschöpfungseinheit. FTP-Entwicklung + mitochondrialer Ausbau.";
+    }
+    if (/endurance|long ride/.test(title)) {
+      return "Aerobe Basis, Fettstoffwechsel, Kapillarisierung. Lange Fahrten bauen die Ausdauermaschine, die alle harten Einheiten überhaupt erst erträgt.";
+    }
+  }
+
+  // Triathlon
+  if (discipline === "triathlon") {
+    if (/swim|schwim/.test(title)) {
+      return "Schwimmtechnik und CSS-Entwicklung. Wasserlage, Druckphase, Atemrhythmus — je ökonomischer du schwimmst, desto mehr sparst du für Rad und Lauf.";
+    }
+    if (/brick/.test(title)) {
+      return "Koppelspezifität: Der Körper lernt den Übergang von Rad zu Lauf. Neurale Umstellung + lokale Ermüdungsresistenz.";
+    }
+  }
+
+  // Hyrox
+  if (discipline === "hyrox") {
+    if (/compromised|station|hyrox/.test(title)) {
+      return "Laufen unter Vorermüdung. Der Körper lernt Laufökonomie aufrechtzuerhalten, wenn die Beine schon brennen. Wettkampf-spezifische Durability.";
+    }
+    if (/strength|kraft/.test(title)) {
+      return "Maximalkraft und Kraftausdauer für die Stationen. Mehr Reserve pro Wiederholung = mehr Reserve fürs Laufen zwischen den Stationen.";
+    }
+  }
+
+  // Shape / general strength
+  if (discipline === "shape" || /strength|gym|kraft/.test(title)) {
+    return "Muskelaufbau, Kraftzuwachs, Körperkomposition. Progressive Überlastung mit sauberer Technik — der Grundstein jeder Transformation.";
+  }
+
+  return "Aerobe Basis und Ermüdungsresistenz. Jede gut ausgeführte Einheit verschiebt deine Fitness einen Mikrometer nach oben.";
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * SESSION MODAL V2 — Workout line parser (Modal-Rework)
+ * Parses session.details into structured workout lines for the
+ * prominent top section. Falls back to raw details if parsing
+ * doesn't find recognizable segments.
+ * ═══════════════════════════════════════════════════════════════ */
+function buildSessionWorkoutLines(session, profile) {
+  const details = String(session?.details || "");
+  if (!details) return [];
+  const lines = [];
+
+  // Split by sentence-like chunks using `. ` or ` + ` separators
+  // while preserving pace-like tokens
+  const chunks = details
+    .replace(/\.\s+/g, "|")
+    .replace(/\s\+\s/g, "|")
+    .split("|")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const PACE_RE = /(\d{1,2}:\d{2})\s*(?:\/km|\/100m|km\/h)?|@\s*\d+\s*-?\s*\d*\s*%?\s*(FTP|W|bpm)?/i;
+  const DIST_RE = /(\d+(?:[.,]\d+)?\s*(?:km|m|x|×|'|min|sek|s)\b)/i;
+
+  chunks.forEach((chunk) => {
+    if (chunk.length < 3) return;
+    // Skip pure prose chunks (nutrition, strategy, recovery etc.)
+    if (/vorbereitung|fueling|recovery danach|pacing-strategie|physiologie|tipp|danach/i.test(chunk)) return;
+
+    const distMatch = chunk.match(DIST_RE);
+    const paceMatch = chunk.match(PACE_RE);
+    const lower = chunk.toLowerCase();
+    let section = "main";
+    if (/einlaufen|warm[- ]?up|einrollen|wu\b/i.test(lower)) section = "wu";
+    else if (/auslaufen|cool[- ]?down|ausrollen|cd\b/i.test(lower)) section = "cd";
+    else if (/strides|trab|walk/i.test(lower)) section = "strides";
+
+    lines.push({
+      section,
+      dist: distMatch ? distMatch[1].replace(/\s+/g, "") : "",
+      label: chunk.replace(DIST_RE, "").replace(PACE_RE, "").replace(/[@:]+\s*$/, "").replace(/\s+/g, " ").trim(),
+      pace: paceMatch ? paceMatch[0].replace(/^@\s*/, "") : "",
+      raw: chunk,
+    });
+  });
+
+  return lines;
+}
+
+function renderSessionWorkoutLines(container, lines) {
+  if (!container) return;
+  container.innerHTML = "";
+  if (!lines.length) {
+    container.innerHTML = `<div class="session-workout-line"><span class="wkt-label">Details siehe unten</span></div>`;
+    return;
+  }
+  // Group by section header
+  const order = ["wu", "main", "strides", "cd"];
+  const grouped = {};
+  lines.forEach((l) => {
+    const key = order.includes(l.section) ? l.section : "main";
+    (grouped[key] = grouped[key] || []).push(l);
+  });
+  const headerFor = { wu: "Einlaufen", main: "Hauptteil", strides: "Technik", cd: "Auslaufen" };
+  const classFor = { wu: "is-wu", main: "is-main", strides: "is-main", cd: "is-cd" };
+  order.forEach((key) => {
+    if (!grouped[key]) return;
+    const hdr = document.createElement("div");
+    hdr.className = "session-workout-line is-section";
+    hdr.innerHTML = `<span>${headerFor[key]}</span><span></span>`;
+    container.appendChild(hdr);
+    grouped[key].forEach((l) => {
+      const row = document.createElement("div");
+      row.className = `session-workout-line ${classFor[key] || ""}`;
+      const dist = l.dist || "";
+      const label = l.label || l.raw;
+      const pace = l.pace || "";
+      row.innerHTML = `<span class="wkt-dist">${dist}</span><span class="wkt-label">${label}</span><span class="wkt-pace">${pace}</span>`;
+      container.appendChild(row);
+    });
+  });
+}
+
+function renderSessionIntensityBars(container, lines) {
+  if (!container) return;
+  container.innerHTML = "";
+  if (!lines.length) { container.hidden = true; return; }
+  container.hidden = false;
+  const classFor = { wu: "is-easy", main: "is-threshold", strides: "is-vo2", cd: "is-easy" };
+  lines.forEach((l) => {
+    const bar = document.createElement("div");
+    bar.className = `ibar ${classFor[l.section] || "is-moderate"}`;
+    container.appendChild(bar);
+  });
+}
+
 function openSessionOverlay(session) {
   if (!sessionOverlayEl) return;
   const insight = buildSessionInsight(session, latestProfile);
@@ -12166,6 +12346,25 @@ function openSessionOverlay(session) {
   const cycleBlock = document.getElementById("session-cycle-block");
   const cycleValue = document.getElementById("session-modal-cycle");
   const cycleActive = latestProfile?.sex === "female" && latestProfile?.cycleBasedTraining;
+
+  // ═══ NEW 3-SECTION RENDERING ═══
+  const workoutLines = buildSessionWorkoutLines(session, latestProfile);
+  renderSessionWorkoutLines(document.getElementById("session-workout-lines"), workoutLines);
+  renderSessionIntensityBars(document.getElementById("session-intensity-bars"), workoutLines);
+  setText(document.getElementById("session-physio-oneliner"), buildSessionPhysioOneLiner(session, latestProfile));
+  // Context: phase label from session.phase / week number
+  const phaseLabel = (() => {
+    const p = String(session?.phase || "").toLowerCase();
+    if (p === "base") return "Base-Phase · aerobe Grundlage";
+    if (p === "build") return "Build-Phase · kontrollierte Progression";
+    if (p === "peak" || p === "specific") return "Peak-Phase · Renntempo-Spezifität";
+    if (p === "taper") return "Taper · Frische für den Race Day";
+    if (p === "onboarding") return "Einstieg · Technik & Belastungsverträglichkeit";
+    return "";
+  })();
+  setText(document.getElementById("session-context-phase"), phaseLabel);
+  const phaseRow = document.getElementById("session-context-phase-row");
+  if (phaseRow) phaseRow.hidden = !phaseLabel;
 
   // ── Peak-mode gating for nutrition (Follow-up #3 Punkt 3c / 6c) ──
   // Kalorien + Makros + Ernährungsfokus NUR wenn User im Peak-Modus mit
@@ -13033,13 +13232,18 @@ function buildPlan(profile) {
   const ltadHorizonDays = ltadMode === "two_year" ? 730 : ltadMode === "one_year" ? 365 : 0;
   const explicitMainLast = explicitMainDates.length ? explicitMainDates[explicitMainDates.length - 1] : null;
   const referenceEndDate = explicitMainLast && explicitMainLast > raceDateInput ? explicitMainLast : raceDateInput;
-  const planningEndDate = addDays(today, Math.max(Math.ceil((referenceEndDate - today) / 86400000), ltadHorizonDays));
-  const daysToRace = Math.max(14, Math.ceil((planningEndDate - today) / 86400000));
-  // Plan muss IMMER bis zum eingegebenen Zieldatum laufen, nicht künstlich
-  // nach 24 Wochen abgeschnitten werden. Der weekCap schützt nur vor
-  // absurden Extremen (z. B. > 78 Wochen ohne LTAD-Mode).
+  // ═══ HARD CAP: Race Day is the LAST day of the plan. ALWAYS.
+  // The nominal planning horizon never exceeds raceDateInput, regardless
+  // of LTAD horizon or later A-races. (Follow-up: multi-race roadmap has
+  // its own separate rendering outside of the primary plan.)
+  const planningEndDate = raceDateInput;
+  const daysToRace = Math.max(7, Math.ceil((raceDateInput - today) / 86400000) + 1);
   const weekCap = ltadMode === "two_year" ? 104 : ltadMode === "one_year" ? 78 : 78;
-  const weeks = clamp(Math.ceil(daysToRace / 7), 6, weekCap);
+  // Weeks = #calendar-weeks between this week's start and the race week,
+  // inclusive. Minimum 2 (race week + one lead-in week) so at least a
+  // minimal taper/specificity block exists.
+  const _weeksBetween = Math.floor((raceDateInput - startOfWeek(today)) / (7 * 86400000)) + 1;
+  const weeks = clamp(_weeksBetween, 2, weekCap);
   profile.planningWeeks = weeks;
   const progressionModel = buildProgressionModel(profile);
   profile.thresholdGapSignal = computeThresholdGapSignal(profile);
@@ -13207,7 +13411,10 @@ function buildPlan(profile) {
   });
   const roadmapItems = mainGoals.events;
   const mainGoalEvents = mainGoals.mainEvents;
-  const raceDate = mainGoalEvents.length ? startOfDay(mainGoalEvents[mainGoalEvents.length - 1].date) : referenceEndDate;
+  // Hard cap: the effective race day used by the week-builder is always
+  // the user-specified raceDateInput, never a later A-race. This enforces
+  // "Der Race Day ist der LETZTE Tag des Plans. Punkt."
+  const raceDate = raceDateInput;
   const supplementalRaceEvents = roadmapItems
     .filter((event) => event.itemKind === "event")
     .filter((event) => {
@@ -13317,6 +13524,8 @@ function buildPlan(profile) {
     });
     weekDays.forEach((day) => {
       if (day.type === "rest" || day.date > planningEndDate) return;
+      // Hard race-day cap: no session may be dated after the race day.
+      if (day.date > raceDateInput) return;
       if (
         day.scheduledRace ||
         /pre-race|post-race/i.test(String(day.title || "")) ||
@@ -13360,6 +13569,28 @@ function buildPlan(profile) {
     });
 
     currentWeekStart = addDays(currentWeekStart, 7);
+    // ═══ HARD RACE-DAY TRUNCATION ══════════════════════════════════════
+    // The plan MUST end at the race day. If the current week contained
+    // the race day, stop here — no weeks beyond raceDate.
+    if (currentWeekStart > raceDateInput) break;
+  }
+
+  // ═══ FINAL RACE-DAY TRUNCATION ═══════════════════════════════════════
+  // Belt + suspenders: strip any session or week-day whose date lies
+  // strictly after the race day. This guarantees the race day is the
+  // LAST day of the plan across ALL disciplines and ALL plan modes.
+  for (let i = sessions.length - 1; i >= 0; i -= 1) {
+    if (sessions[i].date > raceDateInput) sessions.splice(i, 1);
+  }
+  for (let w = weekModels.length - 1; w >= 0; w -= 1) {
+    const wm = weekModels[w];
+    if (wm.start > raceDateInput) {
+      weekModels.splice(w, 1);
+      continue;
+    }
+    if (Array.isArray(wm.days)) {
+      wm.days = wm.days.filter((d) => !d?.date || d.date <= raceDateInput);
+    }
   }
 
   const _planResult = {
