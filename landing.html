@@ -620,12 +620,13 @@
     }
     .launcher-overlay-card {
       position: relative;
-      width: min(520px, 100%);
-      height: min(820px, 92vh);
+      width: min(440px, 100%);
+      height: min(760px, 92vh);
       background: #FFFFFF;
       border-radius: 22px;
       box-shadow: 0 40px 80px rgba(8,10,14,.38), 0 4px 14px rgba(8,10,14,.18);
       overflow: hidden;
+      margin: auto;
     }
     .launcher-overlay-close {
       position: absolute; top: 14px; right: 14px;
@@ -702,11 +703,14 @@
         var t = e.target;
         if (!t || !t.closest) return;
 
-        // App starten (Header + Hero + Hero-CTA) → launcher overlay
+        // App starten (ALL landing-page entry points) → launcher overlay.
+        // Explicit IDs + generic fallback via [data-open-launcher] so any
+        // new "App starten" button automatically becomes an overlay CTA.
         if (
           t.closest("#app-launcher-open-btn") ||
           t.closest("#hero-app-starten-btn") ||
-          t.closest("#hero-app-starten-btn-cta")
+          t.closest("#hero-app-starten-btn-cta") ||
+          t.closest("[data-open-launcher]")
         ) {
           e.preventDefault();
           openLauncherOverlay();
@@ -720,13 +724,23 @@
           return;
         }
 
-        // Plan erstellen → scroll to existing #plan section (cards centered)
-        if (t.closest("#hero-plan-erstellen-btn")) {
+        // Plan erstellen (Hero-Button) + peak.plan (Nav + Footer) →
+        // scroll to #plan section so the "Plan your next race." heading
+        // and the quick/peak cards are fully visible from the top.
+        var planTrigger =
+          t.closest("#hero-plan-erstellen-btn") ||
+          (t.closest('a[href="#plan"]')) ||
+          (t.closest('a[href="./landing.html#plan"]'));
+        if (planTrigger) {
           e.preventDefault();
           var target = document.getElementById("plan");
           if (target) {
-            var modes = target.querySelector(".plan-modes") || target;
-            modes.scrollIntoView({ behavior: "smooth", block: "center" });
+            // Scroll so the "peak.plan / Plan your next race." eyebrow
+            // aligns near the top of the viewport (with small offset for
+            // the fixed nav bar).
+            var rect = target.getBoundingClientRect();
+            var top = rect.top + window.pageYOffset - 12;
+            window.scrollTo({ top: top, behavior: "smooth" });
           }
           return;
         }
@@ -1170,10 +1184,10 @@
   <footer class="footer">
     <div class="footer-brand">peak.athlete</div>
     <div class="footer-links">
-      <a href="./index.html">App</a>
-      <a href="#plan">peak.plan</a>
-      <a href="#features">Features</a>
-      <a href="#analytics">Analytics</a>
+      <a href="./legal/impressum.html">Impressum</a>
+      <a href="./legal/datenschutz.html">Datenschutz</a>
+      <a href="./legal/agb.html">AGB</a>
+      <a href="./legal/widerruf.html">Widerrufsbelehrung</a>
     </div>
     <p class="footer-copy">&copy; 2026 peak.athlete. Trusted Performance OS for Endurance Athletes.</p>
   </footer>

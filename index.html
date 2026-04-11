@@ -59,12 +59,40 @@
       }
 
       /* Embedded launcher (loaded inside an iframe overlay from
-         landing.html). No site nav, no padding, transparent body. */
+         landing.html). No site nav, no padding, transparent body.
+         Inside the iframe, the ob-shell becomes a flex-centered box
+         that hugs its content — no full-screen stretch. */
       body.launcher-embed #site-nav { display: none !important; }
       body.launcher-embed #legacy-compat { padding-top: 0 !important; }
       body.launcher-embed {
         background: #FFFFFF !important;
+        margin: 0 !important;
       }
+      body.launcher-embed .ob-shell {
+        position: static !important;
+        inset: auto !important;
+        min-height: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background: #FFFFFF !important;
+      }
+      body.launcher-embed .ob-screens {
+        position: static !important;
+        flex: 0 0 auto !important;
+        width: 100% !important;
+        overflow: visible !important;
+      }
+      body.launcher-embed .ob-screen {
+        position: static !important;
+        inset: auto !important;
+        padding: 28px 24px !important;
+      }
+      body.launcher-embed .ob-screen-inner {
+        max-width: 360px !important;
+        margin: 0 auto !important;
+      }
+      body.launcher-embed .ob-chrome { display: none !important; }
 
       /* ============================================================
          CRITICAL: Core Modal System lives at top-level body and
@@ -1226,28 +1254,17 @@
           document.addEventListener("click", onSubmitClick, true);
         })();
 
-        // ============================================================
-        // Quick-Plan Conversion Nudge
-        // When a free Quick plan is generated (body.has-output), open
-        // the Launcher/Paywall once — dismissible, so user can still
-        // use their free plan. Increases conversion without blocking.
-        // ============================================================
-        (function quickPlanConversionNudge() {
-          var shown = false;
-          function maybeShow() {
-            if (shown) return;
-            if (document.body.classList.contains("is-signed-in")) return;
-            if (document.body.classList.contains("launcher-only")) return;
-            if (!document.body.classList.contains("has-output")) return;
-            shown = true;
-            // Let the plan render first, then gently open the launcher
-            setTimeout(openLauncher, 1800);
-          }
-          var mo = new MutationObserver(maybeShow);
-          mo.observe(document.body, { attributes: true, attributeFilter: ["class"] });
-          // Also check on load in case has-output is set synchronously
-          maybeShow();
-        })();
+        // Quick-Plan Conversion Nudge: REMOVED.
+        // After a quick plan is generated, we only show the dark
+        // "Plan speichern & verbessern" card (_showSignUpSuggestion in
+        // app.js). The Launcher opens ONLY when the user clicks the
+        // "Registrieren" button inside that card — no delayed auto-open.
+        // Expose openLauncher/closeLauncher globally so that card can
+        // call it directly from its inline onclick handler.
+        try {
+          window.openLauncher = openLauncher;
+          window.closeLauncher = closeLauncher;
+        } catch (_) {}
 
         // ============================================================
         // Launcher-only mode: hides Plan Generator, opens Launcher.
@@ -1450,7 +1467,7 @@
                   </label>
                 </div>
 
-                <div id="quick-plan-fields" class="advanced-grid quick-plan-fields">
+                <div id="quick-plan-fields" class="advanced-grid quick-plan-fields" style="display:grid !important;">
                   <label class="field is-select">
                     <span data-i18n="quick_goal_format">Zielformat</span>
                     <select name="quickGoalDistance" id="quick-goal-distance-select"></select>

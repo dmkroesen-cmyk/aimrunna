@@ -1650,6 +1650,13 @@ select {
   margin-top: 10px;
 }
 
+/* peak. und quick. zeigen die gleichen Basis-Felder (Zielformat,
+   Zielzeit, Datum). Erzwinge Sichtbarkeit unabhängig von JS-State. */
+#quick-plan-fields,
+#quick-plan-fields[hidden] {
+  display: grid !important;
+}
+
 .advanced-settings.is-quick-hidden {
   margin-top: 0;
 }

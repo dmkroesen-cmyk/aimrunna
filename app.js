@@ -1284,7 +1284,8 @@ function generatePlanFromProfile(profile) {
     _showSignUpSuggestion();
   }
   renderAccountUi();
-  _showPlanToast(`Trainingsplan erstellt — ${plan.sessions?.length || 0} Einheiten`, false);
+  // Green success toast removed intentionally — the dark "Plan speichern
+  // & verbessern" card is the single conversion surface after quick plan.
   if (typeof addNotification === "function") addNotification("plan_ready", "Trainingsplan erstellt", `${plan.sessions?.length || 0} Einheiten geplant`);
 }
 
@@ -1325,7 +1326,7 @@ function _showSignUpSuggestion() {
       <div class="suggestion-title">Plan speichern & verbessern</div>
       <div class="suggestion-desc">Erstelle ein Konto, um deinen Plan zu speichern und mit Strava-Daten zu optimieren.</div>
     </div>
-    <button type="button" onclick="this.closest('#signup-suggestion').remove();openAccountModal?.('register');" class="suggestion-btn-primary" style="background:#3b82f6;color:#fff;">Registrieren</button>
+    <button type="button" onclick="this.closest('#signup-suggestion').remove();(window.openLauncher||window.openAccountModal||function(){})('register');" class="suggestion-btn-primary" style="background:#3b82f6;color:#fff;">Registrieren</button>
     <button type="button" onclick="this.closest('#signup-suggestion').remove();" class="suggestion-btn-dismiss">&times;</button>
   `;
   document.body.appendChild(el);
@@ -7901,6 +7902,7 @@ function initDynamicGoalOptions() {
   form?.elements?.targetWeightKg?.addEventListener?.("change", syncShapeGoalConsistency);
   form?.elements?.raceDate?.addEventListener?.("change", syncShapeGoalConsistency);
   sync({ resetTime: true });
+  syncShapeFieldVisibility(disciplineSelect?.value);
   syncPbDisciplineOptions(disciplineSelect?.value || "running");
   syncPbDistanceOptions(1);
   syncPbDistanceOptions(2);
@@ -7918,6 +7920,40 @@ function syncQuickGoalOptions(discipline = disciplineSelect?.value) {
     .map((opt) => `<option value="${escapeHtml(opt.value)}">${escapeHtml(opt.label)}</option>`)
     .join("");
   quickGoalDistanceSelect.value = options.some((opt) => opt.value === prev) ? prev : (options[0]?.value || "");
+  // Keep quick goal time in sync with a realistic default for the new
+  // discipline × distance combination (overwrites placeholder/empty).
+  if (quickGoalTimeInput && discipline !== "shape") {
+    const suggested = defaultGoalTimeFor(discipline, quickGoalDistanceSelect.value);
+    if (suggested) quickGoalTimeInput.value = suggested;
+  }
+  syncShapeFieldVisibility(discipline);
+}
+
+/** Zielzeit ergibt bei Shape keinen Sinn. Blende das Feld komplett aus
+ *  und sorge dafür, dass Shape-Pläne einfach zum angegebenen Datum enden,
+ *  nicht zu einem Rennen. */
+function syncShapeFieldVisibility(discipline = disciplineSelect?.value) {
+  const isShape = discipline === "shape";
+  // Parent <label class="field"> of quickGoalTimeInput enthält das Span
+  // "Zielzeit" + Input. Wir blenden den gesamten Wrapper aus.
+  if (quickGoalTimeInput) {
+    const wrap = quickGoalTimeInput.closest("label.field");
+    if (wrap) {
+      wrap.hidden = isShape;
+      wrap.style.display = isShape ? "none" : "";
+    }
+    quickGoalTimeInput.required = !isShape;
+    if (isShape) quickGoalTimeInput.value = "";
+  }
+  // Das Datum-Label für Shape umbenennen — bei Shape ist es das Zieldatum,
+  // bei Rennen ist es das Renn-Datum.
+  if (quickRaceDateInput) {
+    const wrap = quickRaceDateInput.closest("label.field");
+    if (wrap) {
+      const span = wrap.querySelector("span");
+      if (span) span.textContent = isShape ? "Zieldatum" : "Datum";
+    }
+  }
 }
 
 function syncPlanModeUI() {
@@ -7928,15 +7964,18 @@ function syncPlanModeUI() {
   // peak. features are only available inside the app after login.
   // On this page, advanced settings are always hidden.
   const showAdvanced = false;
-  if (quickPlanFieldsEl) quickPlanFieldsEl.hidden = !isQuick;
+  // peak. und quick. zeigen jetzt die gleichen Basis-Felder
+  // (Zielformat / Zielzeit / Datum). Der einzige Unterschied: peak.
+  // öffnet beim Submit zusätzlich den Onboarder für Feintuning.
+  if (quickPlanFieldsEl) quickPlanFieldsEl.hidden = false;
   _applyPeakVisibility(showAdvanced);
 
-  if (quickGoalDistanceSelect) quickGoalDistanceSelect.disabled = !isQuick;
-  if (quickGoalTimeInput) quickGoalTimeInput.disabled = !isQuick;
-  if (quickRaceDateInput) quickRaceDateInput.disabled = !isQuick;
+  if (quickGoalDistanceSelect) quickGoalDistanceSelect.disabled = false;
+  if (quickGoalTimeInput) quickGoalTimeInput.disabled = false;
+  if (quickRaceDateInput) quickRaceDateInput.disabled = false;
 
-  if (quickGoalDistanceSelect) quickGoalDistanceSelect.required = isQuick;
-  if (quickGoalTimeInput) quickGoalTimeInput.required = isQuick;
+  if (quickGoalDistanceSelect) quickGoalDistanceSelect.required = true;
+  if (quickGoalTimeInput) quickGoalTimeInput.required = true;
   // quickRaceDate is optional — default to 12 weeks if empty
   normalizeFieldLabels();
 }
@@ -9606,37 +9645,43 @@ function formatSocialSportLabel(sportType) {
 }
 
 function defaultGoalTimeFor(discipline, goalDistance) {
+  // Realistische, ambitionierte Zielzeiten (gut trainierter Age-Grouper,
+  // nicht Profi-Niveau). Männlich / ~35 J. als Baseline — weiblich /
+  // älter wird später via Profile-Adjustment skaliert.
   const map = {
     running: {
-      "5k": "00:23:00",
-      "10k": "00:48:00",
-      half: "01:45:00",
-      marathon: "03:30:00",
+      "5k": "00:21:00",        // 4:12 /km — ambitioniert für Sub-Elite-Hobbyläufer
+      "10k": "00:44:00",       // 4:24 /km
+      half: "01:38:00",        // 4:39 /km
+      marathon: "03:25:00",    // 4:52 /km — unter Boston Qualifier
     },
     triathlon: {
-      sprint: "01:20:00",
-      olympic: "02:35:00",
-      "703": "05:15:00",
-      ironman: "11:00:00",
+      sprint: "01:15:00",      // solide Age-Group-Zeit
+      olympic: "02:25:00",     // AG-Podium-Bereich
+      "703": "04:55:00",       // unter 5h = ambitionierter AGer
+      ironman: "10:30:00",     // Sub-11 = starkes AG-Niveau
     },
     cycling: {
-      crit: "01:00:00",
-      tt40: "00:58:00",
-      granfondo: "05:30:00",
-      century: "05:40:00",
+      crit: "01:00:00",        // 60 min Crit
+      tt40: "00:54:00",        // ~44 km/h Schnitt — ambitioniert
+      granfondo: "05:00:00",   // ~130 km in 5h
+      century: "05:15:00",     // 100 mi / 160 km Sub-5:30
     },
     hyrox: {
-      open: "01:20:00",
-      pro: "01:12:00",
-      doubles: "01:00:00",
-      doublespro: "00:55:00",
-      relay: "00:54:00",
+      open: "01:15:00",        // Sub-75 min Open = starkes AG
+      pro: "01:08:00",         // Pro-Division ambitioniert
+      doubles: "00:58:00",
+      doublespro: "00:52:00",
+      relay: "00:50:00",
     },
+    // Shape hat KEINE Zielzeit — die Felder werden für shape ohnehin
+    // ausgeblendet (siehe syncShapeFieldVisibility). Die Einträge bleiben
+    // nur als Text-Fallback für UI-Labels falls jemand sie anzeigt.
     shape: {
-      fatloss: "-4 kg",
-      recomp: "Recomp",
-      build: "+2 kg",
-      fitness: "Stronger / fitter",
+      fatloss: "",
+      recomp: "",
+      build: "",
+      fitness: "",
     },
   };
   return map[discipline]?.[goalDistance] || "02:59:00";
