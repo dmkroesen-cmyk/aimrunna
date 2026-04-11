@@ -83,20 +83,106 @@
       }
 
       /* ============================================================
-         Header background: solid white, not transparent.
-         Avoids grey-looking bar when dark hero content floats behind.
-         Rule: grey text ONLY on white; otherwise black-on-white or
-         white-on-dark for maximum contrast.
+         Unified Out-of-App Top Bar
+         This is an EXACT copy of landing.html's .nav. When the Core
+         Shell is not active we hide the legacy #account-bar entirely
+         and render #site-nav instead, so every out-of-app page
+         (Landing, Plan Generator, Launcher) shares the same header:
+
+            [ p peak.athlete ]  [ Features  peak.plan  Analytics  App starten ]
+
          ============================================================ */
-      #account-bar,
-      .account-bar {
-        background: #FFFFFF !important;
-        backdrop-filter: none !important;
-        -webkit-backdrop-filter: none !important;
-        border-bottom: 1px solid rgba(10, 10, 10, 0.08) !important;
+      body:not([data-ui="core"]) #account-bar { display: none !important; }
+      body[data-ui="core"] #site-nav { display: none !important; }
+      #site-nav {
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 32px;
+        height: 64px;
+        background: #FFFFFF;
+        border-bottom: 1px solid rgba(10, 10, 10, 0.08);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       }
-      #account-bar .brand-wordmark,
-      #account-bar .nav-brand { color: #0A0A0A !important; }
+      @media (max-width: 768px) {
+        #site-nav { height: 56px; padding: 0 16px; }
+      }
+      #site-nav .nav-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+        color: #0A0A0A;
+      }
+      #site-nav .nav-mark {
+        width: 32px;
+        height: 32px;
+        background: #0A0A0A;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #FFFFFF;
+        font-weight: 800;
+        font-size: 18px;
+      }
+      #site-nav .nav-wordmark {
+        font-weight: 700;
+        font-size: 16px;
+        letter-spacing: -0.02em;
+        color: #0A0A0A;
+      }
+      #site-nav .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      #site-nav .nav-link {
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        color: #6B7280;
+        text-decoration: none;
+        transition: color 0.15s ease, background 0.15s ease;
+      }
+      #site-nav .nav-link:hover { color: #0A0A0A; background: rgba(10,10,10,.04); }
+      @media (max-width: 768px) {
+        #site-nav .nav-link { display: none; }
+      }
+      #site-nav .nav-cta {
+        appearance: none;
+        border: 0;
+        cursor: pointer;
+        padding: 9px 18px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+        color: #FFFFFF;
+        background: #0A0A0A;
+        text-decoration: none;
+        transition: background 0.18s ease, transform 0.18s ease;
+        white-space: nowrap;
+      }
+      #site-nav .nav-cta:hover { background: #1F1F1F; }
+      #site-nav .nav-cta:active { transform: scale(0.98); }
+
+      /* Legacy #account-bar is kept in DOM for app.js but forced
+         invisible when NOT in Core Shell. */
+
+      /* Content padding so plan generator sits below the fixed 64px nav. */
+      body:not([data-ui="core"]):not(.launcher-only) #legacy-compat {
+        padding-top: 64px;
+      }
+      @media (max-width: 768px) {
+        body:not([data-ui="core"]):not(.launcher-only) #legacy-compat {
+          padding-top: 56px;
+        }
+      }
 
       /* ============================================================
          Simplified Out-of-App Top Bar
@@ -313,6 +399,46 @@
     </script>
   </head>
   <body>
+    <!-- ============================================================
+         Unified out-of-app top bar — identical to landing.html.
+         Rendered on every out-of-app page (Plan Generator, Launcher).
+         Hidden when the Core Shell is active.
+         ============================================================ -->
+    <nav id="site-nav" aria-label="peak.athlete">
+      <a href="./landing.html" class="nav-brand">
+        <div class="nav-mark">p</div>
+        <span class="nav-wordmark">peak.athlete</span>
+      </a>
+      <div class="nav-links">
+        <a href="./landing.html#features" class="nav-link">Features</a>
+        <a href="./landing.html#plan" class="nav-link">peak.plan</a>
+        <a href="./landing.html#analytics" class="nav-link">Analytics</a>
+        <button type="button" class="nav-cta" id="site-nav-app-starten-btn">App starten</button>
+      </div>
+    </nav>
+    <script>
+      // "App starten" from the unified top bar always opens the
+      // canonical launcher (ob-phase-account). If the user is already
+      // signed in, let core-auth-gate transition to the Core Shell.
+      document.addEventListener("click", function (e) {
+        var t = e.target;
+        if (!t || !t.closest) return;
+        if (t.closest("#site-nav-app-starten-btn")) {
+          e.preventDefault();
+          try {
+            var qp = new URLSearchParams(window.location.search);
+            if (qp.get("launcher")) return; // already in launcher mode
+          } catch (_) {}
+          // If we are inside planner mode, drop ?planner=1 and open launcher
+          var url = new URL(window.location.href);
+          url.searchParams.delete("planner");
+          url.searchParams.delete("mode");
+          url.searchParams.set("launcher", "1");
+          window.location.href = url.pathname + "?" + url.searchParams.toString();
+        }
+      }, true);
+    </script>
+
     <!-- ============================================================
          peak.athlete · Core WebApp Shell (new)
          Legacy UI is hidden via shell.css (#scroll-stage + #account-bar)
