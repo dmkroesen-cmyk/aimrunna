@@ -992,6 +992,41 @@
         setInterval(syncSignedInClass, 2000);
 
         // ============================================================
+        // Preset plan mode from URL (?mode=quick|peak)
+        // Set by landing.html "Plan erstellen → quick/peak" choice.
+        // ============================================================
+        (function presetPlanModeFromURL() {
+          try {
+            var qp = new URLSearchParams(window.location.search);
+            var mode = qp.get("mode");
+            if (mode !== "quick" && mode !== "peak") return;
+
+            function apply() {
+              var sel = byId("plan-mode-select");
+              if (!sel) { setTimeout(apply, 100); return; }
+              sel.value = mode;
+              try { sel.dispatchEvent(new Event("change", { bubbles: true })); } catch (_) {}
+              // For peak mode: auto-open the Onboarding flow
+              if (mode === "peak") {
+                var tries = 0;
+                var iv = setInterval(function () {
+                  tries++;
+                  if (typeof window.openOnboarding === "function") {
+                    clearInterval(iv);
+                    setTimeout(window.openOnboarding, 250);
+                  } else if (tries > 50) { clearInterval(iv); }
+                }, 100);
+              }
+            }
+            if (document.readyState === "loading") {
+              document.addEventListener("DOMContentLoaded", apply);
+            } else {
+              apply();
+            }
+          } catch (_) {}
+        })();
+
+        // ============================================================
         // Quick-Plan Conversion Nudge
         // When a free Quick plan is generated (body.has-output), open
         // the Launcher/Paywall once — dismissible, so user can still
