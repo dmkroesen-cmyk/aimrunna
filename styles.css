@@ -4653,6 +4653,24 @@ body.profile-view-settings .profile-settings-card.is-active {
   color: #1A1A1A;
 }
 
+/* Pregnancy / Post-Partum permanent banner inside session modal */
+.session-modal-preg-disclaimer[hidden] { display: none !important; }
+.session-modal-preg-disclaimer {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  margin: 4px 0 18px;
+  background: rgba(236, 72, 153, 0.06);
+  border: 1px solid rgba(236, 72, 153, 0.18);
+  border-radius: 12px;
+  color: #831843;
+  font-size: 12.5px;
+  line-height: 1.45;
+  font-weight: 500;
+}
+.session-modal-preg-disclaimer > span[aria-hidden="true"] { font-size: 16px; line-height: 1; }
+
 .account-modal {
   position: fixed;
   inset: 0;
@@ -4818,6 +4836,111 @@ body.profile-view-settings .profile-settings-card.is-active {
 .shape-goal-guidance.is-error {
   color: rgba(210, 217, 228, 0.84);
 }
+
+/* ══════════════════════════════════════════════════════════════
+   Unified Footer · 1:1 identical to landing.html
+   Used on index.html (Plan Generator) via <footer class="footer unified-footer">
+   Do not restyle — the visual must match landing.html pixel-perfect.
+   ══════════════════════════════════════════════════════════════ */
+.footer.unified-footer {
+  padding: 48px 24px;
+  border-top: 1px solid var(--border, rgba(0, 0, 0, 0.08));
+  text-align: center;
+  max-width: none;
+  margin: 0;
+}
+.footer.unified-footer .footer-brand {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text, #0A0A0A);
+  margin-bottom: 12px;
+}
+.footer.unified-footer .footer-links {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  align-items: center;
+}
+.footer.unified-footer .footer-links a,
+.footer.unified-footer .footer-links button.footer-link-btn {
+  font-size: 13px;
+  color: var(--text-muted, rgba(0, 0, 0, 0.55));
+  text-decoration: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+.footer.unified-footer .footer-links a:hover,
+.footer.unified-footer .footer-links button.footer-link-btn:hover {
+  color: var(--text, #0A0A0A);
+}
+.footer.unified-footer .footer-copy {
+  font-size: 12px;
+  color: var(--text-muted, rgba(0, 0, 0, 0.55));
+  margin: 0;
+}
+
+/* ── Language popup · shared with landing.html ── */
+.lang-popup[hidden] { display: none !important; }
+.lang-popup {
+  position: fixed; inset: 0; z-index: 9600;
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+}
+.lang-popup-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(8, 10, 14, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.lang-popup-card {
+  position: relative;
+  width: min(360px, 100%);
+  background: #FFFFFF;
+  border-radius: 18px;
+  padding: 28px 24px 20px;
+  box-shadow: 0 30px 60px rgba(8, 10, 14, 0.28);
+}
+.lang-popup-title {
+  font-size: 18px; font-weight: 700;
+  margin: 0 0 4px; letter-spacing: -0.01em;
+  color: var(--text);
+}
+.lang-popup-sub {
+  font-size: 13px; color: var(--text-muted);
+  margin: 0 0 20px;
+}
+.lang-popup-list { display: flex; flex-direction: column; gap: 8px; }
+.lang-popup-btn {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  background: #FFFFFF;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 14px; font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  text-align: left;
+}
+.lang-popup-btn:hover { background: #FAFAFA; border-color: #0A0A0A; }
+.lang-popup-btn.is-active { background: #0A0A0A; color: #FFFFFF; border-color: #0A0A0A; }
+.lang-popup-flag { font-size: 18px; }
+.lang-popup-close {
+  position: absolute; top: 14px; right: 14px;
+  width: 32px; height: 32px;
+  border: 0; border-radius: 10px;
+  background: rgba(0, 0, 0, 0.04);
+  font-size: 18px; line-height: 1; cursor: pointer;
+  color: var(--text-muted);
+}
+.lang-popup-close:hover { background: rgba(0, 0, 0, 0.08); color: var(--text); }
 
 /* ── Footer ── */
 .site-footer {
@@ -5231,6 +5354,10 @@ body.profile-view-settings .profile-settings-card.is-active {
   grid-template-columns: auto 1fr;
   gap: 16px;
   align-items: center;
+}
+.session-modal-nutrition[hidden],
+#session-nutrition-focus-block[hidden] {
+  display: none !important;
 }
 
 .session-modal-kcal span {
@@ -13063,29 +13190,119 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
    ═══════════════════════════════════════════════════════════ */
 
 /* ── Shell ── */
+/* ── Onboarding Modal (Follow-up #3 Punkt 5) ─────────────────────
+   Centered modal with dark backdrop. Fullscreen on narrow viewports.
+   ──────────────────────────────────────────────────────────────── */
 .ob-shell {
   position: fixed;
   inset: 0;
   z-index: 9999;
-  background: #FFFFFF;
   display: flex;
-  flex-direction: column;
-  animation: ob-enter 400ms cubic-bezier(0.16, 1, 0.3, 1);
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(8, 10, 14, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  animation: ob-backdrop-in 280ms ease;
   overflow: hidden;
 }
 
-@keyframes ob-enter {
-  from { opacity: 0; transform: translateY(40px) scale(0.98); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+.ob-shell > .ob-chrome,
+.ob-shell > .ob-screens,
+.ob-shell > .ob-nav {
+  background: #FFFFFF;
 }
 
-@keyframes ob-exit {
-  from { opacity: 1; transform: translateY(0) scale(1); }
-  to   { opacity: 0; transform: translateY(40px) scale(0.98); }
+.ob-shell {
+  --ob-card-width: 560px;
+  --ob-card-max-h: min(90vh, 820px);
+}
+
+/* Give the direct children a shared visual card */
+.ob-shell > .ob-chrome {
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  box-shadow: 0 24px 72px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+.ob-shell > .ob-nav {
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+}
+
+/* Since chrome/screens/nav are direct children of .ob-shell, we use a
+   pseudo-card via a synthetic flex column with a max-width. */
+.ob-shell {
+  flex-direction: column;
+  align-items: center;
+}
+.ob-shell > .ob-chrome,
+.ob-shell > .ob-screens,
+.ob-shell > .ob-nav {
+  width: 100%;
+  max-width: var(--ob-card-width);
+}
+.ob-shell > .ob-screens {
+  flex: 0 1 auto;
+  max-height: var(--ob-card-max-h);
+  overflow: hidden;
+  box-shadow: 0 24px 72px rgba(0, 0, 0, 0.0); /* handled by chrome */
+}
+.ob-shell > .ob-nav {
+  box-shadow: 0 24px 72px rgba(0, 0, 0, 0.28);
 }
 
 .ob-shell.is-closing {
-  animation: ob-exit 280ms cubic-bezier(0.4, 0, 1, 1) forwards;
+  animation: ob-backdrop-out 240ms ease forwards;
+}
+.ob-shell.is-closing > .ob-chrome,
+.ob-shell.is-closing > .ob-screens,
+.ob-shell.is-closing > .ob-nav {
+  animation: ob-card-out 240ms cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+.ob-shell > .ob-chrome,
+.ob-shell > .ob-screens,
+.ob-shell > .ob-nav {
+  animation: ob-card-in 400ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes ob-backdrop-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes ob-backdrop-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+@keyframes ob-card-in {
+  from { opacity: 0; transform: translateY(24px) scale(0.985); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes ob-card-out {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to   { opacity: 0; transform: translateY(24px) scale(0.985); }
+}
+
+/* Mobile: fullscreen modal (no radius, no padding backdrop) */
+@media (max-width: 720px) {
+  .ob-shell {
+    padding: 0;
+    background: #FFFFFF;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    --ob-card-width: 100%;
+    --ob-card-max-h: 100vh;
+  }
+  .ob-shell > .ob-chrome,
+  .ob-shell > .ob-nav {
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .ob-shell > .ob-screens {
+    flex: 1 1 auto;
+    max-height: none;
+    height: 100%;
+  }
 }
 
 /* ── Chrome (progress + close) ── */
@@ -13144,6 +13361,10 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
   flex: 1;
   overflow: hidden;
   position: relative;
+  min-height: 520px;
+}
+@media (max-width: 720px) {
+  .ob-screens { min-height: 0; }
 }
 
 .ob-screen {
@@ -14179,6 +14400,65 @@ body.has-tab-bar.peakplan-mode .scroll-stage {
 .ob-nav-next:hover svg {
   transform: translateX(3px);
   opacity: 1;
+}
+
+/* ── Health Disclaimer screen (Follow-up #3 Punkt 3a) ── */
+.ob-disclaimer-inner {
+  max-width: 440px;
+  align-items: stretch;
+  text-align: left;
+}
+.ob-disclaimer-inner .ob-headline {
+  text-align: center;
+  margin-bottom: 24px;
+}
+.ob-disclaimer-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 16px;
+  padding: 20px 22px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text, #1A1A1A);
+  max-height: 52vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.ob-disclaimer-card p {
+  margin: 0 0 12px;
+}
+.ob-disclaimer-card p:last-child {
+  margin-bottom: 0;
+}
+.ob-disclaimer-card ul {
+  margin: 0 0 12px;
+  padding-left: 18px;
+}
+.ob-disclaimer-card ul li {
+  margin-bottom: 4px;
+}
+.ob-disclaimer-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 18px;
+  padding: 14px 16px;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.4;
+  cursor: pointer;
+  color: var(--text, #1A1A1A);
+  user-select: none;
+}
+.ob-disclaimer-check input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  flex-shrink: 0;
+  accent-color: var(--text, #1A1A1A);
+  cursor: pointer;
 }
 
 /* ── Responsive ── */

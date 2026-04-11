@@ -3714,6 +3714,7 @@
           <a href="./legal/datenschutz.html">Datenschutz</a>
           <a href="./legal/agb.html">AGB</a>
           <a href="./legal/widerruf.html">Widerrufsbelehrung</a>
+          <button type="button" class="footer-link-btn" data-open-health-disclaimer>Gesundheitshinweis</button>
           <button type="button" class="footer-link-btn" data-open-lang>Sprache</button>
         </div>
         <p class="footer-copy">&copy; 2026 peak.athlete. Trusted Performance OS for Endurance Athletes.</p>
@@ -3759,6 +3760,11 @@
       <div class="session-overlay-backdrop" data-close-overlay></div>
       <article class="session-modal-card" role="dialog" aria-modal="true" aria-labelledby="session-modal-title">
         <button type="button" class="session-modal-close" data-close-overlay aria-label="Close">×</button>
+        <!-- Pregnancy/Post-Partum permanent disclaimer (Follow-up #3 Punkt 3c) -->
+        <div class="session-modal-preg-disclaimer" id="session-preg-disclaimer" hidden>
+          <span aria-hidden="true">⚕️</span>
+          <span>Schwangerschafts-angepasster Plan. Bitte besprich dein Training mit deinem Arzt / deiner Ärztin.</span>
+        </div>
         <div class="session-modal-head">
           <div class="session-modal-meta" id="session-modal-meta"></div>
           <h4 id="session-modal-title"></h4>
@@ -4681,6 +4687,30 @@
           </div>
         </div>
 
+        <!-- S10b — Health Disclaimer (Follow-up #3 Punkt 3a) -->
+        <div class="ob-screen ob-screen-disclaimer" data-screen="disclaimer" hidden>
+          <div class="ob-screen-inner ob-disclaimer-inner">
+            <h2 class="ob-headline" tabindex="-1">Gesundheitshinweis</h2>
+            <div class="ob-disclaimer-card">
+              <p>peak.athlete erstellt Trainingspläne auf Basis allgemeiner sportwissenschaftlicher Grundsätze. Die Pläne ersetzen keine ärztliche Beratung oder professionelle Trainingsbetreuung.</p>
+              <p><strong>Du trainierst eigenverantwortlich und auf eigenes Risiko.</strong></p>
+              <p>Wir empfehlen vor Beginn eines strukturierten Trainingsprogramms eine sportmedizinische Untersuchung, insbesondere bei:</p>
+              <ul>
+                <li>Herz-Kreislauf-Vorerkrankungen</li>
+                <li>Orthopädischen Einschränkungen</li>
+                <li>Schwangerschaft oder kürzlicher Geburt</li>
+                <li>Längerer Trainingspause (&gt; 6 Monate)</li>
+                <li>Alter über 40 Jahre ohne regelmäßige sportliche Aktivität</li>
+              </ul>
+              <p>Bei akuten Beschwerden während des Trainings (Brustschmerzen, Schwindel, ungewöhnliche Kurzatmigkeit) brich das Training sofort ab und konsultiere einen Arzt.</p>
+            </div>
+            <label class="ob-disclaimer-check">
+              <input type="checkbox" id="ob-disclaimer-accept" />
+              <span>Ich habe den Gesundheitshinweis gelesen und verstanden.</span>
+            </label>
+          </div>
+        </div>
+
         <!-- S11 — Final: Activation + Account (unified) -->
         <div class="ob-screen ob-screen-final" data-screen="final" hidden>
 
@@ -4777,7 +4807,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="./supabase-client.js"></script>
     <script src="./legal-i18n.js"></script>
-    <script src="./app.js?v=planengine-v3f-audit2"></script>
+    <script src="./app.js?v=followup3-v1"></script>
     <script src="./stresstest.js"></script>
   </body>
 </html>

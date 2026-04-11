@@ -392,212 +392,482 @@ const HERO_IMAGE_SETS = {
 };
 
 const TRAINING_GLOSSARY = [
+  // ══════════════════════════════════════════════════════════
+  //  LAUFEN
+  // ══════════════════════════════════════════════════════════
+  {
+    term: "Easy Run",
+    category: "run",
+    text: "Lockerer aerober Dauerlauf im Plaudertempo. Baut Basisausdauer auf, verbessert Fettstoffwechsel und ermöglicht Volumen ohne hohe Ermüdung.",
+    detail: "Pace 60-70 sek langsamer als Schwellenpace, HR ca. 68-78% LTHR. Dauer 30-70 min. Nasenatmung oder kurze ganze Sätze sollten möglich bleiben.",
+    cues: ["Locker bleiben", "Atmung ruhig", "Kadenz ~170-180"],
+    steps: ["5 min einlaufen", "Hauptteil im Easy-Korridor", "Optional 4 x 15s Strides am Ende"],
+    visual: "run",
+  },
+  {
+    term: "Long Run",
+    category: "run",
+    text: "Die wichtigste Ausdauereinheit der Woche — baut metabolische Robustheit, muskuläre Ökonomie und mentale Durability auf. Drei gängige Varianten.",
+    detail: "Steady: 90-150 min im Zone-2-Korridor, HR ~72-80% LTHR. Progressive: letztes Drittel im oberen Easy/Marathonpace. Fast-Finish: letzte 10-20 min Richtung Schwelle. Pace, nicht Distanz, steuert die Belastung.",
+    cues: ["Fueling üben (30-60 g Carbs/h ab 90 min)", "Nicht zu schnell starten", "Technik bei Ermüdung halten"],
+    steps: ["Warm-up 5-10 min", "Haupt-Volumen Easy/Zone 2", "Optional Progression oder Fast-Finish"],
+    visual: "run",
+  },
+  {
+    term: "Tempo / Threshold Run",
+    category: "run",
+    text: "Kontinuierlicher oder blockweiser Lauf an der Laktatschwelle. Hebt vLT2 an, verbessert Laktatclearance und Pacing-Stabilität unter Druck.",
+    detail: "Pace ca. -10 bis +6 sek um Schwellenpace, HR ~92-100% LTHR. Typisch: 20-40 min Dauerlauf oder 3-5 x 6-10 min mit kurzer Trabpause. 'Angenehm hart', rhythmische Atmung.",
+    cues: ["Nicht zu schnell anfangen", "Pace stabil halten", "Kontrolliert unter Druck"],
+    steps: ["12-15 min Warm-up + Drills", "Schwellenblöcke mit 90-120s Trab-Recovery", "10 min Cooldown"],
+    visual: "run",
+  },
+  {
+    term: "VO2max Intervalle (kurz)",
+    category: "run",
+    text: "Kurze harte Intervalle (200-400 m) zur Reizsetzung im VO2max-Bereich. Verbessert Sauerstoffaufnahme, Herzzeitvolumen und neuromuskuläre Rekrutierung.",
+    detail: "Pace ca. 3000 m- bis 5000 m-Renntempo, HR >95% LTHR. Beispiel: 10-16 x 400 m mit 60-90s Trabpause. Qualität vor Quantität — letzte Wdh. sollte nicht zerbrechen.",
+    cues: ["Rhythmus finden", "Letzte Wdh. nicht einbrechen", "Vollständige Erholung zwischen Sätzen"],
+    steps: ["15 min Warm-up + 4 Strides", "Intervalle mit Trab-Recovery", "10 min Cooldown"],
+    visual: "run",
+  },
+  {
+    term: "Intervalle mittel (800-1200 m)",
+    category: "run",
+    text: "Klassische VO2max-/Schwelle-Intervalle im Bereich 3-5 min. Sweet Spot für 5K-10K-Spezifik und aerobe Leistungsfähigkeit.",
+    detail: "Pace ca. 5K-Renntempo, HR 95-100% LTHR. Beispiel: 5-6 x 1000 m mit 2-3 min Trab. Recovery so wählen, dass Pace stabil bleibt, nicht einbricht.",
+    cues: ["Gleichmäßiges Pacing", "Erholung locker, nicht komplett", "Saubere Technik erhalten"],
+    steps: ["Warm-up + Aktivierung", "Intervallblock", "Cooldown + Mobility"],
+    visual: "run",
+  },
+  {
+    term: "Intervalle lang (1600-2000 m)",
+    category: "run",
+    text: "Lange Intervalle zwischen Schwelle und VO2max. Baut Tempohärte, Laktattoleranz und Rennspezifik für 10K bis Halbmarathon auf.",
+    detail: "Pace ca. 10K-Renntempo, HR ~95% LTHR. Beispiel: 4-6 x 1600 m mit 2-3 min Trab oder 3-4 x 2000 m. Sehr fordernd — nur bei guter Readiness und mit solider Base.",
+    cues: ["Erste 400 m kontrolliert", "Halbzeit-Check", "Letztes Viertel pushen, nicht einbrechen"],
+    steps: ["Warm-up 15 min + 4 Strides", "Langintervalle mit Trab", "10-12 min Cooldown"],
+    visual: "run",
+  },
   {
     term: "Strides",
     category: "run",
-    text: "Kurze kontrollierte Steigerungen (10-25 Sek.), kein Vollsprint. Verbessert Rhythmus und Lauftechnik.",
-    detail: "Meist nach lockerem Lauf: 4-8 Wiederholungen, locker anlaufen, sauber beschleunigen, entspannt auslaufen. Fokus auf Technik, nicht auf Ermüdung.",
-    cues: ["Aufrecht + locker", "Schnelle, kurze Bodenkontaktzeit", "Zwischen Wdh. komplett ruhig traben"],
-    steps: ["Locker anlaufen", "Über 5-8 Sek. beschleunigen", "Kurz flott halten, sauber ausrollen"],
+    text: "Kurze kontrollierte Beschleunigungen (15-25 sek), kein Vollsprint. Verbessert neuromuskuläre Koordination, Lauftechnik und Turnover.",
+    detail: "4-8 Wiederholungen am Ende eines Easy Runs oder als Aktivierung vor Qualitätseinheit. Über 5-8 sek beschleunigen, flott halten, sauber ausrollen. Volle Pause zwischen Wdh.",
+    cues: ["Aufrecht + locker", "Kurze Bodenkontaktzeit", "Vollständige Pause zwischen Wdh."],
+    steps: ["Easy Run Basis", "Beschleunigen auf ~800-m-Tempo", "Sauber ausrollen, 45-60s traben"],
     visual: "stride",
   },
   {
-    term: "Threshold / Schwelle",
+    term: "Fahrtspiel (Fartlek)",
     category: "run",
-    text: "Hart, aber kontrolliert an/unter der Laktatschwelle. Baut Tempohärte und Pace-Stabilität auf.",
-    detail: "Typische Blöcke sind 3-6 x 6-10 min oder längere kontinuierliche Abschnitte. Atmung deutlich erhöht, aber rhythmisch und kontrollierbar.",
-    cues: ["Nicht zu schnell starten", "Pace stabil halten", "Saubere Technik unter Druck"],
-    steps: ["Warm-up", "Kontrollierte Schwellenblöcke", "Cooldown + lockere Nachbelastung"],
+    text: "Unstrukturierter Wechsel aus schnelleren und lockeren Abschnitten nach Gefühl. Brücke zwischen Easy Run und strukturierten Intervallen, entwickelt Renngefühl.",
+    detail: "Beispiel: 40 min Dauerlauf mit 8-12 x 30-90s zügigen Abschnitten nach Topographie/Gefühl. HR variiert zwischen Easy und Schwelle. Gut für Einsteiger und Fortgeschrittene in Base-Blöcken.",
+    cues: ["Spielerisch, nicht starr", "Harte Abschnitte kontrolliert", "Erholung bis HR zurück"],
+    steps: ["10 min Easy", "Fartlek-Hauptteil", "10 min Cooldown"],
     visual: "run",
   },
   {
-    term: "Zone 2",
-    category: "recovery",
-    text: "Lockerer aerober Bereich mit Gesprächsfähigkeit. Basis für Ausdauer, Recovery und Belastungsverträglichkeit.",
-    detail: "Soll bewusst leicht bleiben. Zone-2-Einheiten machen Volumen möglich, ohne unnötig viel Ermüdung zu erzeugen.",
-    cues: ["Nasenatmung/Gespräch möglich", "Pace nicht jagen", "Lieber länger locker als zu hart"],
-    steps: ["Locker einrollen/einlaufen", "Konstanter easy Block", "Kurz mobilisieren"],
+    term: "Progression Run",
+    category: "run",
+    text: "Dauerlauf mit ansteigendem Tempo — startet Easy, endet im Marathonpace- oder Schwellenbereich. Trainiert Pacing-Disziplin und Tempowechsel.",
+    detail: "Typisch: 45-75 min mit drei Segmenten (Easy / Steady / Tempo). Letzte 10-20 min kontrolliert Richtung Schwelle. Alternative zum klassischen Tempo Run in Base-/Build-Phasen.",
+    cues: ["Disziplin am Start", "Stufenweise steigern", "Nicht überziehen"],
+    steps: ["15-20 min Easy", "Steady Mittelteil", "Tempo-Abschluss"],
     visual: "run",
   },
   {
-    term: "Brick Session",
-    category: "triathlon",
-    text: "Bike direkt gefolgt von Run. Trainiert Wechsel und Laufen unter Vorermüdung.",
-    detail: "Im Plan oft als kontrollierte Bike-Session mit kurzem Anschlusslauf. Ziel ist ein sauberer Übergang und gutes Laufgefühl, nicht maximaler Stress.",
-    cues: ["Fueling auf dem Bike üben", "Schneller Wechsel", "Erste Laufminuten bewusst kontrollieren"],
-    steps: ["Bike Hauptteil", "Schneller Wechsel", "Kurzer Run mit Technikfokus"],
-    visual: "brick",
+    term: "Recovery Run",
+    category: "run",
+    text: "Sehr lockerer Kurzlauf zur aktiven Regeneration nach harten Einheiten. Fördert Durchblutung, ohne zusätzliche Ermüdung zu erzeugen.",
+    detail: "Dauer 20-40 min, HR <72% LTHR, Pace deutlich langsamer als Easy. Nach VO2max oder Long Run am Folgetag. Kein Tempo, keine Strides.",
+    cues: ["Bewusst langsam", "Nasenatmung", "Kurz und locker ist das Ziel"],
+    steps: ["Locker anlaufen", "Easy Mittelteil", "Kurz ausrollen"],
+    visual: "run",
   },
   {
-    term: "CSS (Swim)",
-    category: "swim",
-    text: "Critical Swim Speed als Referenztempo für kontrollierte Ausdauer-/Schwellenintensitäten im Wasser.",
-    detail: "Hilft bei der Schwimmsteuerung ähnlich wie Schwellenpace beim Laufen. Typisch: Serien mit konstanter Technik und sauberem Rhythmus.",
-    cues: ["Zuglänge halten", "Ruhige Atmung", "Tempo aus Technik, nicht Hektik"],
-    steps: ["Einschwimmen", "Technik + CSS-Serien", "Ausschwimmen"],
-    visual: "swim",
+    term: "Race Pace Run",
+    category: "run",
+    text: "Kontinuierlicher Lauf exakt im Zielrenntempo. Bildet Muskel- und Energiesystem-Spezifik für die Zieldistanz und trainiert mentales Pace-Gefühl.",
+    detail: "Typisch Marathon-Vorbereitung: 12-24 km im Marathonpace. Halbmarathon: 8-14 km im HM-Tempo. HR knapp unter Schwelle. In Build-/Peak-Phasen, nicht früh im Zyklus.",
+    cues: ["Pace exakt treffen", "Fueling wie im Rennen", "Technik erhalten"],
+    steps: ["15 min Warm-up", "Race-Pace Block", "10 min Cooldown"],
+    visual: "run",
+  },
+  {
+    term: "Hill Repeats",
+    category: "run",
+    text: "Wiederholte Bergläufe (30s-3 min) zur Entwicklung von Kraftausdauer, Lauftechnik und VO2max ohne hohe Aufpralllast.",
+    detail: "Kurze Hills (30-60s) für neuromuskuläre Power, lange Hills (2-3 min) für Schwelle/VO2. Volle Recovery beim Runtertraben. 4-10 Wdh. Großer Return-on-Investment bei geringem Verletzungsrisiko.",
+    cues: ["Aufrecht laufen, nicht nach vorn kippen", "Arme aktiv einsetzen", "Druck aus Hüfte/Gesäß"],
+    steps: ["Warm-up inkl. Drills", "Hill-Repeats", "Cooldown in der Ebene"],
+    visual: "run",
+  },
+
+  // ══════════════════════════════════════════════════════════
+  //  RAD
+  // ══════════════════════════════════════════════════════════
+  {
+    term: "Zone 2 / Grundlage",
+    category: "bike",
+    text: "Lockerer aerober Dauerbereich — das Volumen-Fundament jedes Radsportlers. Baut mitochondriale Dichte, Kapillarisierung und Fettstoffwechsel auf.",
+    detail: "65-75% FTP, HR ~70-80% LTHR, Nasenatmung möglich. Dauer 1.5-5 h. Kadenz natürlich halten. Ohne Zone-2-Base bricht jedes höhere Training ab.",
+    cues: ["Locker, Gespräch möglich", "Kadenz ~85-95", "Nicht in Sweet Spot driften"],
+    steps: ["Kurz einrollen", "Steady Hauptteil", "Locker ausrollen"],
+    visual: "bike",
   },
   {
     term: "Sweet Spot",
     category: "bike",
-    text: "Effizienter Leistungsbereich unterhalb der Schwelle. Viel Trainingsnutzen bei moderater Ermüdung.",
-    detail: "Beliebt für Aufbauphasen: z. B. längere Blöcke im Bereich ~88-94% FTP (als Konzept, individuell anpassen).",
-    cues: ["Druck konstant halten", "Nicht in Schwelle kippen", "Saubere Trittfrequenz"],
-    steps: ["Einrollen", "Sweet-Spot Blöcke", "Ausrollen"],
+    text: "Effizienter Leistungsbereich knapp unter der Schwelle (~88-94% FTP). Hoher Trainingsnutzen bei moderater Ermüdung — das Arbeitspferd der Build-Phase.",
+    detail: "Typisch: 2-3 x 15-25 min mit 5-10 min lockerer Erholung. HR ~88-94% LTHR. Weniger metabolisch stressig als reine Schwelle, aber trotzdem erheblicher aerober Reiz.",
+    cues: ["Druck konstant", "Trittfrequenz rund", "Nicht in Threshold kippen"],
+    steps: ["15 min Warm-up", "Sweet-Spot Blöcke", "Cooldown 10 min"],
     visual: "bike",
   },
   {
-    term: "Cadence Spin-ups",
+    term: "Threshold (FTP-Intervalle)",
     category: "bike",
-    text: "Kurze Phasen mit hoher Trittfrequenz bei geringer Last. Verbessert Koordination und Pedaltechnik.",
-    detail: "Ziel ist nicht Leistung, sondern runder Tritt und Kontrolle bei steigender Kadenz. Kein wildes Wippen im Sattel.",
-    cues: ["Oberkörper ruhig", "Runder Tritt", "Niedrige Last beibehalten"],
-    steps: ["Leicht rollen", "Kadenz hochdrehen", "Locker resetten"],
+    text: "Intervalle an der funktionellen Schwelle (95-105% FTP) zum Anheben der FTP und Verbesserung der Laktatclearance.",
+    detail: "Typisch: 2-4 x 8-20 min bei 95-105% FTP mit 5 min Recovery. 'Kontrolliert hart', HR nahe LTHR. Ermüdender als Sweet Spot — in Build- und Peak-Phasen 1 x / Woche.",
+    cues: ["Gleichmäßiger Druck", "Atmung tief + rhythmisch", "Letztes Intervall nicht einbrechen"],
+    steps: ["Warm-up + Aktivierung", "Threshold-Intervalle", "Cooldown"],
     visual: "bike",
   },
   {
-    term: "Carries (Farmers Carry)",
-    category: "strength",
-    text: "Gewichte über Strecke/Zeit tragen. Trainiert Griffkraft, Haltung, Rumpfspannung und alltagstaugliche Kraft.",
-    detail: "Perfekt für HYROX/Shape. Zuhause auch mit Wasserkanistern/Rucksäcken möglich. Qualität vor Gewicht.",
-    cues: ["Rippen runter, Rumpf fest", "Kurze stabile Schritte", "Schultern tief halten"],
-    steps: ["Gewichte sauber aufnehmen", "Kontrolliert gehen", "Absetzen ohne Einrunden"],
-    visual: "carry",
+    term: "VO2max Rad",
+    category: "bike",
+    text: "Harte Kurzintervalle (2-5 min) bei 108-120% FTP. Trainiert maximale aerobe Leistung, Herzzeitvolumen und Reserve über der Schwelle.",
+    detail: "Klassiker: 5-6 x 3 min @ 115% FTP oder 30/30s on/off. HR steigt bis VO2max-Bereich. Sehr fordernd — maximal 1-2 x / Woche in Build- oder Peak-Phasen.",
+    cues: ["Voll reinarbeiten", "Recovery nutzen", "Qualität bis zum letzten Intervall"],
+    steps: ["Langes Warm-up mit Aktivierung", "VO2-Block", "Langer Cooldown"],
+    visual: "bike",
   },
   {
-    term: "Lunges",
-    category: "strength",
-    text: "Ausfallschritte für Beine, Hüfte und Stabilität. Gut skalierbar von Einsteiger bis Fortgeschritten.",
-    detail: "Einsteiger starten oft mit Reverse Lunges oder Unterstützung. Fortgeschrittene können Last oder Volumen erhöhen.",
-    cues: ["Knie stabil über Fuß", "Rumpf aufrecht", "Kontrolliert absenken"],
-    steps: ["Schritt setzen", "Kontrolliert tief", "Über vorderen Fuß zurück"],
-    visual: "lunge",
+    term: "Sprints (neuromuskulär)",
+    category: "bike",
+    text: "Kurze maximale Antritte (10-30 sek) für neuromuskuläre Power, anaerobe Kapazität und Sprintfähigkeit. Kein metabolischer Volumen-Reiz.",
+    detail: "6-10 x 15-20s all-out mit 4-5 min vollständiger Recovery. Aus Rollen oder Stand. Trainiert Typ-II-Fasern und Antrittskraft. Gut als Aktivierung oder Abschluss.",
+    cues: ["Vollständige Pause zwischen Sprints", "Maximaler Antritt, keine Sparsamkeit", "Technik im Wiegetritt sauber"],
+    steps: ["Warm-up", "Sprint-Block mit voller Recovery", "Cooldown locker"],
+    visual: "bike",
   },
   {
-    term: "Trunk Stability / Core",
-    category: "strength",
-    text: "Rumpfstabilität für Kraftübertragung, Haltung und Verletzungsprävention.",
-    detail: "Im Plan oft als kurze Ergänzung: Dead Bugs, Planks, Side Planks, Carries, Anti-Rotation. Qualität wichtiger als Dauerrekord.",
-    cues: ["Atmung kontrollieren", "Neutral bleiben", "Spannung ohne Verkrampfen"],
-    steps: ["Setup", "Spannung aufbauen", "Sauber kontrollierte Wiederholungen/Haltezeit"],
-    visual: "core",
+    term: "Long Ride",
+    category: "bike",
+    text: "Die lange Ausfahrt als Pendant zum Long Run — wichtigster Volumen-Reiz der Woche, trainiert muskuläre und metabolische Durability.",
+    detail: "Dauer 2.5-6 h, überwiegend Zone 2 mit optionalen Tempo- oder Sweet-Spot-Abschnitten. Fueling trainieren: 60-90 g Carbs/h. Pacing-Disziplin: keine unnötigen Attacken.",
+    cues: ["Fueling von Minute 1 üben", "Pacing diszipliniert", "Sitzposition regelmäßig variieren"],
+    steps: ["Einrollen", "Steady Volumen", "Optionaler Block im oberen Zone 2/Tempo"],
+    visual: "bike",
   },
   {
-    term: "Push-ups (skalierbar)",
-    category: "strength",
-    text: "Drückübung für Oberkörper und Rumpf. Sehr gut skalierbar über Höhe/Neigung.",
-    detail: "Bei Einsteiger:innen zuerst auf erhöhter Fläche (Bank, Tisch, Wand). Ziel ist saubere Spannung und volle Kontrolle.",
-    cues: ["Körper in Linie", "Ellbogen kontrolliert", "Rumpf fest"],
-    steps: ["Setup in Linie", "Kontrolliert absenken", "Gleichmäßig hochdrücken"],
-    visual: "push",
+    term: "Recovery Ride",
+    category: "bike",
+    text: "Sehr lockere Kurzausfahrt zur aktiven Regeneration. Durchblutung, Bewegung, keine Trainingslast.",
+    detail: "30-60 min bei <60% FTP, HR <70% LTHR. Keine Hügel attackieren, keine Intervalle. Folgt auf VO2max oder Threshold am Vortag.",
+    cues: ["Bewusst locker bleiben", "Gespräch problemlos möglich", "Hügel umrunden oder langsam"],
+    steps: ["Locker rollen", "Gleichmäßig leicht", "Ausrollen"],
+    visual: "bike",
+  },
+  {
+    term: "Indoor / Rollentraining",
+    category: "bike",
+    text: "Strukturiertes Training auf Smart-Trainer oder Rolle. Maximale Zeitökonomie — kein Ampel-Stop, konstante Leistung, ideal für präzise Intervalle.",
+    detail: "1h indoor ersetzt oft 1.5-2 h outdoor bei gleicher Stresslast. Lüftung wichtig. Für Sweet Spot, Threshold und VO2max besonders effektiv. Zone 2 ab 90 min auch möglich, aber monoton.",
+    cues: ["Ventilator nutzen", "Handtuch + Flüssigkeit bereit", "Kadenz nicht einschlafen lassen"],
+    steps: ["Warm-up in ERG oder Slope", "Hauptteil strukturiert", "Cooldown + Dehnung"],
+    visual: "bike",
+  },
+
+  // ══════════════════════════════════════════════════════════
+  //  SCHWIMMEN
+  // ══════════════════════════════════════════════════════════
+  {
+    term: "Technik-Einheiten (Drills)",
+    category: "swim",
+    text: "Fokus auf Wasserlage, Zugphase und Rotation. Technik ist im Schwimmen der größte Leistungshebel — besonders für Age-Grouper im Triathlon.",
+    detail: "Typisch: Catch-up, Fingertip Drag, Side Kick, 6-1-6, Single Arm. 200-600 m Drill-Anteil pro Einheit. Qualität > Tempo, Pausen großzügig.",
+    cues: ["Langer Zug, hohe Ellbogenhaltung", "Rotation aus der Hüfte", "Wasserlage bewusst halten"],
+    steps: ["Einschwimmen", "Drill-Serien mit kurzen Pausen", "Locker ausschwimmen"],
+    visual: "swim",
+  },
+  {
+    term: "Ausdauer (CSS-basiert)",
+    category: "swim",
+    text: "Kontinuierliche oder Serien-Schwimmen um die Critical Swim Speed (CSS) — das Äquivalent zur Laufschwelle. Baut spezifische Ausdauer und Pace-Stabilität auf.",
+    detail: "CSS = grobe Schwellen-Pace. Typisch: 6-10 x 100 m @ CSS mit 15-20s Pause, oder 3-5 x 300-400 m @ CSS+2-3s mit 30s Pause. Atmung rhythmisch, Zuglänge halten.",
+    cues: ["Zuglänge nicht verkürzen", "Atmung alle 2-3 Züge", "Gleichmäßige Pace, nicht Front-Load"],
+    steps: ["Warm-up 300-500 m", "CSS-Serien", "Cooldown 200 m locker"],
+    visual: "swim",
+  },
+  {
+    term: "Schwimm-Intervalle (Threshold / VO2max)",
+    category: "swim",
+    text: "Harte Intervalle oberhalb CSS für anaerobe Kapazität und Tempohärte. Für Race-spezifische Spitzenform in Build-/Peak-Phasen.",
+    detail: "Typisch: 10-16 x 50 m @ CSS-5s mit 20-30s Pause (Threshold) oder 8-12 x 100 m @ schnell mit 30-45s (VO2). Letzte Wdh. sollten noch sauber sein.",
+    cues: ["Saubere Wenden", "Explosiv abstoßen", "Technik nicht in der Härte verlieren"],
+    steps: ["Warm-up + Drills", "Intervallblock", "Cooldown"],
+    visual: "swim",
+  },
+  {
+    term: "Open Water",
+    category: "swim",
+    text: "Freiwasser-Training — Sichten, Massenstart-Toleranz, Rhythmus ohne Wand. Pflicht für Triathlon-Wettkampfvorbereitung.",
+    detail: "Fokus: Sichten alle 6-10 Züge, gerade schwimmen ohne Linie, Drafting üben. Gruppentraining oder mit Buddy. Temperatur + Neoprenregeln beachten.",
+    cues: ["Kopf beim Sichten flach über Wasser", "Bahngefühl ohne Linie entwickeln", "Ruhe bei Kontakt behalten"],
+    steps: ["Aufwärmen am Ufer", "Hauptteil mit Sichtungs-Drills", "Locker zurück"],
+    visual: "swim",
+  },
+
+  // ══════════════════════════════════════════════════════════
+  //  TRIATHLON
+  // ══════════════════════════════════════════════════════════
+  {
+    term: "Koppeltraining (Brick)",
+    category: "triathlon",
+    text: "Bike direkt gefolgt von Run. Die spezifischste Triathlon-Einheit überhaupt — trainiert den neuromuskulären Übergang und Laufen unter Vorermüdung.",
+    detail: "Klassisch: 60-90 min Bike (inkl. Race-Pace-Block) + 15-40 min Run. Laufabschnitt kontrolliert, nicht maximal. Wichtigster Lerneffekt: die ersten 5-10 Laufminuten nach Bike.",
+    cues: ["Wechsel schnell", "Erste Laufminuten bewusst kontrollieren", "Fueling auf dem Bike abschließen"],
+    steps: ["Bike-Hauptteil", "Schneller Wechsel", "Run mit Technikfokus"],
+    visual: "brick",
+  },
+  {
+    term: "Wechseltraining (T1 / T2)",
+    category: "triathlon",
+    text: "Gezieltes Üben der Wechselzonen-Routine. In Sprint- und Olympic-Distanzen können saubere Wechsel 60-120 sek pro Race einsparen.",
+    detail: "T1: Schwimmausgang → Neo ausziehen → Helm, Schuhe, Bike raus. T2: Bike abstellen → Laufschuhe. Mehrfach trocken durchspielen, bis Ablauf automatisch sitzt. Ausrüstung fix positionieren.",
+    cues: ["Jeden Handgriff bewusst", "Helm zuerst, dann Bike", "Keine Hektik, aber keine Lücke"],
+    steps: ["Setup der Wechselzone", "Mehrere Durchläufe trocken", "Einmal komplett unter Belastung"],
+    visual: "brick",
+  },
+  {
+    term: "Race Simulation",
+    category: "triathlon",
+    text: "Verkürzte Race-Probe unter Wettkampfbedingungen — Pacing, Fueling, Wechsel und mentale Routine. 3-6 Wochen vor dem Hauptrennen.",
+    detail: "Typisch 40-60% der Wettkampfdistanz bei Race-Pace. Gleiche Ausrüstung, gleiches Fueling, gleicher Tagesablauf wie geplant. Ergebnis dient als Pacing-Validierung, nicht als Performance-Peak.",
+    cues: ["Race-Kit komplett nutzen", "Fueling-Timing testen", "Kein 'test all out'"],
+    steps: ["Swim-Leg", "Bike inkl. Race-Pace", "Run-Leg abgestimmt"],
+    visual: "brick",
+  },
+  {
+    term: "Disziplin-Balance",
+    category: "triathlon",
+    text: "Wöchentliche Verteilung zwischen Swim, Bike und Run — individuell je nach Distanz, Stärken/Schwächen und Wochenstunden.",
+    detail: "Grobe Richtwerte: Sprint/Olympic ~20/45/35 (s/b/r in %), 70.3 ~15/55/30, Ironman ~10/60/30. Schwächste Disziplin bekommt oft eine Extra-Session. Bike als größter Volumen-Block.",
+    cues: ["Schwäche priorisieren", "Volumen im Bike, Qualität im Run", "Swim-Frequenz > Schwimm-Volumen"],
+    steps: ["Wochenblock nach Stärken gewichten", "Bei Zeitmangel: Schwäche zuerst", "Recovery nicht vergessen"],
+    visual: "brick",
+  },
+
+  // ══════════════════════════════════════════════════════════
+  //  HYROX
+  // ══════════════════════════════════════════════════════════
+  {
+    term: "Sled Push",
+    category: "hyrox",
+    text: "Schweres Schieben eines Schlittens — trainiert maximale Beinpressung, anaerobe Kapazität und mentale Härte. Die erste HYROX-Station.",
+    detail: "Race: 50 m mit schwerem Sled. Training: 4-8 x 20-30 m mit vollständiger Recovery. Alternative zuhause: Auto rollen, Sandbag schleppen, Sled-Simulator mit Bändern.",
+    cues: ["Rücken neutral, Hüfte tief", "Kurze, kraftvolle Schritte", "Konstant pushen, nicht wippen"],
+    steps: ["Warm-up inkl. Beinaktivierung", "Sled-Serien", "Locker ausgehen"],
+    visual: "hyrox",
+  },
+  {
+    term: "Sled Pull",
+    category: "hyrox",
+    text: "Schwerer Sled-Pull über Seil — trainiert Rücken, Griff und Zugkraft unter Ermüdung.",
+    detail: "Race: 50 m Sled-Pull mit Seil (rückwärts ziehen, dann Sled nachholen). Training: 6-10 x 15-25 m. Alternative: Band-Row oder Rope-Pull mit beschwertem Rucksack.",
+    cues: ["Rumpf fest, Ellbogen eng", "Kraft aus dem Rücken, nicht Armen", "Hüfte tief halten"],
+    steps: ["Warm-up + Ziehen-Aktivierung", "Pull-Serien", "Cooldown"],
+    visual: "hyrox",
   },
   {
     term: "Burpees",
     category: "hyrox",
-    text: "Ganzkörperübung mit hoher metabolischer Last. Für Einsteiger low-impact skalieren.",
-    detail: "Nicht sofort maximal. Erst Technik und Rhythmus: Schritt zurück, kontrollierte Stützphase, aufstehen, optional kleiner Sprung.",
-    cues: ["Sauberer Rücken im Übergang", "Rhythmus finden", "Bei Fatigue skalieren statt brechen"],
-    steps: ["Runter in Stütz/Boden", "Zurück nach oben", "Aufrichten + (optional) Sprung"],
+    text: "Ganzkörperübung mit hoher metabolischer Last. Im Race als Burpee Broad Jump — trainiert Work Capacity, Atemrhythmus und Fatigue-Resistenz.",
+    detail: "Race: 80 m Burpee Broad Jumps. Training: 4-6 x 10-20 Burpees mit kurzer Pause, oder EMOM 8-12 min mit 8-10 Burpees/Minute. Technik vor Tempo.",
+    cues: ["Rhythmus finden statt sprinten", "Sauberer Rücken im Übergang", "Atmung synchron halten"],
+    steps: ["Leichte Aktivierung", "Burpee-Serien oder EMOM", "Locker auslaufen"],
     visual: "burpee",
   },
   {
-    term: "Compromised Intervals",
+    term: "Farmers Carry",
     category: "hyrox",
-    text: "Wechsel aus Run und Stationen. Simuliert Race-Belastung und Transitions.",
-    detail: "Beispiel: 500-1000 m Run + 1 Functional Block. Ziel ist sauberes Pacing unter Vorermüdung, nicht nur Härte.",
-    cues: ["Run-Pace kontrollieren", "Station technisch sauber", "Übergänge ruhig + effizient"],
-    steps: ["Run-Intervall", "Station/Funktionsblock", "Kurzer Reset, nächste Runde"],
-    visual: "hyrox",
-  },
-  {
-    term: "Wall Balls (ohne Wall möglich)",
-    category: "hyrox",
-    text: "Squat + Ballwurf. Zuhause auch als Medball Thruster / Air Squat to Reach skalierbar.",
-    detail: "Wichtig ist rhythmische Beinarbeit und stabile Position, nicht nur Schulterkraft. Ohne Wall: Zielpunkt an Wand markieren oder Reach-Variante nutzen.",
-    cues: ["Tiefe kontrollieren", "Aus den Beinen arbeiten", "Atmung rhythmisch"],
-    steps: ["Squat", "Explosiv aufrichten + werfen/reachen", "Fangen/Reset"],
-    visual: "squat",
-  },
-  {
-    term: "Sled Push/Pull Ersatz",
-    category: "hyrox",
-    text: "Wenn keine Box verfügbar ist: Hill Pushes, Heavy Carries, Band-Drags oder Towel-Drags als Ersatz.",
-    detail: "Ziel ist ein ähnlicher Reiz (lokale Beinmuskelausdauer + Vortrieb unter Last), nicht die perfekte 1:1-Kopie.",
-    cues: ["Kurze kräftige Schritte", "Rumpf stabil", "Intensität über Zeit/Distanz steuern"],
-    steps: ["Ersatz wählen", "Arbeitsblöcke setzen", "Pausen sauber timen"],
+    text: "Gewichte über Strecke tragen — Griffkraft, Rumpfstabilität, Haltung und alltagstaugliche Kraft. HYROX-Core-Station.",
+    detail: "Race: 200 m Farmers Carry mit 2 x 24 kg (W: 2 x 16 kg). Training: 4-6 x 40-80 m bei 60-80% Race-Weight. Zuhause: Wasserkanister, Hanteln, beschwerte Rucksäcke.",
+    cues: ["Rippen runter, Rumpf fest", "Schultern tief und zurück", "Kurze stabile Schritte"],
+    steps: ["Gewichte sauber aufnehmen", "Kontrolliert gehen", "Absetzen ohne Einrunden"],
     visual: "carry",
   },
   {
-    term: "Mobility Flow",
-    category: "recovery",
-    text: "Kurzer Beweglichkeitsblock für Hüfte, Thorax, Sprunggelenk und Schulter.",
-    detail: "Soll sich 'besser' anfühlen, nicht zerstören. Besonders sinnvoll nach langen Sitzphasen oder lockeren Einheiten.",
-    cues: ["Langsam + kontrolliert", "Atmung mitbewegen", "Nur in schmerzfreie Range"],
-    steps: ["Atmung/Reset", "Mobilitätsübungen", "Leichte Aktivierung"],
-    visual: "mobility",
+    term: "Wall Balls",
+    category: "hyrox",
+    text: "Squat + explosiver Wurf gegen Wand — trainiert Beinkraft, Coordination und anaerobe Kapazität unter Vorermüdung. Letzte Station im HYROX.",
+    detail: "Race: 100 Wall Balls (W: 75) mit 9 kg (W: 6 kg). Training: 5-8 Sätze à 15-25 Wdh., EMOMs oder Unbroken-Sets. Zuhause: Medizinball gegen stabile Wand oder hohe Würfe ohne Wand.",
+    cues: ["Volle Hüftextension im Wurf", "Ball mit den Beinen werfen, nicht Armen", "Sauberer Squat bis Parallel"],
+    steps: ["Warm-up + Squat-Aktivierung", "Wall-Ball-Serien", "Cooldown"],
+    visual: "hyrox",
   },
   {
-    term: "Deload",
-    category: "recovery",
-    text: "Geplante Entlastungsphase mit weniger Volumen/Intensität zur Anpassung und Regeneration.",
-    detail: "Deload ist kein Rückschritt. Er sorgt dafür, dass Trainingseffekte ankommen und Motivation/Belastbarkeit stabil bleiben.",
-    cues: ["Weniger ist geplant", "Schlaf/Erholung priorisieren", "Technik sauber halten"],
-    steps: ["Volumen senken", "Intensität selektiv reduzieren", "Frische für nächsten Block sammeln"],
-    visual: "recovery",
+    term: "Rowing / Ski Erg",
+    category: "hyrox",
+    text: "Ruder- und Ski-Ergometer — Ganzkörper-Ausdauer mit niedriger Gelenklast. HYROX-Race: 1000 m Row und 1000 m Ski.",
+    detail: "Training: 4-6 x 500 m Row @ Race-Pace mit 90s Pause oder 5 x 1000 m Ski. Fokus auf Technik + stabiler Split. Ski-Alternative: stehendes Band-Pulling.",
+    cues: ["Row: Beine → Hüfte → Arme", "Ski: Hüftcharnier, Arme als Hebel", "Split-Konstanz"],
+    steps: ["Technik-Warmup", "Hauptteil mit kontrolliertem Split", "Locker ausrudern"],
+    visual: "hyrox",
   },
   {
-    term: "Taper",
-    category: "recovery",
-    text: "Belastung vor dem Wettkampf reduzieren, damit du frischer und leistungsbereit startest.",
-    detail: "Weniger Gesamtlast, aber etwas Qualität bleibt drin. Ziel ist Frische ohne das Gefühl, 'einzurosten'.",
-    cues: ["Routine beibehalten", "Volumen runter", "Fueling/Schlaf optimieren"],
-    steps: ["Volumen reduzieren", "Kurze Aktivierungen behalten", "Raceday vorbereitet starten"],
-    visual: "recovery",
+    term: "Lunges (Sandbag/Weighted)",
+    category: "hyrox",
+    text: "Ausfallschritte mit Zusatzlast — trainiert unilaterale Beinkraft, Hüftstabilität und muskuläre Ermüdungstoleranz. Race: 100 m Sandbag Lunges.",
+    detail: "Race: 100 m mit 20 kg Sandbag (W: 10 kg). Training: 3-5 x 30-60 m mit Sandbag oder KB im Front Rack. Unbroken Sets bevorzugt, Qualität vor Tempo.",
+    cues: ["Knie stabil über Fuß", "Rumpf aufrecht", "Kontrollierte Absenkung"],
+    steps: ["Aktivierung Beine", "Lunges mit Last", "Locker ausgehen"],
+    visual: "lunge",
   },
   {
-    term: "Long Run Durability",
-    category: "run",
-    text: "Lange Läufe verbessern nicht nur Ausdauer, sondern die Fähigkeit, über Zeit stabil zu bleiben.",
-    detail: "Mit passender Dauer und Progression steigen metabolische Robustheit, muskuläre Ermüdungsresistenz und Fueling-Verträglichkeit. Das macht Schlussphasen im Rennen stabiler.",
-    cues: ["Früh ruhig starten", "Pace kontrollieren", "Fueling/Hydration mittrainieren"],
-    steps: ["Easy Start", "Steady Mittelteil", "Optional kontrolliert progressiver Schluss"],
+    term: "Compromised Running",
+    category: "hyrox",
+    text: "Laufen unter Vorermüdung von Stationen — das zentrale HYROX-Skill. Jeder Kilometer im Race wird mit müden Beinen gelaufen.",
+    detail: "Beispiel: 800-1000 m Run zwischen 2 Functional-Blöcken, 4-6 Runden. Run-Pace kontrolliert halten trotz Fatigue. Trainiert den Switch zwischen anaerob und aerob.",
+    cues: ["Run-Pace disziplinieren", "Technik bei Ermüdung halten", "Übergänge ruhig + effizient"],
+    steps: ["Run-Intervall", "Station/Block", "Kurzer Reset, nächste Runde"],
+    visual: "hyrox",
+  },
+  {
+    term: "Station-Transitions",
+    category: "hyrox",
+    text: "Der Wechsel zwischen Laufrunde und Station. Saubere Transitions können im HYROX 30-90 sek Gesamtzeit ausmachen.",
+    detail: "Fokus: kontrollierter Einlauf in die Roxzone, schneller Equipment-Pickup, sofortiger Start. Mental-Reset während der letzten 50 m vor Station. Übung in der Race-Simulation wichtig.",
+    cues: ["Letzte 50 m zur Station als Übergang nutzen", "Equipment-Pickup ohne Zögern", "Erste Wdh. kontrolliert"],
+    steps: ["Lauf-Approach", "Equipment pickup", "Sauberer Start der Station"],
+    visual: "hyrox",
+  },
+
+  // ══════════════════════════════════════════════════════════
+  //  KRAFT / STRENGTH
+  // ══════════════════════════════════════════════════════════
+  {
+    term: "Compound Lifts",
+    category: "strength",
+    text: "Mehrgelenkige Grundübungen: Squat, Deadlift, Press, Row. Das Kraft-Fundament für alle Ausdauersportler — maximaler ROI für minimale Zeit.",
+    detail: "Typisch 3-5 Sätze à 4-8 Wdh. mit 2-4 min Pause. Progression über Last oder Volumen. 1-2 x / Woche in Base-/Build-Phasen, in Peak reduzieren.",
+    cues: ["Technik vor Gewicht", "Bar path gerade", "Rumpfspannung in jeder Wdh."],
+    steps: ["Warm-up-Sätze", "Arbeitssätze mit voller Pause", "Optional Backoff-Satz"],
+    visual: "core",
+  },
+  {
+    term: "Kraftausdauer-Zirkel",
+    category: "strength",
+    text: "Mehrere Übungen in Folge mit kurzer Pause — trainiert muskuläre Ausdauer, Work Capacity und metabolische Toleranz. HYROX- und Shape-Favorit.",
+    detail: "Typisch: 4-6 Übungen, 10-15 Wdh. oder 30-45 sek Work, 10-20 sek Pause zwischen Stationen, 2-4 min Pause zwischen Runden. 3-5 Runden.",
+    cues: ["Technik unter Ermüdung halten", "Atmung kontrollieren", "Qualität vor Tempo"],
+    steps: ["Warm-up", "Zirkelrunden", "Cooldown + Mobility"],
+    visual: "core",
+  },
+  {
+    term: "Core / Stabilisation",
+    category: "strength",
+    text: "Rumpfstabilität und Anti-Rotation — Kraftübertragung, Haltung und Verletzungsprävention. Pflicht für jeden Ausdauersportler.",
+    detail: "Typisch: Dead Bugs, Planks, Side Planks, Pallof Press, Bird Dogs. 2-4 x pro Woche, 10-15 min. Qualität und neutrale Wirbelsäule wichtiger als Haltezeit-Rekorde.",
+    cues: ["Atmung kontrollieren", "Neutral bleiben", "Spannung ohne Verkrampfen"],
+    steps: ["Setup in Linie", "Sauber kontrollierte Wdh. oder Hold", "Kurze Pause, nächste Übung"],
+    visual: "core",
+  },
+  {
+    term: "Mobility / Stretching",
+    category: "strength",
+    text: "Beweglichkeitsarbeit für Hüfte, BWS und Sprunggelenk. Keine direkte Leistungssteigerung, aber Grundvoraussetzung für saubere Bewegungsmuster und Verletzungsprävention.",
+    detail: "Dynamisch vor dem Training (Leg Swings, World's Greatest), statisch nach dem Training oder als eigene Session (10-20 min). Problemzonen beim Läufer: Hüftbeuger, Waden, BWS-Rotation.",
+    cues: ["Nicht in den Schmerz dehnen", "Atmung tief + ruhig", "Konsistenz vor Extremdehnung"],
+    steps: ["Gezielte Problemzonen", "Haltezeiten 30-60 sek", "Zeit für BWS einplanen"],
+    visual: "core",
+  },
+  {
+    term: "Plyometrie",
+    category: "strength",
+    text: "Sprungtraining für neuromuskuläre Power, Reaktivität und Lauftechnik. Trainiert Kraft-Zeit-Verlauf und Stretch-Shortening-Cycle.",
+    detail: "Typisch: Box Jumps, Broad Jumps, Pogo Hops, Bounding. 3-5 Sätze à 4-8 Wdh. mit vollständiger Recovery. Qualität > Volumen. In Base-/Build-Phasen 1-2 x / Woche.",
+    cues: ["Volle Pause zwischen Wdh.", "Leise Landung = gute Landung", "Nicht bei starker Ermüdung"],
+    steps: ["Warm-up + Aktivierung", "Plyo-Block mit voller Recovery", "Cooldown"],
+    visual: "core",
+  },
+
+  // ══════════════════════════════════════════════════════════
+  //  ALLGEMEIN (unter recovery einsortiert für Filter-Kompatibilität)
+  // ══════════════════════════════════════════════════════════
+  {
+    term: "Periodisierung (Meso-/Makrozyklus)",
+    category: "recovery",
+    text: "Strukturierte Blockaufteilung des Trainings: Mikrozyklus (Woche), Mesozyklus (3-6 Wochen), Makrozyklus (Saison). Jede Ebene hat eigene Ziele.",
+    detail: "Klassisch: Base → Build → Peak → Taper → Race → Recovery. Mesozyklen mit 3:1 (3 Lastwochen + 1 Deload) oder 2:1. Periodisierung verhindert Übertraining und maximiert Spitzenform.",
+    cues: ["Klare Blockziele", "Deload ernst nehmen", "Nie zwei harte Blöcke ohne Erholung stapeln"],
+    steps: ["Saisonziel definieren", "Mesozyklen rückwärts planen", "Wochenstruktur ableiten"],
+    visual: "core",
+  },
+  {
+    term: "Trainingssteuerung (CTL/ATL/TSB/ACWR)",
+    category: "recovery",
+    text: "Metriken zur objektiven Belastungssteuerung: CTL (Fitness), ATL (Fatigue), TSB (Form), ACWR (akut:chronisch Verhältnis).",
+    detail: "CTL = 42-Tage-Durchschnitt der Trainingslast. ATL = 7-Tage. TSB = CTL - ATL (positiv = frisch, negativ = müde). ACWR 0.8-1.3 = 'sweet spot', >1.5 = Verletzungsrisiko.",
+    cues: ["TSB vor Race > 0", "ACWR-Spikes vermeiden", "Daten als Werkzeug, nicht Dogma"],
+    steps: ["Last pro Einheit tracken", "Trends beobachten", "Bei Warnsignalen anpassen"],
+    visual: "core",
+  },
+  {
+    term: "Erholung (Schlaf, Ernährung, aktive Erholung)",
+    category: "recovery",
+    text: "Erholung ist kein passiver Zustand — sie ist der Mechanismus, in dem Anpassung tatsächlich passiert. Ohne Erholung kein Fortschritt.",
+    detail: "Schlaf 7-9 h/Nacht ist Priorität #1. Protein + Carbs nach dem Training (0.3 g/kg Protein + 1-1.2 g/kg Carbs). Aktive Erholung: lockeres Gehen/Schwimmen, keine Intensität.",
+    cues: ["Schlaf vor Training", "Post-Workout-Fueling nicht skippen", "Ein echter Rest Day pro Woche"],
+    steps: ["Schlaf sichern", "Ernährung timen", "Stress managen"],
+    visual: "core",
+  },
+  {
+    term: "Übertraining erkennen",
+    category: "recovery",
+    text: "Overreaching vs. Overtraining: kurzfristige Überlastung ist normal und reversibel. Echtes Übertraining kostet Monate.",
+    detail: "Warnsignale: dauerhaft erhöhte Ruhe-HR, niedrige HRV, schlechter Schlaf, Leistungsabfall über 2+ Wochen, Stimmungstief, ständige Erkältungen. Eingriff: Volumen runter, Intensität raus, Schlaf + Ernährung optimieren.",
+    cues: ["HRV-Trends beobachten", "Subjektive Readiness ernst nehmen", "Bei Symptomen 1-2 Wochen Backoff"],
+    steps: ["Frühwarnsystem etablieren", "Bei Warnung: Pause > Härte", "Bei Verdacht: Arzt konsultieren"],
+    visual: "core",
+  },
+  {
+    term: "Tapering",
+    category: "recovery",
+    text: "Gezielte Belastungsreduktion vor dem Hauptrennen — senkt Ermüdung, erhält Fitness, setzt Performance frei. 10-21 Tage je nach Distanz.",
+    detail: "Volumen -40 bis -60%, Intensität überwiegend erhalten, Frequenz konstant. Marathon: ~2-3 Wochen Taper. 10K: ~7-10 Tage. Fehler: zu wenig oder zu radikaler Cut.",
+    cues: ["Intensität beibehalten", "Volumen schneiden, nicht Qualität", "Taper-Blues ist normal"],
+    steps: ["Letzte harte Woche", "Volumen progressiv senken", "Race-Woche spritzig + kurz"],
     visual: "run",
   },
   {
-    term: "Periodisierung (Base/Build/Specific/Taper)",
+    term: "Zyklusbasiertes Training",
     category: "recovery",
-    text: "Der Plan steuert Last nicht linear, sondern in Blöcken mit Zielschwerpunkt.",
-    detail: "Base baut Grundlage und Technik, Build erhöht strukturierte Last, Specific wird race-näher, Taper reduziert Ermüdung bei erhaltener Schärfe.",
-    cues: ["Blockziel akzeptieren", "Nicht jede Woche maximal", "Deloads bewusst nutzen"],
-    steps: ["Base", "Build", "Specific", "Taper"],
-    visual: "recovery",
+    text: "Anpassung von Volumen und Intensität an den Menstruationszyklus. Physiologie variiert systematisch zwischen Follikel- und Lutealphase.",
+    detail: "Follikelphase (Tag 1-14): Belastbarkeit tendenziell höher, gute Phase für Intensität und PRs. Lutealphase (Tag 15-28): Herz-Kreislauf etwas belasteter, Hitzetoleranz niedriger. Individuelle Antwort varriiert stark.",
+    cues: ["Eigene Muster tracken", "Nicht dogmatisch anwenden", "PMS-Symptome respektieren"],
+    steps: ["Zyklus dokumentieren", "Muster über 2-3 Monate erkennen", "Training leicht adaptieren"],
+    visual: "core",
   },
   {
-    term: "Fitness-Fatigue-Modell",
+    term: "Schwangerschaft & Rückbildung",
     category: "recovery",
-    text: "Leistung entsteht aus positiver Anpassung minus kurzfristiger Ermüdung.",
-    detail: "Harte Reize erhöhen Fitness und Ermüdung gleichzeitig. Deload/Recovery senkt Ermüdung schneller, damit die Anpassung sichtbar wird.",
-    cues: ["Readiness mitdenken", "Ermüdung nicht ignorieren", "Qualität gezielt platzieren"],
-    steps: ["Belastung setzen", "Ermüdung zulassen", "Absorbieren/entlasten"],
-    visual: "recovery",
+    text: "Training während Schwangerschaft und nach der Geburt — sehr individuell, immer ärztlich begleitet. Generelle Prinzipien als Orientierung, keine medizinische Beratung.",
+    detail: "Schwangerschaft: moderate Aktivität meist unbedenklich, Intensität reduzieren, Hitze und Kontaktsport meiden. Postpartum: sanfter Wiedereinstieg ab Freigabe, Beckenbodenarbeit priorisieren, Progression über Wochen-Monate, nicht Tage.",
+    cues: ["Immer ärztliche Freigabe", "Beckenboden zuerst", "Symptome ernst nehmen und pausieren"],
+    steps: ["Ärztliche Abklärung", "Sanfter Wiedereinstieg", "Progression nach Körpergefühl"],
+    visual: "core",
   },
   {
-    term: "Zyklusbasierte Steuerung",
+    term: "Hitzetraining / Höhentraining",
     category: "recovery",
-    text: "Bei aktivierter Zyklusplanung wird Intensität phasenabhängig feinjustiert.",
-    detail: "Die App arbeitet mit moderaten Anpassungen je Phase (z. B. high-intensity toleranter in Follicular, konservativer in frühen/late Phasen). Individuelle Readiness bleibt entscheidend.",
-    cues: ["Tagesform priorisieren", "High-Intensity flexibel halten", "Fueling/Hydration früh setzen"],
-    steps: ["Phase erkennen", "Session skalieren", "Feedback in Readiness spiegeln"],
-    visual: "recovery",
-  },
-  {
-    term: "Race-Pace Spezifität",
-    category: "triathlon",
-    text: "Näher zum Wettkampf wird ein Teil der Qualität race-pace-nah gesetzt.",
-    detail: "Specific-Phase trainiert Zieltempo, Pacing-Stabilität und Technik unter kontrollierter Vorermüdung statt nur 'hart um hart'.",
-    cues: ["Pacing diszipliniert", "Saubere Technik", "Nicht überzocken"],
-    steps: ["Race-pace Block", "Kontrollierte Erholung", "Kurzer Qualitätsabschluss"],
-    visual: "brick",
+    text: "Spezielle Umgebungs-Reize für Plasma-Volumen-Zuwachs (Hitze) oder Hämoglobin-Masse (Höhe). Marginal Gains für Fortgeschrittene.",
+    detail: "Hitze: 10-14 Tage Hitzeexposition (Sauna nach Training, warme Trainingsumgebung) erhöht Plasmavolumen und thermoregulatorische Kapazität. Höhe: 'Live high, train low' ist Goldstandard — 3-4 Wochen auf 2000-2500 m, Qualität unten.",
+    cues: ["Hydration kritisch", "Nicht bei Krankheit", "Individueller Response variiert"],
+    steps: ["Protokoll wählen", "Monitoring (HR, Gewicht)", "Nach Block: 10-21 Tage Re-Adaption"],
+    visual: "core",
   },
 ];
 
@@ -1252,6 +1522,14 @@ form?.addEventListener("submit", (event) => {
 });
 
 function generatePlanFromProfile(profile) {
+  // ── Form State Preservation (Follow-up #3 Punkt 1) ──
+  // WICHTIG: Die Eingabefelder (Disziplin, Zielformat, Zielzeit, Datum, Modus)
+  // dürfen nach Plan-Generierung NICHT zurückgesetzt werden. Der User will
+  // oft nach Plan-Erstellung nur eine Kleinigkeit anpassen und erneut "run.".
+  // Wir speichern explizit einen Snapshot, damit auch der zuletzt getippte
+  // Wert (der evtl. noch nicht debounced autosaved wurde) persistiert ist.
+  try { if (typeof savePlanFormSnapshot === "function") savePlanFormSnapshot(); } catch (_) {}
+
   const plan = buildPlan(profile);
   generatedSessions = plan.sessions;
   generatedSessions.forEach((session, index) => {
@@ -2678,6 +2956,15 @@ document.querySelectorAll("[data-legal-open]").forEach((btn) => {
       openLegalModal(key);
     }
   });
+});
+
+// ── Gesundheitshinweis footer button (Follow-up #3 Punkt 3b) ──
+// Opens the existing legal modal directly on the "disclaimer" section.
+document.addEventListener("click", (event) => {
+  const btn = event.target?.closest?.("[data-open-health-disclaimer]");
+  if (!btn) return;
+  event.preventDefault();
+  if (typeof openLegalModal === "function") openLegalModal("disclaimer");
 });
 
 document.getElementById("open-legal-questionnaire-btn")?.addEventListener("click", openLegalQuestionnaire);
@@ -11071,97 +11358,168 @@ function buildSessionInsight(session, profile) {
   const discipline = profile?.discipline || latestProfile?.discipline || "running";
   const txt = (de, en, ja) => (currentLang === "de" ? de : currentLang === "ja" ? ja : en);
   const weeks = Math.max(6, Number(latestPlan?.meta?.weeks) || 12);
+  const weekIdx = Math.max(0, Number(session?.weekIndex) || 0);
   const phase = resolveTrainingPhase({
-    weekIndex: Math.max(0, Number(session?.weekIndex) || 0),
+    weekIndex: weekIdx,
     weeks,
     discipline,
     goalDistance: profile?.goalDistance,
     profile,
   });
-  const phaseWhy = phase === "onboarding"
-    ? txt(
-      "Jetzt wird der Körper vorbereitet: Technik, Verträglichkeit und Rhythmus vor harten Reizen.",
-      "This phase prepares the body first: technique, tolerance, and rhythm before harder stress.",
-      "この時期は高強度の前に、技術・耐性・リズムを整える段階です。"
-    )
+  // Micro-cycle position (1..4) within a 3:1 mesocycle block
+  const microWeek = (weekIdx % 4) + 1;
+  const microLabel = microWeek === 1
+    ? txt("Akkumulation", "accumulation", "蓄積")
+    : microWeek === 2
+    ? txt("Progression", "progression", "進展")
+    : microWeek === 3
+    ? txt("Peak", "peak", "ピーク")
+    : txt("Deload", "deload", "ディロード");
+  // Complexity tier drives jargon level (sci / mid / easy)
+  const tierInfo = typeof getPlanComplexity === "function" ? getPlanComplexity(profile) : null;
+  const tier = tierInfo?.key || tierInfo?.tier || "mid";
+  const pickJ = (sci, mid, easy) => (tier === "sci" ? sci : tier === "easy" ? easy : mid);
+  const phaseLabel = phase === "onboarding"
+    ? txt("Onboarding", "Onboarding", "オンボーディング")
     : phase === "base"
-    ? txt(
-      "Jetzt liegt der Fokus auf robuster Basis: sauberer Reiz, geringe Nebenkosten, hohe Wiederholbarkeit.",
-      "This phase builds repeatable base with good stimulus and controlled fatigue cost.",
-      "この時期は再現性の高い土台作りが優先です。"
-    )
+    ? txt("Base", "Base", "ベース")
+    : phase === "taper"
+    ? txt("Taper", "Taper", "テーパー")
     : isSpecificPhase(phase)
-      ? txt(
-        "Jetzt wird es wettkampfnäher: Pacing, Ökonomie und Belastungsverträglichkeit unter zielnahen Reizen.",
-        "Now it turns race-specific: pacing, economy, and durability under event-like stress.",
-        "この時期はレース特異性を高める段階です。"
-      )
-      : phase === "taper"
-        ? txt(
-          "Jetzt zählt Frische: Reiz erhalten, Ermüdung senken, Leistung freilegen.",
-          "Now freshness matters: keep sharpness, drop fatigue, reveal performance.",
-          "この時期は疲労を抜いてパフォーマンスを引き出す段階です。"
-        )
-        : txt(
-          "Jetzt wird Belastung progressiv aufgebaut, damit Fitness steigt ohne Qualität zu verlieren.",
-          "This block builds progressive load so fitness rises without losing session quality.",
-          "この時期は質を保ちながら段階的に負荷を積み上げます。"
-        );
+    ? txt("Race-Specific", "Race-specific", "レース特異")
+    : txt("Build", "Build", "ビルド");
+  const phaseWhy = txt(
+    `${phaseLabel}-Phase, Woche ${microWeek}/4 (${microLabel}).`,
+    `${phaseLabel} phase, week ${microWeek}/4 (${microLabel}).`,
+    `${phaseLabel}期・週${microWeek}/4（${microLabel}）。`
+  );
 
   if (session.type === "rest") {
     return {
-      purpose: txt("Erholung aktiv sichern", "Secure recovery", "回復を確保する"),
-      adaptation: txt("Ermüdung abbauen und positive Anpassung sichtbar machen", "Reduce fatigue so positive adaptation can express", "疲労を下げて適応を表面化させる"),
-      physiology: txt("Parasympathische Aktivierung, HRV-Stabilisierung, Glycogen-Repletion, Gewebereparatur", "Parasympathetic recovery, HRV stabilization, glycogen repletion, tissue repair", "副交感神経優位・HRV安定・グリコーゲン再補充・組織回復"),
-      why: txt(`Fitness entsteht als Nettoeffekt aus Reiz minus Ermüdung. ${phaseWhy}`, `Fitness is a net effect of stimulus minus fatigue. ${phaseWhy}`, `フィットネスは刺激と疲労の差で決まります。${phaseWhy}`),
+      purpose: pickJ(
+        txt("Parasympathische Erholung sichern", "Secure parasympathetic recovery", "副交感神経優位で回復"),
+        txt("Erholung aktiv sichern", "Secure recovery", "回復を確保する"),
+        txt("Pause für Regeneration", "Rest to recover", "休んで回復")
+      ),
+      adaptation: pickJ(
+        txt("Superkompensation und HRV-Anstieg ermöglichen", "Allow supercompensation and HRV rise", "超回復とHRV上昇"),
+        txt("Ermüdung senken, damit Anpassung sichtbar wird", "Drop fatigue so adaptation shows", "疲労を下げて適応を出す"),
+        txt("Der Körper erholt sich und wird stärker", "Body recovers and gets stronger", "体が回復して強くなる")
+      ),
+      physiology: pickJ(
+        txt("HRV-Stabilisierung, Glycogen-Repletion, Gewebereparatur", "HRV stabilization, glycogen repletion, tissue repair", "HRV安定・グリコーゲン補充・組織修復"),
+        txt("Nervensystem erholt sich, Speicher füllen sich", "Nervous system recovers, stores refill", "神経系回復と補給"),
+        txt("Nerven und Speicher erholen sich", "Nerves and stores recover", "神経と貯蔵が回復")
+      ),
+      why: txt(`Fitness = Reiz - Ermüdung. ${phaseWhy}`, `Fitness = stimulus - fatigue. ${phaseWhy}`, `フィットネス=刺激-疲労。${phaseWhy}`),
     };
   }
 
-  if (title.includes("threshold")) {
+  if (title.includes("threshold") || title.includes("tempo")) {
     return {
-      purpose: txt("Renntempo länger stabil halten", "Hold race pace longer", "レースペースを長く維持する"),
-      adaptation: txt("Schwellenleistung, Tempohärte, Pacing-Stabilität unter kontrollierter Last", "Threshold durability and pacing stability under controlled strain", "閾値持久力とペース安定性"),
-      physiology: txt("vLT2-Anhebung, Laktat-Clearance, aerobe Enzymaktivität, Ökonomie", "Higher LT2, lactate clearance, aerobic enzyme activity, economy", "LT2向上・乳酸処理・有酸素酵素活性・効率"),
-      why: txt(`Mehr Tempo bei geringerem metabolischen Preis. ${phaseWhy}`, `More speed at lower metabolic cost. ${phaseWhy}`, `代謝コストを抑えて速さを出しやすくします。${phaseWhy}`),
+      purpose: pickJ(
+        txt("vLT2 anheben, Tempohärte entwickeln", "Raise vLT2 and threshold durability", "LT2上昇と閾値持久力"),
+        txt("Renntempo länger stabil halten", "Hold race pace longer", "レースペースを長く保つ"),
+        txt("Schneller bei gleicher Anstrengung", "Faster at same effort", "同じ負荷で速く")
+      ),
+      adaptation: pickJ(
+        txt("Laktat-Clearance und Schwellen-Power über Zeit", "Lactate clearance and threshold power over time", "乳酸処理と閾値パワー"),
+        txt("Tempohärte und Pacing-Stabilität", "Threshold durability and pacing stability", "閾値持久力とペース安定"),
+        txt("Länger schnell laufen können", "Run fast for longer", "長く速く")
+      ),
+      physiology: pickJ(
+        txt("vLT2, Laktat-Clearance, aerobe Enzymaktivität", "vLT2, lactate clearance, aerobic enzymes", "vLT2・乳酸処理・酵素活性"),
+        txt("Höhere Schwelle, bessere Ökonomie", "Higher threshold, better economy", "閾値上昇・効率向上"),
+        txt("Der Körper toleriert Tempo besser", "Body tolerates pace better", "ペースに強くなる")
+      ),
+      why: txt(`Mehr Tempo bei geringerem Preis. ${phaseWhy}`, `More speed at lower cost. ${phaseWhy}`, `低コストで高速化。${phaseWhy}`),
     };
   }
 
-  if (title.includes("vo2")) {
+  if (title.includes("vo2") || title.includes("interval")) {
     return {
-      purpose: txt("Leistungsspitze und Reserve erhöhen", "Increase top-end power and reserve", "最高出力の余力を作る"),
-      adaptation: txt("Top-End-Leistung, Sauerstofftransport und hohe Intensitäten besser tolerieren", "Improve top-end output, oxygen transport, and high-intensity tolerance", "高強度耐性と酸素運搬能力を高める"),
-      physiology: txt("VO2max, Herzzeitvolumen, periphere O2-Nutzung, neuromuskuläre Rekrutierung", "VO2max, cardiac output, peripheral O2 use, neuromuscular recruitment", "VO2max・心拍出量・末梢酸素利用・神経筋動員"),
-      why: txt(`Schafft Reserve über Wettkampfpace hinaus. ${phaseWhy}`, `Builds reserve above race pace. ${phaseWhy}`, `レースペース以上の余力を作ります。${phaseWhy}`),
+      purpose: pickJ(
+        txt("VO2max und Herzzeitvolumen ausreizen", "Push VO2max and cardiac output", "VO2maxと心拍出量"),
+        txt("Spitzenleistung und Reserve aufbauen", "Build top-end and reserve", "最高出力と余力"),
+        txt("Höchsttempo-Reserve schaffen", "Create top-end reserve", "余力を作る")
+      ),
+      adaptation: pickJ(
+        txt("O2-Transport, periphere Nutzung, neuromuskuläre Rekrutierung", "O2 transport, peripheral use, neuromuscular recruitment", "酸素運搬・末梢利用・神経筋"),
+        txt("Höchsttempo länger tolerieren", "Tolerate top speed longer", "最高強度の耐性"),
+        txt("Harte Intervalle verkraften", "Handle hard intervals", "きつい反復に耐える")
+      ),
+      physiology: pickJ(
+        txt("VO2max, SV, periphere O2-Extraktion", "VO2max, stroke volume, O2 extraction", "VO2max・一回拍出量・酸素抽出"),
+        txt("Herz und Muskeln liefern mehr Sauerstoff", "Heart and muscles deliver more oxygen", "心臓と筋の酸素供給"),
+        txt("Der Motor wird größer", "Engine gets bigger", "エンジンが大きく")
+      ),
+      why: txt(`Reserve über Renntempo. ${phaseWhy}`, `Reserve above race pace. ${phaseWhy}`, `レースペース以上の余力。${phaseWhy}`),
     };
   }
 
   if (title.includes("long")) {
     return {
-      purpose: txt("Robustheit für lange Renndauer aufbauen", "Build durability for long race duration", "長時間レースの耐久性を作る"),
-      adaptation: txt(
-        discipline === "triathlon" ? "Fueling-Strategie, muskuläre Ausdauer, Brick-/Long-Session-Verträglichkeit" : "Metabolische Robustheit, Durability, Pacing-Stabilität über Zeit",
-        discipline === "triathlon" ? "Fueling strategy, muscular endurance, brick/long-session durability" : "Metabolic robustness, durability, pacing stability over time",
-        "補給戦略・筋持久力・長時間耐久性"
+      purpose: pickJ(
+        txt("Durability und metabolische Robustheit", "Durability and metabolic robustness", "耐久性と代謝頑健性"),
+        txt("Robustheit für lange Renndauer", "Durability for long races", "長時間レース耐久性"),
+        txt("Länger durchhalten", "Last longer", "長持ちさせる")
       ),
-      physiology: txt("Mitochondriale Dichte, Fettstoffwechsel, Glycogen-Management, Bindegewebs-/Muskeltoleranz", "Mitochondrial density, fat oxidation, glycogen management, tissue tolerance", "ミトコンドリア・脂質代謝・グリコーゲン管理・組織耐性"),
-      why: txt(`Long Sessions erhöhen die Stabilität spät im Rennen. ${phaseWhy}`, `Long sessions improve late-race stability. ${phaseWhy}`, `ロングセッションは終盤の安定性を高めます。${phaseWhy}`),
+      adaptation: pickJ(
+        txt("Mitochondriale Dichte, Fettoxidation, Glycogen-Management", "Mitochondrial density, fat oxidation, glycogen management", "ミトコンドリア・脂質酸化・糖管理"),
+        txt(
+          discipline === "triathlon" ? "Fueling, muskuläre Ausdauer, Brick-Verträglichkeit" : "Metabolische Stabilität, Durability über Zeit",
+          discipline === "triathlon" ? "Fueling, muscle endurance, brick tolerance" : "Metabolic stability and durability",
+          "補給・筋持久力・耐久"
+        ),
+        txt("Körper lernt lange Belastung", "Body learns long effort", "長時間に慣れる")
+      ),
+      physiology: pickJ(
+        txt("Mitochondriale Biogenese, Fettstoffwechsel, Bindegewebstoleranz", "Mitochondrial biogenesis, fat metabolism, tissue tolerance", "ミトコンドリア生成・脂質代謝"),
+        txt("Ausdauer, Fettverbrennung, Gewebe", "Endurance, fat burning, tissues", "持久力・脂質燃焼・組織"),
+        txt("Energie und Gewebe werden zäher", "Energy and tissues get tougher", "エネルギーと組織が強く")
+      ),
+      why: txt(`Stabilität spät im Rennen. ${phaseWhy}`, `Late-race stability. ${phaseWhy}`, `終盤の安定性。${phaseWhy}`),
     };
   }
 
   if (title.includes("swim")) {
     return {
-      purpose: txt("Wasserlage und Technik stabilisieren", "Stabilize swim mechanics", "泳ぎの姿勢と技術を安定させる"),
-      adaptation: txt("Effizienz, Rhythmus, Zugqualität", "Efficiency, rhythm, stroke quality", "効率・リズム・ストローク品質"),
-      physiology: txt("Bewegungsökonomie, Atemrhythmus, spezifische Ausdauer", "Movement economy, breathing rhythm, specific endurance", "動作効率・呼吸リズム・種目特異的持久力"),
-      why: txt(`Spart Energie für Bike/Run und hält den metabolischen Preis niedrig. ${phaseWhy}`, `Saves energy for bike/run and lowers metabolic cost. ${phaseWhy}`, `バイク/ランへ体力を残し、代謝コストを下げます。${phaseWhy}`),
+      purpose: pickJ(
+        txt("Bewegungsökonomie und spezifische Ausdauer", "Movement economy and specific endurance", "動作効率と特異的持久力"),
+        txt("Wasserlage und Technik stabilisieren", "Stabilize swim mechanics", "泳ぎを安定させる"),
+        txt("Im Wasser effizienter werden", "More efficient in water", "水中で効率よく")
+      ),
+      adaptation: pickJ(
+        txt("Zugmuster, Atemrhythmus, Drag-Reduktion", "Stroke pattern, breath rhythm, drag reduction", "ストローク・呼吸・抵抗低減"),
+        txt("Effizienz, Rhythmus, Zugqualität", "Efficiency, rhythm, stroke quality", "効率・リズム・ストローク品質"),
+        txt("Sauberer und schneller schwimmen", "Swim cleaner and faster", "きれいに速く泳ぐ")
+      ),
+      physiology: pickJ(
+        txt("Ökonomie, O2-Extraktion, Lungenkapazität", "Economy, O2 extraction, lung capacity", "効率・酸素抽出・肺活量"),
+        txt("Atem, Rhythmus, spezifische Ausdauer", "Breath, rhythm, specific endurance", "呼吸・リズム・持久力"),
+        txt("Atem und Technik verbessern sich", "Breath and technique improve", "呼吸と技術が向上")
+      ),
+      why: txt(`Spart Energie für Bike/Run. ${phaseWhy}`, `Saves energy for bike/run. ${phaseWhy}`, `バイク/ランへ体力を残す。${phaseWhy}`),
     };
   }
 
   return {
-    purpose: txt("Form und Kontinuität sichern", "Build form and consistency", "継続してベースを積む"),
-    adaptation: txt("Saubere Grundlage, Ökonomie und belastbare Progression", "Base quality, economy, and durable progression", "基礎品質・効率・持続可能な積み上げ"),
-    physiology: txt("Aerobe Kapazität, neuromuskuläre Koordination, Ermüdungsresistenz", "Aerobic capacity, neuromuscular coordination, fatigue resistance", "有酸素能力・神経筋協調・疲労耐性"),
-    why: txt(`Diese Einheiten verbinden den Plan zu reproduzierbarem Fortschritt. ${phaseWhy}`, `These sessions connect the plan into repeatable progress. ${phaseWhy}`, `これらの練習が再現性のある成長を作ります。${phaseWhy}`),
+    purpose: pickJ(
+      txt("Aerobe Basis und Ökonomie stabilisieren", "Stabilize aerobic base and economy", "有酸素ベースと効率"),
+      txt("Form und Kontinuität sichern", "Build form and consistency", "継続してベースを積む"),
+      txt("Regelmäßig trainieren und Form halten", "Train regularly and keep form", "継続して形を保つ")
+    ),
+    adaptation: pickJ(
+      txt("Kapillarisierung, Mitochondrien, neuromuskuläre Bahnung", "Capillarization, mitochondria, neuromuscular priming", "毛細血管・ミトコンドリア・神経筋"),
+      txt("Saubere Grundlage und belastbare Progression", "Base quality and durable progression", "基礎品質と持続的進化"),
+      txt("Fitness wächst Stück für Stück", "Fitness grows step by step", "少しずつ強くなる")
+    ),
+    physiology: pickJ(
+      txt("Aerobe Kapazität, Fettoxidation, Ermüdungsresistenz", "Aerobic capacity, fat oxidation, fatigue resistance", "有酸素能力・脂質酸化・疲労耐性"),
+      txt("Aerobe Kapazität und Koordination", "Aerobic capacity and coordination", "有酸素能力と協調性"),
+      txt("Kreislauf und Beine werden robust", "Heart and legs get tougher", "心肺と脚が強く")
+    ),
+    why: txt(`Plan wird zu reproduzierbarem Fortschritt. ${phaseWhy}`, `Plan becomes repeatable progress. ${phaseWhy}`, `再現性ある成長へ。${phaseWhy}`),
   };
 }
 
@@ -11490,6 +11848,24 @@ function openSessionOverlay(session) {
   const cycleBlock = document.getElementById("session-cycle-block");
   const cycleValue = document.getElementById("session-modal-cycle");
   const cycleActive = latestProfile?.sex === "female" && latestProfile?.cycleBasedTraining;
+
+  // ── Peak-mode gating for nutrition (Follow-up #3 Punkt 3c / 6c) ──
+  // Kalorien + Makros + Ernährungsfokus NUR wenn User im Peak-Modus mit
+  // eigenem Account eingeloggt ist. Im Quick-Modus: komplett ausblenden.
+  // Keine Platzhalter, keine Upgrade-Hinweise.
+  const _acct = typeof getCurrentAccount === "function" ? getCurrentAccount() : null;
+  const _isPeak = String(latestProfile?.planMode || planModeSelect?.value || "quick") === "peak";
+  const _nutritionAllowed = !!_acct && _isPeak;
+  const _nutritionWrap = sessionOverlayEl.querySelector(".session-modal-nutrition");
+  const _nutritionFocusBlock = document.getElementById("session-nutrition-focus-block");
+  if (_nutritionWrap) _nutritionWrap.hidden = !_nutritionAllowed;
+  if (_nutritionFocusBlock) _nutritionFocusBlock.hidden = !_nutritionAllowed;
+
+  // ── Pregnancy/Post-Partum disclaimer banner (Follow-up #3 Punkt 3c) ──
+  const _pregBanner = document.getElementById("session-preg-disclaimer");
+  const _pregState = latestProfile?.pregnancy || _acct?.profile?.pregnancy || null;
+  const _pregActive = _pregState && (_pregState.status === "pregnant" || _pregState.status === "postpartum");
+  if (_pregBanner) _pregBanner.hidden = !_pregActive;
   setText(sessionModalMetaEl, `${sessionTypeLabel(session.type)} • ${dayName(session.date)} ${session.date.getDate()}.${session.date.getMonth() + 1}.`);
   setText(sessionModalTitleEl, session.title);
   setText(sessionModalSubEl, session.details);
@@ -11530,20 +11906,35 @@ function buildStructuredSessionPlan(session, profile) {
   const txt = (de, en, ja) => (currentLang === "de" ? de : currentLang === "ja" ? ja : en);
 
   if (/easy run|aerobic run|recovery/.test(title)) {
+    const visual = `WU 8' @ Z1  •  35' @ Z2  •  4× 20" Strides  •  CD 8' @ Z1`;
     return txt(
-      `1) Warm-up: 8-10 min locker + Mobility\n2) Main: 30-45 min locker (Zone 2)\n3) Finisher: 4 x 20s Strides (optional)\n4) Cool-down: 5-8 min gehen + Mobility`,
-      `1) Warm-up: 8-10 min easy + mobility\n2) Main: 30-45 min easy (Zone 2)\n3) Finisher: 4 x 20s strides (optional)\n4) Cool-down: 5-8 min walk + mobility`,
-      `1) ウォームアップ: 8-10分 イージー + モビリティ\n2) メイン: 30-45分 ゾーン2\n3) 仕上げ: 20秒ストライド x 4（任意）\n4) クールダウン: 5-8分 歩行 + モビリティ`
+      `${visual}\n\n1) Warm-up: 8-10 min locker + Mobility\n2) Main: 30-45 min locker (Zone 2)\n3) Finisher: 4 x 20s Strides (optional)\n4) Cool-down: 5-8 min gehen + Mobility`,
+      `${visual}\n\n1) Warm-up: 8-10 min easy + mobility\n2) Main: 30-45 min easy (Zone 2)\n3) Finisher: 4 x 20s strides (optional)\n4) Cool-down: 5-8 min walk + mobility`,
+      `${visual}\n\n1) ウォームアップ: 8-10分 イージー + モビリティ\n2) メイン: 30-45分 ゾーン2\n3) 仕上げ: 20秒ストライド x 4（任意）\n4) クールダウン: 5-8分 歩行 + モビリティ`
     );
   }
 
-  if (/run threshold/.test(title)) {
-    const reps = level === "advanced" ? "6 x 1 km" : level === "starter" ? "4 x 800 m" : "5 x 1 km";
-    const rest = level === "advanced" ? "90s jog" : "2 min jog";
+  if (/run threshold|tempo/.test(title)) {
+    const reps = level === "advanced" ? "6× 1km" : level === "starter" ? "4× 800m" : "5× 1km";
+    const rest = level === "advanced" ? `90" jog` : `2' jog`;
+    const visual = `WU 15' @ Z1-Z2  •  ${reps} @ Z4 / ${rest}  •  4× 80m Strides  •  CD 10' @ Z1`;
+    const repsLong = level === "advanced" ? "6 x 1 km" : level === "starter" ? "4 x 800 m" : "5 x 1 km";
+    const restLong = level === "advanced" ? "90s jog" : "2 min jog";
     return txt(
-      `1) Warm-up: 12-15 min locker + Lauf-ABC\n2) Main: ${reps} @ Schwelle (${rest} locker)\n3) Technik: 4 x 80 m Strides\n4) Cool-down: 10 min locker`,
-      `1) Warm-up: 12-15 min easy + drills\n2) Main: ${reps} @ threshold (${rest} easy)\n3) Technique: 4 x 80 m strides\n4) Cool-down: 10 min easy`,
-      `1) ウォームアップ: 12-15分 イージー + ドリル\n2) メイン: ${reps} 閾値走（つなぎ ${rest}）\n3) 技術: 80m ストライド x 4\n4) クールダウン: 10分`
+      `${visual}\n\n1) Warm-up: 12-15 min locker + Lauf-ABC\n2) Main: ${repsLong} @ Schwelle (${restLong} locker)\n3) Technik: 4 x 80 m Strides\n4) Cool-down: 10 min locker`,
+      `${visual}\n\n1) Warm-up: 12-15 min easy + drills\n2) Main: ${repsLong} @ threshold (${restLong} easy)\n3) Technique: 4 x 80 m strides\n4) Cool-down: 10 min easy`,
+      `${visual}\n\n1) ウォームアップ: 12-15分 イージー + ドリル\n2) メイン: ${repsLong} 閾値走（つなぎ ${restLong}）\n3) 技術: 80m ストライド x 4\n4) クールダウン: 10分`
+    );
+  }
+
+  if (/vo2|interval/.test(title)) {
+    const reps = level === "advanced" ? "6× 3'" : level === "starter" ? "4× 2'" : "5× 3'";
+    const rest = level === "advanced" ? `90" jog` : `2' jog`;
+    const visual = `WU 15' @ Z1-Z2  •  ${reps} @ Z5 / ${rest}  •  CD 10' @ Z1`;
+    return txt(
+      `${visual}\n\n1) Warm-up: 12-15 min locker + dynamische Aktivierung\n2) Main: ${reps} @ VO2max (${rest} locker)\n3) Cool-down: 10 min locker`,
+      `${visual}\n\n1) Warm-up: 12-15 min easy + activation\n2) Main: ${reps} @ VO2max (${rest} easy)\n3) Cool-down: 10 min easy`,
+      `${visual}\n\n1) ウォームアップ: 12-15分 + 活性化\n2) メイン: ${reps} VO2max（つなぎ ${rest}）\n3) クールダウン: 10分`
     );
   }
 
@@ -11568,10 +11959,11 @@ function buildStructuredSessionPlan(session, profile) {
   }
 
   if (/long run|durability|long cardio/.test(title)) {
+    const visual = `WU 10' @ Z1  •  75' @ Z2 steady  •  4× 20" Strides  •  CD 10' @ Z1`;
     return txt(
-      `1) Warm-up: 10 min locker\n2) Main: 60-100 min steady Zone 2\n3) Optional: 4 x 20s Strides\n4) Cool-down: 8-10 min gehen + Mobility`,
-      `1) Warm-up: 10 min easy\n2) Main: 60-100 min steady Zone 2\n3) Optional: 4 x 20s strides\n4) Cool-down: 8-10 min walk + mobility`,
-      `1) ウォームアップ: 10分 イージー\n2) メイン: 60-100分 ゾーン2で一定\n3) 任意: 20秒ストライド x 4\n4) クールダウン: 8-10分 歩行 + モビリティ`
+      `${visual}\n\n1) Warm-up: 10 min locker\n2) Main: 60-100 min steady Zone 2\n3) Optional: 4 x 20s Strides\n4) Cool-down: 8-10 min gehen + Mobility`,
+      `${visual}\n\n1) Warm-up: 10 min easy\n2) Main: 60-100 min steady Zone 2\n3) Optional: 4 x 20s strides\n4) Cool-down: 8-10 min walk + mobility`,
+      `${visual}\n\n1) ウォームアップ: 10分 イージー\n2) メイン: 60-100分 ゾーン2で一定\n3) 任意: 20秒ストライド x 4\n4) クールダウン: 8-10分 歩行 + モビリティ`
     );
   }
 
@@ -17783,9 +18175,35 @@ function estimateSessionNutrition(session, profile) {
       : sex === "male"
         ? 10 * weight + 6.25 * heightCm - 5 * age + 5
         : 10 * weight + 6.25 * heightCm - 5 * age - 70;
-  const activityFactor = profile?.discipline === "shape" ? 1.38 : 1.45;
+
+  // Derive activity factor from session-specific load rather than a flat constant.
+  // Base lifestyle AF: 1.30 sedentary rest day ... scale up with session TSS/duration/intensity.
+  const sessionTss = Math.max(0, Number(session?.tss) || 0);
+  const sessionMin = Math.max(0, Number(session?.durationMin) || Number(session?.minutes) || 0);
+  const intensityRaw = Number(session?.intensity);
+  // 0 (rest) ... 1 (hard) scale. Fall back from title if missing.
+  const titleRaw = String(session?.title || "").toLowerCase();
+  let intensity01 = Number.isFinite(intensityRaw)
+    ? clamp(intensityRaw > 1.2 ? intensityRaw / 100 : intensityRaw, 0, 1)
+    : titleRaw.includes("vo2") || titleRaw.includes("interval") ? 0.88
+    : titleRaw.includes("threshold") || titleRaw.includes("tempo") ? 0.75
+    : titleRaw.includes("long") ? 0.55
+    : titleRaw.includes("strength") || titleRaw.includes("hyrox") ? 0.65
+    : titleRaw.includes("swim") ? 0.5
+    : session?.type === "rest" ? 0 : 0.45;
+
+  // tssComponent: a 90-min tempo (~90 TSS) lifts AF by ~0.18; rest = 0.
+  const tssComponent = clamp(sessionTss / 500, 0, 0.28);
+  // durationComponent: long easy work still costs NEAT + daily lifestyle bump.
+  const durationComponent = clamp(sessionMin / 600, 0, 0.18);
+  // intensityComponent: tempo/VO2 bumps on top.
+  const intensityComponent = clamp(intensity01 * 0.12, 0, 0.12);
+  const baseAf = profile?.discipline === "shape" ? 1.30 : 1.33;
+  const activityFactor = session?.type === "rest"
+    ? clamp(baseAf, 1.25, 1.38)
+    : clamp(baseAf + tssComponent + durationComponent + intensityComponent, 1.30, 1.95);
   const tdeeBase = Math.round(bmr * activityFactor);
-  const title = String(session?.title || "").toLowerCase();
+  const title = titleRaw;
   let trainingLoadKcal = 260;
   let carbPerKg = 4.0;
   let proteinPerKg = 1.7;
@@ -17793,34 +18211,48 @@ function estimateSessionNutrition(session, profile) {
 
   if (title.includes("long")) {
     trainingLoadKcal = profile?.discipline === "triathlon" || profile?.discipline === "cycling" ? 500 : 360;
-    carbPerKg = 6.5;
-    proteinPerKg = 1.8;
-    fatPerKg = 0.8;
-  } else if (title.includes("threshold")) {
-    trainingLoadKcal = 330;
-    carbPerKg = 5.8;
+    // Long sessions demand carbs, lower fat to make room
+    carbPerKg = 7.0;
     proteinPerKg = 1.7;
-    fatPerKg = 0.8;
-  } else if (title.includes("vo2")) {
-    trainingLoadKcal = 320;
-    carbPerKg = 5.5;
-    proteinPerKg = 1.8;
-    fatPerKg = 0.8;
-  } else if (title.includes("strength") || title.includes("carry") || title.includes("circuit") || title.includes("hyrox")) {
-    trainingLoadKcal = 240;
-    carbPerKg = profile?.discipline === "shape" ? 2.4 : 4.2;
-    proteinPerKg = 1.9;
     fatPerKg = 0.75;
+  } else if (title.includes("threshold") || title.includes("tempo")) {
+    trainingLoadKcal = 340;
+    carbPerKg = 6.0;
+    proteinPerKg = 1.75;
+    fatPerKg = 0.8;
+  } else if (title.includes("vo2") || title.includes("interval")) {
+    trainingLoadKcal = 325;
+    carbPerKg = 5.7;
+    proteinPerKg = 1.85;
+    fatPerKg = 0.78;
+  } else if (title.includes("strength") || title.includes("carry") || title.includes("circuit") || title.includes("hyrox")) {
+    trainingLoadKcal = 250;
+    // Strength days: more protein, less carbs for non-shape; shape keeps carbs low
+    carbPerKg = profile?.discipline === "shape" ? 2.4 : 4.0;
+    proteinPerKg = 2.0;
+    fatPerKg = 0.78;
   } else if (title.includes("swim")) {
     trainingLoadKcal = 220;
-    carbPerKg = 4.8;
-    proteinPerKg = 1.6;
+    carbPerKg = 4.6;
+    proteinPerKg = 1.65;
     fatPerKg = 0.85;
   } else if (session?.type === "rest") {
-    trainingLoadKcal = 40;
-    carbPerKg = 2.4;
-    proteinPerKg = 1.8;
-    fatPerKg = 0.8;
+    // Rest: least carbs, more protein for repair, steady fat
+    trainingLoadKcal = 30;
+    carbPerKg = 2.2;
+    proteinPerKg = 1.9;
+    fatPerKg = 0.9;
+  } else if (title.includes("easy") || title.includes("recovery")) {
+    trainingLoadKcal = 190;
+    carbPerKg = 3.6;
+    proteinPerKg = 1.75;
+    fatPerKg = 0.85;
+  }
+
+  // Scale training kcal by actual session length if we have it (cap ±35%)
+  if (sessionMin > 15 && session?.type !== "rest") {
+    const lenFactor = clamp(sessionMin / 60, 0.55, 1.85);
+    trainingLoadKcal = Math.round(trainingLoadKcal * lenFactor);
   }
 
   let kcalTarget = tdeeBase + trainingLoadKcal;
@@ -25465,7 +25897,7 @@ document.addEventListener("click", (e) => {
   // ── Screen order (dynamic — some screens conditional on discipline) ──
   const SCREEN_ORDER_BASE = [
     "discipline", "distance", "goaltime", "raceday",
-    "level", "body", "hours", "schedule", "pb", "final"
+    "level", "body", "hours", "schedule", "pb", "disclaimer", "final"
   ];
   let _screenOrder = [...SCREEN_ORDER_BASE];
   function getScreenOrder() { return _screenOrder; }
@@ -25511,6 +25943,7 @@ document.addEventListener("click", (e) => {
     order.push("level", "body", "hours");
     if (!isShape) order.push("schedule", "pb");
     if (isShape) order.push("shapefocus");
+    order.push("disclaimer");
     order.push("final");
     _screenOrder = order;
   }
@@ -25892,7 +26325,9 @@ document.addEventListener("click", (e) => {
     if (newName === "body") initBodyWheels();
     if (newName === "hours") initHoursWheel();
     if (newName === "pb") populatePbDistances();
+    if (newName === "disclaimer") prepareDisclaimerScreen();
     if (newName === "final") prepareFinalScreen();
+    _syncNavButtonGating(newName);
 
     // Focus management — move focus to new screen's headline
     setTimeout(() => {
@@ -25902,7 +26337,63 @@ document.addEventListener("click", (e) => {
     }, 350);
   }
 
+  // ── Health disclaimer gate (Follow-up #3 Punkt 3a) ──
+  function _disclaimerCheckbox() {
+    return document.getElementById("ob-disclaimer-accept");
+  }
+  function _isDisclaimerAccepted() {
+    const cb = _disclaimerCheckbox();
+    return !!(cb && cb.checked);
+  }
+  function _syncNavButtonGating(screenName) {
+    if (!btnNext) return;
+    if (screenName === "disclaimer") {
+      btnNext.disabled = !_isDisclaimerAccepted();
+    } else {
+      btnNext.disabled = false;
+    }
+  }
+  function prepareDisclaimerScreen() {
+    const cb = _disclaimerCheckbox();
+    if (!cb) return;
+    // Pre-check if previously accepted on this account
+    try {
+      const acct = typeof getCurrentAccount === "function" ? getCurrentAccount() : null;
+      const prev = acct?.settings?.healthDisclaimerAccepted;
+      if (prev && prev.accepted === true) {
+        cb.checked = true;
+        data.healthDisclaimerAccepted = true;
+      }
+    } catch (_) {}
+    _syncNavButtonGating("disclaimer");
+  }
+  // Checkbox change handler (attached once)
+  document.addEventListener("change", (e) => {
+    if (e.target && e.target.id === "ob-disclaimer-accept") {
+      const accepted = !!e.target.checked;
+      data.healthDisclaimerAccepted = accepted;
+      if (accepted) {
+        // Persist to account if available
+        try {
+          const acct = typeof getCurrentAccount === "function" ? getCurrentAccount() : null;
+          if (acct) {
+            acct.settings = acct.settings || {};
+            acct.settings.healthDisclaimerAccepted = { accepted: true, at: Date.now() };
+            if (typeof persistStore === "function") persistStore();
+          }
+        } catch (_) {}
+        haptic(14);
+      }
+      if (currentScreen() === "disclaimer") _syncNavButtonGating("disclaimer");
+    }
+  });
+
   function goNext() {
+    // Disclaimer gate: block navigation if on disclaimer screen and not accepted
+    if (currentScreen() === "disclaimer" && !_isDisclaimerAccepted()) {
+      haptic(6);
+      return;
+    }
     if (currentIdx < _screenOrder.length - 1) {
       showScreen(currentIdx + 1, "forward");
     }
