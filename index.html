@@ -18,8 +18,48 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <!-- Icon CDN removed — typography-first design, no icon dependencies -->
     <link rel="stylesheet" href="./styles.css" />
-    <!-- Core WebApp Foundation (new shell, additive) -->
-    <link rel="stylesheet" href="./core/core.css" />
+    <!-- Always-loaded mini-gate: hide Core Shell when not logged in,
+         hide Legacy + its tab-bar when Core Shell is active.
+         This rule must be loaded regardless of core.css state. -->
+    <style>
+      body:not([data-ui="core"]) #core-app-root { display: none !important; }
+      body[data-ui="core"] #legacy-compat { display: none !important; }
+      /* Legacy in-app tab-bar is permanently replaced by Core Shell */
+      #legacy-compat #tab-bar,
+      #legacy-compat .tab-bar:not(#core-tab-bar) {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+      }
+    </style>
+    <!-- Core Shell CSS is loaded ONLY after successful login by
+         core-auth-gate.js — outside the app it must not interfere
+         with the Landing / Plan-Creator / Onboarding styles. -->
+    <script>
+      /* Early auth check: if a Supabase session token exists in
+         localStorage, inject core.css synchronously and pre-set
+         body[data-ui="core"] to avoid any FOUC. */
+      (function () {
+        try {
+          var hasSession = false;
+          for (var i = 0; i < localStorage.length; i++) {
+            var k = localStorage.key(i);
+            if (k && /sb-.*-auth-token/.test(k)) {
+              var v = localStorage.getItem(k);
+              if (v && v.length > 20) { hasSession = true; break; }
+            }
+          }
+          if (hasSession) {
+            var l = document.createElement("link");
+            l.rel = "stylesheet";
+            l.href = "./core/core.css";
+            l.id = "core-stylesheet";
+            document.head.appendChild(l);
+            document.documentElement.setAttribute("data-pre-core", "1");
+          }
+        } catch (_) {}
+      })();
+    </script>
   </head>
   <body>
     <!-- ============================================================

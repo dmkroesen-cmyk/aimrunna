@@ -38,7 +38,22 @@
     return false;
   }
 
+  function ensureStylesheet() {
+    if (document.getElementById("core-stylesheet")) return;
+    var l = document.createElement("link");
+    l.rel = "stylesheet";
+    l.href = "./core/core.css";
+    l.id = "core-stylesheet";
+    document.head.appendChild(l);
+  }
+
+  function removeStylesheet() {
+    var l = document.getElementById("core-stylesheet");
+    if (l && l.parentNode) l.parentNode.removeChild(l);
+  }
+
   function enableCore() {
+    ensureStylesheet();
     if (body.getAttribute(ATTR) === VAL) return;
     body.setAttribute(ATTR, VAL);
     document.dispatchEvent(new CustomEvent("core:ui-enabled"));
@@ -48,8 +63,12 @@
   }
 
   function disableCore() {
-    if (body.getAttribute(ATTR) !== VAL) return;
+    if (body.getAttribute(ATTR) !== VAL) {
+      removeStylesheet();
+      return;
+    }
     body.removeAttribute(ATTR);
+    removeStylesheet();
     document.dispatchEvent(new CustomEvent("core:ui-disabled"));
   }
 
