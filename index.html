@@ -1450,7 +1450,7 @@
                   <label class="field is-select" id="top-discipline-field">
                     <span data-i18n="field_discipline">Disziplin</span>
                     <select name="discipline" required>
-                      <option value="" disabled selected>Wähle dein Spielfeld</option>
+                      <option value="" disabled selected>Wähle deine Disziplin</option>
                       <option value="running">Laufen</option>
                       <option value="triathlon">Triathlon</option>
                       <option value="cycling">Rad</option>
@@ -3706,34 +3706,39 @@
         </section>
       </section>
 
-      <footer class="site-footer">
-        <div class="footer-top">
-          <div class="footer-brand">
-            <strong>peak.athlete</strong>
-            <span>The premium training platform.</span>
-          </div>
-          <div class="footer-links">
-            <button type="button" class="footer-link" data-legal-open="imprint">Impressum</button>
-            <button type="button" class="footer-link" data-legal-open="privacy">Datenschutz</button>
-            <button type="button" class="footer-link" data-legal-open="agb">AGB</button>
-            <button type="button" class="footer-link" data-legal-open="terms">Widerrufsbelehrung</button>
-          </div>
+      <!-- FOOTER · identical to landing.html -->
+      <footer class="footer unified-footer">
+        <div class="footer-brand">peak.athlete</div>
+        <div class="footer-links">
+          <a href="./legal/impressum.html">Impressum</a>
+          <a href="./legal/datenschutz.html">Datenschutz</a>
+          <a href="./legal/agb.html">AGB</a>
+          <a href="./legal/widerruf.html">Widerrufsbelehrung</a>
+          <button type="button" class="footer-link-btn" data-open-lang>Sprache</button>
         </div>
-        <div class="footer-bottom">
-          <nav class="footer-lang" aria-label="Language selector">
-            <button type="button" class="lang-btn is-active" data-lang="de" aria-label="Deutsch">
-              <span class="lang-flag">🇩🇪</span> DE
-            </button>
-            <button type="button" class="lang-btn" data-lang="en" aria-label="English">
-              <span class="lang-flag">🇬🇧</span> EN
-            </button>
-            <button type="button" class="lang-btn" data-lang="ja" aria-label="日本語">
-              <span class="lang-flag">🇯🇵</span> JP
-            </button>
-          </nav>
-          <span class="footer-copy">© 2026 peak.athlete. Alle Rechte vorbehalten.</span>
-        </div>
+        <p class="footer-copy">&copy; 2026 peak.athlete. Trusted Performance OS for Endurance Athletes.</p>
       </footer>
+
+      <!-- Language Popup · shared markup with landing.html -->
+      <div class="lang-popup" id="lang-popup" hidden role="dialog" aria-modal="true" aria-labelledby="lang-popup-title">
+        <div class="lang-popup-backdrop" data-close-lang></div>
+        <div class="lang-popup-card">
+          <button type="button" class="lang-popup-close" data-close-lang aria-label="Schließen">×</button>
+          <h3 class="lang-popup-title" id="lang-popup-title">Sprache wählen</h3>
+          <p class="lang-popup-sub">Wähle deine bevorzugte Sprache für peak.athlete.</p>
+          <div class="lang-popup-list">
+            <button type="button" class="lang-popup-btn" data-lang="de">
+              <span class="lang-popup-flag">🇩🇪</span><span>Deutsch</span>
+            </button>
+            <button type="button" class="lang-popup-btn" data-lang="en">
+              <span class="lang-popup-flag">🇬🇧</span><span>English</span>
+            </button>
+            <button type="button" class="lang-popup-btn" data-lang="ja">
+              <span class="lang-popup-flag">🇯🇵</span><span>日本語</span>
+            </button>
+          </div>
+        </div>
+      </div>
     </main>
 
     <template id="week-template">
@@ -4772,7 +4777,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="./supabase-client.js"></script>
     <script src="./legal-i18n.js"></script>
-    <script src="./app.js"></script>
+    <script src="./app.js?v=planengine-v3d-authoritative"></script>
     <script src="./stresstest.js"></script>
   </body>
 </html>

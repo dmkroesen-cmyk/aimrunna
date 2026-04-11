@@ -4631,24 +4631,26 @@ body.profile-view-settings .profile-settings-card.is-active {
 .session-overlay-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  /* perf: backdrop-filter removed */
+  background: rgba(15, 23, 42, 0.42);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 .session-modal-card {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: min(700px, calc(100% - 24px));
+  width: min(720px, calc(100% - 24px));
+  max-height: min(88vh, 900px);
+  overflow-y: auto;
   transform: translate(-50%, -50%);
   border-radius: 24px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  background:
-    linear-gradient(180deg, rgba(14, 15, 18, 0.97), rgba(8, 9, 11, 0.95)),
-    rgba(0, 0, 0, 0.92);
-  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.62);
-  padding: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: #ffffff;
+  box-shadow: 0 30px 80px rgba(15, 23, 42, 0.22), 0 8px 24px rgba(15, 23, 42, 0.08);
+  padding: 28px 28px 24px;
   animation: sessionPop 260ms ease;
+  color: #1A1A1A;
 }
 
 .account-modal {
@@ -5124,104 +5126,129 @@ body.profile-view-settings .profile-settings-card.is-active {
 }
 
 @keyframes sessionPop {
-  from { opacity: 0; transform: translate(-50%, -46%) rotateX(14deg) scale(0.92); }
-  to { opacity: 1; transform: translate(-50%, -50%) rotateX(0deg) scale(1); }
+  from { opacity: 0; transform: translate(-50%, -48%) scale(0.96); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
 
 .session-modal-close {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 30px;
-  height: 30px;
+  top: 14px;
+  right: 14px;
+  width: 34px;
+  height: 34px;
   border-radius: 999px;
-  border: 1px solid var(--border-default);
-  background: rgba(0, 0, 0, 0.015);
-  color: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  background: #ffffff;
+  color: #1A1A1A;
   cursor: pointer;
-  font-size: 18px;
+  font-size: 20px;
   line-height: 1;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+  z-index: 2;
+}
+.session-modal-close:hover {
+  background: #F4F6FA;
+  border-color: rgba(15, 23, 42, 0.18);
+  transform: translateY(-1px);
 }
 
-.session-modal-head { padding-right: 36px; }
+.session-modal-head { padding-right: 44px; }
 .session-modal-meta {
-  color: var(--muted-2);
+  color: #64748B;
   font-size: 11px;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
+  font-weight: 600;
 }
 .session-modal-head h4 {
-  margin: 6px 0 0;
-  font-size: 14px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-secondary);
+  margin: 10px 0 0;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: #0F172A;
+  line-height: 1.2;
 }
 .session-modal-head p {
-  margin: 8px 0 0;
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.45;
+  margin: 12px 0 0;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.55;
 }
 .session-modal-grid {
-  margin-top: 12px;
+  margin-top: 20px;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 12px;
 }
 .session-modal-block {
-  border-radius: 12px;
-  border: 1px solid var(--border-default);
-  background: rgba(0, 0, 0, 0.015);
-  padding: 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: #F8FAFC;
+  padding: 14px 16px;
 }
 .session-modal-block span {
   display: block;
-  color: var(--muted-2);
+  color: #64748B;
   font-size: 10px;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
+  font-weight: 700;
 }
 .session-modal-block strong {
   display: block;
-  margin-top: 6px;
-  color: var(--text, #1A1A1A);
-  font-size: 12px;
+  margin-top: 8px;
+  color: #0F172A;
+  font-size: 13.5px;
   font-weight: 500;
-  line-height: 1.38;
+  line-height: 1.5;
 }
 
 #session-modal-workout {
   white-space: pre-line;
   font-family: "Inter", sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+#session-workout-block {
+  grid-column: 1 / -1;
+  background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
+  border-color: rgba(15, 23, 42, 0.12);
+}
+
+#session-workout-block strong {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #1E293B;
 }
 
 .session-modal-nutrition {
-  margin-top: 12px;
-  border-radius: 14px;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  background: var(--surface);
-  padding: 10px;
+  margin-top: 20px;
+  border-radius: 16px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: linear-gradient(180deg, #FFFFFF, #F8FAFC);
+  padding: 16px 18px;
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 12px;
+  gap: 16px;
   align-items: center;
 }
 
 .session-modal-kcal span {
   display: block;
-  color: var(--muted-2);
+  color: #64748B;
   font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
+  font-weight: 700;
 }
 
 .session-modal-kcal strong {
   display: block;
-  margin-top: 4px;
-  font-size: 16px;
-  color: #1A1A1A;
+  margin-top: 6px;
+  font-size: 20px;
+  color: #0F172A;
+  font-weight: 800;
+  letter-spacing: -0.01em;
 }
 
 .session-modal-macros {
@@ -5233,24 +5260,24 @@ body.profile-view-settings .profile-settings-card.is-active {
 
 .macro-chip {
   border-radius: 999px;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  background: rgba(0, 0, 0, 0.015);
-  padding: 6px 9px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  background: #FFFFFF;
+  padding: 7px 12px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
 }
 
 .macro-icon {
-  color: var(--text-secondary, #6B7280);
+  color: #475569;
   font-size: 11px;
   opacity: 0.9;
 }
 
 .macro-chip strong {
-  font-size: 11px;
-  color: var(--text, #1A1A1A);
-  font-weight: 600;
+  font-size: 12px;
+  color: #0F172A;
+  font-weight: 700;
 }
 
 .section-calendar .result-calendar-card,
@@ -5774,6 +5801,15 @@ body.has-output .section-data { border-color: var(--border-default); }
 
   .metric-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .session-modal-card {
+    padding: 22px 20px 20px;
+    border-radius: 20px;
+  }
+
+  .session-modal-head h4 {
+    font-size: 19px;
   }
 
   .session-modal-grid {
@@ -11201,24 +11237,68 @@ details[open] .fa-bd-summary { color: rgba(0, 0, 0, 0.5); margin-bottom: 10px; }
 .font-11 { font-size: 11px; }
 .font-10 { font-size: 10px; }
 
-/* Suggestion banner components */
+/* Suggestion banner components — clean corporate design */
+.suggestion-card {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 18px;
+  padding: 18px 22px;
+  max-width: 520px;
+  width: calc(100% - 32px);
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.18), 0 4px 14px rgba(15, 23, 42, 0.06);
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  animation: suggestionSlideUp 320ms cubic-bezier(0.22, 0.68, 0.3, 1.02);
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+@keyframes suggestionSlideUp {
+  from { opacity: 0; transform: translate(-50%, 18px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
 .suggestion-icon-box {
-  flex-shrink: 0; width: 42px; height: 42px; border-radius: 10px;
-  background: rgba(212, 133, 15,0.12); display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; width: 42px; height: 42px; border-radius: 12px;
+  background: rgba(59, 130, 246, 0.10);
+  display: flex; align-items: center; justify-content: center;
 }
 .suggestion-title {
-  font-size: 14px; font-weight: 700; color: var(--text-bright); margin-bottom: 3px;
+  font-size: 15px; font-weight: 700; color: #0F172A; margin-bottom: 3px;
+  letter-spacing: -0.01em;
 }
 .suggestion-desc {
-  font-size: 12px; color: var(--text-muted); line-height: 1.4;
+  font-size: 13px; color: #64748B; line-height: 1.45;
 }
 .suggestion-btn-primary {
-  flex-shrink: 0; border: none; border-radius: 8px; padding: 8px 14px;
-  font-size: 12px; font-weight: 700; cursor: pointer;
+  flex-shrink: 0; border: none; border-radius: 10px; padding: 10px 18px;
+  font-size: 13px; font-weight: 700; cursor: pointer;
+  background: #0F172A; color: #ffffff;
+  transition: transform 140ms ease, background 140ms ease, box-shadow 140ms ease;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.16);
+}
+.suggestion-btn-primary:hover {
+  background: #1e293b; transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.22);
 }
 .suggestion-btn-dismiss {
   flex-shrink: 0; background: transparent; border: none;
-  color: var(--text-dim); font-size: 18px; cursor: pointer; padding: 4px;
+  color: #94A3B8; font-size: 20px; line-height: 1; cursor: pointer;
+  padding: 6px; width: 28px; height: 28px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 140ms ease, color 140ms ease;
+}
+.suggestion-btn-dismiss:hover {
+  background: rgba(15, 23, 42, 0.06); color: #0F172A;
+}
+@media (max-width: 560px) {
+  .suggestion-card { padding: 16px; gap: 12px; border-radius: 16px; }
+  .suggestion-title { font-size: 14px; }
+  .suggestion-desc { font-size: 12px; }
+  .suggestion-btn-primary { padding: 9px 14px; font-size: 12px; }
 }
 
 /* Avatar components */

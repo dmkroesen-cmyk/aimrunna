@@ -1297,17 +1297,17 @@ function _showDataConnectionSuggestion() {
   if (existing) existing.remove();
   const el = document.createElement("div");
   el.id = "data-connect-suggestion";
-  el.style.cssText = "position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;background:linear-gradient(135deg,#1e293b,#0f172a);border:1px solid rgba(229,169,61,0.3);border-radius:14px;padding:18px 24px;max-width:480px;width:calc(100% - 32px);box-shadow:0 12px 40px rgba(0,0,0,0.5);display:flex;gap:14px;align-items:center;";
+  el.className = "suggestion-card";
   el.innerHTML = `
-    <div class="suggestion-icon-box">
+    <div class="suggestion-icon-box" style="background:rgba(229,169,61,0.12);">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e5a93d" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
     </div>
     <div class="flex-1-min0">
       <div class="suggestion-title">Besserer Plan mit deinen Daten</div>
       <div class="suggestion-desc">Verbinde Strava oder Garmin, damit wir den Plan auf deine Trainingshistorie abstimmen.</div>
     </div>
-    <button type="button" onclick="this.closest('#data-connect-suggestion').remove();setActiveProfileView?.('settings');setActiveProfileSettingsView?.('connections');" class="suggestion-btn-primary" style="background:#e5a93d;color:#0f172a;">Verbinden</button>
-    <button type="button" onclick="this.closest('#data-connect-suggestion').remove();" class="suggestion-btn-dismiss">&times;</button>
+    <button type="button" onclick="this.closest('#data-connect-suggestion').remove();setActiveProfileView?.('settings');setActiveProfileSettingsView?.('connections');" class="suggestion-btn-primary">Verbinden</button>
+    <button type="button" onclick="this.closest('#data-connect-suggestion').remove();" class="suggestion-btn-dismiss" aria-label="Schließen">&times;</button>
   `;
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 20000);
@@ -1320,14 +1320,17 @@ function _showSignUpSuggestion() {
   if (existing) existing.remove();
   const el = document.createElement("div");
   el.id = "signup-suggestion";
-  el.style.cssText = "position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;background:linear-gradient(135deg,#1e293b,#0f172a);border:1px solid rgba(59,130,246,0.3);border-radius:14px;padding:18px 24px;max-width:480px;width:calc(100% - 32px);box-shadow:0 12px 40px rgba(0,0,0,0.5);display:flex;gap:14px;align-items:center;";
+  el.className = "suggestion-card";
   el.innerHTML = `
+    <div class="suggestion-icon-box">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </div>
     <div class="flex-1-min0">
       <div class="suggestion-title">Plan speichern & verbessern</div>
       <div class="suggestion-desc">Erstelle ein Konto, um deinen Plan zu speichern und mit Strava-Daten zu optimieren.</div>
     </div>
-    <button type="button" onclick="this.closest('#signup-suggestion').remove();(window.openLauncher||window.openAccountModal||function(){})('register');" class="suggestion-btn-primary" style="background:#3b82f6;color:#fff;">Registrieren</button>
-    <button type="button" onclick="this.closest('#signup-suggestion').remove();" class="suggestion-btn-dismiss">&times;</button>
+    <button type="button" onclick="this.closest('#signup-suggestion').remove();(window.openLauncher||window.openAccountModal||function(){})('register');" class="suggestion-btn-primary">Registrieren</button>
+    <button type="button" onclick="this.closest('#signup-suggestion').remove();" class="suggestion-btn-dismiss" aria-label="Schließen">&times;</button>
   `;
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 20000);
@@ -12278,7 +12281,66 @@ function buildPlan(profile) {
     profile,
   });
 
-  const weeklyKmBase = estimateBaseKm(profile);
+  // ═══ PLAN ENGINE V3 — AUTHORITATIVE BASE COMPUTATION ══════════════════
+  // Compute weeklyKmBase directly here from evidence-based bands, IGNORING
+  // whatever estimateBaseKm() returns for fields where a band applies.
+  // This eliminates any legacy code path from influencing the result.
+  let weeklyKmBase = estimateBaseKm(profile);
+  (function _planEngineV3Authoritative() {
+    const BANDS_V3 = {
+      running: {
+        "5k":       { beginner: [15, 20], intermediate: [22, 32], ambitious: [32, 45],  elite: [55, 90] },
+        "10k":      { beginner: [18, 28], intermediate: [28, 40], ambitious: [38, 52],  elite: [65, 110] },
+        "half":     { beginner: [25, 35], intermediate: [35, 50], ambitious: [50, 72],  elite: [85, 135] },
+        "marathon": { beginner: [35, 48], intermediate: [48, 65], ambitious: [65, 90],  elite: [105, 180] },
+      },
+    };
+    const disc = String(profile?.discipline || "");
+    const dist = String(profile?.goalDistance || "");
+    const discTable = BANDS_V3[disc];
+    if (!discTable || !discTable[dist]) return; // non-running disciplines keep original
+    // Parse goal time
+    let secs = 0;
+    const raw = String(profile?.goalTime || "").trim();
+    if (raw) {
+      const parts = raw.split(":").map(Number);
+      if (parts.every(Number.isFinite)) {
+        if (parts.length === 3) secs = parts[0] * 3600 + parts[1] * 60 + parts[2];
+        else if (parts.length === 2) secs = (parts[0] > 12 ? parts[0] * 60 + parts[1] : parts[0] * 3600 + parts[1] * 60);
+        else secs = parts[0] * 60;
+      }
+    }
+    const min = secs / 60;
+    const h = secs / 3600;
+    let level = "intermediate";
+    if (secs > 0) {
+      if (dist === "5k") level = min >= 30 ? "beginner" : min >= 25 ? "intermediate" : min >= 22 ? "ambitious" : "elite";
+      else if (dist === "10k") level = min >= 60 ? "beginner" : min >= 50 ? "intermediate" : min >= 44 ? "ambitious" : "elite";
+      else if (dist === "half") level = h >= 2.25 ? "beginner" : h >= 1.917 ? "intermediate" : h >= 1.667 ? "ambitious" : "elite";
+      else if (dist === "marathon") level = h >= 4.5 ? "beginner" : h >= 4.0 ? "intermediate" : h >= 3.5 ? "ambitious" : "elite";
+    }
+    const band = discTable[dist][level] || discTable[dist].intermediate;
+    const observed = Number(profile?._observedWeeklyKm) || 0;
+    const isQuick = !observed; // Quick = no Strava data
+    let target;
+    if (isQuick) {
+      // Conservative: band floor. 10k/44:00 → 38 km/Woche.
+      target = band[0];
+    } else {
+      // Peak: respect observed, capped to band ceiling.
+      target = Math.min(band[1], Math.max(observed, band[0]));
+    }
+    // Hours scaling
+    const reqHours = Number(profile?.weeklyHours) || 0;
+    if (reqHours > 0 && reqHours < 4) target = target * 0.7;
+    else if (reqHours > 0 && reqHours < 6) target = target * 0.85;
+    target = Math.max(6, Math.round(target));
+    // Persist band for validator + downstream consumers
+    profile._planEngineLevel = level;
+    profile._planEngineBand = band;
+    console.log("[plan-engine-v3-authoritative]", { disc, dist, goalTime: raw, secs, level, band, isQuick, observed, reqHours, target, previousFromEstimate: weeklyKmBase });
+    weeklyKmBase = target;
+  })();
   const sessions = [];
   const weekModels = [];
   const mainGoals = resolveMainGoalEvents({
@@ -12437,7 +12499,7 @@ function buildPlan(profile) {
     currentWeekStart = addDays(currentWeekStart, 7);
   }
 
-  return {
+  const _planResult = {
     weeks: weekModels,
     sessions,
     meta: {
@@ -12459,6 +12521,133 @@ function buildPlan(profile) {
       sessionTemplateFixes: templateFixCount,
     },
   };
+  try {
+    const warnings = validatePlan(_planResult, profile);
+    _planResult.meta.validationWarnings = warnings;
+    warnings.forEach((w) => console.warn("[plan-validator]", w));
+  } catch (err) {
+    console.warn("[plan-validator] validator crashed:", err);
+  }
+  return _planResult;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PLAN VALIDATOR — runs after every buildPlan() and logs warnings.
+   Not fatal: bad plans still render, but the console tells us what's wrong.
+   ═══════════════════════════════════════════════════════════════════════════ */
+function validatePlan(plan, profile) {
+  const warnings = [];
+  if (!plan || !plan.weeks || !plan.weeks.length) {
+    warnings.push("empty plan");
+    return warnings;
+  }
+  const level = profile?._planEngineLevel || planEngineEffectiveLevel(profile);
+  const band = profile?._planEngineBand || planEngineVolumeBand(profile?.discipline, profile?.goalDistance, level);
+  const isQuick = profile?._planMode === "quick" || profile?.planMode === "quick" || !profile?._observedWeeklyKm;
+  const base = plan.meta?.weeklyKmBase || 0;
+
+  // 1. Weekly base in band
+  if (base < band[0] * 0.8 || base > band[1] * 1.15) {
+    warnings.push(`weekly base ${base} km out of band [${band[0]}-${band[1]}] for ${profile?.discipline}/${profile?.goalDistance}/${level}`);
+  }
+
+  // 10. Quick = lower third of band
+  if (isQuick) {
+    const lowerThird = band[0] + (band[1] - band[0]) * 0.45;
+    if (base > lowerThird * 1.2) {
+      warnings.push(`quick-mode start ${base} km above lower-third ${Math.round(lowerThird)} km`);
+    }
+  }
+
+  // Per-week analysis
+  let prevLoad = 0;
+  let recoveryCount = 0;
+  for (let i = 0; i < plan.weeks.length; i += 1) {
+    const w = plan.weeks[i];
+    const loadKm = Number(w.loadKm) || 0;
+
+    // 5. Weekly increase <= 10%
+    if (prevLoad > 0 && loadKm > prevLoad * 1.12 && w.phase !== "taper") {
+      warnings.push(`week ${i + 1}: load jumped ${prevLoad}→${loadKm} km (>12%)`);
+    }
+
+    // 2/3/4. Session distribution checks
+    const days = Array.isArray(w.days) ? w.days : [];
+    let longKm = 0, intervalKm = 0, easyKm = 0, totalKm = 0;
+    let hasStrength = false;
+    const disciplines = new Set();
+    days.forEach((d) => {
+      const sessions = Array.isArray(d.sessions) ? d.sessions : (d.session ? [d.session] : []);
+      sessions.forEach((s) => {
+        const km = Number(s?.km || s?.distanceKm || 0);
+        totalKm += km;
+        const kind = String(s?.kind || s?.type || "").toLowerCase();
+        const title = String(s?.title || s?.name || "").toLowerCase();
+        if (kind.includes("strength") || title.includes("kraft") || title.includes("strength") || title.includes("gym")) {
+          hasStrength = true;
+        }
+        if (kind.includes("long") || title.includes("long")) longKm = Math.max(longKm, km);
+        if (kind.includes("interval") || kind.includes("vo2") || title.includes("interval")) intervalKm += km;
+        if (kind.includes("easy") || kind.includes("recovery") || title.includes("easy")) easyKm += km;
+        if (s?.discipline) disciplines.add(s.discipline);
+      });
+    });
+    if (totalKm > 0) {
+      const longCap = profile?.discipline === "cycling" ? 0.42 : 0.33;
+      if (longKm / totalKm > longCap) {
+        warnings.push(`week ${i + 1}: long run ${Math.round(100 * longKm / totalKm)}% > cap ${Math.round(longCap * 100)}%`);
+      }
+      if (intervalKm / totalKm > 0.12) {
+        warnings.push(`week ${i + 1}: intervals ${Math.round(100 * intervalKm / totalKm)}% > 10%`);
+      }
+      if (easyKm > 0 && easyKm / totalKm < 0.72) {
+        warnings.push(`week ${i + 1}: easy ${Math.round(100 * easyKm / totalKm)}% < 75%`);
+      }
+    }
+
+    // 12. HYROX / Shape / Tri structural
+    if (profile?.discipline === "hyrox" && !hasStrength && !w.isDeload && w.phase !== "taper") {
+      warnings.push(`week ${i + 1}: HYROX plan missing strength`);
+    }
+    if (profile?.discipline === "shape" && !hasStrength && w.phase !== "taper") {
+      warnings.push(`week ${i + 1}: shape plan missing strength`);
+    }
+    if (profile?.discipline === "shape" && totalKm > 45) {
+      warnings.push(`week ${i + 1}: shape run volume ${Math.round(totalKm)} km too high`);
+    }
+
+    if (w.isDeload || /deload|recovery/i.test(w.focus || "")) recoveryCount += 1;
+    prevLoad = loadKm;
+  }
+
+  // 6. Recovery week every 3-4 weeks (at least one per 4-week block before taper)
+  const nonTaperWeeks = plan.weeks.filter((w) => w.phase !== "taper").length;
+  if (nonTaperWeeks >= 8 && recoveryCount < Math.floor(nonTaperWeeks / 5)) {
+    warnings.push(`only ${recoveryCount} recovery weeks for ${nonTaperWeeks} base/build weeks`);
+  }
+
+  // 7. Taper present before race
+  const taperWeeks = plan.weeks.filter((w) => w.phase === "taper").length;
+  if (plan.weeks.length >= 10 && taperWeeks === 0) {
+    warnings.push("no taper phase detected");
+  }
+
+  // 11. Session count vs level
+  const firstActiveWeek = plan.weeks.find((w) => Array.isArray(w.days) && w.days.some((d) => (d.sessions?.length || (d.session ? 1 : 0)))) || plan.weeks[0];
+  if (firstActiveWeek) {
+    let sessionCount = 0;
+    (firstActiveWeek.days || []).forEach((d) => {
+      sessionCount += (d.sessions?.length || (d.session ? 1 : 0));
+    });
+    if ((level === "beginner") && sessionCount > 5) {
+      warnings.push(`week 1 has ${sessionCount} sessions for beginner (cap 4-5)`);
+    }
+    if ((level === "elite" || level === "performance") && sessionCount < 5 && profile?.discipline !== "shape") {
+      warnings.push(`week 1 has only ${sessionCount} sessions for ${level}`);
+    }
+  }
+
+  return warnings;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -17392,6 +17581,227 @@ function recommendWeeklyHoursBand(profile) {
   return chosen;
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   PLAN ENGINE V2 — Evidence-based weekly volume bands
+   Sources: running volume literature (Daniels, Pfitz, Hudson), real-world
+   age-grouper data. Bands are km/week (or "sessions" for shape).
+   These tables are the single source of truth for Quick-Mode plans.
+   Peak-Mode can override with observed athlete data.
+   ═══════════════════════════════════════════════════════════════════════════ */
+const PLAN_VOLUME_BANDS_KM = {
+  running: {
+    "5k":       { beginner: [15, 20], intermediate: [25, 35], ambitious: [40, 55],  elite: [70, 110] },
+    "10k":      { beginner: [20, 30], intermediate: [30, 45], ambitious: [45, 65],  elite: [80, 130] },
+    "half":     { beginner: [25, 35], intermediate: [35, 55], ambitious: [55, 80],  elite: [100, 150] },
+    "marathon": { beginner: [35, 50], intermediate: [50, 70], ambitious: [70, 100], elite: [120, 200] },
+    "ultra":    { beginner: [40, 60], intermediate: [60, 90], ambitious: [80, 120], elite: [130, 220] },
+  },
+  // Cycling: km/week
+  cycling: {
+    "crit":      { beginner: [80, 130],  intermediate: [150, 220], ambitious: [220, 320], elite: [340, 500] },
+    "tt40":      { beginner: [100, 150], intermediate: [170, 240], ambitious: [240, 340], elite: [360, 520] },
+    "granfondo": { beginner: [120, 180], intermediate: [200, 280], ambitious: [280, 400], elite: [420, 600] },
+    "century":   { beginner: [140, 200], intermediate: [220, 320], ambitious: [320, 450], elite: [450, 650] },
+  },
+  // Triathlon: total combined km/week (swim+bike+run roughly 25/40/35 distribution)
+  triathlon: {
+    "sprint":  { beginner: [25, 40],  intermediate: [40, 65],  ambitious: [65, 95],   elite: [95, 140] },
+    "olympic": { beginner: [35, 55],  intermediate: [55, 85],  ambitious: [85, 120],  elite: [120, 170] },
+    "703":     { beginner: [55, 80],  intermediate: [80, 120], ambitious: [120, 170], elite: [170, 240] },
+    "ironman": { beginner: [80, 120], intermediate: [120, 180],ambitious: [180, 260], elite: [260, 380] },
+  },
+  // HYROX: pure run km/week. Strength is mandatory but not in this number.
+  hyrox: {
+    "open":        { beginner: [15, 22], intermediate: [22, 32], ambitious: [30, 42], elite: [40, 55] },
+    "pro":         { beginner: [18, 26], intermediate: [26, 38], ambitious: [35, 48], elite: [45, 60] },
+    "doubles":     { beginner: [12, 18], intermediate: [18, 28], ambitious: [26, 38], elite: [36, 50] },
+    "doublespro":  { beginner: [14, 20], intermediate: [20, 30], ambitious: [28, 40], elite: [38, 52] },
+    "relay":       { beginner: [10, 16], intermediate: [16, 24], ambitious: [22, 32], elite: [30, 44] },
+  },
+  // Shape: run km/week only. Main load comes from strength (3x/week mandatory).
+  shape: {
+    "fatloss": { beginner: [10, 18], intermediate: [15, 25], ambitious: [20, 30], elite: [25, 35] },
+    "recomp":  { beginner: [8, 16],  intermediate: [12, 22], ambitious: [18, 28], elite: [22, 32] },
+    "build":   { beginner: [6, 12],  intermediate: [10, 18], ambitious: [14, 22], elite: [18, 26] },
+    "fitness": { beginner: [10, 18], intermediate: [14, 22], ambitious: [18, 28], elite: [22, 32] },
+  },
+};
+
+// Map goal time (seconds) to level bucket per discipline+distance.
+// Returns "beginner" | "intermediate" | "ambitious" | "performance" | "elite".
+// Note: "performance" is a bonus tier between ambitious and elite for running.
+function planEngineLevelFromTarget(discipline, goalDistance, goalSeconds) {
+  if (!goalSeconds || !Number.isFinite(goalSeconds) || goalSeconds <= 0) return null;
+  const min = goalSeconds / 60;
+  const h = goalSeconds / 3600;
+
+  if (discipline === "running") {
+    if (goalDistance === "5k") {
+      if (min >= 30) return "beginner";
+      if (min >= 25) return "intermediate";
+      if (min >= 22) return "ambitious";
+      if (min >= 19) return "performance";
+      return "elite";
+    }
+    if (goalDistance === "10k") {
+      if (min >= 60) return "beginner";
+      if (min >= 50) return "intermediate";
+      if (min >= 44) return "ambitious";
+      if (min >= 38) return "performance";
+      return "elite";
+    }
+    if (goalDistance === "half") {
+      if (h >= 2.25) return "beginner";            // >= 2:15
+      if (h >= (1 + 55 / 60)) return "intermediate"; // >= 1:55
+      if (h >= (1 + 40 / 60)) return "ambitious";   // >= 1:40
+      if (h >= (1 + 25 / 60)) return "performance"; // >= 1:25
+      return "elite";
+    }
+    if (goalDistance === "marathon") {
+      if (h >= 4.5) return "beginner";
+      if (h >= 4.0) return "intermediate";
+      if (h >= 3.5) return "ambitious";
+      if (h >= 2.75) return "performance";          // sub-3 is performance, not elite
+      return "elite";
+    }
+    return "intermediate";
+  }
+
+  if (discipline === "cycling") {
+    // Use average speed km/h against 40 km ref distance
+    if (goalDistance === "tt40") {
+      const kmh = 40 / h;
+      if (kmh < 32) return "beginner";
+      if (kmh < 37) return "intermediate";
+      if (kmh < 41) return "ambitious";
+      if (kmh < 45) return "performance";
+      return "elite";
+    }
+    if (goalDistance === "granfondo") {
+      if (h > 6) return "beginner";
+      if (h > 5) return "intermediate";
+      if (h > 4.25) return "ambitious";
+      if (h > 3.75) return "performance";
+      return "elite";
+    }
+    if (goalDistance === "century") {
+      if (h > 6.5) return "beginner";
+      if (h > 5.5) return "intermediate";
+      if (h > 4.75) return "ambitious";
+      if (h > 4.25) return "performance";
+      return "elite";
+    }
+    // crit — short race, use duration as proxy
+    return "intermediate";
+  }
+
+  if (discipline === "triathlon") {
+    if (goalDistance === "sprint") {
+      if (h >= 1.6) return "beginner";
+      if (h >= 1.35) return "intermediate";
+      if (h >= 1.15) return "ambitious";
+      if (h >= 1.0) return "performance";
+      return "elite";
+    }
+    if (goalDistance === "olympic") {
+      if (h >= 3.25) return "beginner";
+      if (h >= 2.75) return "intermediate";
+      if (h >= 2.4) return "ambitious";
+      if (h >= 2.1) return "performance";
+      return "elite";
+    }
+    if (goalDistance === "703") {
+      if (h >= 6.5) return "beginner";
+      if (h >= 5.5) return "intermediate";
+      if (h >= 4.75) return "ambitious";
+      if (h >= 4.25) return "performance";
+      return "elite";
+    }
+    if (goalDistance === "ironman") {
+      if (h >= 14) return "beginner";
+      if (h >= 12) return "intermediate";
+      if (h >= 10.5) return "ambitious";
+      if (h >= 9.5) return "performance";
+      return "elite";
+    }
+    return "intermediate";
+  }
+
+  if (discipline === "hyrox") {
+    if (h >= 1.5) return "beginner";       // >= 90 min
+    if (h >= 1.25) return "intermediate";  // >= 75 min
+    if (h >= 1.1) return "ambitious";      // >= 66 min
+    if (h >= 0.95) return "performance";   // >= 57 min
+    return "elite";
+  }
+
+  return "intermediate";
+}
+
+// Flexible time parser: accepts "HH:MM:SS", "MM:SS", "M:SS", "H:MM".
+function planEngineParseTimeSeconds(value) {
+  if (!value) return null;
+  const parts = String(value).trim().split(":").map((n) => Number(n));
+  if (!parts.length || parts.some((n) => !Number.isFinite(n))) return null;
+  if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+  if (parts.length === 2) {
+    // Heuristic: for running 10k a "44:00" is mm:ss. For marathon "3:25" is h:mm.
+    // If first > 10 assume mm:ss; else h:mm.
+    const [a, b] = parts;
+    return a > 12 ? a * 60 + b : a * 3600 + b * 60;
+  }
+  return parts[0] * 60;
+}
+
+// Pick a level bucket when target time is unknown — fall back to form input.
+function planEngineEffectiveLevel(profile) {
+  const secs = planEngineParseTimeSeconds(profile?.goalTime) || parseGoalTimeToSeconds(profile?.goalTime);
+  const fromTarget = planEngineLevelFromTarget(profile?.discipline, profile?.goalDistance, secs);
+  if (fromTarget) return fromTarget;
+  // Fallback to form-selected fitnessLevel
+  const level = profile?.fitnessLevel || "intermediate";
+  if (level === "starter") return "beginner";
+  if (level === "advanced") return "performance";
+  return "intermediate";
+}
+
+// Map the 5-bucket level to the 4-column band table.
+function planEngineBandBucket(level) {
+  if (level === "beginner") return "beginner";
+  if (level === "intermediate") return "intermediate";
+  if (level === "ambitious") return "ambitious";
+  if (level === "performance") return "ambitious"; // use top of ambitious, below elite
+  if (level === "elite") return "elite";
+  return "intermediate";
+}
+
+// Look up the weekly volume band for (discipline, distance, level).
+function planEngineVolumeBand(discipline, goalDistance, level) {
+  const disciplineTable = PLAN_VOLUME_BANDS_KM[discipline] || PLAN_VOLUME_BANDS_KM.running;
+  const row = disciplineTable[goalDistance] || disciplineTable["10k"] || disciplineTable["olympic"] || disciplineTable["open"] || disciplineTable["fitness"];
+  if (!row) return [25, 40];
+  const bucket = planEngineBandBucket(level);
+  return row[bucket] || row.intermediate || [25, 40];
+}
+
+// Starting weekly km — Quick mode uses lower third of band, Peak mode
+// considers athlete history.
+function planEngineStartVolumeKm(profile) {
+  const level = planEngineEffectiveLevel(profile);
+  const [lo, hi] = planEngineVolumeBand(profile.discipline, profile.goalDistance, level);
+  const isQuick = profile?._planMode === "quick" || profile?.planMode === "quick" || !profile?._observedWeeklyKm;
+  const observed = Number(profile?._observedWeeklyKm) || 0;
+
+  // Quick: lower quarter of band (conservative start)
+  const lowerThird = lo + (hi - lo) * 0.25;
+  if (isQuick && !observed) {
+    return Math.round(lowerThird);
+  }
+  // Peak / has observed data: max(observed, band floor) but capped at top of band
+  const floor = lo;
+  const start = Math.max(observed || lowerThird, floor);
+  return Math.round(Math.min(start, hi));
+}
 function effectivePlanningHours(profile) {
   const requested = Number(profile?.weeklyHours) || 0;
   const band = profile?.weeklyHoursRecommended || recommendWeeklyHoursBand(profile);
@@ -17431,59 +17841,183 @@ function computeAthleteCapacity(profile) {
 }
 
 function estimateBaseKm(profile) {
-  const weeklyHours = effectivePlanningHours(profile);
-  if (profile.discipline === "triathlon") {
-    const factorByLevel = {
-      starter: 3.2,
-      intermediate: 4.2,
-      advanced: 5.3,
-    };
-    const base = Math.round(weeklyHours * factorByLevel[profile.fitnessLevel] * 2.0);
-    const distanceBoost =
-      profile.goalDistance === "ironman" ? 10 : profile.goalDistance === "703" ? 6 : profile.goalDistance === "olympic" ? 3 : 1;
-    const ageAdj = profile.age ? clamp((44 - profile.age) * 0.35, -5, 4) : 0;
-    const weightAdj = profile.weightKg ? clamp((75 - profile.weightKg) * 0.12, -3, 2.5) : 0;
-    return clamp(base + distanceBoost + ageAdj + weightAdj, 20, 90);
-  }
-
-  if (profile.discipline === "hyrox") {
-    const factorByLevel = { starter: 3.8, intermediate: 4.9, advanced: 6.1 };
-    const base = Math.round(weeklyHours * factorByLevel[profile.fitnessLevel] * 2.0);
-    const goalBoost =
-      profile.goalDistance === "pro" ? 7 : profile.goalDistance === "doublespro" ? 5 : profile.goalDistance === "open" ? 4 : profile.goalDistance === "doubles" ? 3 : 2;
-    const ageAdj = profile.age ? clamp((40 - profile.age) * 0.2, -3, 2) : 0;
-    return clamp(base + goalBoost + ageAdj, 18, 85);
-  }
-
-  if (profile.discipline === "shape") {
-    const factorByLevel = { starter: 4.2, intermediate: 5.1, advanced: 6.2 };
-    const base = Math.round(weeklyHours * factorByLevel[profile.fitnessLevel] * 2.0);
-    const goalAdj =
-      profile.goalDistance === "fatloss" ? 4 :
-      profile.goalDistance === "recomp" ? 3 :
-      profile.goalDistance === "build" ? 2 : 2;
-    const ageAdj = profile.age ? clamp((40 - profile.age) * 0.18, -2.5, 2) : 0;
-    return clamp(base + goalAdj + ageAdj, 14, 72);
-  }
-
-  if (profile.discipline === "cycling") {
-    const factorByLevel = { starter: 8.5, intermediate: 11.2, advanced: 14.6 };
-    const base = Math.round(weeklyHours * factorByLevel[profile.fitnessLevel]);
-    const distanceBoost =
-      profile.goalDistance === "century" ? 22 : profile.goalDistance === "granfondo" ? 14 : profile.goalDistance === "tt40" ? 6 : 2;
-    const ageAdj = profile.age ? clamp((42 - profile.age) * 0.5, -8, 7) : 0;
-    return clamp(base + distanceBoost + ageAdj, 35, 220);
-  }
-
-  const factorByLevel = {
-    starter: 5.4,
-    intermediate: 7.2,
-    advanced: 9.1,
+  // ═══════════════════════════════════════════════════════════════════════
+  // PLAN ENGINE V3 — Fully inline, no helper dependencies.
+  // Evidence-based weekly km bands keyed by (discipline, distance, level).
+  // Level derived from goal time. Conservative start (band floor) in Quick mode.
+  // ═══════════════════════════════════════════════════════════════════════
+  console.error("PEAKPLAN-V3 estimateBaseKm CALLED", {
+    discipline: profile?.discipline,
+    goalDistance: profile?.goalDistance,
+    goalTime: profile?.goalTime,
+    weeklyHours: profile?.weeklyHours,
+    fitnessLevel: profile?.fitnessLevel,
+    _planMode: profile?._planMode,
+    _observedWeeklyKm: profile?._observedWeeklyKm,
+  });
+  const BANDS = {
+    running: {
+      "5k":       { beginner: [15, 20], intermediate: [22, 32], ambitious: [32, 45],  elite: [55, 90] },
+      "10k":      { beginner: [18, 28], intermediate: [28, 40], ambitious: [38, 52],  elite: [65, 110] },
+      "half":     { beginner: [25, 35], intermediate: [35, 50], ambitious: [50, 72],  elite: [85, 135] },
+      "marathon": { beginner: [35, 48], intermediate: [48, 65], ambitious: [65, 90],  elite: [105, 180] },
+      "ultra":    { beginner: [40, 58], intermediate: [58, 85], ambitious: [80, 115], elite: [120, 200] },
+    },
+    cycling: {
+      "crit":      { beginner: [70, 120],  intermediate: [130, 200], ambitious: [200, 290], elite: [320, 480] },
+      "tt40":      { beginner: [90, 140],  intermediate: [150, 220], ambitious: [220, 310], elite: [340, 500] },
+      "granfondo": { beginner: [110, 170], intermediate: [180, 260], ambitious: [260, 380], elite: [400, 580] },
+      "century":   { beginner: [130, 190], intermediate: [200, 300], ambitious: [300, 430], elite: [430, 620] },
+    },
+    triathlon: {
+      "sprint":  { beginner: [22, 35],  intermediate: [38, 60],  ambitious: [60, 88],   elite: [90, 130] },
+      "olympic": { beginner: [32, 50],  intermediate: [52, 78],  ambitious: [78, 110],  elite: [115, 160] },
+      "703":     { beginner: [50, 75],  intermediate: [75, 110], ambitious: [110, 158], elite: [160, 225] },
+      "ironman": { beginner: [75, 112], intermediate: [112, 168],ambitious: [168, 245], elite: [245, 360] },
+    },
+    hyrox: {
+      "open":        { beginner: [14, 20], intermediate: [20, 30], ambitious: [28, 40], elite: [38, 52] },
+      "pro":         { beginner: [16, 24], intermediate: [24, 35], ambitious: [32, 45], elite: [42, 56] },
+      "doubles":     { beginner: [10, 16], intermediate: [16, 26], ambitious: [24, 35], elite: [34, 47] },
+      "doublespro":  { beginner: [12, 18], intermediate: [18, 28], ambitious: [26, 38], elite: [36, 48] },
+      "relay":       { beginner: [8, 14],  intermediate: [14, 22], ambitious: [20, 30], elite: [28, 40] },
+    },
+    shape: {
+      "fatloss": { beginner: [10, 16], intermediate: [14, 22], ambitious: [18, 26], elite: [22, 30] },
+      "recomp":  { beginner: [8, 14],  intermediate: [11, 18], ambitious: [16, 24], elite: [20, 28] },
+      "build":   { beginner: [6, 12],  intermediate: [9, 16],  ambitious: [13, 20], elite: [17, 24] },
+      "fitness": { beginner: [9, 15],  intermediate: [13, 20], ambitious: [17, 25], elite: [21, 30] },
+    },
   };
-  const base = Math.round(weeklyHours * factorByLevel[profile.fitnessLevel]);
-  const distanceBoost = profile.goalDistance === "marathon" ? 10 : profile.goalDistance === "half" ? 5 : profile.goalDistance === "10k" ? 2 : 0;
-  const ageAdj = profile.age ? clamp((40 - profile.age) * 0.35, -6, 5) : 0;
-  return clamp(base + distanceBoost + ageAdj, 18, 120);
+
+  // Parse goal time string — accepts HH:MM:SS, MM:SS, H:MM, M:SS
+  function _parseTime(val) {
+    if (!val) return 0;
+    const s = String(val).trim();
+    const parts = s.split(":").map((n) => Number(n));
+    if (!parts.length || parts.some((n) => !Number.isFinite(n))) return 0;
+    if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+    if (parts.length === 2) {
+      const [a, b] = parts;
+      // Heuristic: "44:00" → 44 min:sec for 10k, "3:25" → 3 h:min for marathon
+      return a > 12 ? a * 60 + b : a * 3600 + b * 60;
+    }
+    return parts[0] * 60;
+  }
+
+  // Derive level bucket from goal time + discipline + distance
+  function _deriveLevel(disc, dist, secs) {
+    if (!secs || secs <= 0) return "intermediate";
+    const min = secs / 60;
+    const h = secs / 3600;
+    if (disc === "running") {
+      if (dist === "5k") {
+        if (min >= 30) return "beginner";
+        if (min >= 25) return "intermediate";
+        if (min >= 22) return "ambitious";
+        return "elite";
+      }
+      if (dist === "10k") {
+        if (min >= 60) return "beginner";
+        if (min >= 50) return "intermediate";
+        if (min >= 44) return "ambitious";
+        return "elite";
+      }
+      if (dist === "half") {
+        if (h >= 2.25) return "beginner";
+        if (h >= 1.917) return "intermediate";
+        if (h >= 1.667) return "ambitious";
+        return "elite";
+      }
+      if (dist === "marathon") {
+        if (h >= 4.5) return "beginner";
+        if (h >= 4.0) return "intermediate";
+        if (h >= 3.5) return "ambitious";
+        return "elite";
+      }
+    }
+    if (disc === "triathlon") {
+      if (dist === "sprint") {
+        if (h >= 1.6) return "beginner";
+        if (h >= 1.35) return "intermediate";
+        if (h >= 1.15) return "ambitious";
+        return "elite";
+      }
+      if (dist === "olympic") {
+        if (h >= 3.25) return "beginner";
+        if (h >= 2.75) return "intermediate";
+        if (h >= 2.4) return "ambitious";
+        return "elite";
+      }
+      if (dist === "703") {
+        if (h >= 6.5) return "beginner";
+        if (h >= 5.5) return "intermediate";
+        if (h >= 4.75) return "ambitious";
+        return "elite";
+      }
+      if (dist === "ironman") {
+        if (h >= 14) return "beginner";
+        if (h >= 12) return "intermediate";
+        if (h >= 10.5) return "ambitious";
+        return "elite";
+      }
+    }
+    if (disc === "hyrox") {
+      if (h >= 1.5) return "beginner";
+      if (h >= 1.25) return "intermediate";
+      if (h >= 1.1) return "ambitious";
+      return "elite";
+    }
+    if (disc === "cycling") {
+      if (dist === "tt40") {
+        const kmh = 40 / h;
+        if (kmh < 32) return "beginner";
+        if (kmh < 37) return "intermediate";
+        if (kmh < 41) return "ambitious";
+        return "elite";
+      }
+    }
+    return "intermediate";
+  }
+
+  const disc = String(profile?.discipline || "running");
+  const dist = String(profile?.goalDistance || "10k");
+  const secs = _parseTime(profile?.goalTime);
+  const formLevel = String(profile?.fitnessLevel || "intermediate");
+  const fallbackLevel = formLevel === "starter" ? "beginner" : formLevel === "advanced" ? "ambitious" : "intermediate";
+  const level = secs > 0 ? _deriveLevel(disc, dist, secs) : fallbackLevel;
+
+  const discTable = BANDS[disc] || BANDS.running;
+  const row = discTable[dist] || discTable[Object.keys(discTable)[1]] || discTable[Object.keys(discTable)[0]];
+  const band = row?.[level] || row?.intermediate || [25, 40];
+
+  // Quick-Modus: start at band FLOOR (most conservative, safest)
+  // Peak-Modus (with observed data): max(observed, band floor) capped at band top
+  const observed = Number(profile?._observedWeeklyKm) || 0;
+  const isPeak = profile?._planMode === "peak" || profile?.planMode === "peak" || observed > 0;
+
+  let start;
+  if (isPeak && observed > 0) {
+    start = Math.min(band[1], Math.max(observed, band[0]));
+  } else {
+    // Quick mode = band floor (literature conservative start)
+    start = band[0];
+  }
+
+  // Safety: if user requested very few hours, scale down gracefully
+  const reqHours = Number(profile?.weeklyHours) || 0;
+  if (reqHours > 0 && reqHours < 4) {
+    start = start * 0.7;
+  } else if (reqHours > 0 && reqHours < 6) {
+    start = start * 0.85;
+  }
+
+  profile._planEngineLevel = level;
+  profile._planEngineBand = band;
+
+  const result = Math.max(6, Math.round(start));
+  console.log("PEAKPLAN estimateBaseKm V3", { disc, dist, goalTime: profile?.goalTime, secs, level, band, isPeak, observed, result });
+  return result;
 }
 
 function estimateHoursFromKm(profile, km) {
