@@ -1,0 +1,118 @@
+/* ============================================================
+   peak.athlete · Core Auth Gate
+   Sets body[data-ui="core"] ONLY when a user is authenticated.
+   Otherwise the legacy Landing + Plan-Creator + Onboarding flow
+   remains fully functional. Never modifies app.js.
+
+   Flow:
+   - Not logged in → Landing page visible → user can use Login,
+     Create Account, or Plan erstellen (Quick/Peak → Onboarding
+     → Paywall) exactly as before.
+   - Logged in → Core Shell takes over (Heute/Plan/Analyse/Profil).
+   - On logout → back to Landing.
+   ============================================================ */
+(function () {
+  "use strict";
+
+  var body = document.body;
+  var ATTR = "data-ui";
+  var VAL = "core";
+
+  function hasSession() {
+    try {
+      if (typeof window.getCurrentAccount === "function") {
+        var a = window.getCurrentAccount();
+        if (a && (a.id || a.email || a.profile)) return true;
+      }
+    } catch (_) {}
+    // Fallback: scan localStorage for Supabase session token
+    try {
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i);
+        if (k && /sb-.*-auth-token/.test(k)) {
+          var v = localStorage.getItem(k);
+          if (v && v.length > 20) return true;
+        }
+      }
+    } catch (_) {}
+    return false;
+  }
+
+  function enableCore() {
+    if (body.getAttribute(ATTR) === VAL) return;
+    body.setAttribute(ATTR, VAL);
+    document.dispatchEvent(new CustomEvent("core:ui-enabled"));
+    if (window.CoreBridge && typeof window.CoreBridge.syncAll === "function") {
+      setTimeout(window.CoreBridge.syncAll, 100);
+    }
+  }
+
+  function disableCore() {
+    if (body.getAttribute(ATTR) !== VAL) return;
+    body.removeAttribute(ATTR);
+    document.dispatchEvent(new CustomEvent("core:ui-disabled"));
+  }
+
+  // Initial check — may miss async session restore, so we also poll briefly
+  function initialCheck() {
+    if (hasSession()) enableCore();
+  }
+
+  function pollForSession() {
+    var attempts = 0;
+    var maxAttempts = 20; // 20 × 250ms = 5s
+    var iv = setInterval(function () {
+      attempts++;
+      if (hasSession()) {
+        enableCore();
+        clearInterval(iv);
+      } else if (attempts >= maxAttempts) {
+        clearInterval(iv);
+      }
+    }, 250);
+  }
+
+  // Hook into Supabase auth state once sbAuth is available
+  function wireSupabase() {
+    var tries = 0;
+    var iv = setInterval(function () {
+      tries++;
+      if (window.sbAuth && typeof window.sbAuth.onAuthStateChange === "function") {
+        clearInterval(iv);
+        try {
+          window.sbAuth.onAuthStateChange(function (event, session) {
+            if (event === "SIGNED_IN" && session && session.user) {
+              enableCore();
+            } else if (event === "SIGNED_OUT") {
+              disableCore();
+              // legacy landing needs to be shown again
+              try { window.scrollTo(0, 0); } catch (_) {}
+            } else if (event === "INITIAL_SESSION" && session && session.user) {
+              enableCore();
+            }
+          });
+        } catch (_) {}
+      } else if (tries > 40) {
+        clearInterval(iv);
+      }
+    }, 150);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", function () {
+      initialCheck();
+      pollForSession();
+      wireSupabase();
+    });
+  } else {
+    initialCheck();
+    pollForSession();
+    wireSupabase();
+  }
+
+  window.CoreAuthGate = {
+    enable: enableCore,
+    disable: disableCore,
+    isEnabled: function () { return body.getAttribute(ATTR) === VAL; }
+  };
+})();

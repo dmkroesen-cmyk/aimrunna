@@ -21,7 +21,7 @@
     <!-- Core WebApp Foundation (new shell, additive) -->
     <link rel="stylesheet" href="./core/core.css" />
   </head>
-  <body data-ui="core">
+  <body>
     <!-- ============================================================
          peak.athlete · Core WebApp Shell (new)
          Legacy UI is hidden via shell.css (#scroll-stage + #account-bar)
@@ -475,6 +475,7 @@
     <!-- Core Shell JS (loaded in order) -->
     <script src="./core/core-device.js"></script>
     <script src="./core/core-i18n.js"></script>
+    <script src="./core/core-auth-gate.js"></script>
     <script src="./core/core-bridge.js"></script>
     <script>
       // Core Shell wiring: i18n static binding, modal system, profile rows
@@ -521,15 +522,16 @@
           document.body.style.overflow = "";
         }
         document.addEventListener("click", function (e) {
-          // Close triggers
+          // Scope to core modals only (id starts with "core-modal-")
           var closeBtn = e.target.closest("[data-modal-close]");
           if (closeBtn) {
             var m = closeBtn.closest(".modal");
-            if (m) closeModal(m);
+            if (m && m.id && m.id.indexOf("core-modal-") === 0) closeModal(m);
             return;
           }
-          // Backdrop click
-          if (e.target.classList && e.target.classList.contains("modal")) {
+          // Backdrop click on core modals only
+          if (e.target.id && e.target.id.indexOf("core-modal-") === 0 &&
+              e.target.classList && e.target.classList.contains("modal")) {
             closeModal(e.target);
             return;
           }
