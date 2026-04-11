@@ -1,0 +1,114 @@
+/* ============================================================
+   peak.athlete · Core Tokens
+   Single Source of Truth. Kein Hardcoded-Value im Rest der App.
+   ============================================================ */
+
+:root {
+  /* ---------- Color ---------- */
+  --bg:        #FFFFFF;
+  --bg-elev:   #FAFAF8;
+  --surface:   #F5F4F0;
+  --surface-2: #EFEDE7;
+
+  --ink:   #0A0A0A;
+  --ink-2: #3A3A3A;
+  --ink-3: #6B6B68;
+  --ink-4: #A8A8A5;
+  --ink-5: #D4D2CC;
+
+  --line:      #E8E6E0;
+  --line-soft: #F1EFEA;
+
+  --brand:   #D4850F;
+  --brand-2: #B8720D;
+  --brand-3: #8F5909;
+  --brand-tint: #FBF3E4;
+  --brand-grad: linear-gradient(135deg, #D4850F 0%, #B8720D 100%);
+
+  --ok:     #2E7D4F;
+  --ok-bg:  #E6F2EB;
+  --warn:   #C77700;
+  --warn-bg:#FBF0DE;
+  --danger: #B3261E;
+  --danger-bg:#FCE8E6;
+  --info:   #2D5BD4;
+
+  /* Zone colors (Running/Cycling Power/HR) */
+  --z1: #BFD7B5;
+  --z2: #7FB77E;
+  --z3: #E9B949;
+  --z4: #E87A1C;
+  --z5: #C6361A;
+
+  /* ---------- Typography ---------- */
+  --font:      "Inter", system-ui, -apple-system, "SF Pro Text", Roboto, sans-serif;
+  --font-disp: "Inter", system-ui, sans-serif;
+  --font-num:  "Inter", ui-monospace, "SF Mono", monospace;
+
+  --hero:  clamp(40px, 7vw, 72px);
+  --h1:    28px;
+  --h2:    22px;
+  --h3:    18px;
+  --body:  15px;
+  --sm:    13px;
+  --xs:    11px;
+
+  --lh-tight: 1.1;
+  --lh-body:  1.5;
+
+  --w-reg:  400;
+  --w-med:  500;
+  --w-semi: 600;
+  --w-bold: 700;
+
+  --tr-wide: 0.02em;
+  --tr-caps: 0.08em;
+
+  /* ---------- Spacing ---------- */
+  --s-0:  0px;
+  --s-1:  4px;
+  --s-2:  8px;
+  --s-3:  12px;
+  --s-4:  16px;
+  --s-5:  20px;
+  --s-6:  24px;
+  --s-7:  32px;
+  --s-8:  48px;
+  --s-9:  64px;
+
+  /* ---------- Radius ---------- */
+  --r-1: 6px;
+  --r-2: 10px;
+  --r-3: 14px;
+  --r-4: 20px;
+  --r-pill: 999px;
+
+  /* ---------- Elevation ---------- */
+  --sh-1: 0 1px 2px rgba(10,10,10,.04);
+  --sh-2: 0 4px 12px rgba(10,10,10,.06);
+  --sh-3: 0 8px 24px rgba(10,10,10,.08);
+  --sh-4: 0 16px 48px rgba(10,10,10,.10);
+  --sh-brand: 0 8px 24px rgba(212,133,15,.28);
+
+  /* ---------- Motion ---------- */
+  --ease:       cubic-bezier(.2,.8,.2,1);
+  --ease-in:    cubic-bezier(.4,0,.2,1);
+  --dur-1: 120ms;
+  --dur-2: 200ms;
+  --dur-3: 320ms;
+  --dur-4: 480ms;
+
+  /* ---------- Shell ---------- */
+  --tab-h:    56px;
+  --appbar-h: 48px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bot: env(safe-area-inset-bottom, 0px);
+  --max-w:    440px;
+
+  /* ---------- Focus ---------- */
+  --focus: 0 0 0 2px var(--bg), 0 0 0 4px var(--brand);
+}
+
+@media (prefers-color-scheme: dark) {
+  /* Dark mode reserved — not yet in scope */
+}

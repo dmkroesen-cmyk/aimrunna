@@ -1,0 +1,19 @@
+${(r.event_name || 
+${CSS.escape(name)}
+${escapeHtml(name)}
+aimathlete
+bikeFtp
+bikeThresholdHr
+bikeThresholdLactate
+birthDay
+birthMonth
+birthYear
+discipline
+heightCm
+runThresholdHr
+runThresholdLactate
+runThresholdPace
+sex
+swimCss
+triathlon
+weightKg

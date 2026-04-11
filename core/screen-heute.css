@@ -1,0 +1,275 @@
+/* ============================================================
+   peak.athlete · Screen: Heute
+   Decision > Data. Ring + Decision Badge + 3 Reasons.
+   ============================================================ */
+
+.heute {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+  padding: var(--s-4) var(--s-4) var(--s-9);
+}
+
+/* ---------- Date line ---------- */
+.heute__date {
+  font-size: 11px;
+  font-weight: var(--w-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--tr-caps);
+  color: var(--ink-4);
+  text-align: center;
+  margin-top: var(--s-2);
+}
+
+/* ---------- Decision Hero (Ring + Decision word) ---------- */
+.decision-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--s-5) 0 var(--s-3);
+  position: relative;
+}
+
+.decision-hero__ring-wrap {
+  position: relative;
+  margin-bottom: var(--s-5);
+}
+
+.decision-hero .ring {
+  width: 160px;
+  height: 160px;
+}
+
+.decision-hero__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--r-pill);
+  font-size: 10px;
+  font-weight: var(--w-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: var(--s-3);
+  background: var(--brand-tint);
+  color: var(--brand-2);
+}
+.decision-hero__badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 3px rgba(212,133,15,.18);
+}
+
+.decision-hero__word {
+  font-size: 34px;
+  font-weight: var(--w-bold);
+  letter-spacing: -0.035em;
+  line-height: 1;
+  color: var(--ink);
+  text-align: center;
+  margin-bottom: var(--s-2);
+}
+
+.decision-hero__intent {
+  font-size: 14px;
+  font-weight: var(--w-med);
+  color: var(--ink-3);
+  text-align: center;
+  max-width: 22ch;
+}
+
+/* Tone-aware coloring */
+.decision-hero[data-tone="go"] .decision-hero__word {
+  background: linear-gradient(135deg, #2E7D4F 0%, #1F5A36 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.decision-hero[data-tone="go"] .decision-hero__badge {
+  background: var(--ok-bg);
+  color: var(--ok);
+}
+
+.decision-hero[data-tone="neutral"] .decision-hero__word {
+  background: linear-gradient(135deg, #D4850F 0%, #8F5909 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.decision-hero[data-tone="stop"] .decision-hero__word {
+  background: linear-gradient(135deg, #B3261E 0%, #7A1A14 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.decision-hero[data-tone="stop"] .decision-hero__badge {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+/* ---------- Reasons Card ---------- */
+.reasons {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.reason {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-3);
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--ink-2);
+  font-weight: var(--w-med);
+}
+.reason__dot {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  margin-top: 8px;
+  border-radius: 50%;
+  background: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-tint);
+}
+.reason__text {
+  flex: 1;
+  font-variant-numeric: tabular-nums;
+}
+.reason--muted { color: var(--ink-4); }
+.reason--muted .reason__dot { background: var(--ink-5); box-shadow: none; }
+
+/* ---------- Session Card ---------- */
+.heute__session-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--s-3);
+}
+.heute__session-label {
+  font-size: 10px;
+  font-weight: var(--w-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--tr-caps);
+  color: var(--ink-4);
+}
+.heute__session-title {
+  font-size: 26px;
+  font-weight: var(--w-bold);
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+  color: var(--ink);
+  margin-bottom: var(--s-2);
+}
+.heute__session-meta {
+  font-size: 13px;
+  font-weight: var(--w-med);
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+  margin-bottom: var(--s-4);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+.heute__session-meta .dot {
+  color: var(--ink-5);
+  font-weight: var(--w-bold);
+}
+.heute__session-meta .fire {
+  letter-spacing: -2px;
+  font-size: 12px;
+}
+.heute__session .intensity {
+  height: 14px;
+  margin-bottom: var(--s-5);
+  border-radius: 3px;
+}
+.heute__session-cta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  align-items: stretch;
+}
+.heute__session-cta .cta {
+  width: 100%;
+  padding: 16px 24px;
+  font-size: 15px;
+  min-height: 54px;
+}
+.heute__session-later {
+  align-self: center;
+  font-size: var(--sm);
+  color: var(--ink-4);
+  font-weight: var(--w-med);
+  padding: var(--s-2) var(--s-3);
+  transition: color var(--dur-1) var(--ease);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+.heute__session-later:hover { color: var(--ink-2); }
+
+/* Rest state */
+.heute__session[data-state="rest"] .heute__session-cta { display: none; }
+.heute__session[data-state="rest"] .intensity { display: none; }
+.heute__session[data-state="rest"] .heute__session-title {
+  font-size: 22px;
+  margin-bottom: var(--s-3);
+}
+
+/* ---------- Week Card ---------- */
+.heute__week-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--s-4);
+}
+.heute__week-label {
+  font-size: 10px;
+  font-weight: var(--w-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--tr-caps);
+  color: var(--ink-4);
+}
+.heute__week-count {
+  font-size: 11px;
+  font-weight: var(--w-semi);
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Outlook ---------- */
+.heute__outlook {
+  margin-top: var(--s-2);
+  text-align: center;
+  font-size: 13px;
+  font-weight: var(--w-med);
+  color: var(--ink-4);
+  letter-spacing: 0.01em;
+}
+.heute__outlook b {
+  color: var(--ink-3);
+  font-weight: var(--w-semi);
+}
+
+/* ---------- Coach-Card header ---------- */
+.heute__greeting {
+  font-size: 20px;
+  font-weight: var(--w-bold);
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin-bottom: var(--s-3);
+  line-height: 1.2;
+}
+.heute__greeting .wave {
+  display: inline-block;
+  margin-left: 4px;
+}

@@ -1,0 +1,197 @@
+/* ============================================================
+   peak.athlete · Screen: Progress (Analyse)
+   3-Layer progressive disclosure: Essentials → Trends → Deep
+   ============================================================ */
+
+.progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+  padding: var(--s-4) var(--s-4) var(--s-9);
+}
+
+.progress__head {
+  padding: var(--s-3) 0 var(--s-1);
+}
+.progress__title {
+  font-size: 28px;
+  font-weight: var(--w-bold);
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+  color: var(--ink);
+}
+.progress__sub {
+  font-size: 13px;
+  color: var(--ink-3);
+  margin-top: 4px;
+}
+
+/* ---------- Form Bars (Fitness / Fatigue / Form) ---------- */
+.form-bars {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+.form-bar {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  gap: var(--s-2);
+}
+.form-bar__head {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+.form-bar__label {
+  font-size: 11px;
+  font-weight: var(--w-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--tr-caps);
+  color: var(--ink-3);
+}
+.form-bar__val {
+  font-size: 22px;
+  font-weight: var(--w-bold);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+}
+.form-bar__track {
+  grid-column: 1 / -1;
+  height: 8px;
+  background: var(--surface);
+  border-radius: var(--r-pill);
+  overflow: hidden;
+  position: relative;
+}
+.form-bar__fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  border-radius: var(--r-pill);
+  transition: width var(--dur-4) var(--ease);
+}
+.form-bar[data-type="fitness"] .form-bar__fill { background: linear-gradient(90deg, #6DAA6C 0%, #2E7D4F 100%); }
+.form-bar[data-type="fatigue"] .form-bar__fill { background: linear-gradient(90deg, #EF8A30 0%, #D06B13 100%); }
+.form-bar[data-type="freshness"] .form-bar__fill { background: linear-gradient(90deg, #E59617 0%, #B8720D 100%); }
+
+/* ---------- Predictions ---------- */
+.predictions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-3);
+}
+.pred {
+  background: var(--bg-elev);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-2);
+  padding: var(--s-3);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pred__dist {
+  font-size: 10px;
+  font-weight: var(--w-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--tr-caps);
+  color: var(--ink-4);
+}
+.pred__time {
+  font-size: 20px;
+  font-weight: var(--w-bold);
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* ---------- Load Bar ---------- */
+.load-bar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.load-bar__track {
+  height: 10px;
+  background: var(--surface);
+  border-radius: var(--r-pill);
+  overflow: hidden;
+  position: relative;
+}
+.load-bar__track::before,
+.load-bar__track::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(10,10,10,.08);
+}
+.load-bar__track::before { left: 53.3%; }  /* 0.8 / 1.5 = 53.3% */
+.load-bar__track::after  { left: 86.6%; }  /* 1.3 / 1.5 = 86.6% */
+.load-bar__fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  border-radius: var(--r-pill);
+  background: linear-gradient(90deg, #C8DEBE 0%, #2E7D4F 50%, #2E7D4F 100%);
+  transition: width var(--dur-4) var(--ease);
+}
+.load-bar__fill[data-zone="high"] { background: linear-gradient(90deg, #D9A538 0%, #C6361A 100%); }
+.load-bar__fill[data-zone="low"]  { background: linear-gradient(90deg, #B2CFA5 0%, #8AC289 100%); }
+.load-bar__legend {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  font-weight: var(--w-semi);
+  color: var(--ink-4);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- CTL/ATL/TSB Line Chart (placeholder SVG) ---------- */
+.chart-line {
+  width: 100%;
+  height: 120px;
+  border-radius: var(--r-2);
+  overflow: hidden;
+}
+
+/* ---------- Zones Stack Bar ---------- */
+.zones-stack {
+  display: flex;
+  height: 22px;
+  border-radius: var(--r-pill);
+  overflow: hidden;
+}
+.zones-stack > div {
+  position: relative;
+}
+.zones-stack__legend {
+  display: flex;
+  justify-content: space-between;
+  margin-top: var(--s-2);
+  font-size: 10px;
+  color: var(--ink-4);
+  font-weight: var(--w-semi);
+}
+
+/* ---------- Heatmap ---------- */
+.heatmap {
+  display: grid;
+  grid-template-columns: repeat(14, 1fr);
+  gap: 2px;
+}
+.heatmap__cell {
+  aspect-ratio: 1 / 1;
+  border-radius: 2px;
+  background: var(--line);
+}
+.heatmap__cell[data-lvl="1"] { background: #E6F2EB; }
+.heatmap__cell[data-lvl="2"] { background: #B5D6C0; }
+.heatmap__cell[data-lvl="3"] { background: #6DAA6C; }
+.heatmap__cell[data-lvl="4"] { background: #2E7D4F; }

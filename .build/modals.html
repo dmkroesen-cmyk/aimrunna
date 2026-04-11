@@ -1,0 +1,638 @@
+    <div id="session-overlay" class="session-overlay" hidden>
+      <div class="session-overlay-backdrop" data-close-overlay></div>
+      <article class="session-modal-card" role="dialog" aria-modal="true" aria-labelledby="session-modal-title">
+        <button type="button" class="session-modal-close" data-close-overlay aria-label="Close">×</button>
+        <div class="session-modal-head">
+          <div class="session-modal-meta" id="session-modal-meta"></div>
+          <h4 id="session-modal-title"></h4>
+          <p id="session-modal-sub"></p>
+        </div>
+        <div class="session-modal-grid">
+          <div class="session-modal-block">
+            <span id="session-label-purpose">Zweck</span>
+            <strong id="session-modal-purpose"></strong>
+          </div>
+          <div class="session-modal-block">
+            <span id="session-label-adaptation">Trainingseffekt</span>
+            <strong id="session-modal-adaptation"></strong>
+          </div>
+          <div class="session-modal-block">
+            <span id="session-label-physiology">Physio-Fokus</span>
+            <strong id="session-modal-physiology"></strong>
+          </div>
+          <div class="session-modal-block">
+            <span id="session-label-why">Warum jetzt</span>
+            <strong id="session-modal-why"></strong>
+          </div>
+          <div class="session-modal-block" id="session-execution-block" hidden>
+            <span id="session-label-execution">Steuerung</span>
+            <strong id="session-modal-execution"></strong>
+          </div>
+          <div class="session-modal-block" id="session-workout-block" hidden>
+            <span id="session-label-workout">Workout Plan</span>
+            <strong id="session-modal-workout"></strong>
+          </div>
+          <div class="session-modal-block" id="session-cycle-block" hidden>
+            <span id="session-label-cycle">Cycle Note</span>
+            <strong id="session-modal-cycle"></strong>
+          </div>
+          <div class="session-modal-block" id="session-nutrition-focus-block">
+            <span id="session-label-nutrition-focus">Ernährungsfokus</span>
+            <strong id="session-modal-nutrition-focus"></strong>
+          </div>
+        </div>
+        <div class="session-modal-nutrition">
+          <div class="session-modal-kcal">
+            <span id="session-label-kcal">Tageskalorien</span>
+            <strong id="session-modal-kcal">-</strong>
+          </div>
+          <div class="session-modal-macros">
+            <div class="macro-chip" id="macro-carb" title="Carbs">
+              <span class="macro-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 10 10-12h-9l1-10z"/></svg></span>
+              <strong id="session-modal-carb">-</strong>
+            </div>
+            <div class="macro-chip" id="macro-protein" title="Protein">
+              <span class="macro-icon">◼</span>
+              <strong id="session-modal-protein">-</strong>
+            </div>
+            <div class="macro-chip" id="macro-fat" title="Fat">
+              <span class="macro-icon">◐</span>
+              <strong id="session-modal-fat">-</strong>
+            </div>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <div id="account-modal" class="account-modal" hidden>
+      <div class="account-modal-backdrop" data-close-account-modal></div>
+      <article class="account-modal-card" role="dialog" aria-modal="true" aria-labelledby="account-modal-title">
+        <button type="button" class="session-modal-close" data-close-account-modal aria-label="Close">×</button>
+        <div class="result-title-row">
+          <h4 id="account-modal-title">Account</h4>
+          <div class="account-auth-tabs">
+            <button type="button" class="account-tab is-active" data-auth-mode="login">Login</button>
+            <button type="button" class="account-tab" data-auth-mode="register">Create</button>
+          </div>
+        </div>
+        <form id="account-form" class="account-form">
+          <button type="button" class="cta cta-google" id="google-login-btn">
+            <svg width="18" height="18" viewBox="0 0 48 48" style="vertical-align:middle;margin-right:8px"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59a14.5 14.5 0 0 1 0-9.18l-7.98-6.19a24.01 24.01 0 0 0 0 21.56l7.98-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+            Mit Google anmelden
+          </button>
+          <div class="auth-divider"><span>oder</span></div>
+          <label class="field">
+            <span>E-Mail</span>
+            <input type="email" name="email" required placeholder="you@email.com" />
+          </label>
+          <label class="field">
+            <span>Passwort</span>
+            <input type="password" name="password" required minlength="6" placeholder="mind. 6 Zeichen" />
+          </label>
+          <div class="account-form-meta">
+            <button type="button" class="text-link-btn" id="account-forgot-password-btn">Passwort vergessen?</button>
+          </div>
+          <label class="field field-checkbox auth-terms-field" id="auth-terms-field" hidden>
+            <input type="checkbox" name="acceptTerms" id="auth-accept-terms" />
+            <span class="field-checkbox-text">
+              Ich akzeptiere die
+              <button type="button" class="text-link-btn" data-legal-open="terms">Nutzungsbedingungen</button>,
+              die <button type="button" class="text-link-btn" data-legal-open="privacy">Datenschutzerklärung</button>
+              und den <button type="button" class="text-link-btn" data-legal-open="disclaimer">Health Disclaimer</button>.
+            </span>
+          </label>
+          <div class="account-inline-actions">
+            <button type="submit" class="cta cta-race" id="account-submit-btn">login.</button>
+            <span class="connection-state" id="account-form-status" aria-live="polite"></span>
+          </div>
+        </form>
+      </article>
+    </div>
+
+    <div id="activity-detail-modal" class="account-modal" hidden>
+      <div class="account-modal-backdrop" data-close-activity-detail></div>
+      <article class="account-modal-card activity-detail-modal-card" role="dialog" aria-modal="true">
+        <button type="button" class="session-modal-close" data-close-activity-detail aria-label="Schließen">&times;</button>
+        <div id="activity-detail-content"></div>
+      </article>
+    </div>
+
+    <div id="activity-compose-modal" class="account-modal" hidden>
+      <div class="account-modal-backdrop" data-close-activity-compose></div>
+      <article id="profile-card-post" class="account-modal-card activity-compose-modal-card" role="dialog" aria-modal="true" aria-labelledby="activity-compose-title">
+        <button type="button" class="session-modal-close" data-close-activity-compose aria-label="Close">×</button>
+        <div class="result-title-row">
+          <h4 id="activity-compose-title" data-i18n="new_activity">Neue Aktivität</h4>
+          <span class="tag subtle" data-i18n="post_label">Post</span>
+        </div>
+        <p class="micro-copy">Optionaler manueller Post (z. B. Kommentar / Bild). Primär kommen Aktivitäten später über Strava/Garmin/WHOOP-Import.</p>
+        <form id="activity-post-form" class="activity-post-form">
+          <div class="activity-type-toggle" role="radiogroup" aria-label="Aktivitätstyp">
+            <label class="activity-type-chip">
+              <input type="radio" name="activityKind" value="training" checked />
+              <span data-i18n="activity_kind_training">Training</span>
+            </label>
+            <label class="activity-type-chip activity-type-chip-race">
+              <input type="radio" name="activityKind" value="race" />
+              <span>race.</span>
+            </label>
+          </div>
+          <div class="activity-meta-row">
+            <label class="field is-select">
+              <span data-i18n="field_sport">Sport</span>
+              <select name="sportType">
+                <option value="run">Run</option>
+                <option value="bike">Bike</option>
+                <option value="swim">Swim</option>
+                <option value="hyrox">Hyrox</option>
+                <option value="other">Other</option>
+              </select>
+            </label>
+            <label class="field">
+              <span data-i18n="field_distance_km">Distanz (km)</span>
+              <input type="number" name="distanceKm" min="0" step="0.1" placeholder="z. B. 12.4" data-i18n-placeholder="placeholder_distance_example" />
+            </label>
+          </div>
+          <input type="text" name="title" placeholder="z. B. Threshold Run in der City" data-i18n-placeholder="placeholder_activity_title" required />
+          <textarea name="note" rows="3" placeholder="Wie lief die Einheit? Gefühl, Pace, Learnings ..." data-i18n-placeholder="placeholder_activity_note"></textarea>
+          <div class="activity-post-row">
+            <input type="file" name="image" accept="image/*" />
+            <button type="submit" class="ghost" data-i18n="post_submit">Posten</button>
+          </div>
+        </form>
+      </article>
+    </div>
+
+    <div id="glossary-modal" class="account-modal" hidden>
+      <div class="account-modal-backdrop" data-close-glossary-modal></div>
+      <article class="account-modal-card glossary-modal-card" role="dialog" aria-modal="true" aria-labelledby="glossary-modal-title">
+        <button type="button" class="session-modal-close" data-close-glossary-modal aria-label="Close">×</button>
+        <div class="session-modal-head">
+          <div class="session-modal-meta">peak.athlete Guide</div>
+          <h4 id="glossary-modal-title">Trainingsbibliothek</h4>
+          <p>Kurze Erklärungen zu Begriffen aus Lauf-, Triathlon-, HYROX- und Strength-Training.</p>
+        </div>
+        <div class="glossary-toolbar">
+          <input id="glossary-search" type="search" placeholder="Begriff suchen (z. B. Strides, Carries, Lunges)" />
+          <select id="glossary-category">
+            <option value="all">Alle</option>
+            <option value="run">Laufen</option>
+            <option value="bike">Rad</option>
+            <option value="swim">Schwimmen</option>
+            <option value="triathlon">Triathlon</option>
+            <option value="hyrox">HYROX</option>
+            <option value="strength">Strength</option>
+            <option value="recovery">Recovery</option>
+          </select>
+        </div>
+        <div id="glossary-list" class="glossary-list"></div>
+      </article>
+    </div>
+
+    <div id="goal-realism-modal" class="account-modal" hidden>
+      <div class="account-modal-backdrop" data-close-goal-realism></div>
+      <article class="account-modal-card" role="dialog" aria-modal="true" aria-labelledby="goal-realism-title">
+        <button type="button" class="session-modal-close" data-close-goal-realism aria-label="Close">×</button>
+        <div class="session-modal-head">
+          <div class="session-modal-meta">Goal Check</div>
+          <h4 id="goal-realism-title">Ziel aktuell nicht realistisch</h4>
+          <p id="goal-realism-message">Diese Kombination aus Ziel und Zeitraum ist aktuell nicht sinnvoll umsetzbar.</p>
+        </div>
+        <div id="goal-realism-suggestion" class="session-modal-block" hidden>
+          <span>Vorschlag</span>
+          <strong id="goal-realism-suggestion-text"></strong>
+        </div>
+        <div class="account-inline-actions" style="margin-top:10px;">
+          <button type="button" class="ghost" id="goal-realism-force-btn">Ziel trotzdem setzen</button>
+          <button type="button" class="ghost" id="goal-realism-apply-btn" hidden>Vorschlag übernehmen</button>
+          <button type="button" class="ghost" data-close-goal-realism>Zurück</button>
+        </div>
+      </article>
+    </div>
+
+    <div id="race-calendar-modal" class="account-modal" hidden>
+      <div class="account-modal-backdrop" data-close-race-calendar></div>
+      <article class="account-modal-card race-calendar-modal-card" role="dialog" aria-modal="true" aria-labelledby="race-calendar-title">
+        <button type="button" class="session-modal-close" data-close-race-calendar aria-label="Close">×</button>
+        <div class="session-modal-head">
+          <div class="session-modal-meta">Race Calendar</div>
+          <h4 id="race-calendar-title">Wettkämpfe planen</h4>
+          <p>Trage Vorbereitungsrennen ein. Der Trainingsplan reagiert mit Entlastung und Wettkampf-Einheiten.</p>
+        </div>
+        <div class="activity-meta-row race-calendar-input-row">
+          <label class="field">
+            <span>Datum</span>
+            <input type="date" id="race-cal-date" />
+          </label>
+          <label class="field">
+            <span>Name</span>
+            <input type="text" id="race-cal-name" placeholder="z. B. 10k City Race" />
+          </label>
+        </div>
+        <div class="activity-meta-row race-calendar-input-row">
+          <label class="field is-select">
+            <span>Disziplin</span>
+            <select id="race-cal-discipline">
+              <option value="running">Run</option>
+              <option value="triathlon">Triathlon</option>
+              <option value="cycling">Bike</option>
+              <option value="hyrox">HYROX</option>
+              <option value="shape">Shape</option>
+            </select>
+          </label>
+          <label class="field is-select">
+            <span>Distanz / Format</span>
+            <select id="race-cal-distance"></select>
+          </label>
+          <label class="field is-select">
+            <span>Priorität</span>
+            <select id="race-cal-priority">
+              <option value="C">C (Training Race)</option>
+              <option value="B">B (Wichtig)</option>
+              <option value="A">A (Key Race)</option>
+            </select>
+          </label>
+        </div>
+        <div class="account-inline-actions race-calendar-actions">
+          <button type="button" class="ghost" id="race-cal-add-btn">Hinzufügen</button>
+          <span class="connection-state" id="race-cal-status" aria-live="polite"></span>
+        </div>
+        <div id="race-cal-list" class="saved-plan-list">
+          <div class="empty-copy">Noch keine zusätzlichen Wettkämpfe.</div>
+        </div>
+        <div class="account-inline-actions race-calendar-actions">
+          <button type="button" class="ghost" id="race-cal-save-btn">Übernehmen</button>
+          <button type="button" class="ghost" data-close-race-calendar>Schließen</button>
+        </div>
+      </article>
+    </div>
+
+    <div id="threshold-modal" class="account-modal" hidden>
+      <div class="account-modal-backdrop" data-close-threshold-modal></div>
+      <article class="account-modal-card race-calendar-modal-card" role="dialog" aria-modal="true" aria-labelledby="threshold-modal-title">
+        <button type="button" class="session-modal-close" data-close-threshold-modal aria-label="Close">×</button>
+        <div class="session-modal-head">
+          <div class="session-modal-meta">Thresholds</div>
+          <h4 id="threshold-modal-title">Schwellenwerte</h4>
+          <p id="threshold-modal-copy">Hinterlege sinnvolle Referenzwerte für deine Disziplin. Diese steuern Pace-/FTP-Ziele im Plan.</p>
+        </div>
+        <div id="threshold-modal-fields" class="activity-meta-row race-calendar-input-row"></div>
+        <div class="account-inline-actions race-calendar-actions">
+          <button type="button" class="ghost" id="threshold-clear-btn">Zurücksetzen</button>
+          <button type="button" class="ghost" id="threshold-save-btn">Speichern</button>
+        </div>
+        <div class="account-inline-actions race-calendar-actions">
+          <small id="threshold-modal-status" class="empty-copy"></small>
+          <button type="button" class="ghost" data-close-threshold-modal>Schließen</button>
+        </div>
+      </article>
+    </div>
+
+    <div id="legal-modal" class="account-modal" hidden>
+      <div class="account-modal-backdrop" data-close-legal-modal></div>
+      <article class="account-modal-card glossary-modal-card legal-modal-card" role="dialog" aria-modal="true" aria-labelledby="legal-modal-title">
+        <button type="button" class="session-modal-close" data-close-legal-modal aria-label="Close">×</button>
+        <div class="session-modal-head">
+          <div class="session-modal-meta">peak.athlete Legal & Compliance</div>
+          <h4 id="legal-modal-title">Public Beta Legal Paket (Draft)</h4>
+          <p id="legal-modal-subtitle">Vorlage zur internen Vorbereitung. Vor Launch juristisch prüfen lassen (DE/EU, Gesundheits-/Trainingsbezug).</p>
+        </div>
+        <div class="legal-layout">
+          <nav class="legal-nav" id="legal-nav">
+            <button type="button" class="legal-nav-btn is-active" data-legal-section="imprint">Impressum</button>
+            <button type="button" class="legal-nav-btn" data-legal-section="privacy">Datenschutz</button>
+            <button type="button" class="legal-nav-btn" data-legal-section="terms">Nutzungsbedingungen</button>
+            <button type="button" class="legal-nav-btn" data-legal-section="agb">AGB (Draft)</button>
+            <button type="button" class="legal-nav-btn" data-legal-section="disclaimer">Health Disclaimer</button>
+            <button type="button" class="legal-nav-btn" data-legal-section="cookies">Cookies</button>
+            <button type="button" class="legal-nav-btn" data-legal-section="community">Community Regeln</button>
+            <button type="button" class="legal-nav-btn" data-legal-section="data-processing">Datenverarbeitung & Connectors</button>
+          </nav>
+          <section class="legal-content">
+            <div id="legal-content-body" class="analysis">Legal Draft</div>
+          </section>
+        </div>
+      </article>
+    </div>
+
+    <!-- Login Success Animation Overlay -->
+    <div id="login-success-overlay" class="login-success-overlay" hidden>
+      <div class="login-success-content">
+        <div class="login-success-ring">
+          <svg viewBox="0 0 200 200">
+            <circle class="login-ring-track" cx="100" cy="100" r="88" />
+            <circle class="login-ring-fill" cx="100" cy="100" r="88" />
+          </svg>
+          <div class="login-success-icon">✓</div>
+        </div>
+        <strong class="login-success-brand">peak.athlete</strong>
+        <span class="login-success-msg" data-i18n="login_welcome">Willkommen zurück</span>
+      </div>
+    </div>
+
+    <!-- Legal Questionnaire Modal -->
+    <div id="legal-questionnaire-modal" class="account-modal" hidden>
+      <div class="account-modal-backdrop" data-close-legal-questionnaire></div>
+      <article class="account-modal-card legal-questionnaire-card" role="dialog" aria-modal="true" aria-labelledby="legal-q-title">
+        <button type="button" class="session-modal-close" data-close-legal-questionnaire aria-label="Close">×</button>
+        <div class="result-title-row">
+          <h4 id="legal-q-title">Impressum & Rechtliches</h4>
+          <span class="tag subtle">Pflicht</span>
+        </div>
+        <p class="card-copy">Bitte fülle die folgenden Angaben aus, damit dein Impressum rechtssicher ist (§5 TMG / DDG).</p>
+        <form id="legal-questionnaire-form" class="account-form">
+          <fieldset class="legal-fieldset">
+            <legend>Unternehmen / Betreiber</legend>
+            <label class="field"><span>Firmenname / Rechtsform</span><input type="text" name="companyName" placeholder="z.B. AI'm GBR" required /></label>
+            <div class="activity-meta-row">
+              <label class="field"><span>Vertretungsberechtigte Person(en)</span><input type="text" name="representatives" placeholder="Vor- und Nachname(n)" required /></label>
+              <label class="field"><span>Rechtsform</span>
+                <select name="legalForm">
+                  <option value="gbr">GbR</option>
+                  <option value="ug">UG (haftungsbeschränkt)</option>
+                  <option value="gmbh">GmbH</option>
+                  <option value="einzelunternehmen">Einzelunternehmen</option>
+                  <option value="other">Andere</option>
+                </select>
+              </label>
+            </div>
+          </fieldset>
+          <fieldset class="legal-fieldset">
+            <legend>Adresse</legend>
+            <label class="field"><span>Straße + Hausnummer</span><input type="text" name="street" placeholder="Musterstraße 1" required /></label>
+            <div class="activity-meta-row">
+              <label class="field"><span>PLZ</span><input type="text" name="zip" placeholder="12345" required /></label>
+              <label class="field"><span>Stadt</span><input type="text" name="city" placeholder="Berlin" required /></label>
+            </div>
+            <label class="field"><span>Land</span><input type="text" name="country" value="Deutschland" required /></label>
+          </fieldset>
+          <fieldset class="legal-fieldset">
+            <legend>Kontakt</legend>
+            <div class="activity-meta-row">
+              <label class="field"><span>E-Mail (öffentlich)</span><input type="email" name="contactEmail" placeholder="kontakt@example.com" required /></label>
+              <label class="field"><span>Telefon (optional, empfohlen)</span><input type="tel" name="contactPhone" placeholder="+49 ..." /></label>
+            </div>
+          </fieldset>
+          <fieldset class="legal-fieldset">
+            <legend>Registrierung & Steuern</legend>
+            <div class="activity-meta-row">
+              <label class="field"><span>Handelsregister / Registergericht</span><input type="text" name="tradeRegister" placeholder="z.B. AG Charlottenburg, HRB 12345 (falls vorhanden)" /></label>
+              <label class="field"><span>USt-IdNr. (falls vorhanden)</span><input type="text" name="vatId" placeholder="DE123456789" /></label>
+            </div>
+          </fieldset>
+          <fieldset class="legal-fieldset">
+            <legend>Verantwortlich für Inhalte (§ 18 MStV)</legend>
+            <label class="field"><span>Name der verantwortlichen Person</span><input type="text" name="contentResponsible" placeholder="Vor- und Nachname" required /></label>
+            <label class="field"><span>Adresse (falls abweichend)</span><input type="text" name="contentResponsibleAddress" placeholder="Wie oben, oder andere Adresse" /></label>
+          </fieldset>
+          <fieldset class="legal-fieldset">
+            <legend>Datenschutz</legend>
+            <label class="field"><span>Datenschutzbeauftragter (falls bestellt)</span><input type="text" name="dpo" placeholder="Name oder 'nicht bestellt'" /></label>
+            <label class="field"><span>Hosting-Anbieter</span><input type="text" name="hostingProvider" placeholder="z.B. Vercel, Cloudflare Pages, Hetzner..." required /></label>
+            <label class="field"><span>Verwendete Drittdienste</span><input type="text" name="thirdPartyServices" placeholder="z.B. Strava API, Google Fonts, Supabase..." /></label>
+          </fieldset>
+          <fieldset class="legal-fieldset">
+            <legend>Online-Streitbeilegung</legend>
+            <p class="micro-copy">Gemäß EU-Verordnung Nr. 524/2013: Link zur OS-Plattform: <a href="https://ec.europa.eu/consumers/odr" target="_blank">https://ec.europa.eu/consumers/odr</a></p>
+            <label class="field"><span>Bereitschaft zur Teilnahme?</span>
+              <select name="odrWillingness">
+                <option value="no">Nein – nicht bereit / nicht verpflichtet</option>
+                <option value="yes">Ja</option>
+              </select>
+            </label>
+          </fieldset>
+          <div class="account-inline-actions">
+            <button type="submit" class="cta cta-race">Impressum generieren</button>
+            <span class="connection-state" id="legal-q-status" aria-live="polite"></span>
+          </div>
+        </form>
+      </article>
+    </div>
+
+    <!-- ═══ KPI DRILLDOWN MODAL ═══ -->
+    <div class="kpi-modal-backdrop" id="kpi-modal-backdrop" hidden>
+      <div class="kpi-modal" role="dialog" aria-modal="true" aria-labelledby="kpi-modal-title">
+        <button type="button" class="kpi-modal-close" id="kpi-modal-close" aria-label="Schliessen">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+        <div class="kpi-modal-header">
+          <span class="kpi-modal-eyebrow" id="kpi-modal-eyebrow">METRIC</span>
+          <h3 class="kpi-modal-title" id="kpi-modal-title">Titel</h3>
+          <div class="kpi-modal-value-row">
+            <div class="kpi-modal-value" id="kpi-modal-value">--</div>
+            <div class="kpi-modal-unit" id="kpi-modal-unit"></div>
+          </div>
+          <div class="kpi-modal-rating" id="kpi-modal-rating"></div>
+        </div>
+        <div class="kpi-modal-body">
+          <section class="kpi-modal-section" id="kpi-modal-explanation-sec">
+            <h4>Was bedeutet das?</h4>
+            <p id="kpi-modal-explanation"></p>
+          </section>
+          <section class="kpi-modal-section" id="kpi-modal-why-sec">
+            <h4>Warum ist dein Score so?</h4>
+            <p id="kpi-modal-why"></p>
+          </section>
+          <section class="kpi-modal-section" id="kpi-modal-recos-sec">
+            <h4>Wie verbesserst du dich?</h4>
+            <ul id="kpi-modal-recos"></ul>
+          </section>
+          <section class="kpi-modal-section" id="kpi-modal-source-sec">
+            <h4>Berechnungsgrundlage</h4>
+            <p class="kpi-modal-source" id="kpi-modal-source"></p>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ MEDAL ADD / DETAIL MODAL ═══ -->
+    <div class="medal-modal-backdrop" id="medal-modal-backdrop" hidden>
+      <div class="medal-modal" role="dialog" aria-modal="true" aria-labelledby="medal-modal-title">
+        <button type="button" class="medal-modal-close" id="medal-modal-close" aria-label="Schliessen">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+        <div class="medal-modal-header">
+          <span class="medal-modal-eyebrow">TROPHY CASE</span>
+          <h3 class="medal-modal-title" id="medal-modal-title">Medal hinzufügen</h3>
+        </div>
+        <form class="medal-modal-form" id="medal-form" autocomplete="off">
+          <div class="medal-form-grid">
+            <label class="medal-form-field medal-form-field-full">
+              <span>Serie</span>
+              <select name="series" id="medal-series-select" required>
+                <option value="marathon_majors">World Marathon Majors</option>
+                <option value="iconic_marathon">Iconic Marathon</option>
+                <option value="ironman">Ironman (Langdistanz)</option>
+                <option value="ironman_703">Ironman 70.3</option>
+                <option value="hyrox">HYROX</option>
+                <option value="ultra">Ultra</option>
+                <option value="gran_fondo">Gran Fondo / Cycling</option>
+                <option value="hybrid">Hybrid / Functional</option>
+                <option value="custom">Custom Event</option>
+              </select>
+            </label>
+            <label class="medal-form-field medal-form-field-full">
+              <span>Event</span>
+              <div class="medal-event-picker">
+                <input type="text" id="medal-event-search" placeholder="Event suchen …" autocomplete="off" />
+                <div class="medal-event-options" id="medal-event-options"></div>
+              </div>
+              <input type="hidden" name="race_catalog_id" id="medal-catalog-id" />
+              <input type="hidden" name="event_code" id="medal-event-code" />
+              <input type="hidden" name="event_name" id="medal-event-name" />
+              <input type="hidden" name="event_city" id="medal-event-city" />
+            </label>
+            <label class="medal-form-field">
+              <span>Datum</span>
+              <input type="date" name="finish_date" id="medal-finish-date" required />
+            </label>
+            <label class="medal-form-field">
+              <span>Zeit (hh:mm:ss)</span>
+              <input type="text" name="finish_time" id="medal-finish-time" placeholder="03:02:14" pattern="^\d{1,2}:\d{2}:\d{2}$" />
+            </label>
+            <label class="medal-form-field">
+              <span>Platzierung (optional)</span>
+              <input type="number" name="finish_position" id="medal-finish-position" min="1" />
+            </label>
+            <label class="medal-form-field">
+              <span>AK-Platz (optional)</span>
+              <input type="number" name="age_group_position" id="medal-ag-position" min="1" />
+            </label>
+            <label class="medal-form-field">
+              <span>Altersklasse</span>
+              <input type="text" name="age_group" id="medal-ag" placeholder="M30-34" />
+            </label>
+            <label class="medal-form-field">
+              <span>Startnummer</span>
+              <input type="text" name="bib_number" id="medal-bib" placeholder="12345" />
+            </label>
+            <label class="medal-form-field medal-form-field-full">
+              <span>Notizen</span>
+              <textarea name="notes" id="medal-notes" rows="2" placeholder="Race-Report, Erinnerung, Lessons ..."></textarea>
+            </label>
+            <label class="medal-form-field medal-form-checkbox medal-form-field-full">
+              <input type="checkbox" name="is_pr" id="medal-is-pr" />
+              <span>Persönliche Bestleistung (PR)</span>
+            </label>
+          </div>
+          <div class="medal-modal-footer">
+            <button type="button" class="ghost" id="medal-form-cancel">Abbrechen</button>
+            <button type="submit" class="primary" id="medal-form-save">Medal speichern</button>
+          </div>
+          <div class="medal-form-status" id="medal-form-status" aria-live="polite"></div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ═══ MEDAL DETECTION CONFIRM MODAL ═══ -->
+    <div class="medal-detect-backdrop" id="medal-detect-backdrop" hidden>
+      <div class="medal-detect-modal" role="dialog" aria-modal="true">
+        <div class="medal-detect-header">
+          <span class="medal-detect-eyebrow">🏅 MEDAL ERKANNT</span>
+          <h3 id="medal-detect-title">Neue Medal erkannt?</h3>
+        </div>
+        <div class="medal-detect-body" id="medal-detect-body"></div>
+        <div class="medal-detect-footer">
+          <button type="button" class="ghost" id="medal-detect-skip">Später</button>
+          <button type="button" class="ghost" id="medal-detect-reject">Nein, falsch</button>
+          <button type="button" class="primary" id="medal-detect-confirm">Bestätigen</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Event (Target Race) Modal -->
+    <div class="target-modal-backdrop" id="target-modal-backdrop" hidden>
+      <div class="target-modal" role="dialog" aria-modal="true" aria-labelledby="target-modal-title">
+        <div class="target-modal-header">
+          <h3 id="target-modal-title">Main Event hinzufügen</h3>
+          <button type="button" class="target-modal-close" id="target-modal-close" aria-label="Schließen">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <form class="target-modal-body" id="target-modal-form">
+          <input type="hidden" id="target-race-id" value="" />
+
+          <label class="target-field">
+            <span class="target-label">Event</span>
+            <input type="text" id="target-event-search" placeholder="UTMB, Berlin Marathon, HYROX Köln …" autocomplete="off" />
+            <div class="target-suggest" id="target-event-suggest" hidden></div>
+          </label>
+
+          <input type="hidden" id="target-race-catalog-id" value="" />
+          <input type="hidden" id="target-series" value="" />
+          <input type="hidden" id="target-distance-label" value="" />
+
+          <div class="target-field-row">
+            <label class="target-field">
+              <span class="target-label">Stadt</span>
+              <input type="text" id="target-event-city" placeholder="—" />
+            </label>
+            <label class="target-field">
+              <span class="target-label">Land</span>
+              <input type="text" id="target-event-country" placeholder="—" maxlength="40" />
+            </label>
+          </div>
+
+          <div class="target-field-row">
+            <label class="target-field">
+              <span class="target-label">Datum</span>
+              <input type="date" id="target-race-date" required />
+            </label>
+            <label class="target-field">
+              <span class="target-label">Priorität</span>
+              <select id="target-priority">
+                <option value="A">A · Peak-Race</option>
+                <option value="B">B · Tune-up</option>
+                <option value="C">C · Fun / Training</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="target-field-row">
+            <label class="target-field">
+              <span class="target-label">Status</span>
+              <select id="target-status">
+                <option value="planned">Geplant</option>
+                <option value="registered">Angemeldet</option>
+                <option value="confirmed">Bestätigt / Slot</option>
+              </select>
+            </label>
+            <label class="target-field">
+              <span class="target-label">Zielzeit (opt.)</span>
+              <input type="text" id="target-goal-time" placeholder="z.B. 3:30:00" pattern="[0-9:]*" />
+            </label>
+          </div>
+
+          <label class="target-field">
+            <span class="target-label">Notizen (opt.)</span>
+            <textarea id="target-notes" rows="2" placeholder="Was ist dein Plan für dieses Rennen?"></textarea>
+          </label>
+
+          <div class="target-modal-footer">
+            <button type="button" class="ghost" id="target-delete-btn" hidden>Löschen</button>
+            <div class="target-modal-footer-right">
+              <button type="button" class="ghost" id="target-cancel-btn">Abbrechen</button>
+              <button type="submit" class="primary" id="target-save-btn">Speichern</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- GDPR / DSGVO Cookie Consent Banner -->
+    <div id="cookie-consent-banner" class="cookie-consent-banner" role="dialog" aria-live="polite" aria-label="Cookie Einstellungen" hidden>
+      <div class="cookie-consent-inner">
+        <div class="cookie-consent-body">
+          <strong class="cookie-consent-title">Cookies & Privatsphäre</strong>
+          <p class="cookie-consent-copy">
+            Wir nutzen technisch notwendige Cookies für dein Login und deine Einstellungen.
+            Optional helfen uns anonyme Analyse-Cookies, peak.athlete zu verbessern. Deine Wahl kannst du jederzeit widerrufen.
+            <button type="button" class="text-link-btn" data-legal-open="cookies">Details</button>
+          </p>
+        </div>
+        <div class="cookie-consent-actions">
+          <button type="button" class="ghost cookie-consent-btn" data-cookie-choice="necessary">Nur notwendige</button>
+          <button type="button" class="cta cta-race cookie-consent-btn" data-cookie-choice="all">Alle akzeptieren</button>
+        </div>
+      </div>
+    </div>

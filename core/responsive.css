@@ -1,0 +1,128 @@
+/* ============================================================
+   peak.athlete · Responsive Layer
+   Mobile-first mit expliziter Device-Class-Erkennung.
+   Breakpoints target moderne Smartphones + Tablets + Desktop.
+   ============================================================ */
+
+/* ---------- Device classes (set via JS core-device.js) ---------- */
+html[data-device="xs"]  { /* <360px · iPhone SE 1st gen, old Androids */ }
+html[data-device="sm"]  { /* 360-389 · iPhone 13 mini, older Androids */ }
+html[data-device="md"]  { /* 390-429 · iPhone 14/15/16, Pixel */ }
+html[data-device="lg"]  { /* 430-599 · iPhone Plus/Pro Max, large Androids */ }
+html[data-device="tab"] { /* 600-1023 · Tablets */ }
+html[data-device="desk"]{ /* >=1024 · Desktop */ }
+
+/* ---------- Base fluid tuning ---------- */
+:root {
+  --gutter: clamp(14px, 4.2vw, 20px);
+  --scroll-pad: max(var(--s-5), env(safe-area-inset-bottom, 0px));
+}
+
+/* ---------- Very small phones (<360px) ---------- */
+@media (max-width: 359px) {
+  :root {
+    --h1: 24px;
+    --h2: 19px;
+    --body: 14px;
+    --sm: 12px;
+    --xs: 10px;
+    --s-6: 18px;
+    --s-7: 26px;
+  }
+  .ring { width: 128px; height: 128px; }
+  .ring__num { font-size: 40px; }
+  .heute__hero { padding-top: var(--s-4); }
+  .card { padding: var(--s-5); border-radius: 16px; }
+  .heute__session-title { font-size: 22px !important; }
+  .tab-bar { grid-template-columns: 1fr 1fr 72px 1fr 1fr; }
+  .tab-bar__fab { width: 56px; height: 56px; top: -22px; }
+  .decision-hero__word { font-size: 28px !important; }
+}
+
+/* ---------- Small phones (360-389) ---------- */
+@media (min-width: 360px) and (max-width: 389px) {
+  .ring { width: 144px; height: 144px; }
+  .ring__num { font-size: 46px; }
+}
+
+/* ---------- Standard phones (390-429) ---------- */
+@media (min-width: 390px) and (max-width: 429px) {
+  /* base tokens apply */
+}
+
+/* ---------- Large phones (430-599) ---------- */
+@media (min-width: 430px) {
+  .ring { width: 172px; height: 172px; }
+  .ring__num { font-size: 56px; }
+  .heute__hero { padding-top: var(--s-6); }
+}
+
+/* ---------- Tablets (600-1023) ---------- */
+@media (min-width: 600px) {
+  :root { --max-w: 520px; }
+  .app-root { max-width: 520px; }
+  .tab-bar { max-width: 520px; }
+  .app-screen { padding-left: var(--s-6); padding-right: var(--s-6); }
+  .ring { width: 196px; height: 196px; }
+  .ring__num { font-size: 64px; }
+}
+
+/* ---------- Desktop (1024+) ---------- */
+@media (min-width: 1024px) {
+  :root { --max-w: 440px; }
+  body[data-ui="core"] {
+    background:
+      radial-gradient(ellipse 60% 40% at 50% 0%, #F5EFE3 0%, rgba(245,239,227,0) 70%),
+      #F1EFEA;
+    min-height: 100vh;
+  }
+  .app-root {
+    max-width: 440px;
+    min-height: 840px;
+    margin-top: 40px;
+    margin-bottom: 40px;
+    border-radius: 32px;
+    overflow: hidden;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.8) inset,
+      0 2px 8px rgba(10,10,10,.04),
+      0 20px 60px rgba(10,10,10,.08),
+      0 40px 120px rgba(10,10,10,.08);
+    padding-bottom: 0;
+  }
+  .tab-bar {
+    position: absolute;
+    bottom: 0;
+    max-width: 440px;
+    left: 0;
+    right: 0;
+    transform: none;
+    margin: 0 auto;
+  }
+}
+
+/* ---------- Landscape phone ---------- */
+@media (max-height: 500px) and (orientation: landscape) {
+  .heute__hero { padding: var(--s-3) 0; }
+  .ring { width: 120px; height: 120px; }
+  .ring__num { font-size: 38px; }
+  .heute__intent { font-size: 18px; }
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+  .ring__arc { transition: none !important; }
+}
+
+/* ---------- High contrast ---------- */
+@media (prefers-contrast: more) {
+  :root {
+    --line: #B0B0A8;
+    --ink-3: #4A4A48;
+    --ink-4: #6B6B68;
+  }
+}

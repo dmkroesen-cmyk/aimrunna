@@ -1,0 +1,73 @@
+    <nav class="account-bar" id="account-bar" aria-live="polite">
+      <div class="account-bar-left">
+        <a class="nav-brand" id="brand-anchor" href="./landing.html" aria-label="peak.athlete Home">
+          <div class="brand-mark" aria-hidden="true"><span>p</span></div>
+          <strong class="brand-wordmark">peak.athlete</strong>
+        </a>
+        <div class="nav-divider"></div>
+        <button type="button" class="account-btn" id="account-profile-btn" data-i18n="nav_profile">Profil</button>
+        <button type="button" class="account-btn is-active" id="account-home-btn" data-i18n="nav_training">Training</button>
+        <button type="button" class="nav-cta nav-cta-race" id="account-peakplan-btn" title="peak.plan"><span data-i18n="nav_peakplan">peak.plan</span></button>
+      </div>
+      <div class="account-bar-right">
+        <button type="button" class="account-btn" id="account-login-btn" data-i18n="nav_login">Login</button>
+        <button type="button" class="account-btn" id="account-register-btn" data-i18n="nav_create">Create</button>
+        <button type="button" class="notif-bell-btn" id="notif-bell-btn" hidden title="Benachrichtigungen" aria-label="Benachrichtigungen">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="notif-bell-badge" id="notif-bell-badge" hidden>0</span>
+        </button>
+        <div class="notif-dropdown" id="notif-dropdown">
+          <div class="notif-dropdown-header">
+            <strong>Benachrichtigungen</strong>
+            <button type="button" class="notif-mark-read-btn" id="notif-mark-read-btn" title="Alle gelesen">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </button>
+          </div>
+          <div class="notif-list" id="notif-list">
+            <div class="notif-empty">Keine neuen Benachrichtigungen</div>
+          </div>
+        </div>
+        <button type="button" class="athletes-header-btn" id="athletes-header-btn" hidden title="Athleten" aria-label="Athleten">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+          <span class="athletes-header-count" id="athletes-header-count" hidden>0</span>
+        </button>
+        <div class="account-pill" id="account-pill" hidden>
+          <span class="account-dot"></span>
+          <span id="account-label">Guest</span>
+        </div>
+        <button type="button" class="account-btn account-btn-logout" id="account-logout-btn" hidden>Logout</button>
+      </div>
+    </nav>
+
+    <!-- Athleten Drawer -->
+    <div class="athletes-drawer-backdrop" id="athletes-drawer-backdrop" hidden>
+      <div class="athletes-drawer" role="dialog" aria-modal="true" aria-labelledby="athletes-drawer-title">
+        <div class="athletes-drawer-head">
+          <h3 id="athletes-drawer-title">Athleten</h3>
+          <button type="button" class="athletes-drawer-close" id="athletes-drawer-close" aria-label="Schließen">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="athletes-drawer-body">
+          <form id="athletes-search-form" class="athletes-search-form">
+            <svg class="athletes-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <input type="search" name="query" id="athletes-search-input" placeholder="Athleten suchen…" autocomplete="off" />
+          </form>
+          <div class="athletes-drawer-section">
+            <div class="athletes-drawer-section-head">
+              <span>Vernetzt</span>
+              <span class="athletes-drawer-count" id="athletes-drawer-connected-count">0</span>
+            </div>
+            <div class="athletes-drawer-list" id="athletes-drawer-connected">
+              <div class="athletes-drawer-empty">Noch keine Verbindungen.</div>
+            </div>
+          </div>
+          <div class="athletes-drawer-section" id="athletes-drawer-results-wrap" hidden>
+            <div class="athletes-drawer-section-head">
+              <span>Suchergebnisse</span>
+            </div>
+            <div class="athletes-drawer-list" id="athletes-drawer-results"></div>
+          </div>
+        </div>
+      </div>
+    </div>

@@ -1,0 +1,294 @@
+    <div class="ob-shell" id="ob-shell" hidden>
+      <!-- Progress -->
+      <div class="ob-chrome">
+        <div class="ob-progress-track">
+          <div class="ob-progress-fill" id="ob-progress-fill"></div>
+        </div>
+        <span class="ob-step" id="ob-step"></span>
+        <button type="button" class="ob-close" id="ob-close" aria-label="Schließen">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Screens container -->
+      <div class="ob-screens" id="ob-screens">
+
+        <!-- S1 — Discipline -->
+        <div class="ob-screen" data-screen="discipline">
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline" tabindex="-1">Wähle deine Sportart</h2>
+            <div class="ob-choices" id="ob-discipline-cards">
+              <button type="button" class="ob-choice is-active" data-value="running">Laufen</button>
+              <button type="button" class="ob-choice" data-value="triathlon">Triathlon</button>
+              <button type="button" class="ob-choice" data-value="cycling">Radfahren</button>
+              <button type="button" class="ob-choice" data-value="hyrox">Hyrox</button>
+              <button type="button" class="ob-choice" data-value="shape">Shape</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- S2 — Distance -->
+        <div class="ob-screen" data-screen="distance" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline" tabindex="-1">Deine Distanz.</h2>
+            <div class="ob-choices" id="ob-distance-cards">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+        </div>
+
+        <!-- S3 — Goal Time (Wheel Picker) -->
+        <div class="ob-screen" data-screen="goaltime" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline" tabindex="-1">Deine Zielzeit.</h2>
+            <div class="ob-wheel-group">
+              <div class="ob-wheel-col">
+                <span class="ob-wheel-label">Std</span>
+                <div class="ob-wheel" id="ob-wheel-hours" data-field="hours">
+                  <div class="ob-wheel-track"></div>
+                </div>
+              </div>
+              <span class="ob-wheel-sep">:</span>
+              <div class="ob-wheel-col">
+                <span class="ob-wheel-label">Min</span>
+                <div class="ob-wheel" id="ob-wheel-minutes" data-field="minutes">
+                  <div class="ob-wheel-track"></div>
+                </div>
+              </div>
+              <span class="ob-wheel-sep">:</span>
+              <div class="ob-wheel-col">
+                <span class="ob-wheel-label">Sek</span>
+                <div class="ob-wheel" id="ob-wheel-seconds" data-field="seconds">
+                  <div class="ob-wheel-track"></div>
+                </div>
+              </div>
+            </div>
+            <p class="ob-pace-display" id="ob-pace-display"></p>
+            <button type="button" class="ob-skip-link" id="ob-skip-goaltime">Überspringen</button>
+          </div>
+        </div>
+
+        <!-- S4 — Race Day -->
+        <div class="ob-screen" data-screen="raceday" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline" tabindex="-1">Dein Wettkampf.</h2>
+            <input type="date" class="ob-date-input" id="ob-race-date" min="" />
+            <div class="ob-race-suggestions" id="ob-race-suggestions"></div>
+            <button type="button" class="ob-skip-link" id="ob-skip-raceday">Kein festes Datum</button>
+          </div>
+        </div>
+
+        <!-- S5 — Level -->
+        <div class="ob-screen" data-screen="level" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline" tabindex="-1">Dein Level.</h2>
+            <div class="ob-choices" id="ob-level-cards">
+              <button type="button" class="ob-choice ob-choice--has-desc" data-value="starter">
+                <span class="ob-choice-label">Einsteiger</span>
+                <span class="ob-choice-desc">&lt; 1 Jahr strukturiert</span>
+              </button>
+              <button type="button" class="ob-choice ob-choice--has-desc is-active" data-value="intermediate">
+                <span class="ob-choice-label">Fortgeschritten</span>
+                <span class="ob-choice-desc">1–3 Jahre regelmäßig</span>
+              </button>
+              <button type="button" class="ob-choice ob-choice--has-desc" data-value="advanced">
+                <span class="ob-choice-label">Leistung</span>
+                <span class="ob-choice-desc">3+ Jahre Wettkampf</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- S6 — Body Data (Wheel Pickers) -->
+        <div class="ob-screen" data-screen="body" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline" tabindex="-1">Über dich.</h2>
+            <p class="ob-sub">Für präzise Zonen & Belastungssteuerung</p>
+            <div class="ob-body-grid">
+              <div class="ob-body-item">
+                <span class="ob-body-label">Geschlecht</span>
+                <div class="ob-toggle-row" id="ob-sex-toggle">
+                  <button type="button" class="ob-toggle-btn" data-value="female" aria-label="Weiblich">W</button>
+                  <button type="button" class="ob-toggle-btn is-active" data-value="" aria-label="Keine Angabe">—</button>
+                  <button type="button" class="ob-toggle-btn" data-value="male" aria-label="Männlich">M</button>
+                </div>
+              </div>
+              <div class="ob-body-item">
+                <span class="ob-body-label">Geburtsjahr</span>
+                <div class="ob-wheel ob-wheel-sm" id="ob-wheel-birthyear" data-field="birthyear">
+                  <div class="ob-wheel-track"></div>
+                </div>
+              </div>
+              <div class="ob-body-item">
+                <span class="ob-body-label">Gewicht</span>
+                <div class="ob-wheel ob-wheel-sm" id="ob-wheel-weight" data-field="weight">
+                  <div class="ob-wheel-track"></div>
+                </div>
+                <span class="ob-body-unit">kg</span>
+              </div>
+              <div class="ob-body-item">
+                <span class="ob-body-label">Größe</span>
+                <div class="ob-wheel ob-wheel-sm" id="ob-wheel-height" data-field="height">
+                  <div class="ob-wheel-track"></div>
+                </div>
+                <span class="ob-body-unit">cm</span>
+              </div>
+            </div>
+            <button type="button" class="ob-skip-link" id="ob-skip-body">Überspringen</button>
+          </div>
+        </div>
+
+        <!-- S7 — Weekly Hours (Wheel Picker) -->
+        <div class="ob-screen" data-screen="hours" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline" tabindex="-1">Dein Zeitbudget.</h2>
+            <p class="ob-sub">Stunden pro Woche</p>
+            <div class="ob-wheel-group ob-wheel-single">
+              <div class="ob-wheel-col">
+                <div class="ob-wheel ob-wheel-lg" id="ob-wheel-hours-weekly" data-field="weeklyhours">
+                  <div class="ob-wheel-track"></div>
+                </div>
+                <span class="ob-wheel-label">Stunden / Woche</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- S8 — Schedule Preferences -->
+        <div class="ob-screen" data-screen="schedule" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline" tabindex="-1">Dein langer Tag.</h2>
+            <p class="ob-sub">Welcher Tag passt für die lange Einheit?</p>
+            <div class="ob-choices" id="ob-schedule-cards">
+              <button type="button" class="ob-choice" data-value="saturday">Samstag</button>
+              <button type="button" class="ob-choice is-active" data-value="sunday">Sonntag</button>
+              <button type="button" class="ob-choice" data-value="flexible">Flexibel</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- S9 — Personal Best -->
+        <div class="ob-screen" data-screen="pb" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline" tabindex="-1">Aktuelle Bestzeit?</h2>
+            <p class="ob-sub">Hilft bei der Zonenberechnung</p>
+            <div class="ob-pb-form">
+              <select class="ob-select" id="ob-pb-distance">
+                <option value="">Distanz wählen</option>
+              </select>
+              <input type="text" class="ob-input" id="ob-pb-time" placeholder="z.B. 52:30 oder 3:45:00" inputmode="numeric" />
+            </div>
+            <button type="button" class="ob-skip-link" id="ob-skip-pb">Keine Bestzeit</button>
+          </div>
+        </div>
+
+        <!-- S10 — Shape Focus (only for shape discipline) -->
+        <div class="ob-screen" data-screen="shapefocus" hidden>
+          <div class="ob-screen-inner">
+            <h2 class="ob-headline" tabindex="-1">Dein Fokus.</h2>
+            <div class="ob-choices" id="ob-shapefocus-cards">
+              <button type="button" class="ob-choice ob-choice--has-desc is-active" data-value="fat_loss">
+                <span class="ob-choice-label">Abnehmen</span>
+                <span class="ob-choice-desc">Fettabbau durch Ausdauer & Kraft</span>
+              </button>
+              <button type="button" class="ob-choice ob-choice--has-desc" data-value="toning">
+                <span class="ob-choice-label">Toning</span>
+                <span class="ob-choice-desc">Körper straffen & definieren</span>
+              </button>
+              <button type="button" class="ob-choice ob-choice--has-desc" data-value="fitness">
+                <span class="ob-choice-label">Allgemeine Fitness</span>
+                <span class="ob-choice-desc">Ausdauer, Kraft & Beweglichkeit</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- S11 — Final: Activation + Account (unified) -->
+        <div class="ob-screen ob-screen-final" data-screen="final" hidden>
+
+          <!-- Phase 1: Activation moment -->
+          <div class="ob-final-phase ob-final-activate" id="ob-phase-activate">
+            <div class="ob-screen-inner ob-activate-inner">
+              <div class="ob-activate-glow"></div>
+              <div class="ob-activate-badge">peak.</div>
+              <h2 class="ob-headline ob-headline-lg" tabindex="-1">Bereit.</h2>
+              <p class="ob-activate-summary" id="ob-activate-summary"></p>
+              <button type="button" class="ob-activate-btn" id="ob-activate-btn">
+                <span>Go peak.</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 5l7 7-7 7"/></svg>
+              </button>
+              <p class="ob-beta-note">Kostenlos während der Beta-Phase</p>
+              <p class="ob-beta-sub">Kein Abo. Keine Kreditkarte.</p>
+            </div>
+          </div>
+
+          <!-- Phase 2: Account creation (slides in after activation) -->
+          <div class="ob-final-phase ob-final-account" id="ob-phase-account">
+            <div class="ob-screen-inner">
+              <div class="ob-activate-badge ob-activate-badge-sm">peak.</div>
+              <h2 class="ob-headline" tabindex="-1">Wähle deinen Zugang.</h2>
+              <p class="ob-sub">Erstelle einen Account und sichere deinen Fortschritt.</p>
+
+              <!-- Pricing Tiers — scroll-snap selection -->
+              <div class="ob-tiers-track" id="ob-tiers">
+                <div class="ob-tier-snap is-active" data-tier="beta" role="button" tabindex="0">
+                  <div class="ob-tier-badge">Beta</div>
+                  <div class="ob-tier-amount">0&thinsp;€</div>
+                  <div class="ob-tier-label">Kostenlos</div>
+                  <div class="ob-tier-desc">Voller Zugang während der Beta-Phase.</div>
+                </div>
+                <div class="ob-tier-snap is-locked" data-tier="monthly" role="button" tabindex="-1">
+                  <div class="ob-tier-amount">12,50&thinsp;€</div>
+                  <div class="ob-tier-cycle">/ Monat</div>
+                  <div class="ob-tier-label">Monatlich</div>
+                  <div class="ob-tier-soon">Bald verfügbar</div>
+                </div>
+                <div class="ob-tier-snap is-locked" data-tier="yearly" role="button" tabindex="-1">
+                  <div class="ob-tier-amount">125&thinsp;€</div>
+                  <div class="ob-tier-cycle">/ Jahr</div>
+                  <div class="ob-tier-label">Jährlich</div>
+                  <div class="ob-tier-save">2 Monate gratis</div>
+                  <div class="ob-tier-soon">Bald verfügbar</div>
+                </div>
+              </div>
+
+              <div class="ob-account-form">
+                <button type="button" class="ob-google-btn" id="ob-google-btn">
+                  <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                  <span>Mit Google fortfahren</span>
+                </button>
+
+                <div class="ob-or-divider"><span>oder</span></div>
+
+                <input type="email" class="ob-input" id="ob-email" placeholder="E-Mail" autocomplete="email" />
+                <input type="password" class="ob-input" id="ob-password" placeholder="Passwort (mind. 6 Zeichen)" minlength="6" autocomplete="new-password" />
+                <label class="ob-terms-row" id="ob-terms-row">
+                  <input type="checkbox" id="ob-accept-terms" />
+                  <span>Ich akzeptiere die <a href="#" data-open-legal="terms">Nutzungsbedingungen</a> & <a href="#" data-open-legal="privacy">Datenschutzerklärung</a></span>
+                </label>
+                <div class="ob-account-status" id="ob-account-status"></div>
+                <button type="button" class="ob-account-btn" id="ob-account-btn">Account erstellen</button>
+                <button type="button" class="ob-account-btn ob-login-btn" id="ob-login-btn" hidden>Einloggen</button>
+
+                <button type="button" class="ob-auth-toggle" id="ob-auth-toggle">
+                  Schon registriert? <strong>Einloggen</strong>
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Navigation -->
+      <div class="ob-nav" id="ob-nav">
+        <button type="button" class="ob-nav-back" id="ob-nav-back" hidden>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+        </button>
+        <button type="button" class="ob-nav-next" id="ob-nav-next">
+          <span>Weiter</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>

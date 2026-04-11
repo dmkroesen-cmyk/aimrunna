@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>peak.athlete · Core Preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="core.css" />
+</head>
+<body>
+
+<div class="app-root">
+
+  <!-- App Bar -->
+  <header class="app-bar" role="banner">
+    <div class="app-bar__brand">peak<b>.</b>athlete</div>
+    <div class="app-bar__actions">
+      <button class="app-bar__icon" aria-label="Benachrichtigungen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      </button>
+      <button class="app-bar__icon" aria-label="Profil">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Screen Stack -->
+  <main class="app-main">
+
+    <!-- ============ HEUTE ============ -->
+    <section class="app-screen heute" data-screen="heute">
+
+      <!-- Greeting -->
+      <div class="heute__greeting">
+        <div class="heute__hello">Guten Morgen, Daniel</div>
+        <div class="heute__date">Freitag · 10. April</div>
+      </div>
+
+      <!-- Readiness Hero -->
+      <div class="heute__readiness">
+        <div class="ring" role="img" aria-label="Readiness 82 von 100">
+          <svg class="ring__svg" viewBox="0 0 160 160">
+            <defs>
+              <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#D4850F"/>
+                <stop offset="1" stop-color="#B8720D"/>
+              </linearGradient>
+            </defs>
+            <circle class="ring__track" cx="80" cy="80" r="70"/>
+            <circle class="ring__arc"   cx="80" cy="80" r="70"
+                    stroke-dasharray="439.8"
+                    stroke-dashoffset="79.2"/>
+          </svg>
+          <div class="ring__center">
+            <div class="ring__num">82</div>
+            <div class="ring__label">Readiness</div>
+          </div>
+        </div>
+        <div class="heute__readiness-interp">Bereit für Qualität</div>
+        <div class="heute__readiness-why">HRV über Baseline, Schlaf gut, Form +5 — dein Körper ist für Intervalle bereit.</div>
+      </div>
+
+      <!-- Context Stats (Enduco three-pill row) -->
+      <div class="stat-row">
+        <div class="stat stat--up">
+          <div class="stat__label">HRV</div>
+          <div class="stat__value">54</div>
+          <div class="stat__sub">+3 vs 7d</div>
+        </div>
+        <div class="stat">
+          <div class="stat__label">Schlaf</div>
+          <div class="stat__value">7:42</div>
+          <div class="stat__sub">88 % Score</div>
+        </div>
+        <div class="stat stat--up">
+          <div class="stat__label">Form</div>
+          <div class="stat__value">+5</div>
+          <div class="stat__sub">TSB</div>
+        </div>
+      </div>
+
+      <!-- Today's Session — the decision -->
+      <div class="section-label">
+        <span>Heute</span>
+        <span class="badge badge--key">Key Session</span>
+      </div>
+      <div class="card card--elev heute__session">
+        <div class="heute__session-head">
+          <div>
+            <div class="heute__session-title">Intervall · 4×1000 m</div>
+          </div>
+        </div>
+        <div class="heute__session-meta">
+          <span>10 km</span>
+          <span>48 min</span>
+          <span>TSS 72</span>
+          <span>Z4</span>
+        </div>
+
+        <div class="intensity" aria-hidden="true">
+          <div class="intensity__seg intensity__seg--z1" style="flex:2"></div>
+          <div class="intensity__seg intensity__seg--z4" style="flex:1"></div>
+          <div class="intensity__seg intensity__seg--z1" style="flex:.6"></div>
+          <div class="intensity__seg intensity__seg--z4" style="flex:1"></div>
+          <div class="intensity__seg intensity__seg--z1" style="flex:.6"></div>
+          <div class="intensity__seg intensity__seg--z4" style="flex:1"></div>
+          <div class="intensity__seg intensity__seg--z1" style="flex:.6"></div>
+          <div class="intensity__seg intensity__seg--z4" style="flex:1"></div>
+          <div class="intensity__seg intensity__seg--z1" style="flex:2"></div>
+        </div>
+        <div class="intensity__legend">
+          <span>WU 15′</span>
+          <span>4 × (1000 m Z4 / 400 m Z1)</span>
+          <span>CD 10′</span>
+        </div>
+
+        <details class="accordion">
+          <summary class="accordion__summary">Warum heute?</summary>
+          <div class="accordion__body">
+            Deine Form (TSB +5) ist im Bereich für Qualität. Der letzte harte Tag liegt 72 h zurück, HRV ist stabil über Baseline, Schlaf gut. Ideal für eine VO₂-Einheit im Aufbau zum Halbmarathon in 9 Wochen.
+          </div>
+        </details>
+
+        <div class="heute__session-actions">
+          <button class="cta cta--block">Einheit starten</button>
+          <button class="cta cta--ghost cta--sm" aria-label="Einheit verschieben">Später</button>
+        </div>
+      </div>
+
+      <!-- Tomorrow preview -->
+      <div class="section-label"><span>Morgen</span></div>
+      <div class="heute__tomorrow">
+        <div>
+          <div class="heute__tomorrow-label">Samstag</div>
+          <div class="heute__tomorrow-value">Regenerativ · 45′ Z1</div>
+        </div>
+        <div class="heute__tomorrow-sub">5 km</div>
+      </div>
+
+      <!-- Week strip -->
+      <div class="section-label"><span>Diese Woche</span><span class="muted t-xs">12 / 18 h</span></div>
+      <div class="card card--flat">
+        <div class="week-strip" style="padding:4px 0">
+          <div class="week-strip__day"><div class="week-strip__dow">M</div><div class="week-strip__dot" data-state="done"></div></div>
+          <div class="week-strip__day"><div class="week-strip__dow">D</div><div class="week-strip__dot" data-state="rest"></div></div>
+          <div class="week-strip__day"><div class="week-strip__dow">M</div><div class="week-strip__dot" data-state="done"></div></div>
+          <div class="week-strip__day"><div class="week-strip__dow">D</div><div class="week-strip__dot" data-state="rest"></div></div>
+          <div class="week-strip__day" data-today="true"><div class="week-strip__dow">F</div><div class="week-strip__dot" data-state="key"></div></div>
+          <div class="week-strip__day"><div class="week-strip__dow">S</div><div class="week-strip__dot" data-state="plan"></div></div>
+          <div class="week-strip__day"><div class="week-strip__dow">S</div><div class="week-strip__dot" data-state="plan"></div></div>
+        </div>
+      </div>
+
+      <!-- Quick Log (visible after session) -->
+      <div class="section-label"><span>Nach der Einheit</span></div>
+      <div class="heute__quicklog">
+        <div class="heute__quicklog-head">
+          <div class="heute__quicklog-title">Wie war's?</div>
+          <div class="pill pill--brand">sRPE 7</div>
+        </div>
+        <div class="heute__feel">
+          <button class="heute__feel-btn" aria-label="sehr schlecht">😫</button>
+          <button class="heute__feel-btn" aria-label="schlecht">😕</button>
+          <button class="heute__feel-btn" aria-label="neutral">😐</button>
+          <button class="heute__feel-btn" aria-pressed="true" aria-label="gut">🙂</button>
+          <button class="heute__feel-btn" aria-label="top">😎</button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Placeholders -->
+    <section class="app-screen" data-screen="kalender" hidden>
+      <div class="app-screen__placeholder">Kalender · folgt</div>
+    </section>
+    <section class="app-screen" data-screen="analyse" hidden>
+      <div class="app-screen__placeholder">Analyse · folgt</div>
+    </section>
+    <section class="app-screen" data-screen="profil" hidden>
+      <div class="app-screen__placeholder">Profil · folgt</div>
+    </section>
+
+  </main>
+
+  <!-- Bottom Tab Bar -->
+  <nav class="tab-bar" aria-label="Hauptnavigation">
+    <button class="tab-bar__btn" aria-current="page" data-target="heute">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      Heute
+    </button>
+    <button class="tab-bar__btn" data-target="kalender">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      Kalender
+    </button>
+    <div class="tab-bar__fab-slot">
+      <button class="tab-bar__fab" aria-label="peak.plan öffnen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18l6-6 4 4 8-9"/><path d="M14 7h7v7"/></svg>
+      </button>
+      <div class="tab-bar__fab-label">peak.plan</div>
+    </div>
+    <button class="tab-bar__btn" data-target="analyse">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 4 4 5-6"/></svg>
+      Analyse
+    </button>
+    <button class="tab-bar__btn" data-target="profil">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg>
+      Profil
+    </button>
+  </nav>
+
+</div>
+
+<script>
+  // Minimaler Screen-Switcher (nur für Preview)
+  document.querySelectorAll(".tab-bar__btn[data-target]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const target = btn.dataset.target;
+      document.querySelectorAll(".app-screen").forEach(s => {
+        s.hidden = s.dataset.screen !== target;
+      });
+      document.querySelectorAll(".tab-bar__btn").forEach(b => b.removeAttribute("aria-current"));
+      btn.setAttribute("aria-current","page");
+    });
+  });
+</script>
+
+</body>
+</html>
